@@ -24,31 +24,72 @@ export const usePdfDownload = () => {
         // Reset position for header
         const headerYPos = 15;
         
-        // Company branding with consistent styling
-        pdf.setFontSize(18);
-        pdf.setFont('helvetica', 'bold');
-        pdf.setTextColor(37, 99, 235); // Professional blue
-        pdf.text('FutureBridge', margin, headerYPos + 8);
+        // Add logo image
+        try {
+          const logoPath = '/lovable-uploads/3eef3d0d-75a9-46a2-9c43-12a8251e55b6.png';
+          pdf.addImage(logoPath, 'PNG', margin, headerYPos, 30, 20);
+        } catch (error) {
+          console.error('Error adding logo:', error);
+          // Fallback to text if image fails
+          pdf.setFontSize(18);
+          pdf.setFont('helvetica', 'bold');
+          pdf.setTextColor(37, 99, 235);
+          pdf.text('FutureBridge', margin, headerYPos + 8);
+        }
         
         // Report title
         pdf.setFontSize(14);
         pdf.setFont('helvetica', 'bold');
         pdf.setTextColor(31, 41, 55);
-        pdf.text('College Recommendations Report', margin + 90, headerYPos + 8);
+        pdf.text('College Recommendations Report', margin + 40, headerYPos + 8);
         
-      
+
         // Header separator line
         pdf.setDrawColor(229, 231, 235);
         pdf.setLineWidth(0.5);
-        pdf.line(margin, headerYPos + 15, pageWidth - margin, headerYPos + 15);
+        pdf.line(margin, headerYPos + 25, pageWidth - margin, headerYPos + 25);
         
-        return headerYPos + 25; // Return Y position after header
+        return headerYPos + 35; // Return Y position after header
       };
       
       // Add header to first page
       yPosition = addHeader(1);
       
-      // Executive Summary Section (only on first page)
+      // User Details Section
+      pdf.setFontSize(14);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(31, 41, 55);
+      pdf.text('Student Details', margin, yPosition);
+      
+      yPosition += 8;
+      
+      // User details box
+      const userDetailsHeight = 30;
+      pdf.setFillColor(249, 250, 251);
+      pdf.setDrawColor(229, 231, 235);
+      pdf.rect(margin, yPosition, contentWidth, userDetailsHeight, 'FD');
+      
+      pdf.setFontSize(10);
+      pdf.setFont('helvetica', 'normal');
+      pdf.setTextColor(55, 65, 81);
+      
+      yPosition += 8;
+      
+      // Extract user details from formData
+      const userName = formData?.personalInfo?.name || 'Student Name';
+      const category = formData?.personalInfo?.category || formData?.academicMarks?.reservationCategory || 'Not specified';
+      const branches = formData?.preferences?.engineeringBranches?.slice(0, 3)?.join(', ') || 'Not specified';
+      const cetCutoff = formData?.examPercentiles?.CET || formData?.academicMarks?.CET || 'Not specified';
+      
+      // Display user details
+      pdf.text(`Name: ${userName}`, margin + 5, yPosition);
+      pdf.text(`Category: ${category}`, margin + 5, yPosition + 6);
+      pdf.text(`Preferred Branches: ${branches}`, margin + 5, yPosition + 12);
+      pdf.text(`CET Percentile: ${cetCutoff}`, margin + 5, yPosition + 18);
+      
+      yPosition += 35;
+      
+      // Category Breakdown Section
       pdf.setFontSize(14);
       pdf.setFont('helvetica', 'bold');
       pdf.setTextColor(31, 41, 55);
