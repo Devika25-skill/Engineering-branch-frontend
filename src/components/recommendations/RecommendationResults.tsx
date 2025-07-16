@@ -438,7 +438,7 @@ export const RecommendationResults = ({
           </div>
 
           {/* Category Filter */}
-          <CategoryFilter
+          {/* <CategoryFilter
             activeCategory={activeCategory}
             onCategoryChange={setActiveCategory}
             categoryStats={{
@@ -447,7 +447,7 @@ export const RecommendationResults = ({
               Match: recommendations?.filter(r => r.category === 'Match').length || 0,
               Safety: recommendations?.filter(r => r.category === 'Safety').length || 0,
             }}
-          />
+          /> */}
 
           {/* Results List */}
           {categorizedRecommendations.length > 0 ? (

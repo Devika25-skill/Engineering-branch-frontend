@@ -30,36 +30,19 @@ export const usePdfDownload = () => {
         pdf.setTextColor(37, 99, 235); // Professional blue
         pdf.text('FutureBridge', margin, headerYPos + 8);
         
-        // Powered by text
-        pdf.setFontSize(10);
-        pdf.setFont('helvetica', 'normal');
-        pdf.setTextColor(107, 114, 128);
-        pdf.text('powered by SkillJourney', margin + 65, headerYPos + 8);
-        
-        // Website
-        pdf.setFontSize(9);
-        pdf.setFont('helvetica', 'normal');
-        pdf.setTextColor(107, 114, 128);
-        pdf.text('futurebridge.skilljourney.in', margin, headerYPos + 18);
-        
         // Report title
         pdf.setFontSize(14);
         pdf.setFont('helvetica', 'bold');
         pdf.setTextColor(31, 41, 55);
         pdf.text('College Recommendations Report', margin + 90, headerYPos + 8);
         
-        // Date on the right
-        pdf.setFontSize(10);
-        pdf.setFont('helvetica', 'normal');
-        pdf.setTextColor(107, 114, 128);
-        pdf.text(`Generated: ${new Date().toLocaleDateString('en-IN')}`, pageWidth - margin, headerYPos + 8, { align: 'right' });
-        
+      
         // Header separator line
         pdf.setDrawColor(229, 231, 235);
         pdf.setLineWidth(0.5);
-        pdf.line(margin, headerYPos + 25, pageWidth - margin, headerYPos + 25);
+        pdf.line(margin, headerYPos + 15, pageWidth - margin, headerYPos + 15);
         
-        return headerYPos + 35; // Return Y position after header
+        return headerYPos + 25; // Return Y position after header
       };
       
       // Add header to first page
@@ -69,7 +52,7 @@ export const usePdfDownload = () => {
       pdf.setFontSize(14);
       pdf.setFont('helvetica', 'bold');
       pdf.setTextColor(31, 41, 55);
-      pdf.text('Executive Summary', margin, yPosition);
+      pdf.text('Category Breakdown', margin, yPosition);
       
       yPosition += 8;
       
@@ -82,19 +65,7 @@ export const usePdfDownload = () => {
       pdf.setFontSize(10);
       pdf.setFont('helvetica', 'normal');
       pdf.setTextColor(55, 65, 81);
-      
-      const summaryLines = [
-        `Total Colleges Found: ${recommendations.length}`,
-        `CET Percentile: ${formData?.cetPercentile || 'N/A'}%`,
-        `Category: ${formData?.reservationCategory || 'General'}`,
-        `Budget Range: Up to ₹${formData?.maxBudget?.toLocaleString('en-IN') || 'No limit'}`
-      ];
-      
-      summaryLines.forEach((line, index) => {
-        pdf.text(line, margin + 5, yPosition + 8 + (index * 5));
-      });
-      
-      yPosition += summaryHeight + 15;
+  
       
       // Category breakdown (only on first page)
       const categoryStats = {
@@ -103,11 +74,6 @@ export const usePdfDownload = () => {
         Match: recommendations.filter(r => r.category === 'Match').length,
         Safety: recommendations.filter(r => r.category === 'Safety').length,
       };
-      
-      pdf.setFontSize(12);
-      pdf.setFont('helvetica', 'bold');
-      pdf.setTextColor(31, 41, 55);
-      pdf.text('Category Breakdown', margin, yPosition);
       
       yPosition += 8;
       
@@ -129,7 +95,7 @@ export const usePdfDownload = () => {
         pdf.text(count, margin + 80, rowY);
       });
       
-      yPosition += 25;
+      yPosition += 35;
       
       // Detailed Recommendations
       pdf.setFontSize(14);
@@ -154,7 +120,7 @@ export const usePdfDownload = () => {
       
       let globalIndex = 1;
       let collegesOnCurrentPage = 0;
-      const maxCollegesPerPage = 9;
+      const maxCollegesPerPage = 12;
       
       sortedRecommendations.forEach((rec) => {
         // Check if we need a new page (after header space and max 9 colleges per page)
@@ -192,7 +158,7 @@ export const usePdfDownload = () => {
         pdf.setFont('helvetica', 'normal');
         pdf.setTextColor(107, 114, 128);
         const courseText = rec.course_name || 'Course not specified';
-        pdf.text(courseText, margin + 15, yPosition + 14);
+        pdf.text(pdf.splitTextToSize(courseText, maxNameWidth)[0], margin + 15, yPosition + 14);
         
         // Location
         pdf.setFontSize(9);
