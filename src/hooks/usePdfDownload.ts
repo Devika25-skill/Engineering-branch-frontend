@@ -75,17 +75,21 @@ export const usePdfDownload = () => {
       
       yPosition += 8;
       
-      // Extract user details from formData
+      
+      // Extract user details from session storage
+      const sessionData = JSON.parse(sessionStorage.getItem('recommendationFormData') || '{}');
       const userName = formData?.personalInfo?.name || 'Student Name';
-      const category = formData?.personalInfo?.category || formData?.academicMarks?.reservationCategory || 'Not specified';
-      const branches = formData?.preferences?.engineeringBranches?.slice(0, 3)?.join(', ') || 'Not specified';
-      const cetCutoff = formData?.examPercentiles?.CET || formData?.academicMarks?.CET || 'Not specified';
+      const category = sessionData.reservationCategory || 'Not specified';
+      const branches = sessionData.preferredStreams?.slice(0, 3)?.join(', ') || 'Not specified';
+      const cetCutoff = sessionData.cetPercentile || 'Not specified';
+      const locations = sessionData.preferredCities?.slice(0, 3)?.join(', ') || 'Not specified';
       
       // Display user details
       pdf.text(`Name: ${userName}`, margin + 5, yPosition);
       pdf.text(`Category: ${category}`, margin + 5, yPosition + 6);
       pdf.text(`Preferred Branches: ${branches}`, margin + 5, yPosition + 12);
-      pdf.text(`CET Percentile: ${cetCutoff}`, margin + 5, yPosition + 18);
+      pdf.text(`Preferred Locations: ${locations}`, margin + 5, yPosition + 18);
+      pdf.text(`CET Percentile: ${cetCutoff}`, margin + 150, yPosition + 6);
       
       yPosition += 35;
       
