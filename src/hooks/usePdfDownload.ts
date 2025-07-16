@@ -22,7 +22,7 @@ export const usePdfDownload = () => {
       // Function to add header with logo to each page
       const addHeader = (pageNum: number = 1) => {
         // Reset position for header
-        const headerYPos = 15;
+        const headerYPos = 10;
         
         // Add logo image
         try {
@@ -41,7 +41,7 @@ export const usePdfDownload = () => {
         pdf.setFontSize(14);
         pdf.setFont('helvetica', 'bold');
         pdf.setTextColor(31, 41, 55);
-        pdf.text('College Recommendations Report', pageWidth - margin, headerYPos + 8, { align: 'right' });
+        pdf.text('College Recommendations Report', pageWidth - margin, headerYPos + 20, { align: 'right' });
         
 
         // Header separator line
@@ -64,7 +64,7 @@ export const usePdfDownload = () => {
       yPosition += 8;
       
       // User details box
-      const userDetailsHeight = 30;
+      const userDetailsHeight = 35;
       pdf.setFillColor(249, 250, 251);
       pdf.setDrawColor(229, 231, 235);
       pdf.rect(margin, yPosition, contentWidth, userDetailsHeight, 'FD');
@@ -90,7 +90,7 @@ export const usePdfDownload = () => {
       pdf.text(`Category: ${category}`, margin + 5, yPosition + 6);
       pdf.text(`Preferred Branches: ${branches}`, margin + 5, yPosition + 12);
       pdf.text(`Preferred Locations: ${locations}`, margin + 5, yPosition + 18);
-      pdf.text(`CET Percentile: ${cetCutoff}`, margin + 150, yPosition + 6);
+      pdf.text(`CET Percentile: ${cetCutoff}`, margin + 5, yPosition + 24);
       
       yPosition += 35;
       
