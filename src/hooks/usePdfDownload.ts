@@ -24,46 +24,42 @@ export const usePdfDownload = () => {
         // Reset position for header
         const headerYPos = 15;
         
-        // Add logo image
-        try {
-          // Create a canvas to load the logo
-          const canvas = document.createElement('canvas');
-          const ctx = canvas.getContext('2d');
-          const img = new Image();
-          
-          img.onload = () => {
-            canvas.width = img.width;
-            canvas.height = img.height;
-            ctx?.drawImage(img, 0, 0);
-            const imgData = canvas.toDataURL('image/png');
-            pdf.addImage(imgData, 'PNG', margin, headerYPos, 30, 15);
-          };
-          
-          img.src = '/src/assets/futurebridge-logo.png';
-        } catch (error) {
-          // Fallback to text logo if image fails
-          pdf.setFontSize(16);
-          pdf.setFont('helvetica', 'bold');
-          pdf.setTextColor(128, 57, 200); // Purple color
-          pdf.text('FutureBridge', margin, headerYPos + 8);
-        }
+        // Company branding with consistent styling
+        pdf.setFontSize(18);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setTextColor(37, 99, 235); // Professional blue
+        pdf.text('FutureBridge', margin, headerYPos + 8);
+        
+        // Powered by text
+        pdf.setFontSize(10);
+        pdf.setFont('helvetica', 'normal');
+        pdf.setTextColor(107, 114, 128);
+        pdf.text('powered by SkillJourney', margin + 65, headerYPos + 8);
+        
+        // Website
+        pdf.setFontSize(9);
+        pdf.setFont('helvetica', 'normal');
+        pdf.setTextColor(107, 114, 128);
+        pdf.text('futurebridge.skilljourney.in', margin, headerYPos + 18);
         
         // Report title
         pdf.setFontSize(14);
         pdf.setFont('helvetica', 'bold');
-        pdf.setTextColor(51, 65, 85);
-        pdf.text('College Recommendations Report', margin + 35, headerYPos + 8);
+        pdf.setTextColor(31, 41, 55);
+        pdf.text('College Recommendations Report', margin + 90, headerYPos + 8);
         
         // Date on the right
         pdf.setFontSize(10);
-        pdf.setTextColor(100, 116, 139);
+        pdf.setFont('helvetica', 'normal');
+        pdf.setTextColor(107, 114, 128);
         pdf.text(`Generated: ${new Date().toLocaleDateString('en-IN')}`, pageWidth - margin, headerYPos + 8, { align: 'right' });
         
         // Header separator line
-        pdf.setDrawColor(226, 232, 240);
-        pdf.line(margin, headerYPos + 20, pageWidth - margin, headerYPos + 20);
+        pdf.setDrawColor(229, 231, 235);
+        pdf.setLineWidth(0.5);
+        pdf.line(margin, headerYPos + 25, pageWidth - margin, headerYPos + 25);
         
-        return headerYPos + 28; // Return Y position after header
+        return headerYPos + 35; // Return Y position after header
       };
       
       // Add header to first page
@@ -72,20 +68,20 @@ export const usePdfDownload = () => {
       // Executive Summary Section (only on first page)
       pdf.setFontSize(14);
       pdf.setFont('helvetica', 'bold');
-      pdf.setTextColor(30, 41, 59);
+      pdf.setTextColor(31, 41, 55);
       pdf.text('Executive Summary', margin, yPosition);
       
       yPosition += 8;
       
       // Summary box with background
       const summaryHeight = 32;
-      pdf.setFillColor(248, 250, 252);
-      pdf.setDrawColor(226, 232, 240);
+      pdf.setFillColor(249, 250, 251);
+      pdf.setDrawColor(229, 231, 235);
       pdf.rect(margin, yPosition, contentWidth, summaryHeight, 'FD');
       
       pdf.setFontSize(10);
       pdf.setFont('helvetica', 'normal');
-      pdf.setTextColor(51, 65, 85);
+      pdf.setTextColor(55, 65, 81);
       
       const summaryLines = [
         `Total Colleges Found: ${recommendations.length}`,
@@ -110,7 +106,7 @@ export const usePdfDownload = () => {
       
       pdf.setFontSize(12);
       pdf.setFont('helvetica', 'bold');
-      pdf.setTextColor(30, 41, 59);
+      pdf.setTextColor(31, 41, 55);
       pdf.text('Category Breakdown', margin, yPosition);
       
       yPosition += 8;
@@ -118,7 +114,7 @@ export const usePdfDownload = () => {
       // Category stats in a professional table format
       pdf.setFontSize(9);
       pdf.setFont('helvetica', 'normal');
-      pdf.setTextColor(51, 65, 85);
+      pdf.setTextColor(55, 65, 81);
       
       const categoryData = [
         ['Dream Colleges', categoryStats.Dream.toString()],
@@ -138,7 +134,7 @@ export const usePdfDownload = () => {
       // Detailed Recommendations
       pdf.setFontSize(14);
       pdf.setFont('helvetica', 'bold');
-      pdf.setTextColor(30, 41, 59);
+      pdf.setTextColor(31, 41, 55);
       pdf.text('College Recommendations', margin, yPosition);
       
       yPosition += 12;
@@ -173,19 +169,19 @@ export const usePdfDownload = () => {
         
         // Entry background with subtle border
         pdf.setFillColor(249, 250, 251);
-        pdf.setDrawColor(226, 232, 240);
+        pdf.setDrawColor(229, 231, 235);
         pdf.rect(margin, yPosition, contentWidth, entryHeight, 'FD');
         
         // Serial number
         pdf.setFontSize(10);
         pdf.setFont('helvetica', 'bold');
-        pdf.setTextColor(59, 130, 246);
+        pdf.setTextColor(37, 99, 235);
         pdf.text(`${globalIndex}.`, margin + 5, yPosition + 8);
         
         // College name - clean, professional
         pdf.setFontSize(11);
         pdf.setFont('helvetica', 'bold');
-        pdf.setTextColor(30, 41, 59);
+        pdf.setTextColor(31, 41, 55);
         const collegeName = rec.college.name || 'Unknown College';
         const maxNameWidth = 100;
         const nameLines = pdf.splitTextToSize(collegeName, maxNameWidth);
@@ -194,13 +190,13 @@ export const usePdfDownload = () => {
         // Course info on second line
         pdf.setFontSize(9);
         pdf.setFont('helvetica', 'normal');
-        pdf.setTextColor(100, 116, 139);
+        pdf.setTextColor(107, 114, 128);
         const courseText = rec.course_name || 'Course not specified';
         pdf.text(courseText, margin + 15, yPosition + 14);
         
         // Location
         pdf.setFontSize(9);
-        pdf.setTextColor(100, 116, 139);
+        pdf.setTextColor(107, 114, 128);
         const location = rec.college.city || 'Location not specified';
         pdf.text(location, margin + 15, yPosition + 19);
         
@@ -245,14 +241,16 @@ export const usePdfDownload = () => {
         pdf.setPage(i);
         
         // Footer line
-        pdf.setDrawColor(226, 232, 240);
+        pdf.setDrawColor(229, 231, 235);
+        pdf.setLineWidth(0.5);
         pdf.line(margin, pageHeight - 15, pageWidth - margin, pageHeight - 15);
         
         pdf.setFontSize(8);
-        pdf.setTextColor(148, 163, 184);
+        pdf.setFont('helvetica', 'normal');
+        pdf.setTextColor(107, 114, 128);
         
         // Left: Company info
-        pdf.text('FutureBridge - Powered by SkillJourney', margin, pageHeight - 8);
+        pdf.text('FutureBridge - Powered by SkillJourney | futurebridge.skilljourney.in', margin, pageHeight - 8);
         
         // Right: Page number
         pdf.text(`Page ${i} of ${totalPages}`, pageWidth - margin, pageHeight - 8, { align: 'right' });
