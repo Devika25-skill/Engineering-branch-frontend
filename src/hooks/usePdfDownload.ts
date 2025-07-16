@@ -41,7 +41,7 @@ export const usePdfDownload = () => {
         pdf.setFontSize(14);
         pdf.setFont('helvetica', 'bold');
         pdf.setTextColor(31, 41, 55);
-        pdf.text('College Recommendations Report', margin + 40, headerYPos + 8);
+        pdf.text('College Recommendations Report', pageWidth - margin, headerYPos + 8, { align: 'right' });
         
 
         // Header separator line
