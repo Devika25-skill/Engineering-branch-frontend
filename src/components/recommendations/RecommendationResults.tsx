@@ -428,10 +428,9 @@ export const RecommendationResults = ({
             <Button
               onClick={handleDownloadPDF}
               disabled={(!isUnlocked && paymentData?.is_payment !== true) || isGenerating}
-              className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg flex items-center gap-2 min-h-[44px] touch-manipulation"
+              className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg min-h-[44px] touch-manipulation"
               aria-label="Download recommendations as PDF"
             >
-              <Download size={18} />
               <span className="text-sm font-medium">
                 {isGenerating ? 'Generating...' : 'Download PDF'}
               </span>
