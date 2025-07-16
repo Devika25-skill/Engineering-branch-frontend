@@ -12,7 +12,6 @@ import { useRecommendation } from "@/hooks/useRecommendation";
 import { FeedbackDialog } from "@/components/feedback/FeedbackDialog";
 import { FeedbackSection } from "@/components/feedback/FeedbackSection";
 import { useFeedbackTimer } from "@/hooks/useFeedbackTimer";
-import { capRecommendationService } from "@/services/capRecommendationService";
 
 const RecommendationResults = () => {
   const [formData, setFormData] = useState<any>(null);
@@ -32,29 +31,21 @@ const RecommendationResults = () => {
   useEffect(() => {
     const loadRecommendations = async () => {
       try {
-        // If user is logged in, try to fetch data from API or cache
-        if (isLoggedIn) {
-          setIsLoading(true);
+        // First try to get cached recommendations
+        const cachedRecommendations = sessionStorage.getItem('cachedRecommendations');
+        const storedFormData = sessionStorage.getItem('recommendationFormData');
+        
+        if (cachedRecommendations && storedFormData) {
+          const parsedRecommendations = JSON.parse(cachedRecommendations);
+          const parsedFormData = JSON.parse(storedFormData);
           
-          const result = await capRecommendationService.checkAndFetchData();
-          
-          if (result.success) {
-            setRecommendations(result.recommendations || []);
-            setFormData(result.formData);
-            setIsLoading(false);
-            return;
-          } else if (result.error === 'NO_DATA') {
-            // No previous data found, redirect to form
-            console.log('📝 No previous data found, redirecting to form');
-            navigate('/recommendations/steps');
-            return;
-          } else {
-            // API error, check if we have form data in storage as fallback
-            console.log('⚠️ API error, checking local storage fallback');
-          }
+          setRecommendations(parsedRecommendations);
+          setFormData(parsedFormData);
+          setIsLoading(false);
+          return;
         }
 
-        // Fallback: check local storage for form data
+        // If no cached data, check if we have form data and should generate
         const formDataFromStorage = recommendationStorage.getFormData();
         if (formDataFromStorage && isLoggedIn) {
           setFormData(formDataFromStorage);
@@ -78,16 +69,15 @@ const RecommendationResults = () => {
           return;
         }
 
-        // No data available, redirect to form
+    
         navigate('/recommendations/steps');
       } catch (error) {
-        console.error('Error loading recommendations:', error);
         navigate('/recommendations/steps');
       }
     };
 
     loadRecommendations();
-  }, [isLoggedIn, generateRecommendation, navigate]);
+  }, []);
 
   if (isLoading || isGenerating) {
     return (
