@@ -258,7 +258,7 @@ export const usePdfDownload = () => {
       // Important Disclaimer Section
       pdf.setFontSize(12);
       pdf.setFont('helvetica', 'bold');
-      pdf.setTextColor(220, 38, 38); // Red color for disclaimer
+      pdf.setTextColor(220, 38, 38);
       pdf.text('Important Disclaimer:', margin, yPosition);
       
       yPosition += 8;
@@ -267,7 +267,7 @@ export const usePdfDownload = () => {
       pdf.setFont('helvetica', 'normal');
       pdf.setTextColor(55, 65, 81);
       const disclaimerText = "These college recommendations are based on previous year's Round 1 cutoffs and your provided information. Please verify all details including current cutoffs, fees, course availability, and admission requirements directly with the respective institutions before submitting your application forms.";
-      const disclaimerLines = pdf.splitTextToSize(disclaimerText, contentWidth);
+      const disclaimerLines = pdf.splitTextToSize(disclaimerText, contentWidth - 10);
       
       // Add background for disclaimer
       const disclaimerHeight = disclaimerLines.length * 4 + 8;
@@ -287,7 +287,7 @@ export const usePdfDownload = () => {
       pdf.setFontSize(12);
       pdf.setFont('helvetica', 'bold');
       pdf.setTextColor(31, 41, 55);
-      pdf.text('📋 Step-by-Step Guide:', margin, yPosition);
+      pdf.text('Step-by-Step Guide:', margin, yPosition);
       
       yPosition += 10;
       
@@ -311,7 +311,7 @@ export const usePdfDownload = () => {
       ];
       
       steps.forEach((step, index) => {
-        if (yPosition > pageHeight - 25) {
+        if (yPosition > pageHeight - 35) {
           pdf.addPage();
           yPosition = addHeader(pdf.getNumberOfPages());
         }
@@ -325,19 +325,22 @@ export const usePdfDownload = () => {
         
         pdf.setFont('helvetica', 'normal');
         pdf.setTextColor(55, 65, 81);
-        const stepLines = pdf.splitTextToSize(step.content, contentWidth);
-        pdf.text(stepLines, margin, yPosition);
+        const stepLines = pdf.splitTextToSize(step.content, contentWidth - 10);
+        pdf.text(stepLines, margin + 5, yPosition);
         
-        yPosition += stepLines.length * 4 + 6;
+        yPosition += stepLines.length * 4 + 8;
       });
       
       // Confidence message
-      if (yPosition > pageHeight - 20) {
+      if (yPosition > pageHeight - 25) {
         pdf.addPage();
         yPosition = addHeader(pdf.getNumberOfPages());
       }
       
-      const confidenceHeight = 15;
+      const confidenceText = "By following this recommended order, you're not just filling a form - you're executing a smart strategy for your engineering future. Go ahead, fill your form with confidence!";
+      const confidenceLines = pdf.splitTextToSize(confidenceText, contentWidth - 10);
+      const confidenceHeight = confidenceLines.length * 4 + 8;
+      
       pdf.setFillColor(220, 252, 231);
       pdf.setDrawColor(187, 247, 208);
       pdf.rect(margin, yPosition, contentWidth, confidenceHeight, 'FD');
@@ -345,7 +348,7 @@ export const usePdfDownload = () => {
       pdf.setFontSize(9);
       pdf.setFont('helvetica', 'bold');
       pdf.setTextColor(22, 163, 74);
-      pdf.text('🎯 By following this recommended order, you\'re not just filling a form – you\'re executing a smart strategy for your engineering future. Go ahead, fill your form with confidence!', margin + 5, yPosition + 8);
+      pdf.text(confidenceLines, margin + 5, yPosition + 6);
       
       yPosition += confidenceHeight + 10;
       
@@ -358,7 +361,7 @@ export const usePdfDownload = () => {
       pdf.setFontSize(12);
       pdf.setFont('helvetica', 'bold');
       pdf.setTextColor(31, 41, 55);
-      pdf.text('📊 Understanding the Categories:', margin, yPosition);
+      pdf.text('Understanding the Categories:', margin, yPosition);
       
       yPosition += 10;
       
@@ -398,38 +401,38 @@ export const usePdfDownload = () => {
       ];
       
       categories.forEach((category, index) => {
-        if (yPosition > pageHeight - 30) {
+        if (yPosition > pageHeight - 35) {
           pdf.addPage();
           yPosition = addHeader(pdf.getNumberOfPages());
         }
         
-        const categoryHeight = 18;
+        const categoryHeight = 25;
         
-        // Category background
+        // Category background for entire row
         pdf.setFillColor(category.bgColor[0], category.bgColor[1], category.bgColor[2]);
         pdf.setDrawColor(category.borderColor[0], category.borderColor[1], category.borderColor[2]);
-        pdf.rect(margin, yPosition, contentWidth / 2 - 5, categoryHeight, 'FD');
+        pdf.rect(margin, yPosition, contentWidth, categoryHeight, 'FD');
         
-        // Category name and chance
+        // Category name and chance in left section
         pdf.setFontSize(10);
         pdf.setFont('helvetica', 'bold');
         pdf.setTextColor(category.color[0], category.color[1], category.color[2]);
         pdf.text(category.name, margin + 5, yPosition + 8);
         
         pdf.setFontSize(8);
-        pdf.text(category.chance, margin + 5, yPosition + 14);
+        pdf.text(category.chance, margin + 5, yPosition + 16);
         
-        // Description
+        // Description in right section
         pdf.setFontSize(8);
         pdf.setFont('helvetica', 'normal');
         pdf.setTextColor(55, 65, 81);
-        const descLines = pdf.splitTextToSize(category.description, contentWidth / 2 - 10);
-        pdf.text(descLines, margin + contentWidth / 2 + 5, yPosition + 6);
+        const descLines = pdf.splitTextToSize(category.description, contentWidth - 90);
+        pdf.text(descLines, margin + 85, yPosition + 6);
         
-        yPosition += Math.max(categoryHeight, descLines.length * 3) + 5;
+        yPosition += categoryHeight + 3;
       });
       
-      yPosition += 10;
+      yPosition += 5;
       
       // Footer with page numbers and branding
       const totalPages = pdf.getNumberOfPages();
