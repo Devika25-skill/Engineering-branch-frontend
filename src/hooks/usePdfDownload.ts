@@ -24,32 +24,46 @@ export const usePdfDownload = () => {
         // Reset position for header
         const headerYPos = 15;
         
-        // Add logo - using a simple blue rectangle as placeholder
-        pdf.setFillColor(41, 98, 255); // Primary blue
-        pdf.rect(margin, headerYPos, 20, 12, 'F'); // Logo placeholder
-        
-        // Company name next to logo
-        pdf.setFontSize(18);
-        pdf.setFont('helvetica', 'bold');
-        pdf.setTextColor(41, 98, 255);
-        pdf.text('SJ Future Bridge', margin + 25, headerYPos + 8);
+        // Add logo image
+        try {
+          // Create a canvas to load the logo
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          const img = new Image();
+          
+          img.onload = () => {
+            canvas.width = img.width;
+            canvas.height = img.height;
+            ctx?.drawImage(img, 0, 0);
+            const imgData = canvas.toDataURL('image/png');
+            pdf.addImage(imgData, 'PNG', margin, headerYPos, 30, 15);
+          };
+          
+          img.src = '/src/assets/futurebridge-logo.png';
+        } catch (error) {
+          // Fallback to text logo if image fails
+          pdf.setFontSize(16);
+          pdf.setFont('helvetica', 'bold');
+          pdf.setTextColor(128, 57, 200); // Purple color
+          pdf.text('FutureBridge', margin, headerYPos + 8);
+        }
         
         // Report title
-        pdf.setFontSize(12);
-        pdf.setFont('helvetica', 'normal');
-        pdf.setTextColor(100, 116, 139);
-        pdf.text('College Recommendations Report', margin + 25, headerYPos + 14);
+        pdf.setFontSize(14);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setTextColor(51, 65, 85);
+        pdf.text('College Recommendations Report', margin + 35, headerYPos + 8);
         
         // Date on the right
         pdf.setFontSize(10);
-        pdf.setTextColor(148, 163, 184);
+        pdf.setTextColor(100, 116, 139);
         pdf.text(`Generated: ${new Date().toLocaleDateString('en-IN')}`, pageWidth - margin, headerYPos + 8, { align: 'right' });
         
         // Header separator line
         pdf.setDrawColor(226, 232, 240);
-        pdf.line(margin, headerYPos + 18, pageWidth - margin, headerYPos + 18);
+        pdf.line(margin, headerYPos + 20, pageWidth - margin, headerYPos + 20);
         
-        return headerYPos + 25; // Return Y position after header
+        return headerYPos + 28; // Return Y position after header
       };
       
       // Add header to first page
@@ -155,7 +169,7 @@ export const usePdfDownload = () => {
         }
         
         // Professional college entry layout
-        const entryHeight = 24;
+        const entryHeight = 20;
         
         // Entry background with subtle border
         pdf.setFillColor(249, 250, 251);
@@ -211,14 +225,6 @@ export const usePdfDownload = () => {
         pdf.setTextColor(probColor[0], probColor[1], probColor[2]);
         pdf.text(`${rec.admission_probability || 0}%`, margin + 125, yPosition + 16);
         
-        // Fees
-        if (rec.college.fees) {
-          pdf.setFontSize(9);
-          pdf.setFont('helvetica', 'normal');
-          pdf.setTextColor(51, 65, 85);
-          const formattedFees = `₹${rec.college.fees.toLocaleString('en-IN')}`;
-          pdf.text(formattedFees, margin + 125, yPosition + 21);
-        }
         
         // Cutoff percentile on the right
         if (rec.cutoff_percentile) {
@@ -246,13 +252,10 @@ export const usePdfDownload = () => {
         pdf.setTextColor(148, 163, 184);
         
         // Left: Company info
-        pdf.text('SJ Future Bridge - Your Path to Success', margin, pageHeight - 8);
+        pdf.text('FutureBridge - Powered by SkillJourney', margin, pageHeight - 8);
         
         // Right: Page number
         pdf.text(`Page ${i} of ${totalPages}`, pageWidth - margin, pageHeight - 8, { align: 'right' });
-        
-        // Center: Website
-        pdf.text('www.sjfuturebridge.com', pageWidth / 2, pageHeight - 8, { align: 'center' });
       }
       
       // Save the PDF
