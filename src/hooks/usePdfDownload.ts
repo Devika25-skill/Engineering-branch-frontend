@@ -247,6 +247,190 @@ export const usePdfDownload = () => {
         collegesOnCurrentPage++;
       });
       
+      // Add disclaimer and guidance sections
+      if (yPosition > pageHeight - 80) {
+        pdf.addPage();
+        yPosition = addHeader(pdf.getNumberOfPages());
+      }
+      
+      yPosition += 10;
+      
+      // Important Disclaimer Section
+      pdf.setFontSize(12);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(220, 38, 38); // Red color for disclaimer
+      pdf.text('Important Disclaimer:', margin, yPosition);
+      
+      yPosition += 8;
+      
+      pdf.setFontSize(9);
+      pdf.setFont('helvetica', 'normal');
+      pdf.setTextColor(55, 65, 81);
+      const disclaimerText = "These college recommendations are based on previous year's Round 1 cutoffs and your provided information. Please verify all details including current cutoffs, fees, course availability, and admission requirements directly with the respective institutions before submitting your application forms.";
+      const disclaimerLines = pdf.splitTextToSize(disclaimerText, contentWidth);
+      
+      // Add background for disclaimer
+      const disclaimerHeight = disclaimerLines.length * 4 + 8;
+      pdf.setFillColor(254, 242, 242);
+      pdf.setDrawColor(254, 202, 202);
+      pdf.rect(margin, yPosition - 2, contentWidth, disclaimerHeight, 'FD');
+      
+      pdf.text(disclaimerLines, margin + 5, yPosition + 4);
+      yPosition += disclaimerHeight + 8;
+      
+      // Step-by-Step Guide Section
+      if (yPosition > pageHeight - 100) {
+        pdf.addPage();
+        yPosition = addHeader(pdf.getNumberOfPages());
+      }
+      
+      pdf.setFontSize(12);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(31, 41, 55);
+      pdf.text('📋 Step-by-Step Guide:', margin, yPosition);
+      
+      yPosition += 10;
+      
+      const steps = [
+        {
+          title: '1. Follow the Order, Top to Bottom:',
+          content: 'Simply copy the colleges and branches exactly as they appear on this list, from top to bottom, into your official CAP application form.'
+        },
+        {
+          title: '2. Dream & Reach First:',
+          content: 'The colleges at the top of this list are your "Dream" and "Reach" options. While your score may not match the last year cut-offs of these colleges, placing them first gives you the best opportunity to get into your most desired or highest-ranked institutions in case a position opens up in subsequent rounds.'
+        },
+        {
+          title: '3. Match & Safety Next:',
+          content: 'The "Match" and "Safety" colleges are next. These are also sequenced based on your chances to get into the best college out of these. These options are strategically placed to ensure that even if you don\'t make it into top choices in Dream or Reach, you\'ll secure admission to the best possible college that fits your profile.'
+        },
+        {
+          title: '4. No Guesswork, No Mistakes:',
+          content: 'This optimized sequence eliminates common errors and guesswork, ensuring you leverage every opportunity without missing out on a valuable seat.'
+        }
+      ];
+      
+      steps.forEach((step, index) => {
+        if (yPosition > pageHeight - 25) {
+          pdf.addPage();
+          yPosition = addHeader(pdf.getNumberOfPages());
+        }
+        
+        pdf.setFontSize(9);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setTextColor(31, 41, 55);
+        pdf.text(step.title, margin, yPosition);
+        
+        yPosition += 6;
+        
+        pdf.setFont('helvetica', 'normal');
+        pdf.setTextColor(55, 65, 81);
+        const stepLines = pdf.splitTextToSize(step.content, contentWidth);
+        pdf.text(stepLines, margin, yPosition);
+        
+        yPosition += stepLines.length * 4 + 6;
+      });
+      
+      // Confidence message
+      if (yPosition > pageHeight - 20) {
+        pdf.addPage();
+        yPosition = addHeader(pdf.getNumberOfPages());
+      }
+      
+      const confidenceHeight = 15;
+      pdf.setFillColor(220, 252, 231);
+      pdf.setDrawColor(187, 247, 208);
+      pdf.rect(margin, yPosition, contentWidth, confidenceHeight, 'FD');
+      
+      pdf.setFontSize(9);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(22, 163, 74);
+      pdf.text('🎯 By following this recommended order, you\'re not just filling a form – you\'re executing a smart strategy for your engineering future. Go ahead, fill your form with confidence!', margin + 5, yPosition + 8);
+      
+      yPosition += confidenceHeight + 10;
+      
+      // Understanding Categories Section
+      if (yPosition > pageHeight - 80) {
+        pdf.addPage();
+        yPosition = addHeader(pdf.getNumberOfPages());
+      }
+      
+      pdf.setFontSize(12);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(31, 41, 55);
+      pdf.text('📊 Understanding the Categories:', margin, yPosition);
+      
+      yPosition += 10;
+      
+      const categories = [
+        {
+          name: 'Dream Colleges',
+          chance: '<50% chance',
+          color: [147, 51, 234],
+          bgColor: [250, 245, 255],
+          borderColor: [196, 181, 253],
+          description: 'These are colleges that perfectly align with your preferences but your percentile is below their typical cut-off. Challenging but worth including for your highest aspirations.'
+        },
+        {
+          name: 'Reach Colleges',
+          chance: '50-70% chance',
+          color: [234, 88, 12],
+          bgColor: [255, 247, 237],
+          borderColor: [254, 215, 170],
+          description: 'Ambitious but within grasp. Your percentile is close to their cut-off. You have a solid chance with these excellent options.'
+        },
+        {
+          name: 'Match Colleges',
+          chance: '75-90% chance',
+          color: [34, 197, 94],
+          bgColor: [240, 253, 244],
+          borderColor: [187, 247, 208],
+          description: 'Great fit for your profile. Your percentile is comfortably within their range. Very strong likelihood of admission.'
+        },
+        {
+          name: 'Safety Colleges',
+          chance: '>90% chance',
+          color: [59, 130, 246],
+          bgColor: [239, 246, 255],
+          borderColor: [191, 219, 254],
+          description: 'Highly probable admission. Your percentile is well above their cut-off. These provide peace of mind and guaranteed admission.'
+        }
+      ];
+      
+      categories.forEach((category, index) => {
+        if (yPosition > pageHeight - 30) {
+          pdf.addPage();
+          yPosition = addHeader(pdf.getNumberOfPages());
+        }
+        
+        const categoryHeight = 18;
+        
+        // Category background
+        pdf.setFillColor(category.bgColor[0], category.bgColor[1], category.bgColor[2]);
+        pdf.setDrawColor(category.borderColor[0], category.borderColor[1], category.borderColor[2]);
+        pdf.rect(margin, yPosition, contentWidth / 2 - 5, categoryHeight, 'FD');
+        
+        // Category name and chance
+        pdf.setFontSize(10);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setTextColor(category.color[0], category.color[1], category.color[2]);
+        pdf.text(category.name, margin + 5, yPosition + 8);
+        
+        pdf.setFontSize(8);
+        pdf.text(category.chance, margin + 5, yPosition + 14);
+        
+        // Description
+        pdf.setFontSize(8);
+        pdf.setFont('helvetica', 'normal');
+        pdf.setTextColor(55, 65, 81);
+        const descLines = pdf.splitTextToSize(category.description, contentWidth / 2 - 10);
+        pdf.text(descLines, margin + contentWidth / 2 + 5, yPosition + 6);
+        
+        yPosition += Math.max(categoryHeight, descLines.length * 3) + 5;
+      });
+      
+      yPosition += 10;
+      
       // Footer with page numbers and branding
       const totalPages = pdf.getNumberOfPages();
       for (let i = 1; i <= totalPages; i++) {
