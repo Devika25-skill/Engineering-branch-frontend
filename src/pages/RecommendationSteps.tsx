@@ -17,6 +17,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { History, X } from 'lucide-react';
 import StepLoadingMessages from '@/components/recommendations/StepLoadingMessages';
+import { capRecommendationService } from "@/services/capRecommendationService";
 
 interface FormData {
   tenthMarks?: number;
@@ -61,14 +62,44 @@ const RecommendationSteps = () => {
 
   const totalSteps = 3;
 
-  // Load saved form data on mount
+  // Load saved form data on mount and check for existing API data
   useEffect(() => {
-    const savedFormData = recommendationStorage.getFormData();
-    if (savedFormData) {
-      setFormData(prev => ({ ...prev, ...savedFormData }));
-    
-    }
-  }, []);
+    const loadInitialData = async () => {
+      // First, try to load from local storage
+      const savedFormData = recommendationStorage.getFormData();
+      if (savedFormData) {
+        setFormData(prev => ({ ...prev, ...savedFormData }));
+      }
+
+      // If user is logged in, check for existing API data
+      if (isLoggedIn) {
+        try {
+          const result = await capRecommendationService.checkAndFetchData();
+          
+          if (result.success && result.formData) {
+            // If we found data from API, use it and potentially redirect
+            setFormData(prev => ({ ...prev, ...result.formData }));
+            
+            // If we have complete data and recommendations, redirect to results
+            if (result.recommendations && result.recommendations.length > 0) {
+              navigate('/recommendations/results');
+            } else {
+              // We have form data but no recommendations, stay on form to complete/update
+              toast({
+                title: "Previous Data Loaded",
+                description: "Your previous form data has been loaded. You can review or update it.",
+              });
+            }
+          }
+        } catch (error) {
+          console.error('Error checking for existing data:', error);
+          // Continue with local storage data
+        }
+      }
+    };
+
+    loadInitialData();
+  }, [isLoggedIn, navigate, toast]);
 
   // Save form data whenever it changes
   useEffect(() => {

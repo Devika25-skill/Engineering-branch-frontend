@@ -310,6 +310,51 @@ export interface RecommendationApiResponse {
   };
 }
 
+export interface FetchAICapDetailsResponse {
+  message: string;
+  success: boolean;
+  data: {
+    username: string;
+    academic_credentials: {
+      educationBackground: {
+        educationType: string;
+        stream: string;
+      };
+      academicMarks: {
+        _10thGradeMarksPercent: number;
+        _12thGradeMarksPercent: number;
+        groupingMarksPercent: number;
+      };
+      examPercentiles: {
+        CET?: number;
+        JEE?: number;
+        otherEntranceExam?: number;
+      };
+      reservationCategory: string;
+      achievementsExperience: {
+        sportsAchievements?: string;
+        certifications?: string;
+        internshipsWorkExperience?: string;
+        otherAchievements?: string;
+      };
+      preferences: {
+        engineeringBranches: string[];
+        preferredCities: string[];
+      };
+      campusFacilitiesEnvironment: {
+        hostelFacility?: string;
+        campusSetting?: string;
+        transportFacility?: string;
+        wifiTechInfrastructure?: string;
+        coCurricularActivities?: string;
+      };
+      annualBudget: number;
+      collegeTypePreferences: string[];
+      priorityFactors: string[];
+    };
+  } | null;
+}
+
 class ApiService {
   private async request<T>(endpoint: string, options?: RequestInit): Promise<T> {
     try {
@@ -651,6 +696,17 @@ class ApiService {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify(payload),
+    });
+  }
+
+  async fetchAICapDetails(token: string): Promise<FetchAICapDetailsResponse> {
+    return this.request<FetchAICapDetailsResponse>('/api/v1/explore/fetchAICapDetails', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
     });
   }
 }
