@@ -76,9 +76,10 @@ export const usePdfDownload = () => {
       yPosition += 8;
       
       
-      // Extract user details from session storage
+      // Extract user details from localStorage
       const sessionData = JSON.parse(sessionStorage.getItem('recommendationFormData') || '{}');
-      const userName = formData?.personalInfo?.name || 'Student Name';
+      const userData = JSON.parse(localStorage.getItem('user') || '{}');
+      const userName = userData.name || 'Student Name';
       const category = sessionData.reservationCategory || 'Not specified';
       const branches = sessionData.preferredStreams?.slice(0, 3)?.join(', ') || 'Not specified';
       const cetCutoff = sessionData.cetPercentile || 'Not specified';
