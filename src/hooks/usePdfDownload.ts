@@ -337,7 +337,7 @@ export const usePdfDownload = () => {
         yPosition = addHeader(pdf.getNumberOfPages());
       }
       
-      const confidenceText = "By following this recommended order, you're not just filling a form - you're executing a smart strategy for your engineering future. Go ahead, fill your form with confidence!";
+      const confidenceText = "By following this recommended order, you're not just filling a form -you're executing a smart strategy for your engineering future. Go ahead, fill your form with confidence!";
       const confidenceLines = pdf.splitTextToSize(confidenceText, contentWidth - 10);
       const confidenceHeight = confidenceLines.length * 4 + 8;
       
@@ -348,7 +348,7 @@ export const usePdfDownload = () => {
       pdf.setFontSize(9);
       pdf.setFont('helvetica', 'bold');
       pdf.setTextColor(22, 163, 74);
-      pdf.text(confidenceLines, margin + 5, yPosition + 6);
+      pdf.text(confidenceLines, margin + 3, yPosition + 7);
       
       yPosition += confidenceHeight + 10;
       
