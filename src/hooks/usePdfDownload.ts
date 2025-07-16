@@ -27,7 +27,7 @@ export const usePdfDownload = () => {
         // Add logo image
         try {
           const logoPath = '/lovable-uploads/3eef3d0d-75a9-46a2-9c43-12a8251e55b6.png';
-          pdf.addImage(logoPath, 'PNG', margin, headerYPos, 30, 20);
+          pdf.addImage(logoPath, 'PNG', margin, headerYPos, 40, 20);
         } catch (error) {
           console.error('Error adding logo:', error);
           // Fallback to text if image fails
