@@ -53,17 +53,6 @@ const StepFormCard = ({
       <div className={`h-2 bg-gradient-to-r ${currentStepInfo.gradient}`}></div>
       
       <div className="p-4 sm:p-8 lg:p-10">
-        <div className="text-center mb-6 sm:mb-8">
-          <div className={`inline-flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-gradient-to-r ${currentStepInfo.gradient} text-white mb-4`}>
-            <currentStepInfo.icon size={24} />
-          </div>
-          <h2 className="text-2xl sm:text-3xl font-bold text-slate-800 mb-3">
-            {currentStepInfo.title}
-          </h2>
-          <p className="text-base sm:text-lg text-slate-600 px-2">
-            {currentStepInfo.description}
-          </p>
-        </div>
 
         <div className="space-y-4 sm:space-y-6 relative z-[30]">
           {children}

@@ -112,6 +112,30 @@ export interface ApiCollegeDetailsResponse {
   };
 }
 
+interface StoreCollegeDetailsRequest {
+  username: string;
+  college_name: string;
+  college_code: number;
+  course_name: string;
+  course_code: number;
+  choice_code: number;
+  round: number;
+  location: string;
+  category: string;
+  cet_percentile: number;
+}
+
+interface UserRoundDetailsResponse {
+  username: string;
+  College_Name: string;
+  City: string;
+  College_code: number;
+  Course_Name: string;
+  Course_Code: number;
+  Choice_Code: number;
+  round: number;
+}
+
 export interface SendOTPRequest {
   email: string;
 }
@@ -226,6 +250,113 @@ export interface GenerateRecommendationResponse {
   };
 }
 
+export interface GenerateRoundListRequest {
+  category: string;
+  cet_percentile: number;
+  cet_course: string[];
+  location: string[];
+  round: number;
+  last_round_college_choice_code: number;
+}
+
+export interface RoundListCollege {
+  College_Name: string;
+  College_Website: string;
+  College_Address: string;
+  City: string;
+  College_Type: string;
+  NAAC_Acrredition: string;
+  University_Affiliation: string;
+  Courses_Offered: string;
+  Overall_College_Placement_Percentage: number;
+  Student_Intake: number;
+  Admission_Remarks?: string;
+  College_Hostel_Available: string;
+  Annual_Fees_INR: number;
+  Annual_Hostel_Fees_INR?: number;
+  Previous_Year_Highest_Package_Offered_LPA: number;
+  College_Working_Hours?: string;
+  Lab_Facilities: string;
+  College_Reviews_out_of_5: number;
+  College_Bus_Facility_Available: string;
+  Nearest_Airport: string;
+  Distance_from_Airport: number;
+  Nearest_Railway_Station: string;
+  Distance_from_Railway_Station: number;
+  MHT_CET_Accepted: string;
+  JEE_Mains_Accepted: string;
+  Scholarships_Offered: string;
+  Sports_Facilities: string;
+  Internship_Programs: string;
+  Faculty_Student_Ratio: string;
+  Alumni_Connect: string;
+  References: string;
+  NIRF_Rank_Min: number;
+  NIRF_Rank_Max: number;
+  Top_Recruiters: string[];
+  College_Code: number;
+  SJ_Institute_Code: number;
+  College_Logo: string;
+  Region: string;
+}
+
+export interface RoundListRecommendation {
+  college: RoundListCollege;
+  course: string;
+  admission_probability: number;
+  probability_message: string;
+  cet_percentile: number;
+  category: string;
+  cutoff: number;
+}
+
+export interface GenerateRoundListResponse {
+  message: string;
+  success: boolean;
+  data: {
+    username: string;
+    Dream: RoundListRecommendation[];
+    Reach: RoundListRecommendation[];
+    Match: RoundListRecommendation[];
+    Safety: RoundListRecommendation[];
+    Round: number;
+    is_payment: boolean;
+    accept_payment: boolean;
+  };
+}
+
+// Diploma recommendation interfaces
+export interface DiplomaRoundListRequest {
+  category: string;
+  cet_percentile: number;
+  cet_course: string[];
+  location: string[];
+}
+
+export interface DiplomaRoundListResponse {
+  message: string;
+  success: boolean;
+  data: {
+    username?: string;
+    Dream: RoundListRecommendation[];
+    Reach: RoundListRecommendation[];
+    Match: RoundListRecommendation[];
+    Safety: RoundListRecommendation[];
+    Round?: number;
+    is_payment?: boolean;
+    accept_payment?: boolean;
+  };
+}
+
+export interface DiplomaConfigResponse {
+  message: string;
+  success: boolean;
+  data: {
+    round: number;
+    configuration: any;
+  };
+}
+
 export interface CutoffApiResponse {
   message: string;
   success: boolean;
@@ -308,6 +439,88 @@ export interface RecommendationApiResponse {
     Match: RecommendationItem[];
     Safety: RecommendationItem[];
   };
+}
+
+export interface FetchAICapDetailsResponse {
+  message: string;
+  success: boolean;
+  data: {
+    username: string;
+    academic_credentials: {
+      educationBackground: {
+        educationType: string;
+        stream: string;
+      };
+      academicMarks: {
+        _10thGradeMarksPercent: number;
+        _12thGradeMarksPercent: number;
+        groupingMarksPercent: number;
+      };
+      examPercentiles: {
+        CET: number;
+        JEE: number;
+        otherEntranceExam: {
+          examName: string;
+          percentileOrScore: number;
+        }[];
+      };
+      reservationCategory: string;
+      achievementsExperience: {
+        sportsAchievements: string;
+        certifications: string;
+        internshipsWorkExperience: string;
+        otherAchievements: string;
+      };
+      preferences: {
+        engineeringBranches: string[];
+        preferredCities: string[];
+      };
+      campusFacilitiesEnvironment: {
+        hostelFacility: string;
+        campusSetting: string;
+        transportFacility: string;
+        wifiTechInfrastructure: string;
+        coCurricularActivities: string;
+      };
+      annualBudget: number;
+      collegeTypePreferences: string[];
+      priorityFactors: string[];
+    };
+  };
+}
+
+// Round 2 Search Interfaces
+export interface CollegeSearchByChoiceCodeRequest {
+  choice_code: number;
+}
+
+export interface CollegeSearchByNameRequest {
+  college_name: string;
+}
+
+export interface CollegeSearchByCodeRequest {
+  college_code: number;
+}
+
+export interface CollegeDepartment {
+  course_name: string;
+  choice_code: number;
+  course_code?: number;
+  sj_code?: number;
+}
+
+export interface CollegeSearchResult {
+  College_Name: string;
+  College_Website: string;
+  City: string;
+  College_code: number;
+  department: CollegeDepartment | CollegeDepartment[];
+}
+
+export interface CollegeSearchResponse {
+  message: string;
+  success: boolean;
+  data: CollegeSearchResult | CollegeSearchResult[] | null;
 }
 
 class ApiService {
@@ -651,6 +864,139 @@ class ApiService {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify(payload),
+    });
+  }
+
+  async getExistingRecommendations(token: string): Promise<RecommendationApiResponse> {
+    return this.request<RecommendationApiResponse>('/api/v1/explore/recommendation/college-list', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+    });
+  }
+
+  async fetchAICapDetails(token: string): Promise<FetchAICapDetailsResponse> {
+    return this.request<FetchAICapDetailsResponse>('/api/v1/explore/fetchAICapDetails', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+  }
+
+  // Round 2 Search Methods
+  async searchCollegeByChoiceCode(payload: CollegeSearchByChoiceCodeRequest, token: string): Promise<CollegeSearchResponse> {
+    return this.request<CollegeSearchResponse>('/api/v1/explore/search_college_by/choice_code', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async searchCollegeByName(payload: CollegeSearchByNameRequest, token: string): Promise<CollegeSearchResponse> {
+    return this.request<CollegeSearchResponse>('/api/v1/explore/search_college_by/college_name', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async searchCollegeByCode(payload: CollegeSearchByCodeRequest, token: string): Promise<CollegeSearchResponse> {
+    return this.request<CollegeSearchResponse>('/api/v1/explore/search_college_by/college_code', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async storeCollegeDetails(payload: StoreCollegeDetailsRequest, token: string): Promise<ApiResponse<any>> {
+    return this.request<ApiResponse<any>>('/api/v1/user/store_college_details', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async getUserRoundDetails(round: number, token: string): Promise<ApiResponse<UserRoundDetailsResponse>> {
+    return this.request<ApiResponse<UserRoundDetailsResponse>>(`/api/v1/user/get_user_round_details/${round}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/json',
+      },
+    });
+  }
+
+  async updateRoundPreferences(payload: { round: number; branches: string[]; cities: string[] }, token: string): Promise<ApiResponse<{ round_status: string }>> {
+    return this.request<ApiResponse<{ round_status: string }>>('/api/v1/user/round_prefrences', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async getUserRoundPreferences(round: number, token: string): Promise<ApiResponse<{ round: number; branches: string[]; cities: string[] }>> {
+    return this.request<ApiResponse<{ round: number; branches: string[]; cities: string[] }>>(`/api/v1/user/get_user_round_preferences/${round}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/json',
+      },
+    });
+  }
+
+  async generateRoundList(payload: GenerateRoundListRequest, token: string): Promise<GenerateRoundListResponse> {
+    return this.request<GenerateRoundListResponse>('/api/v1/explore/generate/round-list', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+  }
+
+  // Diploma recommendation methods
+  async generateDiplomaRoundList(payload: DiplomaRoundListRequest): Promise<DiplomaRoundListResponse> {
+    return this.request<DiplomaRoundListResponse>('/api/v1/explore/generate/diploma-round-list', {
+      method: 'POST',
+       headers: {
+        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+  } 
+
+  async getDiplomaConfig(roundNo: number): Promise<DiplomaConfigResponse> {
+    return this.request<DiplomaConfigResponse>(`/api/v1/explore/get-diploma-config/${roundNo}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+        'Content-Type': 'application/json',
+      },
     });
   }
 }

@@ -2,10 +2,11 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { GraduationCap, User, Award, AlertCircle } from "lucide-react";
+import { GraduationCap, User, Award, AlertCircle, ChevronDown } from "lucide-react";
 import { useEffect } from "react";
 
 interface AcademicInfoFormProps {
@@ -51,23 +52,37 @@ export const AcademicInfoForm = ({ data, onUpdate, validationErrors = [] }: Acad
 
   // Updated reservation categories to match API codes
   const reservationCategories = [
-    { code: "GOPENS", label: "General – Open" },
-    { code: "GSCS", label: "General – Scheduled Caste (SC)" },
-    { code: "GSTS", label: "General – Scheduled Tribe (ST)" },
-    { code: "GVJS", label: "General – Vimukta Jati/De-notified Tribes (VJ/DT)" },
-    { code: "GNT1S", label: "General – Nomadic Tribe 1 (NT1)" },
-    { code: "GNT2S", label: "General – Nomadic Tribe 2 (NT2)" },
-    { code: "GNT3S", label: "General – Nomadic Tribe 3 (NT3)" },
-    { code: "GOBCS", label: "General – Other Backward Class (OBC)" },
-    { code: "LOPENS", label: "Ladies – Open" },
-    { code: "LSCS", label: "Ladies – Scheduled Caste (SC)" },
-    { code: "LNT2S", label: "Ladies – Nomadic Tribe 2 (NT2)" },
-    { code: "LOBCS", label: "Ladies – Other Backward Class (OBC)" },
-    { code: "DEFOPENS", label: "Defence – Open" },
-    { code: "TFWS", label: "Tuition Fee Waiver Scheme" },
-    { code: "DEFROBCS", label: "Defence – Other Backward Class (OBC)" },
-    { code: "EWS", label: "Economically Weaker Sections" }
-  ];
+  { "code": "GOPENS", "label": "General – Open" },
+  { "code": "GSCS", "label": "General – Scheduled Caste (SC)" },
+  { "code": "GSTS", "label": "General – Scheduled Tribe (ST)" },
+  { "code": "GVJS", "label": "General – Vimukta Jati/De-notified Tribes (VJ/DT)" },
+  { "code": "GNT1S", "label": "General – Nomadic Tribe 1 (NT1)" },
+  { "code": "GNT2S", "label": "General – Nomadic Tribe 2 (NT2)" },
+  { "code": "GNT3S", "label": "General – Nomadic Tribe 3 (NT3)" },
+  { "code": "GOBCS", "label": "General – Other Backward Class (OBC)" },
+  { "code": "GSEBCS", "label": "General – Socially and Educationally Backward Class (SEBC)" },
+  { "code": "LOPENS", "label": "Ladies – Open" },
+  { "code": "LSCS", "label": "Ladies – Scheduled Caste (SC)" },
+  { "code": "LSTS", "label": "Ladies – Scheduled Tribe (ST)" },
+  { "code": "LVJS", "label": "Ladies – Vimukta Jati/De-notified Tribes (VJ/DT)" },
+  { "code": "LNT1S", "label": "Ladies – Nomadic Tribe 1 (NT1)" },
+  { "code": "LNT2S", "label": "Ladies – Nomadic Tribe 2 (NT2)" },
+  { "code": "LOBCS", "label": "Ladies – Other Backward Class (OBC)" },
+  { "code": "LSEBCS", "label": "Ladies – Socially and Educationally Backward Class (SEBC)" },
+  { "code": "PWDOPENS", "label": "Persons with Disabilities – Open" },
+  { "code": "PWDOBCS", "label": "Persons with Disabilities – Other Backward Class (OBC)" },
+  { "code": "DEFOPENS", "label": "Defence – Open" },
+  { "code": "DEFSCS", "label": "Defence – Scheduled Caste (SC)" },
+  { "code": "DEFOBCS", "label": "Defence – Other Backward Class (OBC)" },
+  { "code": "DEFSEBCS", "label": "Defence – Socially and Educationally Backward Class (SEBC)" },
+  { "code": "TFWS", "label": "Tuition Fee Waiver Scheme" },
+  { "code": "PWDRNT3S", "label": "Persons with Disabilities – Nomadic Tribe 3 (NT3)" },
+  { "code": "DEFRNT3S", "label": "Defence – Nomadic Tribe 3 (NT3)" },
+  { "code": "PWDROBC", "label": "Persons with Disabilities – Reserved OBC" },
+  { "code": "DEFRSEBCS", "label": "Defence – Reserved SEBC" },
+  { "code": "ORPHAN", "label": "Orphan Category" },
+  { "code": "EWS", "label": "Economically Weaker Sections" }
+];
 
   const groupingOptions = [
     "PCM (Physics, Chemistry, Mathematics)", 
@@ -103,7 +118,7 @@ export const AcademicInfoForm = ({ data, onUpdate, validationErrors = [] }: Acad
                 <SelectTrigger className={getFieldClassName('Reservation Category', "h-10 rounded-xl border-2 bg-white")}>
                   <SelectValue placeholder="Select your category" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="max-h-80">
                   {reservationCategories.map((category) => (
                     <SelectItem key={category.code} value={category.code}>
                       {category.label}
@@ -265,71 +280,79 @@ export const AcademicInfoForm = ({ data, onUpdate, validationErrors = [] }: Acad
         </CardContent>
       </Card>
 
-      {/* Achievements Card */}
-      <Card className="border-0 shadow-lg bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl">
-        <CardHeader className="pb-4">
-          <CardTitle className="text-lg font-bold text-slate-800 flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center">
-              <Award className="text-white" size={16} />
+      {/* Achievements Card - Collapsible */}
+      <Card className="border-0 shadow-lg bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl overflow-hidden">
+        <details className="group">
+          <summary className="cursor-pointer p-6 pb-4 hover:bg-purple-50/50 transition-colors list-none [&::-webkit-details-marker]:hidden">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center">
+                <Award className="text-white" size={16} />
+              </div>
+              <span className="text-lg font-bold text-slate-800">
+                Your Achievements <span className="text-sm text-slate-500 font-normal">(Optional)</span>
+              </span>
+              <div className="ml-auto transform transition-transform duration-200 group-open:rotate-180">
+                <ChevronDown className="w-5 h-5 text-slate-600" />
+              </div>
             </div>
-            Your Achievements <span className="text-sm text-slate-500 font-normal">(Optional)</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label className="text-slate-700 font-medium flex items-center gap-2 text-sm">
-                🏆 Sports & Leadership
-              </Label>
-              <Textarea
-                placeholder="State-level cricket, student council president, debate competitions..."
-                value={data.sportsAchievements || ''}
-                onChange={(e) => handleChange('sportsAchievements', e.target.value)}
-                rows={2}
-                className="rounded-xl border-2 bg-white resize-none"
-              />
-            </div>
+          </summary>
+          
+          <div className="px-6 pb-6 space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-slate-700 font-medium flex items-center gap-2 text-sm">
+                  🏆 Sports & Leadership
+                </Label>
+                <Textarea
+                  placeholder="State-level cricket, student council president, debate competitions..."
+                  value={data.sportsAchievements || ''}
+                  onChange={(e) => handleChange('sportsAchievements', e.target.value)}
+                  rows={2}
+                  className="rounded-xl border-2 bg-white resize-none"
+                />
+              </div>
 
-            <div className="space-y-2">
-              <Label className="text-slate-700 font-medium flex items-center gap-2 text-sm">
-                💻 Certifications & Courses
-              </Label>
-              <Textarea
-                placeholder="Python certification, web development course, cloud computing..."
-                value={data.certifications || ''}
-                onChange={(e) => handleChange('certifications', e.target.value)}
-                rows={2}
-                className="rounded-xl border-2 bg-white resize-none"
-              />
-            </div>
+              <div className="space-y-2">
+                <Label className="text-slate-700 font-medium flex items-center gap-2 text-sm">
+                  💻 Certifications & Courses
+                </Label>
+                <Textarea
+                  placeholder="Python certification, web development course, cloud computing..."
+                  value={data.certifications || ''}
+                  onChange={(e) => handleChange('certifications', e.target.value)}
+                  rows={2}
+                  className="rounded-xl border-2 bg-white resize-none"
+                />
+              </div>
 
-            <div className="space-y-2">
-              <Label className="text-slate-700 font-medium flex items-center gap-2 text-sm">
-                💼 Work Experience
-              </Label>
-              <Textarea
-                placeholder="Summer internship, part-time job, freelance projects..."
-                value={data.internships || ''}
-                onChange={(e) => handleChange('internships', e.target.value)}
-                rows={2}
-                className="rounded-xl border-2 bg-white resize-none"
-              />
-            </div>
+              <div className="space-y-2">
+                <Label className="text-slate-700 font-medium flex items-center gap-2 text-sm">
+                  💼 Work Experience
+                </Label>
+                <Textarea
+                  placeholder="Summer internship, part-time job, freelance projects..."
+                  value={data.internships || ''}
+                  onChange={(e) => handleChange('internships', e.target.value)}
+                  rows={2}
+                  className="rounded-xl border-2 bg-white resize-none"
+                />
+              </div>
 
-            <div className="space-y-2">
-              <Label className="text-slate-700 font-medium flex items-center gap-2 text-sm">
-                ⭐ Other Cool Stuff
-              </Label>
-              <Textarea
-                placeholder="Hackathon winner, published research, volunteer work..."
-                value={data.otherAchievements || ''}
-                onChange={(e) => handleChange('otherAchievements', e.target.value)}
-                rows={2}
-                className="rounded-xl border-2 bg-white resize-none"
-              />
+              <div className="space-y-2">
+                <Label className="text-slate-700 font-medium flex items-center gap-2 text-sm">
+                  ⭐ Other Cool Stuff
+                </Label>
+                <Textarea
+                  placeholder="Hackathon winner, published research, volunteer work..."
+                  value={data.otherAchievements || ''}
+                  onChange={(e) => handleChange('otherAchievements', e.target.value)}
+                  rows={2}
+                  className="rounded-xl border-2 bg-white resize-none"
+                />
+              </div>
             </div>
           </div>
-        </CardContent>
+        </details>
       </Card>
     </div>
   );

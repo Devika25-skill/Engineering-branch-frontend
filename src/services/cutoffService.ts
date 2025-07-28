@@ -30,6 +30,7 @@ export interface CollegeRecommendation {
     fees?: number;
     placement?: number;
     logo?: string;
+    SJ_Institute_code?: number;
     // Additional properties from the new API response
     Student_Intake?: number;
     College_Website?: string;
@@ -129,6 +130,7 @@ export const cutoffService = {
               fees: college["Annual_Fees_(INR)"],
               placement: college.Overall_College_Placement_Percentage,
               logo: college.College_Logo,
+              SJ_Institute_code: college.SJ_Institute_Code,
               // Map additional properties from the new API response
               Student_Intake: college.Student_Intake,
               College_Website: college.College_Website,

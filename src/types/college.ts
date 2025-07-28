@@ -1,75 +1,50 @@
-
-export interface Department {
-  name: string;
-  intake?: number | null;
-  nbaAccredited?: boolean | null;
-  placementRate?: number | null;
-  cetPercent?: number | null;
-  jeePercent?: number | null;
-  otherPercent?: number | null;
-}
-
-export interface LocationDetails {
-  address?: string | null;
-  nearestRailwayStation?: string | null;
-  distanceFromRailway?: number | null;
-  nearestAirport?: string | null;
-  distanceFromAirport?: number | null;
-}
-
-export interface CETCutoffRange {
-  min: number;
-  max: number;
-  year?: number;
-}
-
 export interface College {
   id: number;
-  name: string;
+  name: string | null;
   logo?: string | null;
   city: string | null;
-  region?: string | null;
-  address?: string;
-  website?: string;
-  phone?: string;
-  email?: string;
-  affiliation?: string;
-  otherNames?: string[] | null;
-  streams?: string[];
-  coursesOffered?: number | null;
-  totalIntake?: number | null;
-  fees?: number | null;
+  region?:string | null;
+  address?: string | null;
+  website?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  affiliation?: string | null;
+  otherNames?: string | null;
+  naacGrade?: string | null;
+  campusSize?: string | null;
+  totalFaculty?: string | null;
+  streams: string[];
+  coursesOffered: number | null;
+  totalIntake: number | null;
+  fees: number | null;
   feesRange?: {
-    min: number;
-    max: number;
-  };
+    min: number | null;
+    max: number | null;
+  } | null;
   hostelFees?: number | null;
-  hasHostel?: boolean | null;
-  rating?: number | null;
-  placement?: number | null;
+  hasHostel: boolean | null;
+  rating: number | null;
+  placement: number | null;
   placementRange?: {
     min: number | null;
     max: number | null;
-  };
-  type: 'Government' | 'Private' | 'Autonomous';
-  college_type?: string;
-  established?: number | null;
+  } | null;
+  type: 'Government' | 'Private' | 'Autonomous' | null;
+  college_type: string | null;
+  established: number | null;
   nirf_ranking?: number | null;
   cutoff_percentile?: number | null;
-  cetCutoffRange?: CETCutoffRange | null;
   cutoffRange?: {
+    min: number | null;
+    max: number | null;
+  } | null;
+  cetCutoffRange?: {
     min: number;
     max: number;
-  };
-  infrastructure_score?: number | null;
-  faculty_score?: number | null;
-  naacGrade?: string | null;
-  campusSize?: number | null;
-  totalFaculty?: number | null;
-  
-  // Detailed structures
-  departments?: Department[] | null;
-  locationDetails?: LocationDetails | null;
+    year: number;
+  } | null;
+  infrastructure_score: number | null;
+  faculty_score: number | null;
   
   // Academic Information
   accreditation?: {
@@ -136,6 +111,26 @@ export interface College {
     transportation?: string[];
   };
   
+  // Location Details from API
+  locationDetails?: {
+    address?: string | null;
+    nearestRailwayStation?: string | null;
+    distanceFromRailway?: number | null;
+    nearestAirport?: string | null;
+    distanceFromAirport?: number | null;
+  };
+  
+  // Departments from API
+  departments?: Array<{
+    name: string;
+    nbaAccredited: boolean | null;
+    placementRate: number | null;
+    intake: number | null;
+    cetPercent: number | null;
+    jeePercent: number | null;
+    otherPercent: number | null;
+  }>;
+  
   // Media
   gallery?: string[];
   virtualTour?: string;
@@ -144,23 +139,4 @@ export interface College {
   achievements?: string[];
   alumniHighlights?: string[];
   researchAreas?: string[];
-}
-
-export interface CollegeFilters {
-  searchTerm: string;
-  selectedRegions: string[];
-  selectedStreams: string[];
-  selectedTypes: string[];
-  feesRange: [number, number];
-  placementRange: [number, number];
-  ratingRange: [number, number];
-}
-
-export interface CollegeStats {
-  totalColleges: number;
-  regions: string[];
-  cities: string[];
-  streams: string[];
-  types: string[];
-  feesRange: { min: number; max: number };
 }

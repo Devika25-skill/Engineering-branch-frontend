@@ -29,7 +29,7 @@ export const PremiumGate = ({ onUnlock }: PremiumGateProps) => {
     name: '',
     email: '',
     mobile: '',
-    couponCode: 'LAUNCHOFFER'
+    couponCode: ''
   });
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -49,7 +49,10 @@ export const PremiumGate = ({ onUnlock }: PremiumGateProps) => {
   });
 
   const getDiscountedPrice = () => {
-    return formData.couponCode.toUpperCase() === 'LAUNCHOFFER' ? 99 : 499;
+    const couponCode = formData.couponCode.toUpperCase();
+    if (couponCode === 'LAUNCHOFFER') return 99;
+    if (couponCode === 'LAUNCHOFFERTEST') return 1;
+    return 499;
   };
 
   const handleInputChange = (field: keyof FormData, value: string) => {

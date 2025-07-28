@@ -148,9 +148,12 @@ const LoginDialog = ({ open, onOpenChange }: LoginDialogProps) => {
                   Back to email
                 </Button>
                 
-                <Label>Enter OTP</Label>
-                <p className="text-sm text-gray-600 mb-4">
-                  We've sent a 6-digit code to {email}
+                <p className="text-xs text-gray-600 mb-4">
+                  We've sent a 6-digit code to {email}. 
+                </p>
+                <p className="text-xs text-gray-600 mb-4">
+                  If you still don't receive it, check your spam folder or check if you've enough space in your inbox.
+                  If you continue to have issues, contact us at <a href="mailto:support@skilljourney.in" className="text-blue-600">support@skilljourney.in</a>.
                 </p>
                 
                 <div className="flex justify-center">

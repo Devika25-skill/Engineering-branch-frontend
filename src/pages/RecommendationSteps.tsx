@@ -5,10 +5,13 @@ import { PreferencesForm } from "@/components/recommendations/PreferencesForm";
 import { PrioritiesForm } from "@/components/recommendations/PrioritiesForm";
 import { RecommendationHistory } from "@/components/recommendations/RecommendationHistory";
 import { useRecommendation } from "@/hooks/useRecommendation";
+import { useAuth } from "@/contexts/AuthContext";
+import { apiService } from "@/services/api";
 import LoginDialog from "@/components/auth/LoginDialog";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { RecommendationHeader } from "@/components/recommendations/RecommendationHeader";
+import { toast } from "sonner";
 import RecommendationProgress from "@/components/recommendations/RecommendationProgress";
 import ValidationErrors from "@/components/recommendations/ValidationErrors";
 import StepFormCard from "@/components/recommendations/StepFormCard";
@@ -17,6 +20,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { History, X } from 'lucide-react';
 import StepLoadingMessages from '@/components/recommendations/StepLoadingMessages';
+import PreferencesConfirmationDialog from '@/components/recommendations/PreferencesConfirmationDialog';
 
 interface FormData {
   tenthMarks?: number;
@@ -54,21 +58,77 @@ const RecommendationSteps = () => {
   const [loginOpen, setLoginOpen] = useState(false);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const [showHistory, setShowHistory] = useState(false);
-  const { generateRecommendation, isLoggedIn } = useRecommendation();
-  const { toast } = useToast();
+  const [showPreferencesConfirmation, setShowPreferencesConfirmation] = useState(false);
+  const { generateRecommendation } = useRecommendation();
+  const { isLoggedIn, user } = useAuth();
+  const { toast: toastHook } = useToast();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
 
   const totalSteps = 3;
 
-  // Load saved form data on mount
-  useEffect(() => {
-    const savedFormData = recommendationStorage.getFormData();
-    if (savedFormData) {
-      setFormData(prev => ({ ...prev, ...savedFormData }));
+  // Map API response to form data structure
+  const mapApiResponseToFormData = (apiData: any) => {
+    // Extract other exam details if available
+    const otherExam = apiData.examPercentiles?.otherEntranceExam?.[0];
     
-    }
-  }, []);
+    return {
+      // Academic Info
+      reservationCategory: apiData.reservationCategory || 'GOPENS',
+      grouping: apiData.educationBackground?.stream || 'PCM (Physics, Chemistry, Mathematics)',
+      tenthMarks: apiData.academicMarks?._10thGradeMarksPercent || undefined,
+      twelfthMarks: apiData.academicMarks?._12thGradeMarksPercent || undefined,
+      groupingMarks: apiData.academicMarks?.groupingMarksPercent || undefined,
+      cetPercentile: apiData.examPercentiles?.CET || undefined,
+      jeePercentile: apiData.examPercentiles?.JEE || undefined,
+      otherExamName: otherExam?.examName || undefined,
+      otherExamPercentile: otherExam?.percentileOrScore || undefined,
+      sportsAchievements: apiData.achievementsExperience?.sportsAchievements || undefined,
+      certifications: apiData.achievementsExperience?.certifications || undefined,
+      internships: apiData.achievementsExperience?.internshipsWorkExperience || undefined,
+      otherAchievements: apiData.achievementsExperience?.otherAchievements || undefined,
+      
+      // Preferences
+      preferredStreams: apiData.preferences?.engineeringBranches || [],
+      preferredCities: apiData.preferences?.preferredCities || [],
+      
+      // Priorities
+      hostelPreference: apiData.campusFacilitiesEnvironment?.hostelFacility || undefined,
+      campusSetting: apiData.campusFacilitiesEnvironment?.campusSetting || undefined,
+      transportFacility: apiData.campusFacilitiesEnvironment?.transportFacility || undefined,
+      wifiTechInfrastructure: apiData.campusFacilitiesEnvironment?.wifiTechInfrastructure || undefined,
+      coCurricularActivities: apiData.campusFacilitiesEnvironment?.coCurricularActivities || undefined,
+      maxBudget: apiData.annualBudget || undefined,
+      collegeTypes: apiData.collegeTypePreferences || [],
+      priorities: apiData.priorityFactors || [],
+    };
+  };
+
+  // Load saved form data on mount and fetch existing details if user is logged in
+  useEffect(() => {
+    const loadFormData = async () => {
+      const savedFormData = recommendationStorage.getFormData();
+      if (savedFormData) {
+        setFormData(prev => ({ ...prev, ...savedFormData }));
+      }
+
+      // Fetch existing user details if logged in
+      if (isLoggedIn && user?.accessToken) {
+        try {
+          const response = await apiService.fetchAICapDetails(user.accessToken);
+          if (response.success && response.data?.academic_credentials) {
+            const mappedData = mapApiResponseToFormData(response.data.academic_credentials);
+            setFormData(prev => ({ ...prev, ...mappedData }));
+            toast.success("Loaded your previous details");
+          }
+        } catch (error) {
+          console.log('No existing data found or error fetching data:', error);
+        }
+      }
+    };
+
+    loadFormData();
+  }, [isLoggedIn, user]);
 
   // Save form data whenever it changes
   useEffect(() => {
@@ -131,7 +191,7 @@ const RecommendationSteps = () => {
         scrollToTop();
       }
     } else {
-      toast({
+      toastHook({
         title: "Missing Information",
         description: "Please fill in all required fields to continue",
         variant: "destructive"
@@ -160,7 +220,7 @@ const RecommendationSteps = () => {
   const handleLoadFormData = (loadedFormData: any) => {
     setFormData(loadedFormData);
     setShowHistory(false);
-    toast({
+    toastHook({
       title: "Form Data Loaded",
       description: "Previous form data has been loaded successfully.",
     });
@@ -168,7 +228,7 @@ const RecommendationSteps = () => {
 
   const handleGenerateRecommendations = async () => {
     if (!validateCurrentStep()) {
-      toast({
+      toastHook({
         title: "Missing Information",
         description: "Please fill in all required fields to generate recommendations",
         variant: "destructive"
@@ -180,6 +240,14 @@ const RecommendationSteps = () => {
       setLoginOpen(true);
       return;
     }
+
+    // Directly navigate to results without confirmation
+    sessionStorage.removeItem('cachedRecommendations');
+    navigate('/recommendations/results');
+  };
+
+  const handleConfirmPreferences = async () => {
+    setShowPreferencesConfirmation(false);
     sessionStorage.removeItem('cachedRecommendations');
     navigate('/recommendations/results');
     
@@ -274,6 +342,13 @@ const RecommendationSteps = () => {
             handleLoginSuccess();
           }
         }}
+      />
+
+      <PreferencesConfirmationDialog
+        isOpen={showPreferencesConfirmation}
+        onClose={() => setShowPreferencesConfirmation(false)}
+        onConfirm={handleConfirmPreferences}
+        formData={formData}
       />
     </div>
   );

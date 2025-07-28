@@ -44,11 +44,8 @@ const CollegeDetails = () => {
   };
 
   // Helper function to format values - ALL null values become '--'
-  const formatValue = (value?: number | string | string[] | null): string => {
+  const formatValue = (value?: number | string | null): string => {
     if (value === null || value === undefined || value === 0 || value === '') return '--';
-    if (Array.isArray(value)) {
-      return value.length > 0 ? value.join(', ') : '--';
-    }
     return value.toString();
   };
 

@@ -71,7 +71,6 @@ class MockDataService {
 
   getMockStats() {
     const colleges = this.getMockColleges();
-    const regions = [...new Set(colleges.map(c => c.region))].filter(Boolean);
     const cities = [...new Set(colleges.map(c => c.city))].filter(Boolean);
     const streams = [...new Set(colleges.flatMap(c => c.streams || []))].filter(Boolean);
     const types = [...new Set(colleges.map(c => c.college_type))].filter(Boolean);
@@ -79,7 +78,6 @@ class MockDataService {
     
     return {
       totalColleges: colleges.length,
-      regions,
       cities,
       streams,
       types,

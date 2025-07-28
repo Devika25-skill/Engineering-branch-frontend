@@ -6,9 +6,11 @@ import Navigation from "@/components/Navigation";
 import { Link, useNavigate } from 'react-router-dom';
 import { backgroundLoader } from '@/services/backgroundLoader';
 import { sessionStorageService } from '@/services/sessionStorage';
+import { RecommendationTypeDialog } from '@/components/recommendations/RecommendationTypeDialog';
 
 const Index = () => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [showRecommendationDialog, setShowRecommendationDialog] = useState(false);
   const navigate = useNavigate();
 
 // Remove All the applied filters on Coming back to home
@@ -32,6 +34,35 @@ const Index = () => {
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       handleSearch();
+    }
+  };
+
+  const handleRecommendationTypeSelect = (type: 'first-year' | 'direct-second-year') => {
+    // Store the selected type for future reference
+    localStorage.setItem('recommendation_type', type);
+    
+    if (type === 'first-year') {
+      const hasExistingData = sessionStorage.getItem('recommendationFormData');
+      navigate(hasExistingData ? '/recommendations/results' : '/recommendations/steps');
+    } else {
+      navigate('/diploma-recommendations/steps');
+    }
+  };
+
+  const handleRecommendationButtonClick = () => {
+    // Check if user has a previously selected preference
+    const savedRecommendationType = localStorage.getItem('recommendation_type');
+    
+    if (savedRecommendationType === 'direct-second-year') {
+      // Directly go to diploma recommendations
+      navigate('/diploma-recommendations/steps');
+    } else if (savedRecommendationType === 'first-year') {
+      // Directly go to first year recommendations
+      const hasExistingData = sessionStorage.getItem('recommendationFormData');
+      navigate(hasExistingData ? '/recommendations/results' : '/recommendations/steps');
+    } else {
+      // Show selection dialog for first-time users
+      setShowRecommendationDialog(true);
     }
   };
 
@@ -92,13 +123,15 @@ const Index = () => {
 
           {/* Mobile-Optimized Action Buttons */}
           <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4 animate-fade-in animation-delay-500 px-2">
-            <Link to={sessionStorage.getItem('recommendationFormData') ? '/recommendations/results' : '/recommendations/steps'} className="w-full sm:w-auto">
-              <Button className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg font-bold bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-black rounded-xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300">
-                <Sparkles className="mr-2" size={18} />
-                Get AI Recommended CET List ✨
-              </Button>
-            </Link>
-            <Link to="/colleges" className="w-full sm:w-auto">
+            <Button 
+              onClick={handleRecommendationButtonClick}
+              className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg font-bold bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-black rounded-xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
+            >
+              <Sparkles className="mr-2" size={18} />
+              Get AI Recommended CET List ✨
+            </Button>
+            {/* Removing button for test */}
+            {/* <Link to="/colleges" className="w-full sm:w-auto">
               <Button 
                 variant="outline" 
                 className="w-full sm:w-auto px-4 sm:px-6 py-3 sm:py-4 text-base sm:text-lg font-bold bg-white/20 backdrop-blur-sm border-2 border-white/30 text-white hover:bg-white/30 rounded-xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
@@ -106,7 +139,7 @@ const Index = () => {
                 <GraduationCap className="mr-2" size={18} />
                 <span>Explore Colleges</span>
               </Button>
-            </Link>
+            </Link> */}
           </div>
         </div>
       </div>
@@ -118,7 +151,7 @@ const Index = () => {
             <div className="mx-auto w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-purple-100 to-purple-200 rounded-full flex items-center justify-center mb-2 sm:mb-3">
               <Building className="text-purple-600" size={20} />
             </div>
-            <h3 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-1 sm:mb-2">150+</h3>
+            <h3 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-1 sm:mb-2">300+</h3>
             <p className="text-gray-600 font-medium text-xs sm:text-sm">Engineering Colleges</p>
           </div>
           <div className="text-center animate-fade-in animation-delay-200">
@@ -193,6 +226,12 @@ const Index = () => {
           </Link>
         </div>
       </div>
+
+      <RecommendationTypeDialog
+        open={showRecommendationDialog}
+        onOpenChange={setShowRecommendationDialog}
+        onSelectType={handleRecommendationTypeSelect}
+      />
     </div>
   );
 };

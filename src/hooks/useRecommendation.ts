@@ -62,10 +62,10 @@ export const useRecommendation = () => {
           },
           examPercentiles: {
             CET: formData.cetPercentile,
-            JEE: formData.jeePercentile,
-            otherEntranceExam: formData.otherExamName ? [{
+            JEE: formData.jeePercentile && formData.jeePercentile !== '' ? Number(formData.jeePercentile) : undefined,
+            otherEntranceExam: formData.otherExamName && formData.otherExamPercentile ? [{
               examName: formData.otherExamName,
-              percentileOrScore: formData.otherExamPercentile
+              percentileOrScore: Number(formData.otherExamPercentile)
             }] : undefined
           },
           reservationCategory: formData.reservationCategory,

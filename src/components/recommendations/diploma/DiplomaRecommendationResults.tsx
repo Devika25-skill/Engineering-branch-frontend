@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { CollegeRecommendation } from "@/services/cutoffService";
-import { RecommendationCard } from "./RecommendationCard";
-import { CategoryFilter } from "./CategoryFilter";
-import { RecommendationHeader } from "./RecommendationHeader";
-import { RecommendationDisclaimer } from "./RecommendationDisclaimer";
-import { CAPFormInstructions } from "./CAPFormInstructions";
-import { NoResultsState } from "./NoResultsState";
+import { DiplomaRecommendationCard } from "./DiplomaRecommendationCard";
+import { DiplomaCategoryFilter } from "./DiplomaCategoryFilter";
+import { DiplomaRecommendationHeader } from "./DiplomaRecommendationHeader";
+import { DiplomaRecommendationDisclaimer } from "./DiplomaRecommendationDisclaimer";
+import { CAPFormInstructions } from "../CAPFormInstructions";
+import { NoResultsState } from "../NoResultsState";
 import { Lock, Unlock, Calendar, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -13,12 +13,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { config } from '@/config/env';
-import { TIMEOUT } from 'dns';
 import { usePdfDownload } from "@/hooks/usePdfDownload";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Round2Tab } from "./Round2Tab";
+import { DiplomaRound2Tab } from "./DiplomaRound2Tab";
 
-interface RecommendationResultsProps {
+interface DiplomaRecommendationResultsProps {
   recommendations: CollegeRecommendation[];
   formData: any;
   recommendationId?: string | null;
@@ -63,12 +62,12 @@ declare global {
   }
 }
 
-export const RecommendationResults = ({
+export const DiplomaRecommendationResults = ({
   recommendations,
   formData,
   recommendationId,
   paymentData
-}: RecommendationResultsProps) => {
+}: DiplomaRecommendationResultsProps) => {
   const [activeCategory, setActiveCategory] = useState<string>('All');
   const [activeRound, setActiveRound] = useState<string>('round1');
   const [isUnlocked, setIsUnlocked] = useState(false);
@@ -97,9 +96,10 @@ export const RecommendationResults = ({
 
     generatePDF(recommendations, formData);
   };
+
   // Load user data from localStorage
   useEffect(() => {
-    const isUnlocked: any = localStorage.getItem('recommendationUnlocked')
+    const isUnlocked: any = localStorage.getItem('diplomaRecommendationUnlocked')
     setIsUnlocked(isUnlocked === "true")
     const userData = localStorage.getItem('userData');
     if (userData) {
@@ -115,7 +115,7 @@ export const RecommendationResults = ({
 
   // Determine if unlock functionality should be shown
   const shouldShowUnlock = () => {
-    const isUnlocked: any = localStorage.getItem('recommendationUnlocked')
+    const isUnlocked: any = localStorage.getItem('diplomaRecommendationUnlocked')
     if (isUnlocked === "true") {
       return false;
     }
@@ -169,7 +169,7 @@ export const RecommendationResults = ({
       full_name: paymentFormData.name,
       email: paymentFormData.email,
       contact: parseInt(paymentFormData.mobile),
-      product_type: "future-bridge",
+      product_type: "diploma-recommendations",
       amount: getDiscountedPrice()
     };
 
@@ -257,10 +257,10 @@ export const RecommendationResults = ({
               // Payment already completed
               toast({
                 title: "Payment Successful!",
-                description: "Your recommendations have been unlocked."
+                description: "Your diploma recommendations have been unlocked."
               });
 
-              localStorage.setItem('recommendationUnlocked', 'true');
+              localStorage.setItem('diplomaRecommendationUnlocked', 'true');
               localStorage.setItem('userData', JSON.stringify(paymentFormData));
 
               setIsUnlocked(true);
@@ -287,8 +287,8 @@ export const RecommendationResults = ({
           amount: paymentData.amount,
           currency: paymentData.currency,
           order_id: paymentData.order_id,
-          name: 'College Recommendation Unlock',
-          description: 'Unlock your personalized college recommendations',
+          name: 'Diploma Recommendation Unlock',
+          description: 'Unlock your personalized diploma college recommendations',
           prefill: {
             name: paymentFormData.name,
             email: paymentFormData.email,
@@ -304,16 +304,15 @@ export const RecommendationResults = ({
               // Verify payment
               await verifyPayment(paymentFormData.email, paymentData.order_id);
 
-
               // Payment successful
               toast({
                 title: "Payment Successful!",
-                description: "Your recommendations have been unlocked."
+                description: "Your diploma recommendations have been unlocked."
               });
 
               // Save payment info to localStorage
               localStorage.setItem('userData', JSON.stringify(paymentFormData));
-              localStorage.setItem('recommendationUnlocked', 'true');
+              localStorage.setItem('diplomaRecommendationUnlocked', 'true');
               setIsUnlocked(true);
               setIsDialogOpen(false);
             } catch (error) {
@@ -342,7 +341,7 @@ export const RecommendationResults = ({
         const razorpay = new window.Razorpay(options);
         razorpay.open();
       } else {
-        localStorage.setItem('recommendationUnlocked', 'true');
+        localStorage.setItem('diplomaRecommendationUnlocked', 'true');
         setIsUnlocked(true);
         setIsDialogOpen(false);
       }
@@ -360,16 +359,8 @@ export const RecommendationResults = ({
     }
   };
 
-  // Log the data for debugging
-  useEffect(() => {
-
-  }, [recommendations, formData, recommendationId]);
-
   const sortRecommendationsByCategory = (recs: CollegeRecommendation[]) => {
-    // Sort to maintain category order: Dream, Reach, Match, Safety
-    // Within each category, sort by cutoff percentile in descending order
     return recs.sort((a, b) => {
-      // First sort by category order
       const categoryOrder = { 'Dream': 0, 'Reach': 1, 'Match': 2, 'Safety': 3 };
       const categoryA = categoryOrder[a.category as keyof typeof categoryOrder] ?? 4;
       const categoryB = categoryOrder[b.category as keyof typeof categoryOrder] ?? 4;
@@ -378,7 +369,6 @@ export const RecommendationResults = ({
         return categoryA - categoryB;
       }
 
-      // Within same category, sort by cutoff percentile descending (higher cutoffs first)
       return (b.cutoff_percentile || 0) - (a.cutoff_percentile || 0);
     });
   };
@@ -434,7 +424,7 @@ export const RecommendationResults = ({
 
   return (
     <div className="space-y-6">
-      <RecommendationHeader formData={formData} recommendationId={recommendationId} />
+      <DiplomaRecommendationHeader formData={formData} />
 
       {/* Rounds Tabs */}
       <Tabs value={activeRound} onValueChange={setActiveRound} className="w-full">
@@ -445,16 +435,13 @@ export const RecommendationResults = ({
           <TabsTrigger value="round2" className="text-xs sm:text-sm font-medium">
             Round 2
           </TabsTrigger>
-          <TabsTrigger value="round3" className="text-xs sm:text-sm font-medium">
-            Round 3
-          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="round1" className="space-y-6 mt-4">
           {recommendations && recommendations.length > 0 ? (
             <>
               <CAPFormInstructions />
-              <RecommendationDisclaimer />
+              <DiplomaRecommendationDisclaimer />
 
           {/* Results Summary */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
@@ -477,15 +464,21 @@ export const RecommendationResults = ({
             </Button>
           </div>
 
+          {/* Category Filter
+          <DiplomaCategoryFilter 
+            activeCategory={activeCategory}
+            onCategoryChange={setActiveCategory}
+            stats={categoryStats}
+          /> */}
+
           {/* Results List */}
           {categorizedRecommendations.length > 0 ? (
             <div className="relative">
-              {/* First 3 cards - always visible */}
+              {/* First 10 cards - always visible */}
               <div className="space-y-4">
                 {categorizedRecommendations.slice(0, 10).map((recommendation, index) => {
-
                   return (
-                    <RecommendationCard
+                    <DiplomaRecommendationCard
                       key={`${recommendation.college.id}-${recommendation.course_name}-${index}`}
                       recommendation={recommendation}
                       index={index + 1}
@@ -521,7 +514,7 @@ export const RecommendationResults = ({
 
                       <DialogContent className="sm:max-w-md z-[9999]">
                         <DialogHeader>
-                          <DialogTitle className="text-center">Unlock Recommendations</DialogTitle>
+                          <DialogTitle className="text-center">Unlock Diploma Recommendations</DialogTitle>
                         </DialogHeader>
 
                         <div className="space-y-4">
@@ -605,8 +598,8 @@ export const RecommendationResults = ({
 
                   {/* Blurred cards */}
                   <div className="blur-sm pointer-events-none space-y-4">
-                    -                    {categorizedRecommendations.slice(3, Math.min(8, categorizedRecommendations.length)).map((recommendation, index) => (
-                      <RecommendationCard
+                    {categorizedRecommendations.slice(3, Math.min(8, categorizedRecommendations.length)).map((recommendation, index) => (
+                      <DiplomaRecommendationCard
                         key={`${recommendation.college.id}-${recommendation.course_name}-${index + 10}`}
                         recommendation={recommendation}
                         index={index + 11}
@@ -620,7 +613,7 @@ export const RecommendationResults = ({
               {(isUnlocked || paymentData?.is_payment === true) && categorizedRecommendations.length > 10 && (
                 <div className="space-y-4 mt-4">
                   {categorizedRecommendations.slice(10).map((recommendation, index) => (
-                    <RecommendationCard
+                    <DiplomaRecommendationCard
                       key={`${recommendation.college.id}-${recommendation.course_name}-${index + 10}`}
                       recommendation={recommendation}
                       index={index + 11}
@@ -649,11 +642,7 @@ export const RecommendationResults = ({
         </TabsContent>
 
         <TabsContent value="round2" className="mt-4">
-          <Round2Tab />
-        </TabsContent>
-
-        <TabsContent value="round3" className="mt-4">
-          {renderUpcomingRound(3)}
+          {renderUpcomingRound(2)}
         </TabsContent>
       </Tabs>
     </div>

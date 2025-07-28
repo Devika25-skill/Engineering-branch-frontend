@@ -81,11 +81,11 @@ const DesktopFilters = ({
         {/* Filter Dropdowns */}
         <div className="space-y-4">
           <FilterDropdown
-            title="Regions"
+            title="Cities"
             items={cities}
             selectedItems={selectedCities}
             onSelectionChange={onSelectedCitiesChange}
-            searchPlaceholder="Search regions..."
+            searchPlaceholder="Search cities..."
           />
           
           <FilterDropdown

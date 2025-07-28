@@ -12,6 +12,8 @@ import Colleges from "./pages/Colleges";
 import Recommendations from "./pages/Recommendations";
 import RecommendationSteps from "./pages/RecommendationSteps";
 import RecommendationResults from "./pages/RecommendationResults";
+import DiplomaRecommendationSteps from "./pages/DiplomaRecommendationSteps";
+import DiplomaRecommendationResults from "./pages/DiplomaRecommendationResults";
 import CollegeDetails from "./pages/CollegeDetails";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -36,10 +38,9 @@ const App = () => (
                 <Route path="/recommendations" element={<Recommendations />} />
                 <Route path="/recommendations/steps" element={<RecommendationSteps />} />
                 <Route path="/recommendations/results" element={<RecommendationResults />} />
+                <Route path="/diploma-recommendations/steps" element={<DiplomaRecommendationSteps />} />
+                <Route path="/diploma-recommendations/results" element={<DiplomaRecommendationResults />} />
                 <Route path="/college/:id" element={<CollegeDetails />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/signup" element={<Signup />} />
-                <Route path="/admin" element={<Admin />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </div>

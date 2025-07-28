@@ -34,7 +34,15 @@ const Navigation = () => {
       </button>
       <button 
         onClick={() => {
-          navigate('/recommendations');
+          // Check saved preference and navigate accordingly
+          const savedRecommendationType = localStorage.getItem('recommendation_type');
+          if (savedRecommendationType === 'direct-second-year') {
+            navigate('/diploma-recommendations/steps');
+          } else if (savedRecommendationType === 'first-year') {
+            navigate('/recommendations');
+          } else {
+            navigate('/recommendations');
+          }
           if (mobile) setMobileMenuOpen(false);
         }}
         className={`flex items-center text-gray-600 hover:text-purple-600 transition-all duration-300 group relative ${mobile ? 'w-full text-left p-3 rounded-lg hover:bg-purple-50' : 'py-2'}`}

@@ -1,11 +1,13 @@
+
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { BookOpen, MapPin, X, Plus, GripVertical, Home, Building2, Car, AlertCircle } from "lucide-react";
+import { BookOpen, MapPin, X, Plus, GripVertical, Home, Building2, Car, AlertCircle, ChevronDown } from "lucide-react";
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 
 interface PreferencesFormProps {
@@ -23,38 +25,75 @@ export const PreferencesForm = ({ data, onUpdate, validationErrors = [] }: Prefe
   };
 
   const availableStreams = [
-  "Agricultural",
-  "Artificial Intelligence",
-  "Automobile",
-  "Bio Technology",
-  "Biomedical",
-  "Chemical",
-  "Civil",
-  "Computer",
-  "Cyber Security",
-  "Data Science",
-  "Electrical",
-  "Electronics",
-  "Food Technology",
-  "Information Technology",
-  "Instrumentation",
-  "Internet of Things",
-  "Manufacturing",
-  "Mechanical",
-  "Mechatronics",
-  "Metallurgy and Material Technology",
-  "Mining",
-  "Pharmaceutical Technology",
-  "Polymer",
-  "Production",
-  "Robotics and Automation",
-  "Surface Coating Technology",
-  "Textile Technology"
+    "ALL",
+    "Agricultural",
+    "Artificial Intelligence",
+    "Automobile",
+    "Bio Technology",
+    "Biomedical",
+    "Chemical",
+    "Civil",
+    "Computer",
+    "Cyber Security",
+    "Data Science",
+    "Electrical",
+    "Electronics",
+    "Food Technology",
+    "Information Technology",
+    "Instrumentation",
+    "Internet of Things",
+    "Manufacturing",
+    "Mechanical",
+    "Mechatronics",
+    "Metallurgy and Material Technology",
+    "Mining",
+    "Pharmaceutical Technology",
+    "Polymer",
+    "Production",
+    "Robotics and Automation",
+    "Surface Coating Technology",
+    "Textile Technology"
   ];
 
   const availableCities = [
-    "Mumbai", "Pune", "Nagpur", "Nashik", "Aurangabad", "Kolhapur", "Solapur",
-    "Nanded", "Amravati", "Akola", "Latur", "Dhule", "Jalgaon", "Satara", "Sangli"
+    "ALL",
+    "Ahmednagar",
+    "Akola",
+    "Amravati",
+    "Beed",
+    "Bhandara",
+    "Buldhana",
+    "Chandrapur",
+    "Chh. Sambhaji Nagar (Aurangabad)",
+    "Chikhli",
+    "Dharashiv (Osmanabad)",
+    "Dhule",
+    "Ichalkaranji",
+    "Jalgaon",
+    "Jalna",
+    "Kalyan",
+    "Kolhapur",
+    "Latur",
+    "Mumbai",
+    "Nagpur",
+    "Nanded",
+    "Nandurbar",
+    "Nashik",
+    "Palghar",
+    "Pandharpur",
+    "Parbhani",
+    "Pune",
+    "Raigad",
+    "Ratnagiri",
+    "Sangli",
+    "Satara",
+    "Sindhudurg",
+    "Solapur",
+    "Thane",
+    "Ulhasnagar",
+    "Wardha",
+    "Washim",
+    "Yavatmal"
   ];
 
   useEffect(() => {
@@ -91,21 +130,21 @@ export const PreferencesForm = ({ data, onUpdate, validationErrors = [] }: Prefe
 
   const handleStreamDragEnd = (result: any) => {
     if (!result.destination) return;
-    
+
     const items = Array.from(selectedStreams);
     const [reorderedItem] = items.splice(result.source.index, 1);
     items.splice(result.destination.index, 0, reorderedItem);
-    
+
     setSelectedStreams(items);
   };
 
   const handleCityDragEnd = (result: any) => {
     if (!result.destination) return;
-    
+
     const items = Array.from(selectedCities);
     const [reorderedItem] = items.splice(result.source.index, 1);
     items.splice(result.destination.index, 0, reorderedItem);
-    
+
     setSelectedCities(items);
   };
 
@@ -125,28 +164,41 @@ export const PreferencesForm = ({ data, onUpdate, validationErrors = [] }: Prefe
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            <Select onValueChange={addStream}>
-              <SelectTrigger className="h-12 rounded-xl border-2 bg-white">
-                <div className="flex items-center gap-2">
-                  <Plus size={16} className="text-purple-600" />
-                  <SelectValue placeholder="Add your favorite engineering branches" />
-                </div>
-              </SelectTrigger>
-              <SelectContent>
-                {availableStreams.filter(stream => !selectedStreams.includes(stream)).map((stream) => (
-                  <SelectItem key={stream} value={stream}>
-                    {stream}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {availableStreams.length > 10 ? (
+              <SearchableSelect
+                options={availableStreams
+                  .filter(stream => !selectedStreams.includes(stream))
+                  .map(stream => ({ value: stream, label: stream }))}
+                value=""
+                onValueChange={addStream}
+                placeholder="Add your favorite engineering branches"
+                searchPlaceholder="Search branches..."
+                className="w-full"
+              />
+            ) : (
+              <Select onValueChange={addStream}>
+                <SelectTrigger className="h-12 rounded-xl border-2 bg-white">
+                  <div className="flex items-center gap-2">
+                    <Plus size={16} className="text-purple-600" />
+                    <SelectValue placeholder="Add your favorite engineering branches" />
+                  </div>
+                </SelectTrigger>
+                <SelectContent className="max-h-80">
+                  {availableStreams.filter(stream => !selectedStreams.includes(stream)).map((stream) => (
+                    <SelectItem key={stream} value={stream}>
+                      {stream}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
 
             {selectedStreams.length > 0 ? (
               <div className="space-y-3">
                 <p className="text-sm font-medium text-slate-600 flex items-center gap-2">
                   🎯 Your Preferences (drag to reorder by priority):
                 </p>
-                <ScrollArea className="h-40 border-2 rounded-xl p-3 bg-white">
+                <div className={`border-2 rounded-xl p-3 bg-white ${selectedStreams.length > 5 ? 'max-h-80 overflow-y-auto' : ''}`}>
                   <DragDropContext onDragEnd={handleStreamDragEnd}>
                     <Droppable droppableId="streams">
                       {(provided) => (
@@ -184,7 +236,7 @@ export const PreferencesForm = ({ data, onUpdate, validationErrors = [] }: Prefe
                       )}
                     </Droppable>
                   </DragDropContext>
-                </ScrollArea>
+                </div>
               </div>
             ) : (
               <div className="text-center py-8 text-slate-500">
@@ -206,28 +258,41 @@ export const PreferencesForm = ({ data, onUpdate, validationErrors = [] }: Prefe
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            <Select onValueChange={addCity}>
-              <SelectTrigger className="h-12 rounded-xl border-2 bg-white">
-                <div className="flex items-center gap-2">
-                  <Plus size={16} className="text-green-600" />
-                  <SelectValue placeholder="Add cities you'd love to study in" />
-                </div>
-              </SelectTrigger>
-              <SelectContent>
-                {availableCities.filter(city => !selectedCities.includes(city)).map((city) => (
-                  <SelectItem key={city} value={city}>
-                    {city}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {availableCities.length > 10 ? (
+              <SearchableSelect
+                options={availableCities
+                  .filter(city => !selectedCities.includes(city))
+                  .map(city => ({ value: city, label: city }))}
+                value=""
+                onValueChange={addCity}
+                placeholder="Add cities you'd love to study in"
+                searchPlaceholder="Search cities..."
+                className="w-full"
+              />
+            ) : (
+              <Select onValueChange={addCity}>
+                <SelectTrigger className="h-12 rounded-xl border-2 bg-white">
+                  <div className="flex items-center gap-2">
+                    <Plus size={16} className="text-green-600" />
+                    <SelectValue placeholder="Add cities you'd love to study in" />
+                  </div>
+                </SelectTrigger>
+                <SelectContent className="max-h-80">
+                  {availableCities.filter(city => !selectedCities.includes(city)).map((city) => (
+                    <SelectItem key={city} value={city}>
+                      {city}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
 
             {selectedCities.length > 0 ? (
               <div className="space-y-3">
                 <p className="text-sm font-medium text-slate-600 flex items-center gap-2">
                   🗺️ Your Preferences (drag to reorder by priority):
                 </p>
-                <ScrollArea className="h-40 border-2 rounded-xl p-3 bg-white">
+                <div className={`border-2 rounded-xl p-3 bg-white ${selectedCities.length > 5 ? 'max-h-80 overflow-y-auto' : ''}`}>
                   <DragDropContext onDragEnd={handleCityDragEnd}>
                     <Droppable droppableId="cities">
                       {(provided) => (
@@ -265,7 +330,7 @@ export const PreferencesForm = ({ data, onUpdate, validationErrors = [] }: Prefe
                       )}
                     </Droppable>
                   </DragDropContext>
-                </ScrollArea>
+                </div>
               </div>
             ) : (
               <div className="text-center py-8 text-slate-500">
@@ -277,71 +342,79 @@ export const PreferencesForm = ({ data, onUpdate, validationErrors = [] }: Prefe
         </Card>
       </div>
 
-      {/* Campus Facilities - Optional */}
-      <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl">
-        <CardHeader className="pb-6">
-          <CardTitle className="text-xl font-bold text-slate-800 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-500 flex items-center justify-center">
-              <Building2 className="text-white" size={20} />
+      {/* Campus Facilities - Optional Collapsible */}
+      <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl overflow-hidden">
+        <details className="group">
+          <summary className="cursor-pointer p-6 pb-4 hover:bg-blue-50/50 transition-colors list-none [&::-webkit-details-marker]:hidden">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-500 flex items-center justify-center">
+                <Building2 className="text-white" size={20} />
+              </div>
+              <span className="text-xl font-bold text-slate-800">
+                Campus Vibe <span className="text-sm text-slate-500 font-normal">(Optional - but good to know!)</span>
+              </span>
+              <div className="ml-auto transform transition-transform duration-200 group-open:rotate-180">
+                <ChevronDown className="w-5 h-5 text-slate-600" />
+              </div>
             </div>
-            Campus Vibe <span className="text-sm text-slate-500 font-normal">(Optional - but good to know!)</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div className="space-y-3">
-              <Label className="flex items-center gap-2 text-slate-700 font-medium">
-                <Home size={16} className="text-blue-600" />
-                🏠 Hostel Needed?
-              </Label>
-              <Select onValueChange={(value) => onUpdate({ hostelPreference: value })} value={data.hostelPreference}>
-                <SelectTrigger className="h-12 rounded-xl border-2 bg-white">
-                  <SelectValue placeholder="Your hostel preference" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="required">Yes, definitely need it!</SelectItem>
-                  <SelectItem value="preferred">Would be nice to have</SelectItem>
-                  <SelectItem value="not-needed">No, I'm good</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+          </summary>
 
-            <div className="space-y-3">
-              <Label className="flex items-center gap-2 text-slate-700 font-medium">
-                <Building2 size={16} className="text-green-600" />
-                🌆 Campus Vibe
-              </Label>
-              <Select onValueChange={(value) => onUpdate({ campusSetting: value })} value={data.campusSetting}>
-                <SelectTrigger className="h-12 rounded-xl border-2 bg-white">
-                  <SelectValue placeholder="Your ideal setting" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="urban">City life (Urban)</SelectItem>
-                  <SelectItem value="suburban">Best of both (Suburban)</SelectItem>
-                  <SelectItem value="rural">Peaceful (Rural)</SelectItem>
-                  <SelectItem value="no-preference">I'm flexible!</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+          <div className="px-6 pb-6 space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="space-y-3">
+                <Label className="flex items-center gap-2 text-slate-700 font-medium">
+                  <Home size={16} className="text-blue-600" />
+                  🏠 Hostel Needed?
+                </Label>
+                <Select onValueChange={(value) => onUpdate({ hostelPreference: value })} value={data.hostelPreference}>
+                  <SelectTrigger className="h-12 rounded-xl border-2 bg-white">
+                    <SelectValue placeholder="Your hostel preference" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-80">
+                    <SelectItem value="required">Yes, definitely need it!</SelectItem>
+                    <SelectItem value="preferred">Would be nice to have</SelectItem>
+                    <SelectItem value="not-needed">No, I'm good</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-            <div className="space-y-3">
-              <Label className="flex items-center gap-2 text-slate-700 font-medium">
-                <Car size={16} className="text-orange-600" />
-                🚌 Transportation
-              </Label>
-              <Select onValueChange={(value) => onUpdate({ transportFacility: value })} value={data.transportFacility}>
-                <SelectTrigger className="h-12 rounded-xl border-2 bg-white">
-                  <SelectValue placeholder="Transport preference" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="required">Must have bus service</SelectItem>
-                  <SelectItem value="preferred">Would be helpful</SelectItem>
-                  <SelectItem value="not-needed">I'll manage</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="space-y-3">
+                <Label className="flex items-center gap-2 text-slate-700 font-medium">
+                  <Building2 size={16} className="text-green-600" />
+                  🌆 Campus Vibe
+                </Label>
+                <Select onValueChange={(value) => onUpdate({ campusSetting: value })} value={data.campusSetting}>
+                  <SelectTrigger className="h-12 rounded-xl border-2 bg-white">
+                    <SelectValue placeholder="Your ideal setting" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-80">
+                    <SelectItem value="urban">City life (Urban)</SelectItem>
+                    <SelectItem value="suburban">Best of both (Suburban)</SelectItem>
+                    <SelectItem value="rural">Peaceful (Rural)</SelectItem>
+                    <SelectItem value="no-preference">I'm flexible!</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-3">
+                <Label className="flex items-center gap-2 text-slate-700 font-medium">
+                  <Car size={16} className="text-orange-600" />
+                  🚌 Transportation
+                </Label>
+                <Select onValueChange={(value) => onUpdate({ transportFacility: value })} value={data.transportFacility}>
+                  <SelectTrigger className="h-12 rounded-xl border-2 bg-white">
+                    <SelectValue placeholder="Transport preference" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-80">
+                    <SelectItem value="required">Must have bus service</SelectItem>
+                    <SelectItem value="preferred">Would be helpful</SelectItem>
+                    <SelectItem value="not-needed">I'll manage</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
-        </CardContent>
+        </details>
       </Card>
     </div>
   );

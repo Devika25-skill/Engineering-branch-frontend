@@ -182,22 +182,18 @@ const CollegeFilters = ({
               </div>
             </div>
 
-            {/* Regions */}
+            {/* Cities */}
             <div>
-              <Label className="text-sm font-medium mb-3 block">Regions</Label>
-              <div className="space-y-3 max-h-40 overflow-y-auto">
+              <Label className="text-sm font-medium mb-3 block">Cities</Label>
+              <div className="space-y-2 max-h-40 overflow-y-auto">
                 {cities.map((city) => (
-                  <div key={city} className="flex items-center space-x-3 py-1 px-2 rounded-md hover:bg-purple-50 transition-colors min-h-[44px] lg:min-h-[36px]">
+                  <div key={city} className="flex items-center space-x-2">
                     <Checkbox
                       id={`city-${city}`}
                       checked={selectedCities.includes(city)}
                       onCheckedChange={(checked) => handleCityToggle(city, checked as boolean)}
-                      className="mt-0.5"
                     />
-                    <Label 
-                      htmlFor={`city-${city}`} 
-                      className="text-sm cursor-pointer flex-1 leading-relaxed py-2 lg:py-1"
-                    >
+                    <Label htmlFor={`city-${city}`} className="text-sm cursor-pointer">
                       {city}
                     </Label>
                   </div>
@@ -208,19 +204,15 @@ const CollegeFilters = ({
             {/* College Types */}
             <div>
               <Label className="text-sm font-medium mb-3 block">College Type</Label>
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {types.map((type) => (
-                  <div key={type} className="flex items-center space-x-3 py-1 px-2 rounded-md hover:bg-purple-50 transition-colors min-h-[44px] lg:min-h-[36px]">
+                  <div key={type} className="flex items-center space-x-2">
                     <Checkbox
                       id={`type-${type}`}
                       checked={selectedTypes.includes(type)}
                       onCheckedChange={(checked) => handleTypeToggle(type, checked as boolean)}
-                      className="mt-0.5"
                     />
-                    <Label 
-                      htmlFor={`type-${type}`} 
-                      className="text-sm cursor-pointer flex-1 leading-relaxed py-2 lg:py-1"
-                    >
+                    <Label htmlFor={`type-${type}`} className="text-sm cursor-pointer">
                       {type}
                     </Label>
                   </div>
@@ -231,19 +223,15 @@ const CollegeFilters = ({
             {/* Streams */}
             <div>
               <Label className="text-sm font-medium mb-3 block">Engineering Streams</Label>
-              <div className="space-y-3 max-h-40 overflow-y-auto">
+              <div className="space-y-2 max-h-40 overflow-y-auto">
                 {streams.map((stream) => (
-                  <div key={stream} className="flex items-center space-x-3 py-1 px-2 rounded-md hover:bg-purple-50 transition-colors min-h-[44px] lg:min-h-[36px]">
+                  <div key={stream} className="flex items-center space-x-2">
                     <Checkbox
                       id={`stream-${stream}`}
                       checked={selectedStreams.includes(stream)}
                       onCheckedChange={(checked) => handleStreamToggle(stream, checked as boolean)}
-                      className="mt-0.5"
                     />
-                    <Label 
-                      htmlFor={`stream-${stream}`} 
-                      className="text-sm cursor-pointer flex-1 leading-relaxed py-2 lg:py-1"
-                    >
+                    <Label htmlFor={`stream-${stream}`} className="text-sm cursor-pointer">
                       {stream}
                     </Label>
                   </div>

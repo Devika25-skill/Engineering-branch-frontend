@@ -77,15 +77,6 @@ const Colleges = () => {
 
   const { data: colleges = [], isLoading, error, refetch } = useColleges();
 
-  // Force reload with region data - clear cache on first load if no regions available
-  useEffect(() => {
-    const hasRegionData = colleges.some(college => college.region);
-    if (colleges.length > 0 && !hasRegionData) {
-      sessionStorageService.clearCache();
-      refetch();
-    }
-  }, [colleges, refetch]);
-
   // Save filters to session storage whenever they change
   useEffect(() => {
     sessionStorageService.setFilters({
@@ -108,8 +99,7 @@ const Colleges = () => {
         collegeCity.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
         collegeStreams.some(stream => stream && stream.toLowerCase().includes(debouncedSearchTerm.toLowerCase()));
       
-      const collegeRegion = college.region || '';
-      const matchesCity = selectedCities.length === 0 || selectedCities.includes(collegeRegion);
+      const matchesCity = selectedCities.length === 0 || selectedCities.includes(collegeCity);
       const collegeType = college.college_type || '';
       const matchesType = selectedTypes.length === 0 || selectedTypes.includes(collegeType);
       const matchesStream = selectedStreams.length === 0 || 
@@ -155,7 +145,7 @@ const Colleges = () => {
     return type.charAt(0).toUpperCase() + type.slice(1).toLowerCase();
   };
 
-  const regions = [...new Set(colleges.map(college => college.region).filter(Boolean))].sort() as string[];
+  const cities = [...new Set(colleges.map(college => college.city).filter(Boolean))].sort() as string[];
   const types = [...new Set(colleges.map(college => college.college_type).filter(Boolean))].sort() as string[];
   const streams = [...new Set(colleges.flatMap(college => college.streams || []).filter(Boolean))].sort() as string[];
 
@@ -328,10 +318,10 @@ const Colleges = () => {
             {/* Desktop Sidebar Filters */}
             <div className="lg:w-1/4 flex-shrink-0 hidden lg:block">
               <div className="sticky top-6 h-fit max-h-[calc(100vh-12rem)] overflow-y-auto">
-                 <DesktopFilters
-                   cities={regions}
-                   types={types}
-                   streams={streams}
+                <DesktopFilters
+                  cities={cities}
+                  types={types}
+                  streams={streams}
                   feesRange={feesRange}
                   onFeesRangeChange={setFeesRange}
                   selectedCities={selectedCities}
@@ -468,10 +458,10 @@ const Colleges = () => {
         </div>
 
         {/* Floating Filter Button for Mobile */}
-         <FloatingFilterButton
-           cities={regions}
-           types={types}
-           streams={streams}
+        <FloatingFilterButton
+          cities={cities}
+          types={types}
+          streams={streams}
           selectedCity={selectedCity}
           selectedType={selectedType}
           selectedStream={selectedStream}
