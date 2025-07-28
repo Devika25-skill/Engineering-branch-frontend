@@ -17,6 +17,7 @@ export const DiplomaCitiesForm = ({ data, onUpdate, validationErrors = [] }: Dip
   const [selectedCities, setSelectedCities] = useState<string[]>(data.selectedCities || []);
 
   const availableCities = [
+    "ALL",
     "Ahmednagar",
     "Akola",
     "Amravati",

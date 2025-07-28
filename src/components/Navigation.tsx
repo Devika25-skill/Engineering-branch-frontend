@@ -8,12 +8,15 @@ import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import LoginDialog from "@/components/auth/LoginDialog";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { RecommendationTypeDialog } from "@/components/recommendations/RecommendationTypeDialog";
+import { useRecommendationTypeDialog } from "@/hooks/useRecommendationTypeDialog";
 
 const Navigation = () => {
   const navigate = useNavigate();
   const { user, isLoggedIn, logout } = useAuth();
   const [loginDialogOpen, setLoginDialogOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { isOpen, openDialog, closeDialog, handleSelectType } = useRecommendationTypeDialog();
 
   const handleLogin = () => {
     setLoginDialogOpen(true);
@@ -41,7 +44,8 @@ const Navigation = () => {
           } else if (savedRecommendationType === 'first-year') {
             navigate('/recommendations');
           } else {
-            navigate('/recommendations');
+            // No preference saved, show dialog
+            openDialog();
           }
           if (mobile) setMobileMenuOpen(false);
         }}
@@ -158,6 +162,12 @@ const Navigation = () => {
       <LoginDialog 
         open={loginDialogOpen}
         onOpenChange={setLoginDialogOpen}
+      />
+      
+      <RecommendationTypeDialog
+        open={isOpen}
+        onOpenChange={closeDialog}
+        onSelectType={handleSelectType}
       />
     </>
   );

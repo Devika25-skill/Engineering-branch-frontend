@@ -476,7 +476,7 @@ export const DiplomaRecommendationResults = ({
             <div className="relative">
               {/* First 10 cards - always visible */}
               <div className="space-y-4">
-                {categorizedRecommendations.slice(0, 10).map((recommendation, index) => {
+                {categorizedRecommendations.slice(0, isUnlocked ? 10 : 5).map((recommendation, index) => {
                   return (
                     <DiplomaRecommendationCard
                       key={`${recommendation.college.id}-${recommendation.course_name}-${index}`}

@@ -1181,7 +1181,6 @@ export const Round2Tab = () => {
             </p>
           </div>
 
-
           {/* Results Summary and Download */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
             <div className="text-center sm:text-left">
@@ -1203,71 +1202,59 @@ export const Round2Tab = () => {
           </div>
 
           {/* Recommendations List */}
-          <div className="space-y-4">
-            {/* First 5 cards - always visible */}
-            {categorizedRecommendations.slice(0, 5).map((recommendation, index) => {
-              // Add debugging and safety checks
-              console.log('Round 2 Recommendation:', recommendation);
-              if (!recommendation || !recommendation.college || !recommendation.college.name) {
-                console.error('Invalid recommendation data:', recommendation);
-                return null;
-              }
+          {isUnlocked ? (
+            <div className="space-y-4">
+              {categorizedRecommendations.map((recommendation, index) => {
+                // Add debugging and safety checks
+                console.log('Round 2 Recommendation:', recommendation);
+                if (!recommendation || !recommendation.college || !recommendation.college.name) {
+                  console.error('Invalid recommendation data:', recommendation);
+                  return null;
+                }
+                
+                return (
+                  <RecommendationCard
+                    key={`${recommendation.college?.College_Code || recommendation.college?.id}-${recommendation.course_name}-${index}`}
+                    recommendation={recommendation}
+                    index={index + 1}
+                  />
+                );
+              })}
+            </div>
+          ) : (
+            <div className="relative">
+              {/* Blurred preview cards */}
+              <div className="space-y-4 opacity-30 blur-sm pointer-events-none">
+                {categorizedRecommendations.slice(0, 3).map((recommendation, index) => {
+                  if (!recommendation || !recommendation.college || !recommendation.college.name) {
+                    return null;
+                  }
+                  
+                  return (
+                    <RecommendationCard
+                      key={`preview-${recommendation.college?.College_Code || recommendation.college?.id}-${index}`}
+                      recommendation={recommendation}
+                      index={index + 1}
+                    />
+                  );
+                })}
+              </div>
               
-              return (
-                <RecommendationCard
-                  key={`${recommendation.college?.College_Code || recommendation.college?.id}-${recommendation.course_name}-${index}`}
-                  recommendation={recommendation}
-                  index={index + 1}
-                />
-              );
-            })}
-
-            {/* Remaining cards - shown based on unlock status */}
-            {categorizedRecommendations.length > 5 && (
-              <>
-                {isUnlocked ? (
-                  // Show all remaining cards if unlocked
-                  categorizedRecommendations.slice(5).map((recommendation, index) => {
-                    if (!recommendation || !recommendation.college || !recommendation.college.name) {
-                      console.error('Invalid recommendation data:', recommendation);
-                      return null;
-                    }
-                    
-                    return (
-                      <RecommendationCard
-                        key={`${recommendation.college?.College_Code || recommendation.college?.id}-${recommendation.course_name}-${index + 5}`}
-                        recommendation={recommendation}
-                        index={index + 6}
-                      />
-                    );
-                  })
-                ) : (
-                  // Show unlock section using PremiumGate component if not unlocked
-                  <div className="relative">
-                    <PremiumGate onUnlock={() => setIsUnlocked(true)} />
-                    
-                    {/* Blurred preview cards */}
-                    <div className="blur-sm opacity-50">
-                      {categorizedRecommendations.slice(5, 8).map((recommendation, index) => {
-                        if (!recommendation || !recommendation.college || !recommendation.college.name) {
-                          return null;
-                        }
-                        
-                        return (
-                          <div key={`blurred-${index}`} className="mb-4">
-                            <RecommendationCard
-                              recommendation={recommendation}
-                              index={index + 6}
-                            />
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-              </>
-            )}
-          </div>
+              {/* Unlock section overlay - matching Round 1 style */}
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="text-center bg-white/90 backdrop-blur-sm rounded-xl p-6 shadow-lg border-2 border-blue-200 max-w-md mx-4">
+                  <Lock className="mx-auto mb-3 text-blue-600" size={32} />
+                  <h3 className="text-xl font-bold text-gray-800 mb-2">
+                    🔒 Unlock Round 2 Recommendations
+                  </h3>
+                  <p className="text-gray-600 text-sm mb-4">
+                    {categorizedRecommendations.length} personalized recommendations waiting
+                  </p>
+                  <PremiumGate onUnlock={() => setIsUnlocked(true)} />
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Generate New Recommendations Button */}
           <div className="flex justify-center pt-6">
