@@ -1201,7 +1201,7 @@ export const Round2Tab = () => {
             </Button>
           </div>
 
-          {/* Recommendations List - Hidden until payment */}
+          {/* Recommendations List */}
           {isUnlocked ? (
             <div className="space-y-4">
               {categorizedRecommendations.map((recommendation, index) => {
@@ -1222,13 +1222,37 @@ export const Round2Tab = () => {
               })}
             </div>
           ) : (
-            <div className="relative">
-              <PremiumGate onUnlock={() => setIsUnlocked(true)} />
-              <div className="text-center mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                <Lock className="w-8 h-8 text-blue-600 mx-auto mb-2" />
-                <p className="text-blue-700 font-medium">
-                  Complete payment to view your Round 2 college recommendations
-                </p>
+            <div className="space-y-6">
+              {/* Blurred Preview Cards */}
+              <div className="relative">
+                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/20 to-white/90 z-10 pointer-events-none rounded-lg"></div>
+                <div className="filter blur-sm select-none pointer-events-none space-y-4">
+                  {categorizedRecommendations.slice(0, 3).map((recommendation, index) => {
+                    if (!recommendation || !recommendation.college || !recommendation.college.name) {
+                      return null;
+                    }
+                    
+                    return (
+                      <RecommendationCard
+                        key={`preview-${recommendation.college?.College_Code || recommendation.college?.id}-${index}`}
+                        recommendation={recommendation}
+                        index={index + 1}
+                      />
+                    );
+                  })}
+                </div>
+                
+                {/* Unlock Button Overlay */}
+                <div className="absolute inset-0 flex items-center justify-center z-20">
+                  <div className="bg-white/95 backdrop-blur-sm p-6 rounded-xl shadow-lg text-center border border-blue-200 max-w-sm mx-4">
+                    <Lock className="w-10 h-10 text-blue-600 mx-auto mb-4" />
+                    <h4 className="font-bold text-gray-800 mb-2 text-lg">Unlock Full Access</h4>
+                    <p className="text-sm text-gray-600 mb-4">
+                      View all {categorizedRecommendations.length} personalized Round 2 recommendations
+                    </p>
+                    <PremiumGate onUnlock={() => setIsUnlocked(true)} />
+                  </div>
+                </div>
               </div>
             </div>
           )}
