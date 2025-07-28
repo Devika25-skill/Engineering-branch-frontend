@@ -37,7 +37,9 @@ export const Round2Tab = () => {
   const [selectedCollege, setSelectedCollege] = useState<SelectedCollege | null>(null);
   const [showSelectionDialog, setShowSelectionDialog] = useState(false);
   const [showFinalConfirmation, setShowFinalConfirmation] = useState(false);
-  
+  const [showEditConfirmation, setShowEditConfirmation] = useState(false);
+
+
   const [isConfirmed, setIsConfirmed] = useState(false);
   const [isStoring, setIsStoring] = useState(false);
   const [showPreferences, setShowPreferences] = useState(false);
@@ -300,6 +302,27 @@ export const Round2Tab = () => {
     } finally {
       setIsSearching(false);
     }
+  };
+
+  const handleEditSelection = () => {
+    setShowEditConfirmation(true);
+  };
+
+  const handleConfirmEdit = () => {
+    // Clear localStorage and reset state
+    localStorage.removeItem('round2Selection');
+    localStorage.removeItem('round2Preferences');
+    setSelectedCollege(null);
+    setIsConfirmed(false);
+    setShowPreferences(false);
+    setEditingPreferences(false);
+    setSelectedBranches([]);
+    setSelectedCities([]);
+    setShowEditConfirmation(false);
+    toast({
+      title: "Selection Reset",
+      description: "You can now make a new selection for Round 2 recommendations.",
+    });
   };
 
   const handleDepartmentSelect = (college: CollegeSearchResult, department: CollegeDepartment) => {
@@ -836,7 +859,18 @@ export const Round2Tab = () => {
                 <Check className="w-5 h-5" />
                 Round 1 College Selected
               </div>
-              <div>
+              <div className="flex items-center gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleEditSelection();
+                  }}
+                  className="text-orange-600 border-orange-300 hover:bg-orange-50"
+                >
+                  Edit Selection
+                </Button>
                 {isCollegeCardCollapsed ? (
                   <ChevronDown className="w-5 h-5 text-green-600" />
                 ) : (
@@ -1441,6 +1475,24 @@ export const Round2Tab = () => {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleFinalConfirm}>
               Confirm Details
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Edit Confirmation Dialog */}
+      <AlertDialog open={showEditConfirmation} onOpenChange={setShowEditConfirmation}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Edit Selection?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to edit your college selection? This will reset your current selection and any generated Round 2 recommendation list will be affected.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmEdit} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Yes, Edit Selection
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
