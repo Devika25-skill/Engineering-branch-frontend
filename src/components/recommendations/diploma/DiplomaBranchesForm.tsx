@@ -21,6 +21,7 @@ export const DiplomaBranchesForm = ({ data, onUpdate, validationErrors = [] }: D
   };
 
   const availableBranches = [
+    "ALL",
     "Agricultural",
     "Artificial Intelligence",
     "Automobile",
