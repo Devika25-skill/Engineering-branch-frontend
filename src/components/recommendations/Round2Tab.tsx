@@ -1181,7 +1181,6 @@ export const Round2Tab = () => {
             </p>
           </div>
 
-
           {/* Results Summary and Download */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
             <div className="text-center sm:text-left">
@@ -1202,72 +1201,37 @@ export const Round2Tab = () => {
             </Button>
           </div>
 
-          {/* Recommendations List */}
-          <div className="space-y-4">
-            {/* First 5 cards - always visible */}
-            {categorizedRecommendations.slice(0, 5).map((recommendation, index) => {
-              // Add debugging and safety checks
-              console.log('Round 2 Recommendation:', recommendation);
-              if (!recommendation || !recommendation.college || !recommendation.college.name) {
-                console.error('Invalid recommendation data:', recommendation);
-                return null;
-              }
-              
-              return (
-                <RecommendationCard
-                  key={`${recommendation.college?.College_Code || recommendation.college?.id}-${recommendation.course_name}-${index}`}
-                  recommendation={recommendation}
-                  index={index + 1}
-                />
-              );
-            })}
-
-            {/* Remaining cards - shown based on unlock status */}
-            {categorizedRecommendations.length > 5 && (
-              <>
-                {isUnlocked ? (
-                  // Show all remaining cards if unlocked
-                  categorizedRecommendations.slice(5).map((recommendation, index) => {
-                    if (!recommendation || !recommendation.college || !recommendation.college.name) {
-                      console.error('Invalid recommendation data:', recommendation);
-                      return null;
-                    }
-                    
-                    return (
-                      <RecommendationCard
-                        key={`${recommendation.college?.College_Code || recommendation.college?.id}-${recommendation.course_name}-${index + 5}`}
-                        recommendation={recommendation}
-                        index={index + 6}
-                      />
-                    );
-                  })
-                ) : (
-                  // Show unlock section using PremiumGate component if not unlocked
-                  <div className="relative">
-                    <PremiumGate onUnlock={() => setIsUnlocked(true)} />
-                    
-                    {/* Blurred preview cards */}
-                    <div className="blur-sm opacity-50">
-                      {categorizedRecommendations.slice(5, 8).map((recommendation, index) => {
-                        if (!recommendation || !recommendation.college || !recommendation.college.name) {
-                          return null;
-                        }
-                        
-                        return (
-                          <div key={`blurred-${index}`} className="mb-4">
-                            <RecommendationCard
-                              recommendation={recommendation}
-                              index={index + 6}
-                            />
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-              </>
-            )}
-          </div>
+          {/* Recommendations List - Hidden until payment */}
+          {isUnlocked ? (
+            <div className="space-y-4">
+              {categorizedRecommendations.map((recommendation, index) => {
+                // Add debugging and safety checks
+                console.log('Round 2 Recommendation:', recommendation);
+                if (!recommendation || !recommendation.college || !recommendation.college.name) {
+                  console.error('Invalid recommendation data:', recommendation);
+                  return null;
+                }
+                
+                return (
+                  <RecommendationCard
+                    key={`${recommendation.college?.College_Code || recommendation.college?.id}-${recommendation.course_name}-${index}`}
+                    recommendation={recommendation}
+                    index={index + 1}
+                  />
+                );
+              })}
+            </div>
+          ) : (
+            <div className="relative">
+              <PremiumGate onUnlock={() => setIsUnlocked(true)} />
+              <div className="text-center mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <Lock className="w-8 h-8 text-blue-600 mx-auto mb-2" />
+                <p className="text-blue-700 font-medium">
+                  Complete payment to view your Round 2 college recommendations
+                </p>
+              </div>
+            </div>
+          )}
 
           {/* Generate New Recommendations Button */}
           <div className="flex justify-center pt-6">
