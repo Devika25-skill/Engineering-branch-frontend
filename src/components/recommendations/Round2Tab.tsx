@@ -53,6 +53,7 @@ export const Round2Tab = () => {
   const [round2Recommendations, setRound2Recommendations] = useState<any[]>([]);
   const [hasGeneratedRecommendations, setHasGeneratedRecommendations] = useState(false);
   const [isUnlocked, setIsUnlocked] = useState(false);
+  const [skipRound1Selection, setSkipRound1Selection] = useState(false);
 
   // Convert API response to recommendation format
   const convertApiResponseToRecommendations = (apiData: any) => {
@@ -144,13 +145,14 @@ export const Round2Tab = () => {
           setIsConfirmed(parsedData.isConfirmed);
           if (parsedData.isConfirmed) {
             setShowPreferences(true);
-            await loadPreferencesFromFormData();
           }
         } catch (error) {
           console.error('Error loading stored selection data:', error);
         }
       }
 
+      // Always load preferences immediately for faster access
+      await loadPreferencesFromFormData();
 
       // If no localStorage data and user is logged in, try API
       if (user?.accessToken) {
@@ -180,9 +182,6 @@ export const Round2Tab = () => {
             // Also save to localStorage for future use
             const storageData = { selectedCollege, isConfirmed: true };
             localStorage.setItem('round2Selection', JSON.stringify(storageData));
-            
-            // Load preferences after confirming college
-            await loadPreferencesFromFormData();
           } else {
             // API returned empty object or no data - user needs to select college
             console.log('No existing Round 2 selection found, user needs to select college');
@@ -196,7 +195,7 @@ export const Round2Tab = () => {
     loadExistingData();
   }, [user?.accessToken]);
 
-  // Check unlock status
+  // Check unlock status using same key as Round 1
   useEffect(() => {
     const checkUnlockStatus = () => {
       const isUnlocked = localStorage.getItem('recommendationUnlocked') === 'true';
@@ -204,6 +203,10 @@ export const Round2Tab = () => {
     };
     
     checkUnlockStatus();
+    
+    // Listen for storage changes
+    window.addEventListener('storage', checkUnlockStatus);
+    return () => window.removeEventListener('storage', checkUnlockStatus);
   }, []);
 
 
@@ -308,6 +311,16 @@ export const Round2Tab = () => {
     setShowEditConfirmation(true);
   };
 
+  const handleCreateNewList = () => {
+    setSkipRound1Selection(true);
+    setShowPreferences(true);
+    loadPreferencesFromFormData();
+    toast({
+      title: "Creating New List",
+      description: "Set your preferences below to generate Round 2 recommendations without Round 1 selection.",
+    });
+  };
+
   const handleConfirmEdit = () => {
     // Clear localStorage and reset state
     localStorage.removeItem('round2Selection');
@@ -318,6 +331,7 @@ export const Round2Tab = () => {
     setEditingPreferences(false);
     setSelectedBranches([]);
     setSelectedCities([]);
+    setSkipRound1Selection(false);
     setShowEditConfirmation(false);
     toast({
       title: "Selection Reset",
@@ -588,7 +602,7 @@ export const Round2Tab = () => {
       return;
     }
 
-    if (!selectedCollege?.selectedDepartment?.choice_code) {
+    if (!skipRound1Selection && !selectedCollege?.selectedDepartment?.choice_code) {
       toast({
         title: "Missing College Selection",
         description: "Please select your Round 1 college before generating recommendations",
@@ -628,7 +642,7 @@ export const Round2Tab = () => {
         cet_course: selectedBranches,
         location: selectedCities,
         round: 2,
-        last_round_college_choice_code: selectedCollege.selectedDepartment.choice_code
+        last_round_college_choice_code: skipRound1Selection ? 0 : selectedCollege.selectedDepartment.choice_code
       };
 
       const response = await apiService.generateRoundList(generateRoundListPayload, user.accessToken);
@@ -847,6 +861,7 @@ export const Round2Tab = () => {
     <div className="space-y-6">
       {/* Round 2 Disclaimer */}
       {showPreferences && <Round2Disclaimer />}
+      
       {/* Confirmed Selection Display - Collapsible */}
       {isConfirmed && selectedCollege && (
         <Card className="border-green-200 bg-green-50">
@@ -905,6 +920,7 @@ export const Round2Tab = () => {
           )}
         </Card>
       )}
+
 
       {/* Preferences Section - Collapsible */}
       {showPreferences && (
@@ -1240,18 +1256,15 @@ export const Round2Tab = () => {
                 })}
               </div>
               
-              {/* Unlock section overlay - matching Round 1 style */}
+              {/* Premium Gate for Round 2 */}
               <div className="absolute inset-0 flex items-center justify-center">
-                <div className="text-center bg-white/90 backdrop-blur-sm rounded-xl p-6 shadow-lg border-2 border-blue-200 max-w-md mx-4">
-                  <Lock className="mx-auto mb-3 text-blue-600" size={32} />
-                  <h3 className="text-xl font-bold text-gray-800 mb-2">
-                    🔒 Unlock Round 2 Recommendations
-                  </h3>
-                  <p className="text-gray-600 text-sm mb-4">
-                    {categorizedRecommendations.length} personalized recommendations waiting
-                  </p>
-                  <PremiumGate onUnlock={() => setIsUnlocked(true)} />
-                </div>
+                <PremiumGate
+                  onUnlock={() => setIsUnlocked(true)}
+                  storageKey="recommendationUnlocked"
+                  productType="First Year Recommendations"
+                  title="Unlock Round 2 Recommendations"
+                  description="Get access to all round recommendations including Round 2 counselling guidance."
+                />
               </div>
             </div>
           )}
@@ -1285,7 +1298,7 @@ export const Round2Tab = () => {
       )}
 
       {/* Search Section - Only show if not confirmed */}
-      {!isConfirmed && (
+      {!isConfirmed && !skipRound1Selection && (
         <>
           <Card>
             <CardHeader>
@@ -1333,6 +1346,33 @@ export const Round2Tab = () => {
                     </Button>
                   </div>
                 </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* OR Create New List Option */}
+          <div className="flex items-center gap-4">
+            <div className="flex-1 h-px bg-border"></div>
+            <span className="text-sm text-muted-foreground bg-background px-3">OR</span>
+            <div className="flex-1 h-px bg-border"></div>
+          </div>
+
+          <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
+            <CardContent className="p-6 text-center">
+              <div className="space-y-4">
+                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
+                  <Plus className="w-6 h-6 text-blue-600" />
+                </div>
+                <div className="space-y-2">
+                  <h3 className="text-lg font-semibold text-gray-800">Create New Round 2 List</h3>
+                  <p className="text-sm text-gray-600 max-w-md mx-auto">
+                    Don't have Round 1 details? Start fresh with a new Round 2 recommendation list based on your preferences.
+                  </p>
+                </div>
+                <Button onClick={handleCreateNewList} className="bg-blue-600 hover:bg-blue-700">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Create New List
+                </Button>
               </div>
             </CardContent>
           </Card>
