@@ -497,7 +497,7 @@ export const DiplomaRecommendationResults = ({
                       🔒 Unlock Unlimited Attempts
                     </h3>
                     <p className="text-gray-600 text-sm mb-4">
-                      {categorizedRecommendations.length - 10} more recommendations waiting
+                      {categorizedRecommendations.length - 5} more recommendations waiting
                     </p>
 
                     {/* Unlock button */}
