@@ -74,7 +74,7 @@ export const DiplomaAcademicInfoForm = ({ data, onUpdate, validationErrors = [] 
   { "code": "DEFR-ST", "label": "Defence – Reserved – Scheduled Tribe (ST)" },
   { "code": "EWS", "label": "Economically Weaker Sections" },
   { "code": "LST", "label": "Ladies – Scheduled Tribe (ST)" },
-  { "code": "MI", "label": "Minority Institute" },
+  { "code": "MI", "label": "Minority" },
   { "code": "ORP", "label": "Orphan Category" },
   { "code": "PWD-O", "label": "Persons with Disabilities – Open" },
   { "code": "PWD-OBC", "label": "Persons with Disabilities – Other Backward Class (OBC)" },

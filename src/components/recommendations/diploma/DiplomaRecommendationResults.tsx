@@ -474,9 +474,9 @@ export const DiplomaRecommendationResults = ({
           {/* Results List */}
           {categorizedRecommendations.length > 0 ? (
             <div className="relative">
-              {/* First 10 cards - always visible */}
+              {/* First 5 cards - always visible */}
               <div className="space-y-4">
-                {categorizedRecommendations.slice(0, isUnlocked ? 10 : 5).map((recommendation, index) => {
+                {categorizedRecommendations.slice(0, isUnlocked ? 5 : 5).map((recommendation, index) => {
                   return (
                     <DiplomaRecommendationCard
                       key={`${recommendation.college.id}-${recommendation.course_name}-${index}`}
@@ -600,9 +600,9 @@ export const DiplomaRecommendationResults = ({
                   <div className="blur-sm pointer-events-none space-y-4">
                     {categorizedRecommendations.slice(3, Math.min(8, categorizedRecommendations.length)).map((recommendation, index) => (
                       <DiplomaRecommendationCard
-                        key={`${recommendation.college.id}-${recommendation.course_name}-${index + 10}`}
+                        key={`${recommendation.college.id}-${recommendation.course_name}-${index + 5}`}
                         recommendation={recommendation}
-                        index={index + 11}
+                        index={index + 6}
                       />
                     ))}
                   </div>
@@ -610,13 +610,13 @@ export const DiplomaRecommendationResults = ({
               )}
 
               {/* Unlocked cards - show all remaining */}
-              {(isUnlocked || paymentData?.is_payment === true) && categorizedRecommendations.length > 10 && (
+              {(isUnlocked || paymentData?.is_payment === true) && categorizedRecommendations.length > 5 && (
                 <div className="space-y-4 mt-4">
-                  {categorizedRecommendations.slice(10).map((recommendation, index) => (
+                  {categorizedRecommendations.slice(5).map((recommendation, index) => (
                     <DiplomaRecommendationCard
-                      key={`${recommendation.college.id}-${recommendation.course_name}-${index + 10}`}
+                      key={`${recommendation.college.id}-${recommendation.course_name}-${index + 5}`}
                       recommendation={recommendation}
-                      index={index + 11}
+                      index={index + 6}
                     />
                   ))}
                 </div>
