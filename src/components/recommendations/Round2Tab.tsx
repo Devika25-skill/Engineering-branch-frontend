@@ -434,7 +434,6 @@ export const Round2Tab = () => {
         const parsed = JSON.parse(storedPreferences);
         setSelectedBranches(parsed.branches || []);
         setSelectedCities(parsed.cities || []);
-        setShowPreferences(true); // Show preferences when loaded from storage
         return;
       } catch (error) {
         console.log('Error parsing stored preferences, continuing...');
