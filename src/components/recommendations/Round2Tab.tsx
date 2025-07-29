@@ -53,6 +53,7 @@ export const Round2Tab = () => {
   const [round2Recommendations, setRound2Recommendations] = useState<any[]>([]);
   const [hasGeneratedRecommendations, setHasGeneratedRecommendations] = useState(false);
   const [isUnlocked, setIsUnlocked] = useState(false);
+  const [skipRound1Selection, setSkipRound1Selection] = useState(false);
 
   // Convert API response to recommendation format
   const convertApiResponseToRecommendations = (apiData: any) => {
@@ -312,6 +313,16 @@ export const Round2Tab = () => {
     setShowEditConfirmation(true);
   };
 
+  const handleCreateNewList = () => {
+    setSkipRound1Selection(true);
+    setShowPreferences(true);
+    loadPreferencesFromFormData();
+    toast({
+      title: "Creating New List",
+      description: "Set your preferences below to generate Round 2 recommendations without Round 1 selection.",
+    });
+  };
+
   const handleConfirmEdit = () => {
     // Clear localStorage and reset state
     localStorage.removeItem('round2Selection');
@@ -322,6 +333,7 @@ export const Round2Tab = () => {
     setEditingPreferences(false);
     setSelectedBranches([]);
     setSelectedCities([]);
+    setSkipRound1Selection(false);
     setShowEditConfirmation(false);
     toast({
       title: "Selection Reset",
@@ -632,7 +644,7 @@ export const Round2Tab = () => {
         cet_course: selectedBranches,
         location: selectedCities,
         round: 2,
-        last_round_college_choice_code: selectedCollege.selectedDepartment.choice_code
+        last_round_college_choice_code: skipRound1Selection ? 0 : selectedCollege.selectedDepartment.choice_code
       };
 
       const response = await apiService.generateRoundList(generateRoundListPayload, user.accessToken);
@@ -1415,7 +1427,7 @@ export const Round2Tab = () => {
       )}
 
       {/* Search Section - Only show if not confirmed */}
-      {!isConfirmed && (
+      {!isConfirmed && !skipRound1Selection && (
         <>
           <Card>
             <CardHeader>
@@ -1463,6 +1475,33 @@ export const Round2Tab = () => {
                     </Button>
                   </div>
                 </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* OR Create New List Option */}
+          <div className="flex items-center gap-4">
+            <div className="flex-1 h-px bg-border"></div>
+            <span className="text-sm text-muted-foreground bg-background px-3">OR</span>
+            <div className="flex-1 h-px bg-border"></div>
+          </div>
+
+          <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
+            <CardContent className="p-6 text-center">
+              <div className="space-y-4">
+                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
+                  <Plus className="w-6 h-6 text-blue-600" />
+                </div>
+                <div className="space-y-2">
+                  <h3 className="text-lg font-semibold text-gray-800">Create New Round 2 List</h3>
+                  <p className="text-sm text-gray-600 max-w-md mx-auto">
+                    Don't have Round 1 details? Start fresh with a new Round 2 recommendation list based on your preferences.
+                  </p>
+                </div>
+                <Button onClick={handleCreateNewList} className="bg-blue-600 hover:bg-blue-700">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Create New List
+                </Button>
               </div>
             </CardContent>
           </Card>
