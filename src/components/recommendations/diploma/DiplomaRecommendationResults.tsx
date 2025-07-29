@@ -16,6 +16,7 @@ import { config } from '@/config/env';
 import { usePdfDownload } from "@/hooks/usePdfDownload";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DiplomaRound2Tab } from "./DiplomaRound2Tab";
+import { usePdfDownloadDSY } from '@/hooks/usePdfDownloadDSY';
 
 interface DiplomaRecommendationResultsProps {
   recommendations: CollegeRecommendation[];
@@ -73,7 +74,7 @@ export const DiplomaRecommendationResults = ({
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const userFromStorage = JSON.parse(localStorage.getItem('user') || '{}');
-  const { generatePDF, isGenerating } = usePdfDownload();
+  const { generatePDF, isGenerating } = usePdfDownloadDSY();
 
   const [paymentFormData, setPaymentFormData] = useState<FormData>({
     name: userFromStorage.name || '',
