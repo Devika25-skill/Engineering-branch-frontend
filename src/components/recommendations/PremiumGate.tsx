@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Lock, Unlock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from '@/contexts/AuthContext';
 import { config } from '@/config/env';
 
 interface PremiumGateProps {
@@ -60,21 +61,38 @@ export const PremiumGate = ({
   });
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
 
-  // Load user data from localStorage on mount
+  // Auto-fetch user data from AuthContext (similar to Round 1) on mount
   useEffect(() => {
-    const userData = localStorage.getItem('userData');
-    if (userData) {
-      const parsed = JSON.parse(userData);
+    if (user) {
+      // Priority 1: Use authenticated user data
       setFormData(prev => ({
         ...prev,
-        name: parsed.name || '',
-        email: parsed.email || '',
-        mobile: parsed.mobile || '',
+        name: user.name || '',
+        email: user.email || '',
+        mobile: user.mobile || '',
         couponCode: prev.couponCode || 'LAUNCHOFFER'
       }));
+    } else {
+      // Priority 2: Fall back to localStorage userData
+      const userData = localStorage.getItem('userData');
+      if (userData) {
+        try {
+          const parsed = JSON.parse(userData);
+          setFormData(prev => ({
+            ...prev,
+            name: parsed.name || '',
+            email: parsed.email || '',
+            mobile: parsed.mobile || '',
+            couponCode: prev.couponCode || 'LAUNCHOFFER'
+          }));
+        } catch (error) {
+          console.error('Error parsing stored userData:', error);
+        }
+      }
     }
-  }, []);
+  }, [user]);
 
   const getDiscountedPrice = () => {
     const couponCode = formData.couponCode.toUpperCase();
