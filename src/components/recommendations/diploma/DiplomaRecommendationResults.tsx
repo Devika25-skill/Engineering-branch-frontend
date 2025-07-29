@@ -169,7 +169,7 @@ export const DiplomaRecommendationResults = ({
       full_name: paymentFormData.name,
       email: paymentFormData.email,
       contact: parseInt(paymentFormData.mobile),
-      product_type: "diploma-recommendations",
+      product_type: "future-bridge-dsy",
       amount: getDiscountedPrice()
     };
 
