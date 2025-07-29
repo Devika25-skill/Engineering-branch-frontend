@@ -145,13 +145,14 @@ export const Round2Tab = () => {
           setIsConfirmed(parsedData.isConfirmed);
           if (parsedData.isConfirmed) {
             setShowPreferences(true);
-            await loadPreferencesFromFormData();
           }
         } catch (error) {
           console.error('Error loading stored selection data:', error);
         }
       }
 
+      // Always load preferences immediately for faster access
+      await loadPreferencesFromFormData();
 
       // If no localStorage data and user is logged in, try API
       if (user?.accessToken) {
@@ -181,9 +182,6 @@ export const Round2Tab = () => {
             // Also save to localStorage for future use
             const storageData = { selectedCollege, isConfirmed: true };
             localStorage.setItem('round2Selection', JSON.stringify(storageData));
-            
-            // Load preferences after confirming college
-            await loadPreferencesFromFormData();
           } else {
             // API returned empty object or no data - user needs to select college
             console.log('No existing Round 2 selection found, user needs to select college');
@@ -604,7 +602,7 @@ export const Round2Tab = () => {
       return;
     }
 
-    if (!selectedCollege?.selectedDepartment?.choice_code) {
+    if (!skipRound1Selection && !selectedCollege?.selectedDepartment?.choice_code) {
       toast({
         title: "Missing College Selection",
         description: "Please select your Round 1 college before generating recommendations",
