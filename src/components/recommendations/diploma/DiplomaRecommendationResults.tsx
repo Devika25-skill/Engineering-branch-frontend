@@ -428,7 +428,7 @@ export const DiplomaRecommendationResults = ({
 
       {/* Rounds Tabs */}
       <Tabs value={activeRound} onValueChange={setActiveRound} className="w-full">
-        <TabsList className="grid w-full grid-cols-3 h-12 bg-muted">
+        <TabsList className="grid w-full grid-cols-2 h-12 bg-muted">
           <TabsTrigger value="round1" className="text-xs sm:text-sm font-medium">
             Round 1
           </TabsTrigger>
