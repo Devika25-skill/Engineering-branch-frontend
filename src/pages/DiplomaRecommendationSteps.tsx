@@ -23,7 +23,7 @@ interface DiplomaFormData {
 const DiplomaRecommendationSteps = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<DiplomaFormData>({
-    reservationCategory: "GOPENS",
+    reservationCategory: "GOPEN",
     selectedBranches: [],
     selectedCities: []
   });
