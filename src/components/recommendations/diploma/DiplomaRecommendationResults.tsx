@@ -488,7 +488,7 @@ export const DiplomaRecommendationResults = ({
               </div>
 
               {/* Blurred cards section with unlock functionality */}
-              {shouldShowUnlock() && categorizedRecommendations.length > 10 && (
+              {shouldShowUnlock() && categorizedRecommendations.length > 5 && (
                 <div id="blurred-section" className="relative mt-4 z-10">
                   {/* Unlock section at the top */}
                   <div className="text-center bg-white/90 backdrop-blur-sm rounded-xl p-6 shadow-lg mb-4 border-2 border-blue-200">
