@@ -464,12 +464,15 @@ export const RecommendationResults = ({
 
       {/* Rounds Tabs */}
       <Tabs value={activeRound} onValueChange={setActiveRound} className="w-full">
-        <TabsList className="grid w-full grid-cols-2 h-12 bg-muted">
+        <TabsList className="grid w-full grid-cols-3 h-12 bg-muted">
           <TabsTrigger value="round1" className="text-xs sm:text-sm font-medium">
             Round 1
           </TabsTrigger>
           <TabsTrigger value="round2" className="text-xs sm:text-sm font-medium">
             Round 2
+          </TabsTrigger>
+          <TabsTrigger value="round3" className="text-xs sm:text-sm font-medium">
+            Round 3
           </TabsTrigger>
         </TabsList>
 
@@ -675,6 +678,9 @@ export const RecommendationResults = ({
           <Round2Tab />
         </TabsContent>
 
+        <TabsContent value="round3" className="space-y-6 mt-4">
+          {renderUpcomingRound(3)}
+        </TabsContent>
       </Tabs>
     </div>
   );
