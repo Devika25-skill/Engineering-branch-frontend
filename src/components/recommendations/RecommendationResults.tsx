@@ -70,7 +70,13 @@ export const RecommendationResults = ({
   paymentData
 }: RecommendationResultsProps) => {
   const [activeCategory, setActiveCategory] = useState<string>('All');
-  const [activeRound, setActiveRound] = useState<string>('round1');
+  
+  // Initialize with Round 2 as default and persist selection
+  const [activeRound, setActiveRound] = useState<string>(() => {
+    const savedRound = localStorage.getItem('activeRoundTab');
+    return savedRound || 'round2'; // Default to Round 2
+  });
+  
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const userFromStorage = JSON.parse(localStorage.getItem('user') || '{}');
@@ -488,7 +494,14 @@ export const RecommendationResults = ({
       <RecommendationHeader formData={formData} recommendationId={recommendationId} />
 
       {/* Rounds Tabs */}
-      <Tabs value={activeRound} onValueChange={setActiveRound} className="w-full">
+      <Tabs 
+        value={activeRound} 
+        onValueChange={(value) => {
+          setActiveRound(value);
+          localStorage.setItem('activeRoundTab', value);
+        }} 
+        className="w-full"
+      >
         <TabsList className="grid w-full grid-cols-3 h-12 bg-muted">
           <TabsTrigger value="round1" className="text-xs sm:text-sm font-medium">
             Round 1
