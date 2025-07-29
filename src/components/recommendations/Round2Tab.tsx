@@ -204,6 +204,10 @@ export const Round2Tab = () => {
     };
     
     checkUnlockStatus();
+    
+    // Listen for storage changes
+    window.addEventListener('storage', checkUnlockStatus);
+    return () => window.removeEventListener('storage', checkUnlockStatus);
   }, []);
 
 
@@ -1240,29 +1244,15 @@ export const Round2Tab = () => {
                 })}
               </div>
               
-              {/* Unlock section overlay - directing to Round 1 */}
+              {/* Premium Gate for Round 2 */}
               <div className="absolute inset-0 flex items-center justify-center">
-                <div className="text-center bg-white/90 backdrop-blur-sm rounded-xl p-6 shadow-lg border-2 border-blue-200 max-w-md mx-4">
-                  <Lock className="mx-auto mb-3 text-blue-600" size={32} />
-                  <h3 className="text-xl font-bold text-gray-800 mb-2">
-                    🔒 Round 2 Recommendations
-                  </h3>
-                  <p className="text-gray-600 text-sm mb-4">
-                    Complete payment in Round 1 to unlock all rounds including Round 2 recommendations.
-                  </p>
-                  <Button 
-                    onClick={() => {
-                      // Find the Round 1 tab and click it
-                      const round1Tab = document.querySelector('[data-value="round1"]') as HTMLElement;
-                      if (round1Tab) {
-                        round1Tab.click();
-                      }
-                    }}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-6"
-                  >
-                    Go to Round 1 for Payment
-                  </Button>
-                </div>
+                <PremiumGate
+                  onUnlock={() => setIsUnlocked(true)}
+                  storageKey="recommendationUnlocked"
+                  productType="First Year Recommendations"
+                  title="Unlock Round 2 Recommendations"
+                  description="Get access to all round recommendations including Round 2 counselling guidance."
+                />
               </div>
             </div>
           )}
