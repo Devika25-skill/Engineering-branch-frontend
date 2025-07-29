@@ -1260,7 +1260,7 @@ export const Round2Tab = () => {
                 <PremiumGate
                   onUnlock={() => setIsUnlocked(true)}
                   storageKey="recommendationUnlocked"
-                  productType="First Year Recommendations"
+                  productType="future-bridge"
                   title="Unlock Round 2 Recommendations"
                   description="Get access to all round recommendations including Round 2 counselling guidance."
                 />
