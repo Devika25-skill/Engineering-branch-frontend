@@ -19,11 +19,34 @@ import { Round2Disclaimer } from './Round2Disclaimer';
 import { RecommendationCard } from './RecommendationCard';
 import { CategoryFilter } from './CategoryFilter';
 import { usePdfDownload } from '@/hooks/usePdfDownload';
-import { PremiumGate } from './PremiumGate';
+import { config } from '@/config/env';
 
 interface SelectedCollege {
   college: CollegeSearchResult;
   selectedDepartment: CollegeDepartment;
+}
+
+interface FormData {
+  name: string;
+  email: string;
+  mobile: string;
+  couponCode: string;
+}
+
+interface PaymentInitiateResponse {
+  success: boolean;
+  message: string;
+  data: {
+    order_id: string;
+    amount: number;
+    currency: string;
+    razorpay_key: string;
+  };
+}
+
+interface PaymentVerifyResponse {
+  success: boolean;
+  detail?: string;
 }
 
 export const Round2Tab = () => {
@@ -53,6 +76,14 @@ export const Round2Tab = () => {
   const [round2Recommendations, setRound2Recommendations] = useState<any[]>([]);
   const [hasGeneratedRecommendations, setHasGeneratedRecommendations] = useState(false);
   const [isUnlocked, setIsUnlocked] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [paymentFormData, setPaymentFormData] = useState<FormData>({
+    name: '',
+    email: '',
+    mobile: '',
+    couponCode: ''
+  });
 
   // Convert API response to recommendation format
   const convertApiResponseToRecommendations = (apiData: any) => {
@@ -196,14 +227,273 @@ export const Round2Tab = () => {
     loadExistingData();
   }, [user?.accessToken]);
 
-  // Check unlock status
+  const getDiscountedPrice = () => {
+    let finalPrice = paymentFormData.couponCode.toUpperCase() === 'LAUNCHOFFER' ? 99 : 499;
+    finalPrice = paymentFormData.couponCode.toUpperCase() === 'SJ-FB100FREE' ? 0 : finalPrice;
+    finalPrice = paymentFormData.couponCode.toUpperCase() === 'LAUNCHOFFERTEST' ? 1 : finalPrice;
+    return finalPrice;
+  };
+
+  const handleInputChange = (field: keyof FormData, value: string) => {
+    setPaymentFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const validateForm = () => {
+    const { name, email, mobile } = paymentFormData;
+
+    if (!name.trim()) {
+      toast({ title: "Error", description: "Name is required", variant: "destructive" });
+      return false;
+    }
+
+    if (!email.trim() || !email.includes('@')) {
+      toast({ title: "Error", description: "Valid email is required", variant: "destructive" });
+      return false;
+    }
+
+    if (!mobile.trim() || mobile.length < 10) {
+      toast({ title: "Error", description: "Valid mobile number is required", variant: "destructive" });
+      return false;
+    }
+
+    return true;
+  };
+
+  const loadRazorpayScript = () => {
+    return new Promise((resolve) => {
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
+  const initiatePayment = async () => {
+    const payload = {
+      full_name: paymentFormData.name,
+      email: paymentFormData.email,
+      contact: parseInt(paymentFormData.mobile),
+      product_type: "future-bridge",
+      amount: getDiscountedPrice()
+    };
+
+    try {
+      const response = await fetch(`${config.apiBaseUrl}/api/v1/payment/payment/initiate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data: PaymentInitiateResponse = await response.json();
+
+      if (!data.success) {
+        throw new Error(data.message || 'Failed to initiate payment');
+      }
+
+      return data.data;
+    } catch (error) {
+      console.error('Payment initiation failed:', error);
+      throw error;
+    }
+  };
+
+  const verifyPayment = async (email: string, orderId: string) => {
+    const payload = {
+      email: email,
+      order_id: orderId
+    };
+
+    try {
+      const response = await fetch(`${config.apiBaseUrl}/api/v1/payment/payment/verify`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data: PaymentVerifyResponse = await response.json();
+
+      if (data.detail) {
+        throw new Error(data.detail);
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Payment verification failed:', error);
+      throw error;
+    }
+  };
+
+  const handlePayment = async () => {
+    if (!validateForm()) return;
+    setIsLoading(true);
+
+    try {
+      const price = getDiscountedPrice();
+      if (price > 0) {
+        const scriptLoaded = await loadRazorpayScript();
+
+        if (!scriptLoaded) {
+          toast({ title: "Error", description: "Payment gateway failed to load", variant: "destructive" });
+          setIsLoading(false);
+          return;
+        }
+
+        // Initiate payment
+        const paymentData = await initiatePayment();
+
+        // Immediately verify payment after initiation
+        setTimeout(async () => {
+          try {
+            const verifyResult = await verifyPayment(paymentFormData.email, paymentData.order_id);
+            if (verifyResult.success) {
+              // Payment already completed
+              toast({
+                title: "Payment Successful!",
+                description: "Round 2 recommendations have been unlocked."
+              });
+
+              localStorage.setItem('round2Unlocked', 'true');
+              localStorage.setItem('userData', JSON.stringify(paymentFormData));
+
+              setIsUnlocked(true);
+              setIsDialogOpen(false);
+              setIsLoading(false);
+            }
+          } catch (error) {
+            console.error('Payment verification check:', error);
+          }
+        }, 1000);
+
+        // Set up 2-minute timer for payment timeout
+        const paymentTimer = setTimeout(() => {
+          setIsLoading(false);
+          toast({
+            title: "Payment Timeout",
+            description: "Payment session expired. Please try again.",
+            variant: "destructive"
+          });
+        }, 150000); // 2 minutes
+
+        const options = {
+          key: paymentData.razorpay_key,
+          amount: paymentData.amount,
+          currency: paymentData.currency,
+          order_id: paymentData.order_id,
+          name: 'Round 2 Recommendations Unlock',
+          description: 'Unlock your Round 2 recommendations',
+          prefill: {
+            name: paymentFormData.name,
+            email: paymentFormData.email,
+            contact: paymentFormData.mobile,
+          },
+          timeout: 300,
+          theme: {
+            color: '#3B82F6',
+          },
+          handler: async (response: any) => {
+            clearTimeout(paymentTimer);
+            try {
+              const verifyResult = await verifyPayment(paymentFormData.email, paymentData.order_id);
+
+              if (verifyResult.success) {
+                toast({
+                  title: "Payment Successful!",
+                  description: "Round 2 recommendations have been unlocked."
+                });
+
+                localStorage.setItem('round2Unlocked', 'true');
+                localStorage.setItem('userData', JSON.stringify(paymentFormData));
+
+                setIsUnlocked(true);
+                setIsDialogOpen(false);
+              } else {
+                toast({
+                  title: "Payment Failed",
+                  description: "Failed to verify payment. Please contact support.",
+                  variant: "destructive"
+                });
+              }
+            } catch (error) {
+              console.error('Payment verification failed:', error);
+              toast({
+                title: "Verification Error",
+                description: "Failed to verify payment. Please contact support.",
+                variant: "destructive"
+              });
+            } finally {
+              setIsLoading(false);
+            }
+          },
+          modal: {
+            ondismiss: () => {
+              clearTimeout(paymentTimer);
+              setIsLoading(false);
+            }
+          }
+        };
+
+        const razorpay = new (window as any).Razorpay(options);
+        razorpay.open();
+      } else {
+        // Free case
+        toast({
+          title: "Access Granted!",
+          description: "Round 2 recommendations have been unlocked."
+        });
+
+        localStorage.setItem('round2Unlocked', 'true');
+        localStorage.setItem('userData', JSON.stringify(paymentFormData));
+
+        setIsUnlocked(true);
+        setIsDialogOpen(false);
+        setIsLoading(false);
+      }
+    } catch (error) {
+      console.error('Payment failed:', error);
+      toast({
+        title: "Payment Failed",
+        description: "Failed to process payment. Please try again.",
+        variant: "destructive"
+      });
+      setIsLoading(false);
+    }
+  };
+
+  // Check unlock status and load user data
   useEffect(() => {
     const checkUnlockStatus = () => {
-      const isUnlocked = localStorage.getItem('recommendationUnlocked') === 'true';
+      const isUnlocked = localStorage.getItem('round2Unlocked') === 'true';
       setIsUnlocked(isUnlocked);
     };
     
+    const loadUserData = () => {
+      const userData = localStorage.getItem('userData');
+      if (userData) {
+        const parsed = JSON.parse(userData);
+        setPaymentFormData(prev => ({
+          ...prev,
+          name: parsed.name || '',
+          email: parsed.email || '',
+          mobile: parsed.mobile || ''
+        }));
+      }
+    };
+    
     checkUnlockStatus();
+    loadUserData();
   }, []);
 
 
@@ -1250,7 +1540,12 @@ export const Round2Tab = () => {
                   <p className="text-gray-600 text-sm mb-4">
                     {categorizedRecommendations.length} personalized recommendations waiting
                   </p>
-                  <PremiumGate onUnlock={() => setIsUnlocked(true)} />
+                   <Button 
+                     onClick={() => setIsDialogOpen(true)}
+                     className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6"
+                   >
+                     Unlock Now for ₹99
+                   </Button>
                 </div>
               </div>
             </div>
@@ -1484,6 +1779,81 @@ export const Round2Tab = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Payment Dialog */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-center">Unlock Round 2 Recommendations</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            {/* Pricing Display */}
+            <div className="text-center p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border">
+              <div className="text-2xl font-bold text-gray-800">
+                ₹{getDiscountedPrice()}
+                {paymentFormData.couponCode.toUpperCase() === 'LAUNCHOFFER' && (
+                  <span className="text-sm text-green-600 ml-2">(Launch Offer!)</span>
+                )}
+              </div>
+              <div className="text-sm text-gray-600">One-time payment</div>
+            </div>
+
+            {/* Form Fields */}
+            <div className="space-y-3">
+              <div>
+                <Label htmlFor="name">Full Name</Label>
+                <Input
+                  id="name"
+                  value={paymentFormData.name}
+                  onChange={(e) => handleInputChange('name', e.target.value)}
+                  placeholder="Enter your full name"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={paymentFormData.email}
+                  onChange={(e) => handleInputChange('email', e.target.value)}
+                  placeholder="Enter your email"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="mobile">Mobile Number</Label>
+                <Input
+                  id="mobile"
+                  value={paymentFormData.mobile}
+                  onChange={(e) => handleInputChange('mobile', e.target.value)}
+                  placeholder="Enter your mobile number"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="couponCode">Coupon Code (Optional)</Label>
+                <Input
+                  id="couponCode"
+                  value={paymentFormData.couponCode}
+                  onChange={(e) => handleInputChange('couponCode', e.target.value)}
+                  placeholder="Enter coupon code"
+                />
+              </div>
+            </div>
+
+            {/* Payment Button */}
+            <Button
+              onClick={handlePayment}
+              disabled={isLoading}
+              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+            >
+              {isLoading ? "Processing..." : `Pay ₹${getDiscountedPrice()}`}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
     </div>
   );
