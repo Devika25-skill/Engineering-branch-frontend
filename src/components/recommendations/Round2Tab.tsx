@@ -1299,7 +1299,33 @@ export const Round2Tab = () => {
       {/* Search Section - Only show if not confirmed */}
       {!isConfirmed && !skipRound1Selection && (
         <>
-          <Card>
+         
+          <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
+            <CardContent className="p-6 text-center">
+              <div className="space-y-4">
+                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
+                  <Plus className="w-6 h-6 text-blue-600" />
+                </div>
+                <div className="space-y-2">
+                  <h3 className="text-lg font-semibold text-gray-800">Create New Round 2 List</h3>
+                  <p className="text-sm text-gray-600 max-w-md mx-auto">
+                    Don't have Round 1 details? Start fresh with a new Round 2 recommendation list based on your preferences.
+                  </p>
+                </div>
+                <Button onClick={handleCreateNewList} className="bg-blue-600 hover:bg-blue-700">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Create New List
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+          {/* OR Create New List Option */}
+          <div className="flex items-center gap-4">
+            <div className="flex-1 h-px bg-border"></div>
+            <span className="text-sm text-muted-foreground bg-background px-3">OR</span>
+            <div className="flex-1 h-px bg-border"></div>
+          </div>
+           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Search Your Round 1 College</CardTitle>
             </CardHeader>
@@ -1348,33 +1374,7 @@ export const Round2Tab = () => {
               </div>
             </CardContent>
           </Card>
-
-          {/* OR Create New List Option */}
-          <div className="flex items-center gap-4">
-            <div className="flex-1 h-px bg-border"></div>
-            <span className="text-sm text-muted-foreground bg-background px-3">OR</span>
-            <div className="flex-1 h-px bg-border"></div>
-          </div>
-
-          <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
-            <CardContent className="p-6 text-center">
-              <div className="space-y-4">
-                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
-                  <Plus className="w-6 h-6 text-blue-600" />
-                </div>
-                <div className="space-y-2">
-                  <h3 className="text-lg font-semibold text-gray-800">Create New Round 2 List</h3>
-                  <p className="text-sm text-gray-600 max-w-md mx-auto">
-                    Don't have Round 1 details? Start fresh with a new Round 2 recommendation list based on your preferences.
-                  </p>
-                </div>
-                <Button onClick={handleCreateNewList} className="bg-blue-600 hover:bg-blue-700">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Create New List
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+          
 
           {/* Search Results */}
           {searchResults.length > 0 && (
