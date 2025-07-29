@@ -15,7 +15,7 @@ export const DiplomaAcademicInfoForm = ({ data, onUpdate, validationErrors = [] 
   // Set default values when component mounts
   useEffect(() => {
     const defaultData = {
-      reservationCategory: data.reservationCategory || "GOPENS"
+      reservationCategory: data.reservationCategory || "GOPEN"
     };
     
     // Only update if the values are different from current data
@@ -106,7 +106,7 @@ export const DiplomaAcademicInfoForm = ({ data, onUpdate, validationErrors = [] 
             </Label>
             <Select 
               onValueChange={(value) => handleChange('reservationCategory', value)} 
-              value={data.reservationCategory || "GOPENS"}
+              value={data.reservationCategory || "GOPEN"}
             >
               <SelectTrigger className={getFieldClassName('Reservation Category', "h-10 rounded-xl border-2 bg-white")}>
                 <SelectValue placeholder="Select your category" />

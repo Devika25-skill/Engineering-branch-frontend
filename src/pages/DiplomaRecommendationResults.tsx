@@ -115,7 +115,7 @@ const DiplomaRecommendationResults = () => {
     try {
       // Prepare API payload
       const payload = {
-        category: formData.reservationCategory || 'GOPENS',
+        category: formData.reservationCategory || 'GOPEN',
         cet_percentile: parseFloat(formData.diplomaPercentage) || 0,
         cet_course: formData.selectedBranches || [],
         location: formData.selectedCities || []
@@ -133,8 +133,9 @@ const DiplomaRecommendationResults = () => {
         // Cache the data
         sessionStorage.setItem('cachedDiplomaRecommendations', JSON.stringify(recommendations));
         sessionStorage.setItem('diplomaRecommendationFormData', JSON.stringify(formData));
-        
-        toast.success('Diploma recommendations generated successfully!');
+        if (response.data.is_payment) {
+          localStorage.setItem('diplomaRecommendationUnlocked', 'true');
+        }
         return {
           success: true,
           recommendations: recommendations,

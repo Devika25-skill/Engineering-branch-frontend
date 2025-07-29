@@ -21,7 +21,7 @@ const Navigation = () => {
   const handleLogin = () => {
     setLoginDialogOpen(true);
   };
-
+  
   const NavLinks = ({ mobile = false }: { mobile?: boolean }) => (
     <>
       <button 
