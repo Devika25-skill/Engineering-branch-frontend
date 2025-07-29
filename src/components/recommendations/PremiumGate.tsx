@@ -1,13 +1,18 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Lock, Unlock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { config } from '@/config/env';
 
 interface PremiumGateProps {
   onUnlock: () => void;
+  storageKey?: string;
+  productType?: string;
+  title?: string;
+  description?: string;
 }
 
 interface FormData {
@@ -17,25 +22,47 @@ interface FormData {
   couponCode: string;
 }
 
+interface PaymentInitiateResponse {
+  success: boolean;
+  message: string;
+  data: {
+    order_id: string;
+    amount: number;
+    currency: string;
+    razorpay_key: string;
+  };
+}
+
+interface PaymentVerifyResponse {
+  success: boolean;
+  detail?: string;
+}
+
 declare global {
   interface Window {
     Razorpay: any;
   }
 }
 
-export const PremiumGate = ({ onUnlock }: PremiumGateProps) => {
+export const PremiumGate = ({ 
+  onUnlock, 
+  storageKey = 'recommendationUnlocked',
+  productType = 'future-bridge',
+  title = 'College Recommendation Unlock',
+  description = 'Unlock your personalized college recommendations'
+}: PremiumGateProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     name: '',
     email: '',
     mobile: '',
-    couponCode: ''
+    couponCode: 'LAUNCHOFFER'
   });
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
-  // Load user data from localStorage
-  useState(() => {
+  // Load user data from localStorage on mount
+  useEffect(() => {
     const userData = localStorage.getItem('userData');
     if (userData) {
       const parsed = JSON.parse(userData);
@@ -43,10 +70,11 @@ export const PremiumGate = ({ onUnlock }: PremiumGateProps) => {
         ...prev,
         name: parsed.name || '',
         email: parsed.email || '',
-        mobile: parsed.mobile || ''
+        mobile: parsed.mobile || '',
+        couponCode: prev.couponCode || 'LAUNCHOFFER'
       }));
     }
-  });
+  }, []);
 
   const getDiscountedPrice = () => {
     const couponCode = formData.couponCode.toUpperCase();
@@ -90,62 +118,207 @@ export const PremiumGate = ({ onUnlock }: PremiumGateProps) => {
     });
   };
 
+  const initiatePayment = async () => {
+    const payload = {
+      full_name: formData.name,
+      email: formData.email,
+      contact: parseInt(formData.mobile),
+      product_type: productType,
+      amount: getDiscountedPrice()
+    };
+
+    try {
+      const response = await fetch(`${config.apiBaseUrl}/api/v1/payment/payment/initiate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data: PaymentInitiateResponse = await response.json();
+
+      if (!data.success) {
+        throw new Error(data.message || 'Failed to initiate payment');
+      }
+
+      return data.data;
+    } catch (error) {
+      console.error('Payment initiation failed:', error);
+      throw error;
+    }
+  };
+
+  const verifyPayment = async (email: string, orderId: string) => {
+    const payload = {
+      email: email,
+      order_id: orderId
+    };
+
+    try {
+      const response = await fetch(`${config.apiBaseUrl}/api/v1/payment/payment/verify`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data: PaymentVerifyResponse = await response.json();
+
+      if (data.detail) {
+        throw new Error(data.detail);
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Payment verification failed:', error);
+      throw error;
+    }
+  };
+
   const handlePayment = async () => {
     if (!validateForm()) return;
-
     setIsLoading(true);
-    
-    const scriptLoaded = await loadRazorpayScript();
-    if (!scriptLoaded) {
-      toast({ title: "Error", description: "Payment gateway failed to load", variant: "destructive" });
-      setIsLoading(false);
-      return;
-    }
 
-    const amount = getDiscountedPrice() * 100; // Amount in paise
-    
-    const options = {
-      key: 'rzp_test_9999999999', // Replace with your Razorpay key ID
-      amount: amount,
-      currency: 'INR',
-      name: 'College Recommendation Unlock',
-      description: 'Unlock your personalized college recommendations',
-      prefill: {
-        name: formData.name,
-        email: formData.email,
-        contact: formData.mobile,
-      },
-      theme: {
-        color: '#3B82F6',
-      },
-      handler: function (response: any) {
-        // Payment successful
-        toast({ 
-          title: "Payment Successful!", 
-          description: "Your recommendations have been unlocked." 
+    try {
+      const price = getDiscountedPrice();
+      if (price > 0) {
+        const scriptLoaded = await loadRazorpayScript();
+
+        if (!scriptLoaded) {
+          toast({ title: "Error", description: "Payment gateway failed to load", variant: "destructive" });
+          setIsLoading(false);
+          return;
+        }
+
+        // Initiate payment
+        const paymentData = await initiatePayment();
+
+        // Immediately verify payment after initiation
+        setTimeout(async () => {
+          try {
+            const verifyResult = await verifyPayment(formData.email, paymentData.order_id);
+            if (verifyResult.success) {
+              // Payment already completed
+              toast({
+                title: "Payment Successful!",
+                description: "Your content has been unlocked."
+              });
+
+              localStorage.setItem(storageKey, 'true');
+              localStorage.setItem('userData', JSON.stringify(formData));
+
+              onUnlock();
+              setIsOpen(false);
+              setIsLoading(false);
+            }
+          } catch (error) {
+            console.error('Payment verification check:', error);
+          }
+        }, 1000);
+
+        // Set up 2-minute timer for payment timeout
+        const paymentTimer = setTimeout(() => {
+          setIsLoading(false);
+          toast({
+            title: "Payment Timeout",
+            description: "Payment session expired. Please try again.",
+            variant: "destructive"
+          });
+        }, 150000); // 2 minutes
+
+        const options = {
+          key: paymentData.razorpay_key,
+          amount: paymentData.amount,
+          currency: paymentData.currency,
+          order_id: paymentData.order_id,
+          name: title,
+          description: description,
+          prefill: {
+            name: formData.name,
+            email: formData.email,
+            contact: formData.mobile,
+          },
+          timeout: 300,
+          theme: {
+            color: '#3B82F6',
+          },
+          handler: async (response: any) => {
+            clearTimeout(paymentTimer);
+            try {
+              const verifyResult = await verifyPayment(formData.email, paymentData.order_id);
+
+              if (verifyResult.success) {
+                toast({
+                  title: "Payment Successful!",
+                  description: "Your content has been unlocked."
+                });
+
+                localStorage.setItem(storageKey, 'true');
+                localStorage.setItem('userData', JSON.stringify(formData));
+
+                onUnlock();
+                setIsOpen(false);
+              } else {
+                toast({
+                  title: "Payment Failed",
+                  description: "Failed to verify payment. Please contact support.",
+                  variant: "destructive"
+                });
+              }
+            } catch (error) {
+              console.error('Payment verification failed:', error);
+              toast({
+                title: "Verification Error",
+                description: "Failed to verify payment. Please contact support.",
+                variant: "destructive"
+              });
+            } finally {
+              setIsLoading(false);
+            }
+          },
+          modal: {
+            ondismiss: () => {
+              clearTimeout(paymentTimer);
+              setIsLoading(false);
+            }
+          }
+        };
+
+        const razorpay = new (window as any).Razorpay(options);
+        razorpay.open();
+      } else {
+        // Free case
+        toast({
+          title: "Access Granted!",
+          description: "Your content has been unlocked."
         });
-        
-        // Save payment info to localStorage
+
+        localStorage.setItem(storageKey, 'true');
         localStorage.setItem('userData', JSON.stringify(formData));
-        
+
         onUnlock();
         setIsOpen(false);
         setIsLoading(false);
-      },
-      modal: {
-        ondismiss: function() {
-          setIsLoading(false);
-          toast({ 
-            title: "Payment Cancelled", 
-            description: "Payment was cancelled by user.",
-            variant: "destructive" 
-          });
-        }
       }
-    };
-
-    const razorpay = new window.Razorpay(options);
-    razorpay.open();
+    } catch (error) {
+      console.error('Payment failed:', error);
+      toast({
+        title: "Payment Failed",
+        description: "Failed to process payment. Please try again.",
+        variant: "destructive"
+      });
+      setIsLoading(false);
+    }
   };
 
   const originalPrice = 499;
