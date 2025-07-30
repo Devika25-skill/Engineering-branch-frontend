@@ -54,6 +54,7 @@ export const Round2Tab = () => {
   const [hasGeneratedRecommendations, setHasGeneratedRecommendations] = useState(false);
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [skipRound1Selection, setSkipRound1Selection] = useState(false);
+  const [showEditConfirmationRecommendation, setShowEditConfirmationRecommendation] = useState(false);
 
   // Convert API response to recommendation format
   const convertApiResponseToRecommendations = (apiData: any) => {
@@ -310,6 +311,9 @@ export const Round2Tab = () => {
   const handleEditSelection = () => {
     setShowEditConfirmation(true);
   };
+  const handleRestRecommendation=() =>{
+    setShowEditConfirmationRecommendation(true);
+  }
 
   const handleCreateNewList = () => {
     setSkipRound1Selection(true);
@@ -320,11 +324,25 @@ export const Round2Tab = () => {
       description: "Set your preferences below to generate Round 2 recommendations without Round 1 selection.",
     });
   };
-
+  const handleRecommendationConfirmEdit = () => {
+    // Clear localStorage and reset state
+    setRound2Recommendations([]);
+    localStorage.removeItem('round2Recommendations');
+    sessionStorage.removeItem('cachedRound2Recommendations');
+    localStorage.removeItem('round2Selection');
+    setHasGeneratedRecommendations(false);
+    toast({
+      title: "Selection Reset",
+      description: "You can now make a new selection for Round 2 recommendations.",
+    });
+  };
   const handleConfirmEdit = () => {
     // Clear localStorage and reset state
+    setRound2Recommendations([]);
+    localStorage.removeItem('round2Recommendations');
+    sessionStorage.removeItem('cachedRound2Recommendations');
     localStorage.removeItem('round2Selection');
-    localStorage.removeItem('round2Preferences');
+    setHasGeneratedRecommendations(false);
     setSelectedCollege(null);
     setIsConfirmed(false);
     setShowPreferences(false);
@@ -881,6 +899,7 @@ export const Round2Tab = () => {
                     e.stopPropagation();
                     handleEditSelection();
                   }}
+                  disabled={hasGeneratedRecommendations}
                   className="text-orange-600 border-orange-300 hover:bg-orange-50"
                 >
                   Edit Selection
@@ -942,6 +961,7 @@ export const Round2Tab = () => {
                         setIsPreferencesCardCollapsed(false);
                       }
                     }}
+                    disabled={hasGeneratedRecommendations}
                     className="text-blue-600 border-blue-300 hover:bg-blue-100"
                   >
                     Edit Preferences
@@ -1172,7 +1192,7 @@ export const Round2Tab = () => {
       )}
 
       {/* Generate Round 2 Recommendations Button - Only show if no recommendations generated */}
-      {showPreferences && !editingPreferences && selectedBranches.length > 0 && !hasGeneratedRecommendations && (
+      {showPreferences && !editingPreferences && selectedBranches.length > 0 && (!hasGeneratedRecommendations || round2Recommendations.length === 0) && (
         <div className="flex justify-center pt-6">
           <Button
             onClick={handleGenerateRecommendations}
@@ -1189,6 +1209,19 @@ export const Round2Tab = () => {
       {/* Round 2 Recommendations Display */}
       {hasGeneratedRecommendations && round2Recommendations.length > 0 && (
         <div className="space-y-6">
+          {/* Generate New Recommendations Button */}
+          <div className="flex justify-center pt-6">
+            <Button
+            onClick={(e) => {
+                    e.stopPropagation();
+                    handleRestRecommendation();
+            }}
+              variant="outline"
+              className="px-6 py-2"
+            >
+              Generate New Recommendations
+            </Button>
+          </div>
           <div className="text-center">
             <h3 className="text-2xl font-bold text-foreground mb-2">Round 2 College Recommendations</h3>
             <p className="text-muted-foreground">
@@ -1266,23 +1299,7 @@ export const Round2Tab = () => {
                 />
               </div>
             </div>
-          )}
-
-          {/* Generate New Recommendations Button */}
-          <div className="flex justify-center pt-6">
-            <Button
-              onClick={() => {
-                setHasGeneratedRecommendations(false);
-                setRound2Recommendations([]);
-                localStorage.removeItem('round2Recommendations');
-                sessionStorage.removeItem('cachedRound2Recommendations');
-              }}
-              variant="outline"
-              className="px-6 py-2"
-            >
-              Generate New Recommendations
-            </Button>
-          </div>
+            )}
         </div>
       )}
 
@@ -1524,7 +1541,25 @@ export const Round2Tab = () => {
         </AlertDialogContent>
       </AlertDialog>
 
+      {/* Edit Confirmation Dialog */}
+      <AlertDialog open={showEditConfirmationRecommendation} onOpenChange={setShowEditConfirmationRecommendation}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Edit Selection?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to edit your Round 2 Recommendation? This will reset your current Round 2 Recommendation list and any generated Round 2 Recommendation list will be affected.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleRecommendationConfirmEdit} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Yes, Edit Round 2 Recommendation
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
     </div>
   );
-};
+};  
 export default Round2Tab;
