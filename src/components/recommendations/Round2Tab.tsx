@@ -91,7 +91,9 @@ export const Round2Tab = () => {
     
     return recommendations;
   };
-
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [hasGeneratedRecommendations]);
   // Load from localStorage and API on mount
   useEffect(() => {
     const loadExistingData = async () => {
