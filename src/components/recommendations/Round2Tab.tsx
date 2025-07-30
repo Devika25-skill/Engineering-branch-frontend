@@ -20,6 +20,7 @@ import { RecommendationCard } from './RecommendationCard';
 import { CategoryFilter } from './CategoryFilter';
 import { usePdfDownload } from '@/hooks/usePdfDownload';
 import { PremiumGate } from './PremiumGate';
+import ScrollToTop from '../ScrollToTop';
 
 interface SelectedCollege {
   college: CollegeSearchResult;
@@ -195,6 +196,10 @@ export const Round2Tab = () => {
 
     loadExistingData();
   }, [user?.accessToken]);
+  
+  useEffect(() => {
+    ScrollToTop();
+  }, []);
 
   // Check unlock status using same key as Round 1
   useEffect(() => {
