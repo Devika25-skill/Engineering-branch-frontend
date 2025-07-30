@@ -103,13 +103,6 @@ export const RecommendationTypeDialog = ({
           >
             Cancel
           </Button>
-          <Button 
-            variant="ghost" 
-            onClick={handleClearPreference}
-            className="text-xs text-gray-500 hover:text-gray-700 min-h-[32px] touch-manipulation"
-          >
-            Reset Preference
-          </Button>
         </div>
       </DialogContent>
     </Dialog>
