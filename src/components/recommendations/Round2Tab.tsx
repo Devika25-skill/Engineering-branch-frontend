@@ -21,6 +21,7 @@ import { CategoryFilter } from './CategoryFilter';
 import { usePdfDownload } from '@/hooks/usePdfDownload';
 import { PremiumGate } from './PremiumGate';
 import ScrollToTop from '../ScrollToTop';
+import { NoResultsState } from './NoResultsState';
 
 interface SelectedCollege {
   college: CollegeSearchResult;
@@ -1306,6 +1307,16 @@ export const Round2Tab = () => {
             )}
         </div>
       )}
+
+
+      {/* Round 2 Recommendations Display */}
+      {hasGeneratedRecommendations && round2Recommendations.length <= 0 && (
+        <>
+          <NoResultsState />
+        </>
+      )}
+
+
 
       {/* Header - Only show if not confirmed */}
       {!isConfirmed && (
