@@ -197,9 +197,6 @@ export const Round2Tab = () => {
     loadExistingData();
   }, [user?.accessToken]);
   
-  useEffect(() => {
-    ScrollToTop();
-  }, []);
 
   // Check unlock status using same key as Round 1
   useEffect(() => {
