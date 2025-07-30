@@ -903,7 +903,7 @@ export const Round2Tab = () => {
                     e.stopPropagation();
                     handleEditSelection();
                   }}
-                  disabled={hasGeneratedRecommendations}
+                  disabled={hasGeneratedRecommendations && round2Recommendations.length > 0}
                   className="text-orange-600 border-orange-300 hover:bg-orange-50"
                 >
                   Edit Selection
@@ -965,7 +965,7 @@ export const Round2Tab = () => {
                         setIsPreferencesCardCollapsed(false);
                       }
                     }}
-                    disabled={hasGeneratedRecommendations}
+                    disabled={hasGeneratedRecommendations && round2Recommendations.length > 0}
                     className="text-blue-600 border-blue-300 hover:bg-blue-100"
                   >
                     Edit Preferences
