@@ -16,6 +16,7 @@ import { config } from '@/config/env';
 import { usePdfDownload } from "@/hooks/usePdfDownload";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DiplomaRound2Tab } from "./DiplomaRound2Tab";
+import { usePdfDownloadDSY } from '@/hooks/usePdfDownloadDSY';
 
 interface DiplomaRecommendationResultsProps {
   recommendations: CollegeRecommendation[];
@@ -73,7 +74,7 @@ export const DiplomaRecommendationResults = ({
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const userFromStorage = JSON.parse(localStorage.getItem('user') || '{}');
-  const { generatePDF, isGenerating } = usePdfDownload();
+  const { generatePDF, isGenerating } = usePdfDownloadDSY();
 
   const [paymentFormData, setPaymentFormData] = useState<FormData>({
     name: userFromStorage.name || '',
@@ -474,9 +475,9 @@ export const DiplomaRecommendationResults = ({
           {/* Results List */}
           {categorizedRecommendations.length > 0 ? (
             <div className="relative">
-              {/* First 10 cards - always visible */}
+              {/* First 5 cards - always visible */}
               <div className="space-y-4">
-                {categorizedRecommendations.slice(0, isUnlocked ? 10 : 5).map((recommendation, index) => {
+                {categorizedRecommendations.slice(0, isUnlocked ? 5 : 5).map((recommendation, index) => {
                   return (
                     <DiplomaRecommendationCard
                       key={`${recommendation.college.id}-${recommendation.course_name}-${index}`}
@@ -488,7 +489,7 @@ export const DiplomaRecommendationResults = ({
               </div>
 
               {/* Blurred cards section with unlock functionality */}
-              {shouldShowUnlock() && categorizedRecommendations.length > 10 && (
+              {shouldShowUnlock() && categorizedRecommendations.length > 5 && (
                 <div id="blurred-section" className="relative mt-4 z-10">
                   {/* Unlock section at the top */}
                   <div className="text-center bg-white/90 backdrop-blur-sm rounded-xl p-6 shadow-lg mb-4 border-2 border-blue-200">
@@ -497,7 +498,7 @@ export const DiplomaRecommendationResults = ({
                       🔒 Unlock Unlimited Attempts
                     </h3>
                     <p className="text-gray-600 text-sm mb-4">
-                      {categorizedRecommendations.length - 10} more recommendations waiting
+                      {categorizedRecommendations.length - 5} more recommendations waiting
                     </p>
 
                     {/* Unlock button */}
@@ -600,9 +601,9 @@ export const DiplomaRecommendationResults = ({
                   <div className="blur-sm pointer-events-none space-y-4">
                     {categorizedRecommendations.slice(3, Math.min(8, categorizedRecommendations.length)).map((recommendation, index) => (
                       <DiplomaRecommendationCard
-                        key={`${recommendation.college.id}-${recommendation.course_name}-${index + 10}`}
+                        key={`${recommendation.college.id}-${recommendation.course_name}-${index + 5}`}
                         recommendation={recommendation}
-                        index={index + 11}
+                        index={index + 6}
                       />
                     ))}
                   </div>
@@ -610,13 +611,13 @@ export const DiplomaRecommendationResults = ({
               )}
 
               {/* Unlocked cards - show all remaining */}
-              {(isUnlocked || paymentData?.is_payment === true) && categorizedRecommendations.length > 10 && (
+              {(isUnlocked || paymentData?.is_payment === true) && categorizedRecommendations.length > 5 && (
                 <div className="space-y-4 mt-4">
-                  {categorizedRecommendations.slice(10).map((recommendation, index) => (
+                  {categorizedRecommendations.slice(5).map((recommendation, index) => (
                     <DiplomaRecommendationCard
-                      key={`${recommendation.college.id}-${recommendation.course_name}-${index + 10}`}
+                      key={`${recommendation.college.id}-${recommendation.course_name}-${index + 5}`}
                       recommendation={recommendation}
-                      index={index + 11}
+                      index={index + 6}
                     />
                   ))}
                 </div>

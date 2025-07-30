@@ -21,12 +21,6 @@ export const NoResultsState = () => {
           </p>
         </div>
       </div>
-      <Link to="/recommendations">
-        <Button className="mt-4">
-          <ArrowLeft size={16} className="mr-2" />
-          Modify Your Preferences
-        </Button>
-      </Link>
     </div>
   );
 };

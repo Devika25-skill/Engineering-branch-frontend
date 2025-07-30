@@ -40,7 +40,8 @@ const Navigation = () => {
           // Check saved preference and navigate accordingly
           const savedRecommendationType = localStorage.getItem('recommendation_type');
           if (savedRecommendationType === 'direct-second-year') {
-            navigate('/diploma-recommendations/steps');
+            const hasExistingData = sessionStorage.getItem('cachedDiplomaRecommendations');
+            navigate(hasExistingData ? '/diploma-recommendations/results' : '/diploma-recommendations/steps');
           } else if (savedRecommendationType === 'first-year') {
             navigate('/recommendations');
           } else {

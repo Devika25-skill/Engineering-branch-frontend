@@ -38,6 +38,9 @@ const CollegeDetails = () => {
     if (navigationSource === 'recommendations') {
       sessionStorage.removeItem('navigationSource');
       navigate('/recommendations/results');
+    }else if(navigationSource === 'diploma-recommendations') {
+      sessionStorage.removeItem('navigationSource');
+      navigate('/diploma-recommendations/results');
     } else {
       navigate('/colleges');
     }
@@ -86,14 +89,14 @@ const CollegeDetails = () => {
           onClick={handleBackNavigation} 
           variant="outline" 
           className={`mb-4 sm:mb-6 transition-all duration-200 ${
-            navigationSource === 'recommendations' 
+            navigationSource === 'recommendations' || navigationSource === 'diploma-recommendations'
               ? 'hover:bg-blue-50 hover:border-blue-300 border-blue-200' 
               : 'hover:bg-purple-50 hover:border-purple-300'
           }`}
         >
           <ArrowLeft className="mr-2" size={20} />
           <span className="hidden sm:inline">
-            {navigationSource === 'recommendations' ? 'Back to Recommendations' : 'Back to Colleges'}
+            {navigationSource === 'recommendations' || navigationSource === 'diploma-recommendations' ? 'Back to Recommendations' : 'Back to Colleges'}
           </span>
           <span className="sm:hidden">Back</span>
         </Button>

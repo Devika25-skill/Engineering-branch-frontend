@@ -7,19 +7,14 @@ import { Link, useNavigate } from 'react-router-dom';
 import { backgroundLoader } from '@/services/backgroundLoader';
 import { sessionStorageService } from '@/services/sessionStorage';
 import { RecommendationTypeDialog } from '@/components/recommendations/RecommendationTypeDialog';
-import { useAuth } from '@/contexts/AuthContext';
 
 const Index = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [showRecommendationDialog, setShowRecommendationDialog] = useState(false);
   const navigate = useNavigate();
-  const { user, isLoggedIn, logout } = useAuth();
 
 // Remove All the applied filters on Coming back to home
   useEffect(() => {
-    if (!isLoggedIn) {
-      localStorage.removeItem('recommendation_type')
-    }
     sessionStorageService.clearFilters();
   }, []);
 
@@ -50,7 +45,8 @@ const Index = () => {
       const hasExistingData = sessionStorage.getItem('recommendationFormData');
       navigate(hasExistingData ? '/recommendations/results' : '/recommendations/steps');
     } else {
-      navigate('/diploma-recommendations/steps');
+      const hasExistingData = sessionStorage.getItem('cachedDiplomaRecommendations');
+      navigate(hasExistingData ? '/diploma-recommendations/results' : '/diploma-recommendations/steps');
     }
   };
 
@@ -59,8 +55,8 @@ const Index = () => {
     const savedRecommendationType = localStorage.getItem('recommendation_type');
     
     if (savedRecommendationType === 'direct-second-year') {
-      // Directly go to diploma recommendations
-      navigate('/diploma-recommendations/steps');
+      const hasExistingData = sessionStorage.getItem('cachedDiplomaRecommendations');
+      navigate(hasExistingData ? '/diploma-recommendations/results' : '/diploma-recommendations/steps');
     } else if (savedRecommendationType === 'first-year') {
       // Directly go to first year recommendations
       const hasExistingData = sessionStorage.getItem('recommendationFormData');
