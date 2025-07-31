@@ -1196,8 +1196,8 @@ export const Round3Tab = () => {
           <Button
             onClick={handleGenerateRecommendations}
             disabled={isGeneratingRecommendations}
-            className="px-8 py-3 bg-gradient-to-r from-green-500 to-emerald-500 hover:shadow-xl transition-all duration-200 text-white font-bold text-lg rounded-xl"
-            size="lg"
+            className="px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 hover:shadow-xl transition-all duration-200 text-white font-bold text-base rounded-xl min-w-[200px]"
+            size="default"
           >
             <Sparkles className="w-5 h-5 mr-2" />
             {isGeneratingRecommendations ? 'Generating...' : 'Generate Round 3 Recommendations'}
