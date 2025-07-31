@@ -17,6 +17,7 @@ import { TIMEOUT } from 'dns';
 import { usePdfDownload } from "@/hooks/usePdfDownload";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Round2Tab } from "./Round2Tab";
+import Round3Tab from './Round3Tab';
 
 interface RecommendationResultsProps {
   recommendations: CollegeRecommendation[];
@@ -717,7 +718,7 @@ export const RecommendationResults = ({
         </TabsContent>
 
         <TabsContent value="round3" className="space-y-6 mt-4">
-          {renderUpcomingRound(3)}
+        <Round3Tab />
         </TabsContent>
       </Tabs>
     </div>
