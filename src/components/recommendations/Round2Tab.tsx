@@ -419,6 +419,7 @@ export const Round2Tab = () => {
         setIsConfirmed(true);
         setShowPreferences(true);
         await loadPreferencesFromFormData();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
         toast({
           title: "College Details Confirmed",
           description: "Your Round 1 college details have been confirmed and saved. Now please review and update your preferences for Round 2.",
@@ -426,6 +427,7 @@ export const Round2Tab = () => {
       } else {
         // If API fails, still keep local storage but show warning
         setIsConfirmed(true);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
         toast({
           title: "Details Saved Locally",
           description: "Your college details were saved locally. We'll sync them when connection is available.",
@@ -438,6 +440,7 @@ export const Round2Tab = () => {
       setIsConfirmed(true);
       setShowPreferences(true);
       await loadPreferencesFromFormData();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       toast({
         title: "Details Saved Locally",
         description: "Your college details were saved locally. Please review your preferences below.",
