@@ -455,7 +455,7 @@ export const DiplomaRound2Tab = () => {
       await apiService.updateRoundPreferences(preferencesPayload, user.accessToken);
       
       // Get form data for payload
-      const formData = recommendationStorage.getFormData();
+      const formData = JSON.parse(localStorage.getItem('diploma_form_data') || '{}');
       
       // Prepare API payload for diploma Round 2
       const payload = {
@@ -1144,7 +1144,7 @@ export const DiplomaRound2Tab = () => {
             </p>
           </div>
 
-          {/* Category Filter */}
+          {/* Category Filter
           <DiplomaCategoryFilter
             activeCategory={activeCategory}
             onCategoryChange={setActiveCategory}
@@ -1154,7 +1154,7 @@ export const DiplomaRound2Tab = () => {
               Match: round2Recommendations?.filter(r => r.category === 'Match').length || 0,
               Safety: round2Recommendations?.filter(r => r.category === 'Safety').length || 0,
             }}
-          />
+          /> */}
 
           {/* Results Summary and Download */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
