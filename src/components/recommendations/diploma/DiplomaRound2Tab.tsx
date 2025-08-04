@@ -1148,6 +1148,12 @@ export const DiplomaRound2Tab = () => {
           <DiplomaCategoryFilter
             activeCategory={activeCategory}
             onCategoryChange={setActiveCategory}
+            stats={{
+              Dream: round2Recommendations?.filter(r => r.category === 'Dream').length || 0,
+              Reach: round2Recommendations?.filter(r => r.category === 'Reach').length || 0,
+              Match: round2Recommendations?.filter(r => r.category === 'Match').length || 0,
+              Safety: round2Recommendations?.filter(r => r.category === 'Safety').length || 0,
+            }}
           />
 
           {/* Results Summary and Download */}
