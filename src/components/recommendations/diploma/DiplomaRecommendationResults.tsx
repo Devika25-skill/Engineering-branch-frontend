@@ -70,7 +70,7 @@ export const DiplomaRecommendationResults = ({
   paymentData
 }: DiplomaRecommendationResultsProps) => {
   const [activeCategory, setActiveCategory] = useState<string>('All');
-  const [activeRound, setActiveRound] = useState<string>('round1');
+  const [activeRound, setActiveRound] = useState<string>('round2');
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const userFromStorage = JSON.parse(localStorage.getItem('user') || '{}');
@@ -643,7 +643,7 @@ export const DiplomaRecommendationResults = ({
         </TabsContent>
 
         <TabsContent value="round2" className="mt-4">
-          {renderUpcomingRound(2)}
+          <DiplomaRound2Tab />
         </TabsContent>
       </Tabs>
     </div>
