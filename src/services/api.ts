@@ -988,7 +988,26 @@ class ApiService {
       },
       body: JSON.stringify(payload),
     });
-  } 
+  }
+
+  // Diploma Round 2 API method
+  async generateDiplomaRound2List(payload: { 
+    category: string; 
+    cet_percentile: number; 
+    cet_course: string[]; 
+    location: string[]; 
+    round: number; 
+    last_round_college_choice_code: number; 
+  }): Promise<DiplomaRoundListResponse> {
+    return this.request<DiplomaRoundListResponse>('/api/v1/explore/generate/diploma-round-list', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+  }
 
   async getDiplomaConfig(roundNo: number): Promise<DiplomaConfigResponse> {
     return this.request<DiplomaConfigResponse>(`/api/v1/explore/get-diploma-config/${roundNo}`, {
