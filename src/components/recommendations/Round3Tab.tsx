@@ -20,6 +20,8 @@ import { CategoryFilter } from './CategoryFilter';
 import { usePdfDownload } from '@/hooks/usePdfDownload';
 import { PremiumGate } from './PremiumGate';
 import { Round3Disclaimer } from './Round3Disclaimer';
+import ScrollToTop from '../ScrollToTop';
+import { NoResultsState } from './NoResultsState';
 
 interface SelectedCollege {
   college: CollegeSearchResult;
@@ -53,6 +55,7 @@ export const Round3Tab = () => {
   const [hasGeneratedRecommendations, setHasGeneratedRecommendations] = useState(false);
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [skipRound2Selection, setSkipRound2Selection] = useState(false);
+  const [showEditConfirmationRecommendation, setShowEditConfirmationRecommendation] = useState(false);
 
   // Convert API response to recommendation format
   const convertApiResponseToRecommendations = (apiData: any) => {
@@ -88,7 +91,9 @@ export const Round3Tab = () => {
     
     return recommendations;
   };
-
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [hasGeneratedRecommendations]);
   // Load from localStorage and API on mount
   useEffect(() => {
     const loadExistingData = async () => {
@@ -308,6 +313,9 @@ export const Round3Tab = () => {
   const handleEditSelection = () => {
     setShowEditConfirmation(true);
   };
+  const handleRestRecommendation=() =>{
+    setShowEditConfirmationRecommendation(true);
+  }
 
   const handleCreateNewList = () => {
     setSkipRound2Selection(true);
@@ -331,6 +339,16 @@ export const Round3Tab = () => {
     setSelectedCities([]);
     setSkipRound2Selection(false);
     setShowEditConfirmation(false);
+    toast({
+      title: "Selection Reset",
+      description: "You can now make a new selection for Round 3 recommendations.",
+    });
+  };
+  const handleRecommendationConfirmEdit = () => {
+    setRound3Recommendations([]);
+    localStorage.removeItem('round3Recommendations');
+    sessionStorage.removeItem('cachedRound3Recommendations');
+    setHasGeneratedRecommendations(false);
     toast({
       title: "Selection Reset",
       description: "You can now make a new selection for Round 3 recommendations.",
@@ -877,7 +895,7 @@ export const Round3Tab = () => {
             <CardTitle className="text-lg text-green-800 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Check className="w-5 h-5" />
-                Round 2 College Selected
+                Round 3 College Selected
               </div>
               <div className="flex items-center gap-2">
                 <Button 
@@ -887,6 +905,7 @@ export const Round3Tab = () => {
                     e.stopPropagation();
                     handleEditSelection();
                   }}
+                  disabled={hasGeneratedRecommendations && round3Recommendations.length > 0}
                   className="text-orange-600 border-orange-300 hover:bg-orange-50"
                 >
                   Edit Selection
@@ -947,6 +966,7 @@ export const Round3Tab = () => {
                         setIsPreferencesCardCollapsed(false);
                       }
                     }}
+                    disabled={hasGeneratedRecommendations && round3Recommendations.length > 0}
                     className="text-blue-600 border-blue-300 hover:bg-blue-100"
                   >
                     Edit Preferences
@@ -1177,7 +1197,7 @@ export const Round3Tab = () => {
       )}
 
       {/* Generate Round 3 Recommendations Button - Only show if no recommendations generated */}
-      {showPreferences && !editingPreferences && selectedBranches.length > 0 && !hasGeneratedRecommendations && (
+      {showPreferences && !editingPreferences && selectedBranches.length > 0 && (!hasGeneratedRecommendations || round3Recommendations.length === 0) && (
         <div className="flex justify-center pt-6">
           <Button
             onClick={handleGenerateRecommendations}
@@ -1194,6 +1214,19 @@ export const Round3Tab = () => {
       {/* Round 3 Recommendations Display */}
       {hasGeneratedRecommendations && round3Recommendations.length > 0 && (
         <div className="space-y-6">
+          {/* Generate New Recommendations Button */}
+          <div className="flex justify-center pt-6">
+            <Button
+            onClick={(e) => {
+                    e.stopPropagation();
+                    handleRestRecommendation();
+            }}
+              variant="outline"
+              className="px-6 py-2"
+            >
+              Generate New Recommendations
+            </Button>
+          </div>
           <div className="text-center">
             <h3 className="text-2xl font-bold text-foreground mb-2">Round 3 College Recommendations</h3>
             <p className="text-muted-foreground">
@@ -1272,23 +1305,14 @@ export const Round3Tab = () => {
               </div>
             </div>
           )}
-
-          {/* Generate New Recommendations Button */}
-          <div className="flex justify-center pt-6">
-            <Button
-              onClick={() => {
-                setHasGeneratedRecommendations(false);
-                setRound3Recommendations([]);
-                localStorage.removeItem('round3Recommendations');
-                sessionStorage.removeItem('cachedRound3Recommendations');
-              }}
-              variant="outline"
-              className="px-6 py-2"
-            >
-              Generate New Recommendations
-            </Button>
-          </div>
         </div>
+      )}
+
+      {/* Round 3 Recommendations Display */}
+      {hasGeneratedRecommendations && round3Recommendations.length <= 0 && (
+        <>
+          <NoResultsState />
+        </>
       )}
 
       {/* Header - Only show if not confirmed */}
@@ -1496,10 +1520,10 @@ export const Round3Tab = () => {
       <AlertDialog open={showFinalConfirmation} onOpenChange={setShowFinalConfirmation}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Confirm Round 1 College Details?</AlertDialogTitle>
+            <AlertDialogTitle>Confirm Round 2 College Details?</AlertDialogTitle>
             <AlertDialogDescription>
-              Based on this selection, your Round 2 recommendation list will be generated when you complete the preference settings.
-              This will help you find the best available options for your next round of counselling.
+              Based on this selection, your Round 3 recommendation list will be generated when you complete the preference settings.
+              This will help you find the best available options for your final round of counselling.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -1517,13 +1541,31 @@ export const Round3Tab = () => {
           <AlertDialogHeader>
             <AlertDialogTitle>Edit Selection?</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to edit your college selection? This will reset your current selection and any generated Round 2 recommendation list will be affected.
+              Are you sure you want to edit your college selection? This will reset your current selection and any generated Round 3 recommendation list will be affected.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleConfirmEdit} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
               Yes, Edit Selection
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Edit Confirmation Dialog */}
+      <AlertDialog open={showEditConfirmationRecommendation} onOpenChange={setShowEditConfirmationRecommendation}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Edit Selection?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to edit your Round 3 Recommendation? This will reset your current Round 3 Recommendation list and any generated Round 3 Recommendation list will be affected.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleRecommendationConfirmEdit} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Yes, Edit Round 3 Recommendation
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
