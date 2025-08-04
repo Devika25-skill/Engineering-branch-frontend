@@ -15,11 +15,11 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Search, Building2, MapPin, Globe, Check, BookOpen, X, Plus, GripVertical, ChevronDown, ChevronUp, Sparkles, Lock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
-import { Round2Disclaimer } from './Round2Disclaimer';
 import { RecommendationCard } from './RecommendationCard';
 import { CategoryFilter } from './CategoryFilter';
 import { usePdfDownload } from '@/hooks/usePdfDownload';
 import { PremiumGate } from './PremiumGate';
+import { Round3Disclaimer } from './Round3Disclaimer';
 
 interface SelectedCollege {
   college: CollegeSearchResult;
@@ -865,22 +865,8 @@ export const Round3Tab = () => {
   return (
     <div className="space-y-6">
       {/* Round 3 Disclaimer */}
-      {showPreferences && (
-        <Card className="bg-amber-50 border-amber-200">
-          <CardContent className="p-4">
-            <div className="text-sm text-amber-800">
-              <p className="font-medium mb-2">📌 Round 3 Information:</p>
-              <ul className="space-y-1 list-disc list-inside text-amber-700">
-                <li>Round 3 is typically the final round of counselling</li>
-                <li>Available seats are usually limited compared to previous rounds</li>
-                <li>Consider all available options carefully as this may be your last opportunity</li>
-                <li>Preferences should be set based on your Round 2 college selection</li>
-              </ul>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-      
+      {showPreferences && <Round3Disclaimer />}
+
       {/* Confirmed Selection Display - Collapsible */}
       {isConfirmed && selectedCollege && (
         <Card className="border-green-200 bg-green-50">
@@ -1248,7 +1234,7 @@ export const Round3Tab = () => {
                 
                 return (
                   <RecommendationCard
-                    key={`${recommendation.college?.College_Code || recommendation.college?.id}-${recommendation.course_name}-${index}`}
+                    key={`${recommendation.college?.SJ_Institute_Code || recommendation.college?.id}-${recommendation.course_name}-${index}`}
                     recommendation={recommendation}
                     index={index + 1}
                   />
