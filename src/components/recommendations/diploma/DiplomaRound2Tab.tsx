@@ -460,7 +460,7 @@ export const DiplomaRound2Tab = () => {
       // Prepare API payload for diploma Round 2
       const payload = {
         category: formData?.reservationCategory || 'GOPEN',
-        cet_percentile: formData?.diplomaPercentile || 0,
+        cet_percentile: parseFloat(formData?.diplomaPercentage) || 0,
         cet_course: selectedBranches,
         location: selectedCities,
         round: 2,
