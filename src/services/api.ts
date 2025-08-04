@@ -1001,7 +1001,7 @@ class ApiService {
   }): Promise<DiplomaRoundListResponse> {
     return this.request<DiplomaRoundListResponse>('/api/v1/explore/generate/diploma-round-list', {
       method: 'POST',
-       headers: {
+      headers: {
         'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
         'Content-Type': 'application/json',
       },
