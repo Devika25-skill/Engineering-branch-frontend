@@ -165,7 +165,7 @@ export const RecommendationCard = ({ recommendation, index }: RecommendationCard
         {/* Compact View Details Button - Positioned at top right */}
         <div className="absolute top-3 right-3">
           <Link
-            to={`/college/${college.id}`}
+            to={`/college/${college?.id}`}
             onClick={handleCollegeClick}
           >
             <Button

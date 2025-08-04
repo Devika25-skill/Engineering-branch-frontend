@@ -7,15 +7,21 @@ import { Link, useNavigate } from 'react-router-dom';
 import { backgroundLoader } from '@/services/backgroundLoader';
 import { sessionStorageService } from '@/services/sessionStorage';
 import { RecommendationTypeDialog } from '@/components/recommendations/RecommendationTypeDialog';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Index = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [showRecommendationDialog, setShowRecommendationDialog] = useState(false);
   const navigate = useNavigate();
+  const { user, isLoggedIn, logout } = useAuth();
 
 // Remove All the applied filters on Coming back to home
   useEffect(() => {
+    if(!isLoggedIn){
+      localStorage.removeItem('recommendation_type');
+    }
     sessionStorageService.clearFilters();
+    
   }, []);
 
   // Load college data in background when component mounts

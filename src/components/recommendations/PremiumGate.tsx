@@ -389,6 +389,7 @@ export const PremiumGate = ({
                     value={formData.name}
                     onChange={(e) => handleInputChange('name', e.target.value)}
                     placeholder="Enter your full name"
+                    disabled={true}
                     required
                   />
                 </div>
@@ -401,6 +402,7 @@ export const PremiumGate = ({
                     value={formData.email}
                     onChange={(e) => handleInputChange('email', e.target.value)}
                     placeholder="Enter your email"
+                    disabled={true}
                     required
                   />
                 </div>

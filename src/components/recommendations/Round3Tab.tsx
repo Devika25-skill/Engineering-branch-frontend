@@ -20,15 +20,13 @@ import { RecommendationCard } from './RecommendationCard';
 import { CategoryFilter } from './CategoryFilter';
 import { usePdfDownload } from '@/hooks/usePdfDownload';
 import { PremiumGate } from './PremiumGate';
-import ScrollToTop from '../ScrollToTop';
-import { NoResultsState } from './NoResultsState';
 
 interface SelectedCollege {
   college: CollegeSearchResult;
   selectedDepartment: CollegeDepartment;
 }
 
-export const Round2Tab = () => {
+export const Round3Tab = () => {
   const { user, isLoggedIn } = useAuth();
   const { toast } = useToast();
   
@@ -41,7 +39,6 @@ export const Round2Tab = () => {
   const [showFinalConfirmation, setShowFinalConfirmation] = useState(false);
   const [showEditConfirmation, setShowEditConfirmation] = useState(false);
 
-
   const [isConfirmed, setIsConfirmed] = useState(false);
   const [isStoring, setIsStoring] = useState(false);
   const [showPreferences, setShowPreferences] = useState(false);
@@ -52,11 +49,10 @@ export const Round2Tab = () => {
   const [isCollegeCardCollapsed, setIsCollegeCardCollapsed] = useState(true);
   const [isPreferencesCardCollapsed, setIsPreferencesCardCollapsed] = useState(true);
   const [isGeneratingRecommendations, setIsGeneratingRecommendations] = useState(false);
-  const [round2Recommendations, setRound2Recommendations] = useState<any[]>([]);
+  const [round3Recommendations, setRound3Recommendations] = useState<any[]>([]);
   const [hasGeneratedRecommendations, setHasGeneratedRecommendations] = useState(false);
   const [isUnlocked, setIsUnlocked] = useState(false);
-  const [skipRound1Selection, setSkipRound1Selection] = useState(false);
-  const [showEditConfirmationRecommendation, setShowEditConfirmationRecommendation] = useState(false);
+  const [skipRound2Selection, setSkipRound2Selection] = useState(false);
 
   // Convert API response to recommendation format
   const convertApiResponseToRecommendations = (apiData: any) => {
@@ -68,7 +64,7 @@ export const Round2Tab = () => {
           recommendations.push({
             category: category,
             college: {
-              id:  item.college.SJ_Institute_Code,
+              id: item.college.College_Code || item.college.SJ_Institute_Code,
               name: item.college.College_Name,
               city: item.college.City,
               logo: item.college.College_Logo,
@@ -92,36 +88,34 @@ export const Round2Tab = () => {
     
     return recommendations;
   };
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [hasGeneratedRecommendations]);
+
   // Load from localStorage and API on mount
   useEffect(() => {
     const loadExistingData = async () => {
-      // First check for cached Round 2 recommendations in session storage
-      const cachedRound2Recommendations = sessionStorage.getItem('cachedRound2Recommendations');
-      if (cachedRound2Recommendations) {
+      // First check for cached Round 3 recommendations in session storage
+      const cachedRound3Recommendations = sessionStorage.getItem('cachedRound3Recommendations');
+      if (cachedRound3Recommendations) {
         try {
-          const parsedRecs = JSON.parse(cachedRound2Recommendations);
-          console.log('Loaded cached Round 2 recommendations from session storage:', parsedRecs);
-          setRound2Recommendations(parsedRecs);
+          const parsedRecs = JSON.parse(cachedRound3Recommendations);
+          console.log('Loaded cached Round 3 recommendations from session storage:', parsedRecs);
+          setRound3Recommendations(parsedRecs);
           setHasGeneratedRecommendations(true);
         } catch (error) {
-          console.error('Error loading cached Round 2 recommendations:', error);
-          sessionStorage.removeItem('cachedRound2Recommendations');
+          console.error('Error loading cached Round 3 recommendations:', error);
+          sessionStorage.removeItem('cachedRound3Recommendations');
         }
       }
 
-      // Check for existing Round 2 recommendations in localStorage if no session cache
-      if (!cachedRound2Recommendations) {
-        const storedRecommendations = localStorage.getItem('round2Recommendations');
+      // Check for existing Round 3 recommendations in localStorage if no session cache
+      if (!cachedRound3Recommendations) {
+        const storedRecommendations = localStorage.getItem('round3Recommendations');
         if (storedRecommendations) {
           try {
             const parsedRecs = JSON.parse(storedRecommendations);
             if (parsedRecs && Object.keys(parsedRecs).length > 0) {
               const convertedRecs = convertApiResponseToRecommendations(parsedRecs);
-              console.log('Loaded stored Round 2 recommendations from localStorage:', convertedRecs);
-              setRound2Recommendations(convertedRecs);
+              console.log('Loaded stored Round 3 recommendations from localStorage:', convertedRecs);
+              setRound3Recommendations(convertedRecs);
               setHasGeneratedRecommendations(true);
               
               // Check if these recommendations were paid and should unlock
@@ -131,18 +125,18 @@ export const Round2Tab = () => {
               }
               
               // Cache in session storage for faster future access
-              sessionStorage.setItem('cachedRound2Recommendations', JSON.stringify(convertedRecs));
+              sessionStorage.setItem('cachedRound3Recommendations', JSON.stringify(convertedRecs));
             }
           } catch (error) {
             console.error('Error loading stored recommendations:', error);
             // Clear corrupted data
-            localStorage.removeItem('round2Recommendations');
+            localStorage.removeItem('round3Recommendations');
           }
         }
       }
 
-      // Load Round 2 selection data
-      const stored = localStorage.getItem('round2Selection');
+      // Load Round 3 selection data
+      const stored = localStorage.getItem('round3Selection');
       if (stored) {
         try {
           const parsedData = JSON.parse(stored);
@@ -162,7 +156,7 @@ export const Round2Tab = () => {
       // If no localStorage data and user is logged in, try API
       if (user?.accessToken) {
         try {
-          const response = await apiService.getUserRoundDetails(2, user.accessToken);
+          const response = await apiService.getUserRoundDetails(3, user.accessToken);
           if (response.success && response.data && Object.keys(response.data).length > 0) {
             const apiData = response.data;
             // Convert API response to selectedCollege format
@@ -186,10 +180,10 @@ export const Round2Tab = () => {
             
             // Also save to localStorage for future use
             const storageData = { selectedCollege, isConfirmed: true };
-            localStorage.setItem('round2Selection', JSON.stringify(storageData));
+            localStorage.setItem('round3Selection', JSON.stringify(storageData));
           } else {
             // API returned empty object or no data - user needs to select college
-            console.log('No existing Round 2 selection found, user needs to select college');
+            console.log('No existing Round 3 selection found, user needs to select college');
           }
         } catch (error) {
           console.error('Error loading user round details:', error);
@@ -199,7 +193,6 @@ export const Round2Tab = () => {
 
     loadExistingData();
   }, [user?.accessToken]);
-  
 
   // Check unlock status using same key as Round 1
   useEffect(() => {
@@ -214,7 +207,6 @@ export const Round2Tab = () => {
     window.addEventListener('storage', checkUnlockStatus);
     return () => window.removeEventListener('storage', checkUnlockStatus);
   }, []);
-
 
   const searchTypeOptions = [
     { value: 'choice_code', label: 'Choice Code' },
@@ -316,49 +308,32 @@ export const Round2Tab = () => {
   const handleEditSelection = () => {
     setShowEditConfirmation(true);
   };
-  const handleRestRecommendation=() =>{
-    setShowEditConfirmationRecommendation(true);
-  }
 
   const handleCreateNewList = () => {
-    setSkipRound1Selection(true);
+    setSkipRound2Selection(true);
     setShowPreferences(true);
     loadPreferencesFromFormData();
     toast({
       title: "Creating New List",
-      description: "Set your preferences below to generate Round 2 recommendations without Round 1 selection.",
+      description: "Set your preferences below to generate Round 3 recommendations without Round 2 selection.",
     });
   };
-  const handleRecommendationConfirmEdit = () => {
-    // Clear localStorage and reset state
-    setRound2Recommendations([]);
-    localStorage.removeItem('round2Recommendations');
-    sessionStorage.removeItem('cachedRound2Recommendations');
-    localStorage.removeItem('round2Selection');
-    setHasGeneratedRecommendations(false);
-    toast({
-      title: "Selection Reset",
-      description: "You can now make a new selection for Round 2 recommendations.",
-    });
-  };
+
   const handleConfirmEdit = () => {
     // Clear localStorage and reset state
-    setRound2Recommendations([]);
-    localStorage.removeItem('round2Recommendations');
-    sessionStorage.removeItem('cachedRound2Recommendations');
-    localStorage.removeItem('round2Selection');
-    setHasGeneratedRecommendations(false);
+    localStorage.removeItem('round3Selection');
+    localStorage.removeItem('round3Preferences');
     setSelectedCollege(null);
     setIsConfirmed(false);
     setShowPreferences(false);
     setEditingPreferences(false);
     setSelectedBranches([]);
     setSelectedCities([]);
-    setSkipRound1Selection(false);
+    setSkipRound2Selection(false);
     setShowEditConfirmation(false);
     toast({
       title: "Selection Reset",
-      description: "You can now make a new selection for Round 2 recommendations.",
+      description: "You can now make a new selection for Round 3 recommendations.",
     });
   };
 
@@ -391,7 +366,7 @@ export const Round2Tab = () => {
         selectedCollege,
         isConfirmed: true
       };
-      localStorage.setItem('round2Selection', JSON.stringify(storageData));
+      localStorage.setItem('round3Selection', JSON.stringify(storageData));
 
       // Get form data from session storage for category and CET percentile
       const formData = recommendationStorage.getFormData();
@@ -406,7 +381,7 @@ export const Round2Tab = () => {
         course_name: selectedCollege.selectedDepartment.course_name,
         course_code: selectedCollege.selectedDepartment.course_code || 0,
         choice_code: selectedCollege.selectedDepartment.choice_code,
-        round: 2,
+        round: 3,
         location: selectedCollege.college.City,
         category: category,
         cet_percentile: cetPercentile
@@ -422,7 +397,7 @@ export const Round2Tab = () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
         toast({
           title: "College Details Confirmed",
-          description: "Your Round 1 college details have been confirmed and saved. Now please review and update your preferences for Round 2.",
+          description: "Your Round 2 college details have been confirmed and saved. Now please review and update your preferences for Round 3.",
         });
       } else {
         // If API fails, still keep local storage but show warning
@@ -440,7 +415,6 @@ export const Round2Tab = () => {
       setIsConfirmed(true);
       setShowPreferences(true);
       await loadPreferencesFromFormData();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
       toast({
         title: "Details Saved Locally",
         description: "Your college details were saved locally. Please review your preferences below.",
@@ -451,10 +425,17 @@ export const Round2Tab = () => {
     }
   };
 
-
   const loadPreferencesFromFormData = async () => {
     // First try to get preferences from localStorage
-    const storedPreferences = localStorage.getItem('round2Preferences');
+    let storedPreferences = localStorage.getItem('round3Preferences');
+    if (!storedPreferences) {
+      // If round3Preferences is missing, try to copy from round2Preferences
+      const round2Prefs = localStorage.getItem('round2Preferences');
+      if (round2Prefs) {
+        localStorage.setItem('round3Preferences', round2Prefs);
+        storedPreferences = round2Prefs;
+      }
+    }
     if (storedPreferences) {
       try {
         const parsed = JSON.parse(storedPreferences);
@@ -469,7 +450,7 @@ export const Round2Tab = () => {
     // Then try to get preferences from API
     if (user?.accessToken) {
       try {
-        const response = await apiService.getUserRoundPreferences(2, user.accessToken);
+        const response = await apiService.getUserRoundPreferences(3, user.accessToken);
         if (response.success && response.data && (response.data.branches?.length > 0 || response.data.cities?.length > 0)) {
           const branches = response.data.branches || [];
           const cities = response.data.cities || [];
@@ -479,7 +460,7 @@ export const Round2Tab = () => {
           setShowPreferences(true); // Show preferences when loaded from API
           
           // Store in localStorage for future use
-          localStorage.setItem('round2Preferences', JSON.stringify({
+          localStorage.setItem('round3Preferences', JSON.stringify({
             branches,
             cities,
             timestamp: Date.now()
@@ -502,7 +483,7 @@ export const Round2Tab = () => {
       setShowPreferences(true); // Show preferences when loaded from form data
       
       // Store in localStorage for consistency
-      localStorage.setItem('round2Preferences', JSON.stringify({
+      localStorage.setItem('round3Preferences', JSON.stringify({
         branches,
         cities,
         timestamp: Date.now()
@@ -524,10 +505,10 @@ export const Round2Tab = () => {
 
     try {
       // First, call the getUserRoundPreferences API to fetch latest preferences
-      const preferencesResponse = await apiService.getUserRoundPreferences(2, user.accessToken);
+      const preferencesResponse = await apiService.getUserRoundPreferences(3, user.accessToken);
       
       const payload = {
-        round: 2,
+        round: 3,
         branches: selectedBranches,
         cities: selectedCities
       };
@@ -538,7 +519,7 @@ export const Round2Tab = () => {
         setEditingPreferences(false);
         
         // Update localStorage with new preferences
-        localStorage.setItem('round2Preferences', JSON.stringify({
+        localStorage.setItem('round3Preferences', JSON.stringify({
           branches: selectedBranches,
           cities: selectedCities,
           timestamp: Date.now()
@@ -546,7 +527,7 @@ export const Round2Tab = () => {
         
         toast({
           title: "Preferences Updated",
-          description: "Your Round 2 preferences have been successfully updated.",
+          description: "Your Round 3 preferences have been successfully updated.",
         });
       } else {
         toast({
@@ -627,10 +608,10 @@ export const Round2Tab = () => {
       return;
     }
 
-    if (!skipRound1Selection && !selectedCollege?.selectedDepartment?.choice_code) {
+    if (!skipRound2Selection && !selectedCollege?.selectedDepartment?.choice_code) {
       toast({
         title: "Missing College Selection",
-        description: "Please select your Round 1 college before generating recommendations",
+        description: "Please select your Round 2 college before generating recommendations",
         variant: "destructive"
       });
       return;
@@ -641,7 +622,7 @@ export const Round2Tab = () => {
     try {
       // Update preferences first
       const preferencesPayload = {
-        round: 2,
+        round: 3,
         branches: selectedBranches,
         cities: selectedCities
       };
@@ -649,7 +630,7 @@ export const Round2Tab = () => {
       await apiService.updateRoundPreferences(preferencesPayload, user.accessToken);
       
       // Update localStorage with latest preferences
-      localStorage.setItem('round2Preferences', JSON.stringify({
+      localStorage.setItem('round3Preferences', JSON.stringify({
         branches: selectedBranches,
         cities: selectedCities,
         timestamp: Date.now()
@@ -660,29 +641,29 @@ export const Round2Tab = () => {
       const category = formData?.reservationCategory || "GOPENS";
       const cetPercentile = formData?.cetPercentile || formData?.cet_percentile || 0;
 
-      // Generate Round 2 recommendations
+      // Generate Round 3 recommendations
       const generateRoundListPayload = {
         category: category,
         cet_percentile: cetPercentile,
         cet_course: selectedBranches,
         location: selectedCities,
-        round: 2,
-        last_round_college_choice_code: skipRound1Selection ? 0 : selectedCollege.selectedDepartment.choice_code
+        round: 3,
+        last_round_college_choice_code: skipRound2Selection ? 0 : selectedCollege.selectedDepartment.choice_code
       };
 
       const response = await apiService.generateRoundList(generateRoundListPayload, user.accessToken);
       
       if (response.success) {
         // Store the raw API response in localStorage
-        localStorage.setItem('round2Recommendations', JSON.stringify(response.data));
+        localStorage.setItem('round3Recommendations', JSON.stringify(response.data));
         
         // Convert and set recommendations for display
         const convertedRecs = convertApiResponseToRecommendations(response.data);
-        setRound2Recommendations(convertedRecs);
+        setRound3Recommendations(convertedRecs);
         setHasGeneratedRecommendations(true);
         
         // Cache the converted recommendations in session storage for faster access
-        sessionStorage.setItem('cachedRound2Recommendations', JSON.stringify(convertedRecs));
+        sessionStorage.setItem('cachedRound3Recommendations', JSON.stringify(convertedRecs));
         
         // Check if payment is included and unlock recommendations automatically
         if (response.data.is_payment === true) {
@@ -690,13 +671,13 @@ export const Round2Tab = () => {
           setIsUnlocked(true);
           toast({
             title: "Recommendations Unlocked!",
-            description: "Your Round 2 recommendations have been automatically unlocked.",
+            description: "Your Round 3 recommendations have been automatically unlocked.",
           });
         }
         
         toast({
-          title: "Round 2 Recommendations Generated",
-          description: "Your Round 2 recommendation list has been generated successfully based on your preferences.",
+          title: "Round 3 Recommendations Generated",
+          description: "Your Round 3 recommendation list has been generated successfully based on your preferences.",
         });
       } else {
         throw new Error(response.message || 'Failed to generate recommendations');
@@ -714,7 +695,6 @@ export const Round2Tab = () => {
     }
   };
 
-
   const { generatePDF, isGenerating: isPdfGenerating } = usePdfDownload();
   const [activeCategory, setActiveCategory] = useState<string>('All');
 
@@ -722,14 +702,14 @@ export const Round2Tab = () => {
     if (!isUnlocked) {
       toast({
         title: "Download Locked",
-        description: "Please unlock recommendations to download the Round 2 PDF report. Your Round 1 unlock also works for Round 2.",
+        description: "Please unlock recommendations to download the Round 3 PDF report. Your Round 1 unlock also works for Round 3.",
         variant: "destructive"
       });
       return;
     }
     
     const formData = recommendationStorage.getFormData();
-    generatePDF(round2Recommendations, formData);
+    generatePDF(round3Recommendations, formData);
   };
 
   const sortRecommendationsByCategory = (recs: any[]) => {
@@ -747,24 +727,24 @@ export const Round2Tab = () => {
   };
 
   const getCategorizedRecommendations = () => {
-    if (!round2Recommendations || round2Recommendations.length === 0) {
+    if (!round3Recommendations || round3Recommendations.length === 0) {
       return [];
     }
 
-    let filtered = round2Recommendations;
+    let filtered = round3Recommendations;
 
     if (activeCategory !== 'All') {
-      filtered = round2Recommendations.filter(rec => rec.category === activeCategory);
+      filtered = round3Recommendations.filter(rec => rec.category === activeCategory);
     }
 
     return sortRecommendationsByCategory(filtered);
   };
 
   const categoryStats = {
-    Dream: round2Recommendations?.filter(r => r.category === 'Dream').length || 0,
-    Reach: round2Recommendations?.filter(r => r.category === 'Reach').length || 0,
-    Match: round2Recommendations?.filter(r => r.category === 'Match').length || 0,
-    Safety: round2Recommendations?.filter(r => r.category === 'Safety').length || 0,
+    Dream: round3Recommendations?.filter(r => r.category === 'Dream').length || 0,
+    Reach: round3Recommendations?.filter(r => r.category === 'Reach').length || 0,
+    Match: round3Recommendations?.filter(r => r.category === 'Match').length || 0,
+    Safety: round3Recommendations?.filter(r => r.category === 'Safety').length || 0,
   };
 
   const categorizedRecommendations = getCategorizedRecommendations();
@@ -884,8 +864,22 @@ export const Round2Tab = () => {
 
   return (
     <div className="space-y-6">
-      {/* Round 2 Disclaimer */}
-      {showPreferences && <Round2Disclaimer />}
+      {/* Round 3 Disclaimer */}
+      {showPreferences && (
+        <Card className="bg-amber-50 border-amber-200">
+          <CardContent className="p-4">
+            <div className="text-sm text-amber-800">
+              <p className="font-medium mb-2">📌 Round 3 Information:</p>
+              <ul className="space-y-1 list-disc list-inside text-amber-700">
+                <li>Round 3 is typically the final round of counselling</li>
+                <li>Available seats are usually limited compared to previous rounds</li>
+                <li>Consider all available options carefully as this may be your last opportunity</li>
+                <li>Preferences should be set based on your Round 2 college selection</li>
+              </ul>
+            </div>
+          </CardContent>
+        </Card>
+      )}
       
       {/* Confirmed Selection Display - Collapsible */}
       {isConfirmed && selectedCollege && (
@@ -897,7 +891,7 @@ export const Round2Tab = () => {
             <CardTitle className="text-lg text-green-800 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Check className="w-5 h-5" />
-                Round 1 College Selected
+                Round 2 College Selected
               </div>
               <div className="flex items-center gap-2">
                 <Button 
@@ -907,7 +901,6 @@ export const Round2Tab = () => {
                     e.stopPropagation();
                     handleEditSelection();
                   }}
-                  disabled={hasGeneratedRecommendations && round2Recommendations.length > 0}
                   className="text-orange-600 border-orange-300 hover:bg-orange-50"
                 >
                   Edit Selection
@@ -947,7 +940,6 @@ export const Round2Tab = () => {
         </Card>
       )}
 
-
       {/* Preferences Section - Collapsible */}
       {showPreferences && (
         <Card className="border-blue-200 bg-blue-50">
@@ -956,7 +948,7 @@ export const Round2Tab = () => {
             onClick={() => setIsPreferencesCardCollapsed(!isPreferencesCardCollapsed)}
           >
             <CardTitle className="text-lg text-blue-800 flex items-center justify-between">
-              <span>Round 2 Preferences</span>
+              <span>Round 3 Preferences</span>
               <div className="flex items-center gap-2">
                 {!editingPreferences && (
                   <Button 
@@ -969,7 +961,6 @@ export const Round2Tab = () => {
                         setIsPreferencesCardCollapsed(false);
                       }
                     }}
-                    disabled={hasGeneratedRecommendations && round2Recommendations.length > 0}
                     className="text-blue-600 border-blue-300 hover:bg-blue-100"
                   >
                     Edit Preferences
@@ -1199,8 +1190,8 @@ export const Round2Tab = () => {
         </Card>
       )}
 
-      {/* Generate Round 2 Recommendations Button - Only show if no recommendations generated */}
-      {showPreferences && !editingPreferences && selectedBranches.length > 0 && (!hasGeneratedRecommendations || round2Recommendations.length === 0) && (
+      {/* Generate Round 3 Recommendations Button - Only show if no recommendations generated */}
+      {showPreferences && !editingPreferences && selectedBranches.length > 0 && !hasGeneratedRecommendations && (
         <div className="flex justify-center pt-6">
           <Button
             onClick={handleGenerateRecommendations}
@@ -1209,31 +1200,18 @@ export const Round2Tab = () => {
             size="default"
           >
             <Sparkles className="w-5 h-5 mr-2" />
-            {isGeneratingRecommendations ? 'Generating...' : 'Generate Round 2 Recommendations'}
+            {isGeneratingRecommendations ? 'Generating...' : 'Generate Round 3 Recommendations'}
           </Button>
         </div>
       )}
 
-      {/* Round 2 Recommendations Display */}
-      {hasGeneratedRecommendations && round2Recommendations.length > 0 && (
+      {/* Round 3 Recommendations Display */}
+      {hasGeneratedRecommendations && round3Recommendations.length > 0 && (
         <div className="space-y-6">
-          {/* Generate New Recommendations Button */}
-          <div className="flex justify-center pt-6">
-            <Button
-            onClick={(e) => {
-                    e.stopPropagation();
-                    handleRestRecommendation();
-            }}
-              variant="outline"
-              className="px-6 py-2"
-            >
-              Generate New Recommendations
-            </Button>
-          </div>
           <div className="text-center">
-            <h3 className="text-2xl font-bold text-foreground mb-2">Round 2 College Recommendations</h3>
+            <h3 className="text-2xl font-bold text-foreground mb-2">Round 3 College Recommendations</h3>
             <p className="text-muted-foreground">
-              Based on your Round 1 selection and preferences, here are your Round 2 options
+              Based on your Round 2 selection and preferences, here are your final Round 3 options
             </p>
           </div>
 
@@ -1262,7 +1240,7 @@ export const Round2Tab = () => {
             <div className="space-y-4">
               {categorizedRecommendations.map((recommendation, index) => {
                 // Add debugging and safety checks
-                console.log('Round 2 Recommendation:', recommendation);
+                console.log('Round 3 Recommendation:', recommendation);
                 if (!recommendation || !recommendation.college || !recommendation.college.name) {
                   console.error('Invalid recommendation data:', recommendation);
                   return null;
@@ -1270,7 +1248,7 @@ export const Round2Tab = () => {
                 
                 return (
                   <RecommendationCard
-                    key={`${recommendation.college?.SJ_Institute_Code || recommendation.college?.id}-${recommendation.course_name}-${index}`}
+                    key={`${recommendation.college?.College_Code || recommendation.college?.id}-${recommendation.course_name}-${index}`}
                     recommendation={recommendation}
                     index={index + 1}
                   />
@@ -1296,45 +1274,50 @@ export const Round2Tab = () => {
                 })}
               </div>
               
-              {/* Premium Gate for Round 2 */}
+              {/* Premium Gate for Round 3 */}
               <div className="absolute inset-0 flex items-center justify-center">
                 <PremiumGate
                   onUnlock={() => setIsUnlocked(true)}
                   storageKey="recommendationUnlocked"
                   productType="future-bridge"
-                  title="Unlock Round 2 Recommendations"
-                  description="Get access to all round recommendations including Round 2 counselling guidance."
+                  title="Unlock Round 3 Recommendations"
+                  description="Get access to all round recommendations including Round 3 counselling guidance."
                 />
               </div>
             </div>
-            )}
+          )}
+
+          {/* Generate New Recommendations Button */}
+          <div className="flex justify-center pt-6">
+            <Button
+              onClick={() => {
+                setHasGeneratedRecommendations(false);
+                setRound3Recommendations([]);
+                localStorage.removeItem('round3Recommendations');
+                sessionStorage.removeItem('cachedRound3Recommendations');
+              }}
+              variant="outline"
+              className="px-6 py-2"
+            >
+              Generate New Recommendations
+            </Button>
+          </div>
         </div>
       )}
-
-
-      {/* Round 2 Recommendations Display */}
-      {hasGeneratedRecommendations && round2Recommendations.length <= 0 && (
-        <>
-          <NoResultsState />
-        </>
-      )}
-
-
 
       {/* Header - Only show if not confirmed */}
       {!isConfirmed && (
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-foreground mb-2">Round 2 College Selection</h2>
+          <h2 className="text-2xl font-bold text-foreground mb-2">Round 3 College Selection</h2>
           <p className="text-muted-foreground">
-            Search and select the college you received in Round 1 for Round 2 counselling
+            Search and select the college you received in Round 2 for Round 3 counselling
           </p>
         </div>
       )}
 
       {/* Search Section - Only show if not confirmed */}
-      {!isConfirmed && !skipRound1Selection && (
+      {!isConfirmed && !skipRound2Selection && (
         <>
-         
           <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
             <CardContent className="p-6 text-center">
               <div className="space-y-4">
@@ -1342,9 +1325,9 @@ export const Round2Tab = () => {
                   <Plus className="w-6 h-6 text-blue-600" />
                 </div>
                 <div className="space-y-2">
-                  <h3 className="text-lg font-semibold text-gray-800">Create New Round 2 List</h3>
+                  <h3 className="text-lg font-semibold text-gray-800">Create New Round 3 List</h3>
                   <p className="text-sm text-gray-600 max-w-md mx-auto">
-                    Don't have Round 1 details? Start fresh with a new Round 2 recommendation list based on your preferences.
+                    Don't have Round 2 details? Start fresh with a new Round 3 recommendation list based on your preferences.
                   </p>
                 </div>
                 <Button onClick={handleCreateNewList} className="bg-blue-600 hover:bg-blue-700">
@@ -1354,15 +1337,17 @@ export const Round2Tab = () => {
               </div>
             </CardContent>
           </Card>
+          
           {/* OR Create New List Option */}
           <div className="flex items-center gap-4">
             <div className="flex-1 h-px bg-border"></div>
             <span className="text-sm text-muted-foreground bg-background px-3">OR</span>
             <div className="flex-1 h-px bg-border"></div>
           </div>
-           <Card>
+          
+          <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Search Your Round 1 College</CardTitle>
+              <CardTitle className="text-lg">Search Your Round 2 College</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid gap-4 sm:grid-cols-2">
@@ -1409,7 +1394,6 @@ export const Round2Tab = () => {
               </div>
             </CardContent>
           </Card>
-          
 
           {/* Search Results */}
           {searchResults.length > 0 && (
@@ -1466,7 +1450,7 @@ export const Round2Tab = () => {
               <div className="text-sm text-blue-800">
                 <p className="font-medium mb-2">💡 Tips for searching:</p>
                 <ul className="space-y-1 list-disc list-inside text-blue-700">
-                  <li><strong>Choice Code:</strong> Use the exact choice code from your Round 1 allotment</li>
+                  <li><strong>Choice Code:</strong> Use the exact choice code from your Round 2 allotment</li>
                   <li><strong>College Name:</strong> You can search with partial names</li>
                   <li><strong>College Code:</strong> Use the official college code from your documents</li>
                 </ul>
@@ -1482,7 +1466,7 @@ export const Round2Tab = () => {
           <DialogHeader>
             <DialogTitle>Confirm Your Selection</DialogTitle>
             <DialogDescription>
-              Please review your Round 1 college selection details.
+              Please review your Round 2 college selection details.
             </DialogDescription>
           </DialogHeader>
           
@@ -1559,25 +1543,7 @@ export const Round2Tab = () => {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Edit Confirmation Dialog */}
-      <AlertDialog open={showEditConfirmationRecommendation} onOpenChange={setShowEditConfirmationRecommendation}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Edit Selection?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to edit your Round 2 Recommendation? This will reset your current Round 2 Recommendation list and any generated Round 2 Recommendation list will be affected.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleRecommendationConfirmEdit} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Yes, Edit Round 2 Recommendation
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
     </div>
   );
-};  
-export default Round2Tab;
+};
+export default Round3Tab;
