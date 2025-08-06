@@ -1232,7 +1232,7 @@ export const DiplomaRound2Tab = () => {
               <div className="absolute inset-0 flex items-center justify-center">
                 <PremiumGate
                   onUnlock={() => setIsUnlocked(true)}
-                  productType="diploma-bridge"
+                  productType="future-bridge-dsy"
                   title="Unlock Round 2 Recommendations"
                   description="Get access to all round recommendations including Round 2 counselling guidance."
                 />
