@@ -238,19 +238,32 @@ export const DiplomaRound2Tab = () => {
   // Diploma branches (different from first year)
   const availableBranches = [
     "ALL",
-    "Automobile Engineering",
-    "Chemical Engineering",
-    "Civil Engineering",
-    "Computer Engineering",
-    "Electrical Engineering", 
-    "Electronics & Telecommunication Engineering",
-    "Instrumentation Engineering",
-    "Mechanical Engineering",
-    "Metallurgy",
-    "Mining Engineering",
-    "Plastic Engineering",
-    "Printing Engineering",
-    "Production Engineering",
+    "Agricultural",
+    "Artificial Intelligence",
+    "Automobile",
+    "Bio Technology",
+    "Biomedical",
+    "Chemical",
+    "Civil",
+    "Computer",
+    "Cyber Security",
+    "Data Science",
+    "Electrical",
+    "Electronics",
+    "Food Technology",
+    "Information Technology",
+    "Instrumentation",
+    "Internet of Things",
+    "Manufacturing",
+    "Mechanical",
+    "Mechatronics",
+    "Metallurgy and Material Technology",
+    "Mining",
+    "Pharmaceutical Technology",
+    "Polymer",
+    "Production",
+    "Robotics and Automation",
+    "Surface Coating Technology",
     "Textile Technology"
   ];
 
@@ -1219,7 +1232,7 @@ export const DiplomaRound2Tab = () => {
               <div className="absolute inset-0 flex items-center justify-center">
                 <PremiumGate
                   onUnlock={() => setIsUnlocked(true)}
-                  productType="diploma-bridge"
+                  productType="future-bridge-dsy"
                   title="Unlock Round 2 Recommendations"
                   description="Get access to all round recommendations including Round 2 counselling guidance."
                 />

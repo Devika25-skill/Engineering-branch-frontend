@@ -177,10 +177,7 @@ export const useRecommendation = () => {
             sessionStorage.setItem('recommendationFormData', JSON.stringify(formData));
             sessionStorage.setItem('cachedRecommendations', JSON.stringify(allRecommendations));
 
-            toast({
-              title: "AI Recommendations Generated!",
-              description: `Found ${allRecommendations.length} personalized college recommendations.`,
-            });
+            
 
             return {
               ...response.data,
@@ -188,11 +185,7 @@ export const useRecommendation = () => {
               success: true
             };
           } else {
-            toast({
-              title: "No Recommendations Found",
-              description: "Try adjusting your preferences or CET percentile.",
-              variant: "destructive"
-            });
+           
 
             return {
               ...response.data,
