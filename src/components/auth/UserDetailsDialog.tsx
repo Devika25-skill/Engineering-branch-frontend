@@ -37,7 +37,7 @@ const UserDetailsDialog = ({ open, onSave }: UserDetailsDialogProps) => {
 
   return (
     <Dialog open={open} onOpenChange={() => {}}>
-      <DialogContent className="sm:max-w-md w-[95vw] max-h-[90vh] top-[10%] translate-y-0 sm:top-[50%] sm:translate-y-[-50%] overflow-y-auto">
+      <DialogContent className="sm:max-w-md w-[95vw] max-h-[90vh] top-[10%] translate-y-0 sm:top-[50%] sm:translate-y-[-50%] overflow-y-auto z-[99999]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <User className="h-5 w-5" />

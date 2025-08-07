@@ -542,7 +542,7 @@ export const Round3Tab = () => {
           cities: selectedCities,
           timestamp: Date.now()
         }));
-        
+        window.scrollTo({ top: 0, behavior: 'smooth' });
         toast({
           title: "Preferences Updated",
           description: "Your Round 3 preferences have been successfully updated.",
