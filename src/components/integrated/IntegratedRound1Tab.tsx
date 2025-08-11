@@ -405,14 +405,19 @@ export const IntegratedRound1Tab = ({ admissionType }: IntegratedRound1TabProps)
                   <NoResultsState />
                 ) : (
                   <div className="grid gap-4">
-                    {filteredRecommendations.map((recommendation, index) => (
-                      <IntegratedRecommendationCard
-                        key={`${recommendation.college.id}-${index}`}
-                        recommendation={recommendation}
-                        index={index + 1}
-                        category={recommendation.category}
-                      />
-                    ))}
+                      {filteredRecommendations.slice(0, isUnlocked ? filteredRecommendations.length : 3).map((recommendation, index) => (
+                        <IntegratedRecommendationCard
+                          key={`${recommendation.college.id}-${index}`}
+                          recommendation={recommendation}
+                          index={index + 1}
+                        />
+                      ))}
+                      
+                      {!isUnlocked && filteredRecommendations.length > 3 && (
+                        <div className="mt-4">
+                          <PremiumGate onUnlock={() => setIsUnlocked(true)} />
+                        </div>
+                      )}
                   </div>
                 )}
               </div>

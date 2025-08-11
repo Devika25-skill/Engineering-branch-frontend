@@ -4,35 +4,50 @@ import { Button } from "@/components/ui/button";
 import { MapPin, TrendingUp, ExternalLink } from "lucide-react";
 
 interface IntegratedRecommendation {
+  category: string;
   college: {
-    College_Name: string;
-    College_Code: number;
-    Course_Name: string;
-    Course_Code: string;
-    Location: string;
+    id: number;
+    name: string;
+    city: string;
+    logo: string | null;
+    website: string;
+    type: string;
+    nirf_rank: number | null;
+    fees: number | null;
+    placement_percentage: number | null;
+    top_recruiters: string[];
   };
+  course_name: string;
+  cutoff_percentile: number;
   admission_probability: number;
   probability_message: string;
   cet_percentile: number;
-  category: string;
-  cutoff: number;
+  reservation_category: string;
+  choice_code: string;
 }
 
 interface IntegratedRecommendationCardProps {
   recommendation: IntegratedRecommendation;
   index: number;
-  category: string;
 }
 
 export const IntegratedRecommendationCard = ({ 
   recommendation, 
-  index, 
-  category 
+  index
 }: IntegratedRecommendationCardProps) => {
   // Add defensive logging to understand the data structure
-  console.log('IntegratedRecommendationCard received:', { recommendation, index, category });
+  console.log('IntegratedRecommendationCard received:', { recommendation, index });
   
-  const { college, admission_probability, probability_message, cet_percentile, cutoff } = recommendation;
+  const { 
+    college, 
+    course_name, 
+    cutoff_percentile, 
+    admission_probability, 
+    probability_message, 
+    cet_percentile, 
+    reservation_category,
+    category 
+  } = recommendation;
 
   const getCategoryColor = (category: string) => {
     switch (category) {
@@ -63,7 +78,7 @@ export const IntegratedRecommendationCard = ({
           <div className="flex-shrink-0">
             <div className="w-10 h-10 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg flex items-center justify-center border border-gray-100">
               <span className="text-gray-600 text-xs font-bold">
-                {college?.College_Name?.charAt(0) || '?'}
+                {college?.name?.charAt(0) || '?'}
               </span>
             </div>
           </div>
@@ -73,15 +88,15 @@ export const IntegratedRecommendationCard = ({
             <div className="flex items-start justify-between gap-2 mb-1">
               <div className="flex-1 min-w-0">
                 <h3 className="text-base font-bold text-gray-900 leading-tight line-clamp-1">
-                  {college?.College_Name || 'Unknown College'}
+                  {college?.name || 'Unknown College'}
                 </h3>
                 <div className="flex items-center gap-2 mt-1 text-xs text-gray-600">
                   <MapPin size={12} />
-                  <span className="truncate">{college?.Location || 'Unknown Location'}</span>
-                  {college?.College_Code && (
+                  <span className="truncate">{college?.city || 'Unknown Location'}</span>
+                  {college?.id && (
                     <>
                       <span>•</span>
-                      <span>Code: {college.College_Code}</span>
+                      <span>Code: {college.id}</span>
                     </>
                   )}
                 </div>
@@ -94,12 +109,9 @@ export const IntegratedRecommendationCard = ({
             {/* Course Info */}
             <div className="bg-blue-50 rounded-md p-2 mb-2">
               <div className="text-xs text-blue-900">
-                <span className="font-medium">Course:</span> {college?.Course_Name || 'Unknown Course'}
-                {college?.Course_Code && (
-                  <span className="ml-2 text-blue-700">• Code: {college.Course_Code}</span>
-                )}
-                {cutoff && (
-                  <span className="ml-2 text-blue-700">• Cutoff: {cutoff}</span>
+                <span className="font-medium">Course:</span> {course_name || 'Unknown Course'}
+                {cutoff_percentile && (
+                  <span className="ml-2 text-blue-700">• Cutoff: {cutoff_percentile}%ile</span>
                 )}
               </div>
             </div>
