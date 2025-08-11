@@ -159,22 +159,22 @@ export const IntegratedRound1Tab = ({ admissionType }: IntegratedRound1TabProps)
       setHasSubmittedPreferences(true);
       setIsPreferencesCardCollapsed(true);
 
-      // Get form data for API call
-      const formData = localStorage.getItem(`integrated_form_completed_${admissionType}`);
-      if (!formData) {
-        throw new Error('Form data not found');
+      // Get form data for API call from the configuration API data
+      const configData = localStorage.getItem(`integrated_configuration_${admissionType}`);
+      if (!configData) {
+        throw new Error('Configuration data not found');
       }
 
-      const parsedFormData = JSON.parse(formData);
+      const parsedConfigData = JSON.parse(configData);
       
-      // Prepare API payload
+      // Prepare API payload using configuration data
       const apiPayload = {
         exam_type: admissionType,
         branches: selectedBranches,
         locations: selectedCities,
         round_no: 1,
-        category: parsedFormData.category || 'GOPENS',
-        score: parsedFormData.score || 0
+        category: parsedConfigData.category,
+        score: parsedConfigData.score // This is the CET score
       };
 
       // Call API to generate recommendations
