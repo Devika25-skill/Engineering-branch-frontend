@@ -58,7 +58,34 @@ const Index = () => {
   };
 
   const handleRecommendationButtonClick = () => {
-    // Always show dialog for program selection
+    // Check for any previously selected program type
+    const savedRecommendationType = localStorage.getItem('recommendation_type');
+    const savedIntegratedType = localStorage.getItem('integrated_admission_type');
+    
+    if (savedRecommendationType === 'direct-second-year') {
+      const hasExistingData = sessionStorage.getItem('cachedDiplomaRecommendations');
+      navigate(hasExistingData ? '/diploma-recommendations/results' : '/diploma-recommendations/steps');
+    } else if (savedRecommendationType === 'first-year') {
+      const hasExistingData = sessionStorage.getItem('recommendationFormData');
+      navigate(hasExistingData ? '/recommendations/results' : '/recommendations/steps');
+    } else if (savedIntegratedType && ['BCA_MCA_Int', 'BBA_BMS_BBM_MBA_Int', 'B_and_D_Pharmacy'].includes(savedIntegratedType)) {
+      // Navigate to integrated admission steps or rounds based on existing data
+      if (isLoggedIn) {
+        // Check if user has configuration data for this type
+        navigate(`/integrated-steps?type=${savedIntegratedType}`);
+      } else {
+        navigate(`/integrated-steps?type=${savedIntegratedType}`);
+      }
+    } else {
+      // No preference saved, show dialog for program selection
+      setShowProgramDialog(true);
+    }
+  };
+
+  const handleResetSelection = () => {
+    // Clear all stored preferences but keep the form data
+    localStorage.removeItem('recommendation_type');
+    localStorage.removeItem('integrated_admission_type');
     setShowProgramDialog(true);
   };
 
@@ -70,6 +97,13 @@ const Index = () => {
       localStorage.setItem('integrated_admission_type', program);
       navigate(`/integrated-steps?type=${program}`);
     }
+  };
+
+  // Check if user has any saved program selection
+  const hasSavedSelection = () => {
+    const savedRecommendationType = localStorage.getItem('recommendation_type');
+    const savedIntegratedType = localStorage.getItem('integrated_admission_type');
+    return !!(savedRecommendationType || savedIntegratedType);
   };
 
   return (
@@ -135,6 +169,18 @@ const Index = () => {
               <Sparkles className="mr-2" size={18} />
               Get AI Recommended CET List ✨
             </Button>
+            
+            {/* Reset button for logged-in users with saved selections */}
+            {isLoggedIn && hasSavedSelection() && (
+              <Button 
+                onClick={handleResetSelection}
+                variant="outline"
+                className="w-full sm:w-auto px-4 sm:px-6 py-3 sm:py-4 text-base sm:text-lg font-medium bg-white/20 backdrop-blur-sm border-2 border-white/30 text-white hover:bg-white/30 rounded-xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
+              >
+                <GraduationCap className="mr-2" size={18} />
+                Change Program Type
+              </Button>
+            )}
           </div>
         </div>
       </div>
