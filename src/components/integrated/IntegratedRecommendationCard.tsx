@@ -31,20 +31,20 @@ interface IntegratedRecommendationCardProps {
   index: number;
 }
 
-export const IntegratedRecommendationCard = ({ 
-  recommendation, 
+export const IntegratedRecommendationCard = ({
+  recommendation,
   index
 }: IntegratedRecommendationCardProps) => {
   // Add defensive logging to understand the data structure
   console.log('IntegratedRecommendationCard received:', { recommendation, index });
-  
-  const { 
-    college, 
-    course_name, 
-    cutoff_percentile, 
-    admission_probability, 
-    probability_message, 
-    cet_percentile, 
+
+  const {
+    college,
+    course_name,
+    cutoff_percentile,
+    admission_probability,
+    probability_message,
+    cet_percentile,
     reservation_category,
     category,
     choice_code
@@ -120,15 +120,6 @@ export const IntegratedRecommendationCard = ({
               </div>
             </div>
 
-            {/* CET Percentile Info */}
-            {cet_percentile && (
-              <div className="bg-green-50 rounded-md p-2 mb-2">
-                <div className="text-xs text-green-900">
-                  <TrendingUp size={12} className="inline mr-1" />
-                  <span className="font-medium">CET Percentile:</span> {cet_percentile}%
-                </div>
-              </div>
-            )}
           </div>
         </div>
 
@@ -143,17 +134,21 @@ export const IntegratedRecommendationCard = ({
               <span className="font-medium text-blue-800">MHT-CET Score:</span>
               <span className="text-blue-700">{cet_percentile || 'N/A'}%</span>
             </div>
+             <div className="flex items-center gap-1">
+              <span className="font-medium text-blue-800">Admission Chances:</span>
+              <span className="text-blue-700">{admission_probability || 'N/A'}%</span>
+            </div>         
           </div>
         </div>
 
         {/* View Details Button - Positioned at top right */}
         <div className="absolute top-3 right-3">
-          <Button
+          {/* <Button
             size="sm"
             className="h-8 px-3 text-xs font-medium bg-blue-600 hover:bg-blue-700 text-white rounded-md shadow-sm transition-all duration-200 flex items-center gap-1"
           >
             <ExternalLink size={12} />
-          </Button>
+          </Button> */}
         </div>
       </CardHeader>
     </Card>

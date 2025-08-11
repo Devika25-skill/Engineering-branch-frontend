@@ -400,13 +400,7 @@ export const IntegratedRound1Tab = ({ admissionType }: IntegratedRound1TabProps)
                 </div>
               </div>
             </div>
-            <div className="space-y-4">
-              <CategoryFilter 
-                activeCategory={filteredCategory}
-                onCategoryChange={setFilteredCategory}
-                categoryStats={categoryStats}
-              />
-              
+            <div className="space-y-4">  
               {filteredRecommendations.length === 0 ? (
                 <NoResultsState />
               ) : (
