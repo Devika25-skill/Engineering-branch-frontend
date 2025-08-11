@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { SearchableSelect } from '@/components/ui/searchable-select';
 import { useToast } from '@/hooks/use-toast';
 import { IntegratedAdmissionFormData, IntegratedAdmissionType } from '@/types/integratedAdmission';
 import { categoryMapping } from '@/components/CollegeInfo/CategoryMapping';
@@ -182,21 +182,17 @@ export function IntegratedAdmissionForm({
               <Label htmlFor="category" className="text-sm font-medium">
                 Reservation Category *
               </Label>
-              <Select
+              <SearchableSelect
+                options={Object.entries(categoryMapping).map(([key, label]) => ({
+                  value: key,
+                  label: label
+                }))}
                 value={formData.category}
                 onValueChange={(value) => handleInputChange('category', value)}
-              >
-                <SelectTrigger className={errors.category ? 'border-destructive' : ''}>
-                  <SelectValue placeholder="Select your category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.entries(categoryMapping).map(([key, label]) => (
-                    <SelectItem key={key} value={key}>
-                      {label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                placeholder="Select your category"
+                searchPlaceholder="Search categories..."
+                className={errors.category ? 'border-destructive' : ''}
+              />
               {errors.category && (
                 <p className="text-sm text-destructive">{errors.category}</p>
               )}
