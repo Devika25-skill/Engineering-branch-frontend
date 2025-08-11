@@ -21,6 +21,7 @@ interface IntegratedRound1TabProps {
 }
 
 export const IntegratedRound1Tab = ({ admissionType }: IntegratedRound1TabProps) => {
+  const [formDataHash, setFormDataHash] = useState<string>('');
   const { user, isLoggedIn } = useAuth();
   const { toast } = useToast();
   
@@ -34,6 +35,7 @@ export const IntegratedRound1Tab = ({ admissionType }: IntegratedRound1TabProps)
   const [hasGeneratedRecommendations, setHasGeneratedRecommendations] = useState(false);
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [filteredCategory, setFilteredCategory] = useState<string>('All');
+  const [showRegenerateMessage, setShowRegenerateMessage] = useState(false);
 
   const { generatePDF, isGenerating } = usePdfDownload();
 
@@ -72,6 +74,28 @@ export const IntegratedRound1Tab = ({ admissionType }: IntegratedRound1TabProps)
     
     return recommendations;
   };
+
+  // Check for form data changes to show regenerate message
+  useEffect(() => {
+    const checkFormDataChanges = () => {
+      const currentFormData = localStorage.getItem(`integrated_form_${admissionType}`);
+      const storedHash = localStorage.getItem(`integrated_form_hash_${admissionType}`);
+      
+      if (currentFormData && hasGeneratedRecommendations) {
+        const currentHash = btoa(currentFormData); // Simple hash using base64
+        
+        if (storedHash && currentHash !== storedHash && !showRegenerateMessage) {
+          setShowRegenerateMessage(true);
+        }
+      }
+    };
+    
+    checkFormDataChanges();
+    
+    // Listen for storage changes
+    window.addEventListener('storage', checkFormDataChanges);
+    return () => window.removeEventListener('storage', checkFormDataChanges);
+  }, [admissionType, hasGeneratedRecommendations, showRegenerateMessage]);
 
   // Load existing preferences and recommendations on mount
   useEffect(() => {
@@ -247,6 +271,15 @@ export const IntegratedRound1Tab = ({ admissionType }: IntegratedRound1TabProps)
           setIsUnlocked(true);
         }
         
+        
+        // Store hash of current form data to detect future changes
+        const currentFormData = localStorage.getItem(`integrated_form_${admissionType}`);
+        if (currentFormData) {
+          const currentHash = btoa(currentFormData);
+          localStorage.setItem(`integrated_form_hash_${admissionType}`, currentHash);
+          setShowRegenerateMessage(false);
+        }
+        
         toast({
           title: "Success",
           description: "Round 1 recommendations generated successfully!",
@@ -365,6 +398,33 @@ export const IntegratedRound1Tab = ({ admissionType }: IntegratedRound1TabProps)
           </CardContent>
         )}
       </Card>
+
+      {/* Form Update Warning */}
+      {showRegenerateMessage && (
+        <Card className="border-orange-200 bg-orange-50">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-3">
+              <Clock className="w-5 h-5 text-orange-600" />
+              <div className="flex-1">
+                <h4 className="font-semibold text-orange-900 text-sm mb-1">
+                  Form Data Updated
+                </h4>
+                <p className="text-sm text-orange-700">
+                  Your academic details have been updated. Click "Update & Generate" to get recommendations based on your latest information.
+                </p>
+              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                className="border-orange-300 text-orange-700 hover:bg-orange-100"
+                onClick={() => setIsPreferencesCardCollapsed(false)}
+              >
+                Update & Generate
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Recommendations Section */}
       {hasGeneratedRecommendations && round1Recommendations.length > 0 && (
