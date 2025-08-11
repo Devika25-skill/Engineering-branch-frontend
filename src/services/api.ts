@@ -526,9 +526,12 @@ export interface CollegeSearchResponse {
 class ApiService {
   private async request<T>(endpoint: string, options?: RequestInit): Promise<T> {
     try {
+      const token = localStorage.getItem('accessToken');
+      
       const response = await fetch(`${API_BASE_URL}${endpoint}`, {
         headers: {
           'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` }),
           ...options?.headers,
         },
         ...options,

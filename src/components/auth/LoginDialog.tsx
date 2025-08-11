@@ -12,9 +12,10 @@ import UserDetailsDialog from './UserDetailsDialog';
 interface LoginDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onSuccess?: () => void;
 }
 
-const LoginDialog = ({ open, onOpenChange }: LoginDialogProps) => {
+const LoginDialog = ({ open, onOpenChange, onSuccess }: LoginDialogProps) => {
   const [step, setStep] = useState<'email' | 'otp'>('email');
   const [email, setEmail] = useState('');
   const [otp, setOtp] = useState('');
@@ -57,6 +58,7 @@ const LoginDialog = ({ open, onOpenChange }: LoginDialogProps) => {
       if (!needsUserDetails) {
         onOpenChange(false);
         resetForm();
+        onSuccess?.();
       }
     } catch (error) {
       setError('Invalid OTP. Please try again.');
@@ -69,6 +71,7 @@ const LoginDialog = ({ open, onOpenChange }: LoginDialogProps) => {
     await updateUserDetails(name, mobile);
     onOpenChange(false);
     resetForm();
+    onSuccess?.();
   };
 
   const resetForm = () => {

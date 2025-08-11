@@ -6,12 +6,13 @@ import Navigation from "@/components/Navigation";
 import { Link, useNavigate } from 'react-router-dom';
 import { backgroundLoader } from '@/services/backgroundLoader';
 import { sessionStorageService } from '@/services/sessionStorage';
-import { RecommendationTypeDialog } from '@/components/recommendations/RecommendationTypeDialog';
+import { ProgramSelectionDialog } from '@/components/common/ProgramSelectionDialog';
 import { useAuth } from '@/contexts/AuthContext';
+import { IntegratedAdmissionType } from '@/types/integratedAdmission';
 
 const Index = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [showRecommendationDialog, setShowRecommendationDialog] = useState(false);
+  const [showProgramDialog, setShowProgramDialog] = useState(false);
   const navigate = useNavigate();
   const { user, isLoggedIn, logout } = useAuth();
 
@@ -56,21 +57,47 @@ const Index = () => {
     }
   };
 
-  const handleRecommendationButtonClick = () => {
-    // Check if user has a previously selected preference
+  const handleGetRecommendations = () => {
+    // Check saved preference and navigate accordingly
     const savedRecommendationType = localStorage.getItem('recommendation_type');
+    const savedIntegratedType = localStorage.getItem('integrated_admission_type');
     
     if (savedRecommendationType === 'direct-second-year') {
       const hasExistingData = sessionStorage.getItem('cachedDiplomaRecommendations');
       navigate(hasExistingData ? '/diploma-recommendations/results' : '/diploma-recommendations/steps');
     } else if (savedRecommendationType === 'first-year') {
-      // Directly go to first year recommendations
-      const hasExistingData = sessionStorage.getItem('recommendationFormData');
-      navigate(hasExistingData ? '/recommendations/results' : '/recommendations/steps');
+      navigate('/recommendations');
+    } else if (savedIntegratedType) {
+      navigate(`/integrated-rounds?type=${savedIntegratedType}`);
     } else {
-      // Show selection dialog for first-time users
-      setShowRecommendationDialog(true);
+      // No preference saved, show dialog
+      setShowProgramDialog(true);
     }
+  };
+
+  const handleProgramSelect = (program: string) => {
+    if (program === 'first-year' || program === 'direct-second-year') {
+      localStorage.setItem('recommendation_type', program);
+      localStorage.removeItem('integrated_admission_type');
+      handleRecommendationTypeSelect(program as 'first-year' | 'direct-second-year');
+    } else {
+      localStorage.setItem('integrated_admission_type', program);
+      localStorage.removeItem('recommendation_type');
+      navigate(`/integrated-steps?type=${program}`);
+    }
+  };
+
+  // Check if user has any saved program selection
+  const hasSavedSelection = () => {
+    const savedRecommendationType = localStorage.getItem('recommendation_type');
+    const savedIntegratedType = localStorage.getItem('integrated_admission_type');
+    return !!(savedRecommendationType || savedIntegratedType);
+  };
+
+  const handleChangeType = () => {
+    localStorage.removeItem('recommendation_type');
+    localStorage.removeItem('integrated_admission_type');
+    setShowProgramDialog(true);
   };
 
   return (
@@ -128,25 +155,26 @@ const Index = () => {
             </div>
           </div>
 
-          {/* Mobile-Optimized Action Buttons */}
           <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4 animate-fade-in animation-delay-500 px-2">
             <Button 
-              onClick={handleRecommendationButtonClick}
+              onClick={handleGetRecommendations}
               className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg font-bold bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-black rounded-xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
             >
               <Sparkles className="mr-2" size={18} />
               Get AI Recommended CET List ✨
             </Button>
-            {/* Removing button for test */}
-            {/* <Link to="/colleges" className="w-full sm:w-auto">
+            
+            {/* Reset button for logged-in users with saved selections */}
+            {isLoggedIn && hasSavedSelection() && (
               <Button 
-                variant="outline" 
-                className="w-full sm:w-auto px-4 sm:px-6 py-3 sm:py-4 text-base sm:text-lg font-bold bg-white/20 backdrop-blur-sm border-2 border-white/30 text-white hover:bg-white/30 rounded-xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
+                onClick={handleChangeType}
+                variant="outline"
+                className="w-full sm:w-auto px-4 sm:px-6 py-3 sm:py-4 text-base sm:text-lg font-medium bg-white/20 backdrop-blur-sm border-2 border-white/30 text-white hover:bg-white/30 rounded-xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
               >
                 <GraduationCap className="mr-2" size={18} />
-                <span>Explore Colleges</span>
+                Change Program Type
               </Button>
-            </Link> */}
+            )}
           </div>
         </div>
       </div>
@@ -234,10 +262,10 @@ const Index = () => {
         </div>
       </div>
 
-      <RecommendationTypeDialog
-        open={showRecommendationDialog}
-        onOpenChange={setShowRecommendationDialog}
-        onSelectType={handleRecommendationTypeSelect}
+      <ProgramSelectionDialog
+        open={showProgramDialog}
+        onOpenChange={setShowProgramDialog}
+        onSelectProgram={handleProgramSelect}
       />
     </div>
   );
