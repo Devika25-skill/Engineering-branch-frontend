@@ -160,13 +160,15 @@ export const IntegratedRound1Tab = ({ admissionType }: IntegratedRound1TabProps)
       setIsPreferencesCardCollapsed(true);
 
       // Get saved configuration data that was used when user submitted the form
-      const savedConfigData = localStorage.getItem(`integrated_form_data_${admissionType}`);
+      const savedConfigData = localStorage.getItem(`integrated_form_${admissionType}`);
       if (!savedConfigData) {
         toast({
           title: "Error",
           description: "Form data not found. Please complete the form first.",
           variant: "destructive"
         });
+        setIsStoring(false);
+        setIsGeneratingRecommendations(false);
         return;
       }
 
