@@ -6,8 +6,8 @@ import { Badge } from '@/components/ui/badge';
 import { Search, Building2, MapPin, ChevronDown, ChevronUp, Sparkles, Clock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { IntegratedAdmissionType } from '@/types/integratedAdmission';
-import { BranchesForm } from './BranchesForm';
-import { CitiesForm } from './CitiesForm';
+import { IntegratedBranchesForm } from './IntegratedBranchesForm';
+import { IntegratedCitiesForm } from './IntegratedCitiesForm';
 
 interface IntegratedRound1TabProps {
   admissionType: IntegratedAdmissionType;
@@ -120,16 +120,18 @@ export const IntegratedRound1Tab = ({ admissionType }: IntegratedRound1TabProps)
 
         {!isPreferencesCardCollapsed && (
           <CardContent className="space-y-6">
-            <BranchesForm
-              admissionType={admissionType}
-              onSelectionChange={setSelectedBranches}
-              initialSelection={selectedBranches}
-            />
-            
-            <CitiesForm
-              onSelectionChange={setSelectedCities}
-              initialSelection={selectedCities}
-            />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <IntegratedBranchesForm
+                admissionType={admissionType}
+                onSelectionChange={setSelectedBranches}
+                initialSelection={selectedBranches}
+              />
+              
+              <IntegratedCitiesForm
+                onSelectionChange={setSelectedCities}
+                initialSelection={selectedCities}
+              />
+            </div>
             
             <div className="flex justify-end gap-3">
               {hasSubmittedPreferences && (
