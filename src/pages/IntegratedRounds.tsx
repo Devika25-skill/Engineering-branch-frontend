@@ -92,7 +92,9 @@ const IntegratedRounds = () => {
   const handleUpdateRecommendations = () => {
     setShowFormUpdateWarning(false);
     setActiveRound('round1'); // Switch to Round 1 tab
-    // The IntegratedRound1Tab component will handle the regeneration
+    // Trigger regeneration by sending event to Round1Tab
+    const event = new CustomEvent('regenerateRecommendations');
+    window.dispatchEvent(event);
   };
 
   const handleBackToForm = () => {
