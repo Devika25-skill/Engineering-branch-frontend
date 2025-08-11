@@ -133,7 +133,7 @@ const IntegratedRounds = () => {
             </Button>
             
             <div className="text-center">
-              <h1 className={`text-4xl font-bold mb-4 bg-gradient-to-r ${admissionInfo.gradient} bg-clip-text text-transparent`}>
+              <h1 className={`text-4xl font-bold mb-4 pb-1 bg-gradient-to-r ${admissionInfo.gradient} bg-clip-text text-transparent`}>
                 {admissionInfo.title}
               </h1>
               <p className="text-xl text-muted-foreground">

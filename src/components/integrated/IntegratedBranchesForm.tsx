@@ -61,7 +61,7 @@ export const IntegratedBranchesForm = ({
           <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center">
             <BookOpen className="text-white" size={20} />
           </div>
-          Engineering Branches
+          Preferred Branches
           <span className="text-red-500">*</span>
           {isFieldError('Branches') && <AlertCircle size={16} className="text-red-500" />}
         </CardTitle>
@@ -74,7 +74,7 @@ export const IntegratedBranchesForm = ({
               .map(branch => ({ value: branch, label: branch }))}
             value=""
             onValueChange={addBranch}
-            placeholder="Add your favorite engineering branches"
+            placeholder="Add your preferred branches"
             searchPlaceholder="Search branches..."
             className="w-full"
           />
@@ -83,7 +83,7 @@ export const IntegratedBranchesForm = ({
             <SelectTrigger className="h-12 rounded-xl border-2 bg-white">
               <div className="flex items-center gap-2">
                 <Plus size={16} className="text-purple-600" />
-                <SelectValue placeholder="Add your favorite engineering branches" />
+                <SelectValue placeholder="Add your preferred branches" />
               </div>
             </SelectTrigger>
             <SelectContent className="max-h-80">
