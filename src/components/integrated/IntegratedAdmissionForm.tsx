@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { SearchableSelect } from '@/components/ui/searchable-select';
 import { useToast } from '@/hooks/use-toast';
 import { IntegratedAdmissionFormData, IntegratedAdmissionType } from '@/types/integratedAdmission';
-import { categoryMapping } from '@/components/CollegeInfo/CategoryMapping';
+import { categoryOptions } from '@/data/integratedAdmissionConfig';
 import { GraduationCap, Building, Pill } from 'lucide-react';
 
 interface IntegratedAdmissionFormProps {
@@ -183,10 +183,7 @@ export function IntegratedAdmissionForm({
                 Reservation Category *
               </Label>
               <SearchableSelect
-                options={Object.entries(categoryMapping).map(([key, label]) => ({
-                  value: key,
-                  label: label
-                }))}
+                options={categoryOptions[admissionType]}
                 value={formData.category}
                 onValueChange={(value) => handleInputChange('category', value)}
                 placeholder="Select your category"

@@ -52,14 +52,14 @@ export function SearchableSelect({
           variant="outline"
           role="combobox"
           onClick={() => setOpen(true)}
-          className={cn("justify-between h-12 rounded-xl border-2 bg-white w-full", className)}
+          className={cn("justify-between h-12 rounded-xl border-2 bg-background w-full text-left", className)}
         >
-          {selectedOption?.label || placeholder}
+          <span className="truncate">{selectedOption?.label || placeholder}</span>
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
         
         <Dialog open={open} onOpenChange={setOpen}>
-          <DialogContent className="max-w-sm mx-auto top-[5%] translate-y-0  flex flex-col p-0">
+          <DialogContent className="max-w-sm mx-auto top-[10%] translate-y-0 flex flex-col p-0 max-h-[80vh]">
             <DialogHeader className="px-4 py-3 border-b flex-shrink-0">
               <DialogTitle className="text-base font-medium">{placeholder}</DialogTitle>
             </DialogHeader>
@@ -111,9 +111,9 @@ export function SearchableSelect({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className={cn("justify-between h-12 rounded-xl border-2 bg-white", className)}
+          className={cn("justify-between h-12 rounded-xl border-2 bg-background w-full text-left", className)}
         >
-          {selectedOption?.label || placeholder}
+          <span className="truncate">{selectedOption?.label || placeholder}</span>
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
