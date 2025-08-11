@@ -8,7 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { IntegratedAdmissionType } from '@/types/integratedAdmission';
 import { IntegratedBranchesForm } from './IntegratedBranchesForm';
 import { IntegratedCitiesForm } from './IntegratedCitiesForm';
-import { integratedRecommendationApi } from '@/services/integratedRecommendationApi';
+import { integratedRecommendationApi, RoundPreferencesResponse } from '@/services/integratedRecommendationApi';
 import { IntegratedRecommendationCard } from './IntegratedRecommendationCard';
 import { CategoryFilter } from '@/components/recommendations/CategoryFilter';
 import { PremiumGate } from '@/components/recommendations/PremiumGate';
@@ -74,7 +74,50 @@ export const IntegratedRound1Tab = ({ admissionType }: IntegratedRound1TabProps)
 
   // Load existing preferences and recommendations on mount
   useEffect(() => {
-    const loadExistingData = () => {
+    const loadExistingData = async () => {
+      try {
+        // First try to fetch from API
+        const response = await integratedRecommendationApi.getRoundPreferences(1, admissionType);
+        
+        if (response.success && response.data.preferences) {
+          // Load preferences from API
+          setSelectedBranches(response.data.preferences.branches);
+          setSelectedCities(response.data.preferences.locations);
+          setHasSubmittedPreferences(true);
+          setIsPreferencesCardCollapsed(true);
+          
+          // Load recommendations if available
+          if (response.data.recommendations && response.data.recommendations.length > 0) {
+            const apiData = response.data.recommendations[0];
+            const convertedRecs = convertApiResponseToRecommendations(apiData);
+            setRound1Recommendations(convertedRecs);
+            setHasGeneratedRecommendations(true);
+            
+            // Check payment status
+            if (apiData.is_payment === true) {
+              localStorage.setItem('integratedRecommendationUnlocked', 'true');
+              setIsUnlocked(true);
+            }
+            
+            // Store API data in localStorage for offline access
+            localStorage.setItem(`integrated_round1_${admissionType}`, JSON.stringify({
+              branches: response.data.preferences.branches,
+              cities: response.data.preferences.locations,
+              submittedAt: response.data.preferences.timestamp
+            }));
+            localStorage.setItem(`integrated_round1_recommendations_${admissionType}`, JSON.stringify(apiData));
+          }
+        } else {
+          // Fallback to localStorage if API doesn't have data
+          loadFromLocalStorage();
+        }
+      } catch (error) {
+        console.error('Error fetching from API, falling back to localStorage:', error);
+        loadFromLocalStorage();
+      }
+    };
+
+    const loadFromLocalStorage = () => {
       // Load preferences
       const savedData = localStorage.getItem(`integrated_round1_${admissionType}`);
       if (savedData) {
