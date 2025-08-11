@@ -57,11 +57,48 @@ export function IntegratedAdmissionForm({
   const Icon = admissionInfo.icon;
 
   useEffect(() => {
-    // Load saved data if exists
+    // Load saved data from localStorage first (for form persistence)
     const savedData = localStorage.getItem(`integrated_form_${admissionType}`);
     if (savedData) {
       const parsed = JSON.parse(savedData);
       setFormData(parsed);
+    }
+  }, [admissionType]);
+
+  // Add effect to load existing configuration from API
+  useEffect(() => {
+    const loadExistingConfiguration = async () => {
+      try {
+        const { integratedAdmissionApi } = await import('@/services/integratedAdmissionApi');
+        const response = await integratedAdmissionApi.getConfiguration();
+        
+        if (response.success && response.data.length > 0) {
+          // Find configuration for current admission type
+          const currentConfig = response.data.find(config => config.exam_type === admissionType);
+          
+          if (currentConfig) {
+            console.log('Loading existing configuration:', currentConfig);
+            setFormData({
+              exam_type: currentConfig.exam_type,
+              category: currentConfig.category,
+              tenth_percentage: currentConfig.tenth_percentage || undefined,
+              twelth_percentage: currentConfig.twelth_percentage || undefined,
+              score: currentConfig.score
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Error loading existing configuration:', error);
+        // Don't show error to user, just continue with empty form
+      }
+    };
+
+    // Only load if we're logged in and don't have saved form data
+    const savedData = localStorage.getItem(`integrated_form_${admissionType}`);
+    const token = localStorage.getItem('accessToken');
+    
+    if (token && !savedData) {
+      loadExistingConfiguration();
     }
   }, [admissionType]);
 
