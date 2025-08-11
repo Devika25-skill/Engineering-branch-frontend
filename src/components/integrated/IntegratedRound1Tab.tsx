@@ -14,6 +14,7 @@ import { CategoryFilter } from '@/components/recommendations/CategoryFilter';
 import { PremiumGate } from '@/components/recommendations/PremiumGate';
 import { NoResultsState } from '@/components/recommendations/NoResultsState';
 import { usePdfDownload } from '@/hooks/usePdfDownload';
+import { FeedbackSection } from '@/components/feedback/FeedbackSection';
 
 interface IntegratedRound1TabProps {
   admissionType: IntegratedAdmissionType;
@@ -495,6 +496,13 @@ export const IntegratedRound1Tab = ({ admissionType }: IntegratedRound1TabProps)
             </div>
           </CardContent>
         </Card>
+      )}
+
+      {/* Feedback Section */}
+      {hasGeneratedRecommendations && round1Recommendations.length > 0 && (
+        <div className="mt-12 mb-8">
+          <FeedbackSection />
+        </div>
       )}
     </div>
   );
