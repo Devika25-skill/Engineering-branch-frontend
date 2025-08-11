@@ -132,19 +132,27 @@ export const IntegratedRecommendationCard = ({
           </div>
         </div>
 
-        {/* Admission Probability */}
-        <div className="flex items-center justify-between bg-gray-50 rounded-lg p-2 mt-2">
-          <div className="flex-1">
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-xs font-medium text-gray-800">Admission Chances</span>
-              <span className={`text-lg font-bold ${getProbabilityColor(admission_probability)}`}>
-                {admission_probability}%
-              </span>
+        {/* User Info Display */}
+        <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-3 mt-2">
+          <div className="flex flex-wrap gap-4 text-xs">
+            <div className="flex items-center gap-1">
+              <span className="font-medium text-green-800">Category:</span>
+              <span className="text-green-700">{reservation_category || 'General'}</span>
             </div>
-            {probability_message && (
-              <p className="text-xs text-gray-600 line-clamp-2">{probability_message}</p>
-            )}
+            <div className="flex items-center gap-1">
+              <span className="font-medium text-blue-800">MHT-CET Score:</span>
+              <span className="text-blue-700">{cet_percentile || 'N/A'}%</span>
+            </div>
           </div>
+        </div>
+
+        {/* Disclaimer */}
+        <div className="bg-yellow-50 border border-yellow-200 rounded-md p-2 mt-2">
+          <p className="text-xs text-yellow-800 leading-relaxed">
+            <span className="font-medium">Disclaimer:</span> These recommendations are based on previous year cutoff data and trends. 
+            Actual admission depends on various factors including seat availability, competition, and official cutoff announcements. 
+            Please verify with official sources before making final decisions.
+          </p>
         </div>
 
         {/* View Details Button - Positioned at top right */}
