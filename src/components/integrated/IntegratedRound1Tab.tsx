@@ -91,11 +91,18 @@ export const IntegratedRound1Tab = ({ admissionType }: IntegratedRound1TabProps)
       }
     };
     
+    // Check on mount and when dependencies change
     checkFormDataChanges();
     
-    // Listen for storage changes
-    window.addEventListener('storage', checkFormDataChanges);
-    return () => window.removeEventListener('storage', checkFormDataChanges);
+    // Listen for storage changes to detect updates from other tabs/windows
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === `integrated_form_${admissionType}`) {
+        checkFormDataChanges();
+      }
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, [admissionType, hasGeneratedRecommendations, showRegenerateMessage]);
 
   // Load existing preferences and recommendations on mount
