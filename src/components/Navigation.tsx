@@ -23,7 +23,13 @@ const Navigation = () => {
   };
 
   const handleProgramSelect = (program: ProgramType) => {
-    localStorage.setItem('recommendation_type', program);
+    if (program === 'first-year' || program === 'direct-second-year') {
+      localStorage.setItem('recommendation_type', program);
+      localStorage.removeItem('integrated_admission_type');
+    } else {
+      localStorage.setItem('integrated_admission_type', program);
+      localStorage.removeItem('recommendation_type');
+    }
     
     switch (program) {
       case 'first-year':
@@ -57,7 +63,21 @@ const Navigation = () => {
       </button>
       <button 
         onClick={() => {
-          setShowProgramDialog(true);
+          // Check saved preference and navigate accordingly
+          const savedRecommendationType = localStorage.getItem('recommendation_type');
+          const savedIntegratedType = localStorage.getItem('integrated_admission_type');
+          
+          if (savedRecommendationType === 'direct-second-year') {
+            const hasExistingData = sessionStorage.getItem('cachedDiplomaRecommendations');
+            navigate(hasExistingData ? '/diploma-recommendations/results' : '/diploma-recommendations/steps');
+          } else if (savedRecommendationType === 'first-year') {
+            navigate('/recommendations');
+          } else if (savedIntegratedType) {
+            navigate(`/integrated-rounds?type=${savedIntegratedType}`);
+          } else {
+            // No preference saved, show dialog
+            setShowProgramDialog(true);
+          }
           if (mobile) setMobileMenuOpen(false);
         }}
         className={`flex items-center text-gray-600 hover:text-purple-600 transition-all duration-300 group relative ${mobile ? 'w-full text-left p-3 rounded-lg hover:bg-purple-50' : 'py-2'}`}

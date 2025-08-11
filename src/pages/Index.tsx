@@ -57,25 +57,32 @@ const Index = () => {
     }
   };
 
-  const handleRecommendationButtonClick = () => {
-    // Always show the unified program selection dialog for better UX
-    // This allows users to see all options and change their selection easily
-    setShowProgramDialog(true);
-  };
-
-  const handleResetSelection = () => {
-    // Clear all stored preferences but keep the form data
-    localStorage.removeItem('recommendation_type');
-    localStorage.removeItem('integrated_admission_type');
-    setShowProgramDialog(true);
+  const handleGetRecommendations = () => {
+    // Check saved preference and navigate accordingly
+    const savedRecommendationType = localStorage.getItem('recommendation_type');
+    const savedIntegratedType = localStorage.getItem('integrated_admission_type');
+    
+    if (savedRecommendationType === 'direct-second-year') {
+      const hasExistingData = sessionStorage.getItem('cachedDiplomaRecommendations');
+      navigate(hasExistingData ? '/diploma-recommendations/results' : '/diploma-recommendations/steps');
+    } else if (savedRecommendationType === 'first-year') {
+      navigate('/recommendations');
+    } else if (savedIntegratedType) {
+      navigate(`/integrated-rounds?type=${savedIntegratedType}`);
+    } else {
+      // No preference saved, show dialog
+      setShowProgramDialog(true);
+    }
   };
 
   const handleProgramSelect = (program: string) => {
     if (program === 'first-year' || program === 'direct-second-year') {
+      localStorage.setItem('recommendation_type', program);
+      localStorage.removeItem('integrated_admission_type');
       handleRecommendationTypeSelect(program as 'first-year' | 'direct-second-year');
     } else {
-      // Store the selected type and navigate to form
       localStorage.setItem('integrated_admission_type', program);
+      localStorage.removeItem('recommendation_type');
       navigate(`/integrated-steps?type=${program}`);
     }
   };
@@ -85,6 +92,12 @@ const Index = () => {
     const savedRecommendationType = localStorage.getItem('recommendation_type');
     const savedIntegratedType = localStorage.getItem('integrated_admission_type');
     return !!(savedRecommendationType || savedIntegratedType);
+  };
+
+  const handleChangeType = () => {
+    localStorage.removeItem('recommendation_type');
+    localStorage.removeItem('integrated_admission_type');
+    setShowProgramDialog(true);
   };
 
   return (
@@ -144,7 +157,7 @@ const Index = () => {
 
           <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4 animate-fade-in animation-delay-500 px-2">
             <Button 
-              onClick={handleRecommendationButtonClick}
+              onClick={handleGetRecommendations}
               className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg font-bold bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-black rounded-xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
             >
               <Sparkles className="mr-2" size={18} />
@@ -154,7 +167,7 @@ const Index = () => {
             {/* Reset button for logged-in users with saved selections */}
             {isLoggedIn && hasSavedSelection() && (
               <Button 
-                onClick={handleResetSelection}
+                onClick={handleChangeType}
                 variant="outline"
                 className="w-full sm:w-auto px-4 sm:px-6 py-3 sm:py-4 text-base sm:text-lg font-medium bg-white/20 backdrop-blur-sm border-2 border-white/30 text-white hover:bg-white/30 rounded-xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
               >
