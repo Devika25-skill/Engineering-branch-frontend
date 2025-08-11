@@ -29,6 +29,9 @@ export const IntegratedRecommendationCard = ({
   index, 
   category 
 }: IntegratedRecommendationCardProps) => {
+  // Add defensive logging to understand the data structure
+  console.log('IntegratedRecommendationCard received:', { recommendation, index, category });
+  
   const { college, admission_probability, probability_message, cet_percentile, cutoff } = recommendation;
 
   const getCategoryColor = (category: string) => {
@@ -60,7 +63,7 @@ export const IntegratedRecommendationCard = ({
           <div className="flex-shrink-0">
             <div className="w-10 h-10 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg flex items-center justify-center border border-gray-100">
               <span className="text-gray-600 text-xs font-bold">
-                {college.College_Name.charAt(0)}
+                {college?.College_Name?.charAt(0) || '?'}
               </span>
             </div>
           </div>
@@ -70,13 +73,17 @@ export const IntegratedRecommendationCard = ({
             <div className="flex items-start justify-between gap-2 mb-1">
               <div className="flex-1 min-w-0">
                 <h3 className="text-base font-bold text-gray-900 leading-tight line-clamp-1">
-                  {college.College_Name}
+                  {college?.College_Name || 'Unknown College'}
                 </h3>
                 <div className="flex items-center gap-2 mt-1 text-xs text-gray-600">
                   <MapPin size={12} />
-                  <span className="truncate">{college.Location}</span>
-                  <span>•</span>
-                  <span>Code: {college.College_Code}</span>
+                  <span className="truncate">{college?.Location || 'Unknown Location'}</span>
+                  {college?.College_Code && (
+                    <>
+                      <span>•</span>
+                      <span>Code: {college.College_Code}</span>
+                    </>
+                  )}
                 </div>
               </div>
               <Badge className={`${getCategoryColor(category)} px-2 py-1 text-xs font-medium flex-shrink-0`}>
@@ -87,8 +94,10 @@ export const IntegratedRecommendationCard = ({
             {/* Course Info */}
             <div className="bg-blue-50 rounded-md p-2 mb-2">
               <div className="text-xs text-blue-900">
-                <span className="font-medium">Course:</span> {college.Course_Name}
-                <span className="ml-2 text-blue-700">• Code: {college.Course_Code}</span>
+                <span className="font-medium">Course:</span> {college?.Course_Name || 'Unknown Course'}
+                {college?.Course_Code && (
+                  <span className="ml-2 text-blue-700">• Code: {college.Course_Code}</span>
+                )}
                 {cutoff && (
                   <span className="ml-2 text-blue-700">• Cutoff: {cutoff}</span>
                 )}
