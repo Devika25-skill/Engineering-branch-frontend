@@ -77,13 +77,17 @@ const IntegratedRounds = () => {
       const currentFormData = localStorage.getItem(`integrated_form_${selectedType}`);
       const storedHash = localStorage.getItem(`integrated_form_hash_${selectedType}`);
       const hasRecommendations = localStorage.getItem(`integrated_round1_recommendations_${selectedType}`);
+      const wasUpdated = localStorage.getItem('integrated_recommendations_updated');
       
-      if (currentFormData && storedHash && hasRecommendations) {
+      if (currentFormData && storedHash && hasRecommendations && !wasUpdated) {
         const currentHash = btoa(currentFormData);
         if (currentHash !== storedHash) {
           setShowFormUpdateWarning(true);
         }
       }
+      
+      // Clear the update flag after checking
+      localStorage.removeItem('integrated_recommendations_updated');
     };
     
     checkFormDataUpdate();
@@ -92,9 +96,11 @@ const IntegratedRounds = () => {
   const handleUpdateRecommendations = () => {
     setShowFormUpdateWarning(false);
     setActiveRound('round1'); // Switch to Round 1 tab
-    // Trigger regeneration by sending event to Round1Tab
-    const event = new CustomEvent('regenerateRecommendations');
-    window.dispatchEvent(event);
+    // Small delay to ensure tab switch completes
+    setTimeout(() => {
+      const event = new CustomEvent('regenerateRecommendations');
+      window.dispatchEvent(event);
+    }, 100);
   };
 
   const handleBackToForm = () => {

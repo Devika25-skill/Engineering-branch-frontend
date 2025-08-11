@@ -108,14 +108,14 @@ export const IntegratedRound1Tab = ({ admissionType }: IntegratedRound1TabProps)
   // Listen for regeneration events from parent component
   useEffect(() => {
     const handleRegenerateEvent = () => {
-      if (hasSubmittedPreferences) {
+      if (hasSubmittedPreferences && selectedBranches.length > 0 && selectedCities.length > 0) {
         handleSubmitPreferences();
       }
     };
     
     window.addEventListener('regenerateRecommendations', handleRegenerateEvent);
     return () => window.removeEventListener('regenerateRecommendations', handleRegenerateEvent);
-  }, [hasSubmittedPreferences]);
+  }, [hasSubmittedPreferences, selectedBranches.length, selectedCities.length]);
 
   // Load existing preferences and recommendations on mount
   useEffect(() => {
@@ -217,6 +217,8 @@ export const IntegratedRound1Tab = ({ admissionType }: IntegratedRound1TabProps)
   }, []);
 
   const handleSubmitPreferences = async () => {
+    // Hide regenerate message when user actively updates
+    setShowRegenerateMessage(false);
     if (selectedBranches.length === 0) {
       toast({
         title: "Error",
@@ -300,6 +302,8 @@ export const IntegratedRound1Tab = ({ admissionType }: IntegratedRound1TabProps)
           const currentHash = btoa(currentFormData);
           localStorage.setItem(`integrated_form_hash_${admissionType}`, currentHash);
           setShowRegenerateMessage(false);
+          // Also clear the main warning from parent component
+          localStorage.setItem('integrated_recommendations_updated', 'true');
         }
         
         toast({
