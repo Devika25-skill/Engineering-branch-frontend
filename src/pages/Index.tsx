@@ -58,23 +58,9 @@ const Index = () => {
   };
 
   const handleRecommendationButtonClick = () => {
-    // Check for any previously selected program type
-    const savedRecommendationType = localStorage.getItem('recommendation_type');
-    const savedIntegratedType = localStorage.getItem('integrated_admission_type');
-    
-    if (savedRecommendationType === 'direct-second-year') {
-      const hasExistingData = sessionStorage.getItem('cachedDiplomaRecommendations');
-      navigate(hasExistingData ? '/diploma-recommendations/results' : '/diploma-recommendations/steps');
-    } else if (savedRecommendationType === 'first-year') {
-      const hasExistingData = sessionStorage.getItem('recommendationFormData');
-      navigate(hasExistingData ? '/recommendations/results' : '/recommendations/steps');
-    } else if (savedIntegratedType && ['BCA_MCA_Int', 'BBA_BMS_BBM_MBA_Int', 'B_and_D_Pharmacy'].includes(savedIntegratedType)) {
-      // Navigate to integrated admission steps - let the steps page handle configuration check
-      navigate(`/integrated-steps?type=${savedIntegratedType}`);
-    } else {
-      // No preference saved, show dialog for program selection
-      setShowProgramDialog(true);
-    }
+    // Always show the unified program selection dialog for better UX
+    // This allows users to see all options and change their selection easily
+    setShowProgramDialog(true);
   };
 
   const handleResetSelection = () => {
