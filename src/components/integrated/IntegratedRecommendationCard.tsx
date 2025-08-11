@@ -146,15 +146,6 @@ export const IntegratedRecommendationCard = ({
           </div>
         </div>
 
-        {/* Disclaimer */}
-        <div className="bg-yellow-50 border border-yellow-200 rounded-md p-2 mt-2">
-          <p className="text-xs text-yellow-800 leading-relaxed">
-            <span className="font-medium">Disclaimer:</span> These recommendations are based on previous year cutoff data and trends. 
-            Actual admission depends on various factors including seat availability, competition, and official cutoff announcements. 
-            Please verify with official sources before making final decisions.
-          </p>
-        </div>
-
         {/* View Details Button - Positioned at top right */}
         <div className="absolute top-3 right-3">
           <Button

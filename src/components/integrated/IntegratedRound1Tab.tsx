@@ -385,6 +385,21 @@ export const IntegratedRound1Tab = ({ admissionType }: IntegratedRound1TabProps)
             </div>
           </CardHeader>
           <CardContent>
+            {/* Disclaimer */}
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+              <div className="flex items-start gap-3">
+                <div className="text-yellow-600 text-lg">⚠️</div>
+                <div>
+                  <h4 className="font-semibold text-yellow-800 text-sm mb-1">Important Disclaimer</h4>
+                  <p className="text-xs text-yellow-700 leading-relaxed">
+                    These recommendations are based on previous year cutoff data and trends. 
+                    Actual admission depends on various factors including seat availability, competition, 
+                    category-wise cutoffs, and official announcements. Please verify with official sources 
+                    and consider multiple options before making final decisions.
+                  </p>
+                </div>
+              </div>
+            </div>
             <div className="space-y-4">
               <CategoryFilter 
                 activeCategory={filteredCategory}
