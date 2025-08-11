@@ -9,7 +9,7 @@ import { IntegratedAdmissionType } from '@/types/integratedAdmission';
 import { IntegratedBranchesForm } from './IntegratedBranchesForm';
 import { IntegratedCitiesForm } from './IntegratedCitiesForm';
 import { integratedRecommendationApi } from '@/services/integratedRecommendationApi';
-import { RecommendationCard } from '@/components/recommendations/RecommendationCard';
+import { IntegratedRecommendationCard } from './IntegratedRecommendationCard';
 import { CategoryFilter } from '@/components/recommendations/CategoryFilter';
 import { PremiumGate } from '@/components/recommendations/PremiumGate';
 import { NoResultsState } from '@/components/recommendations/NoResultsState';
@@ -363,10 +363,11 @@ export const IntegratedRound1Tab = ({ admissionType }: IntegratedRound1TabProps)
                 ) : (
                   <div className="grid gap-4">
                     {filteredRecommendations.map((recommendation, index) => (
-                      <RecommendationCard
+                      <IntegratedRecommendationCard
                         key={`${recommendation.college.id}-${index}`}
                         recommendation={recommendation}
                         index={index + 1}
+                        category={recommendation.category}
                       />
                     ))}
                   </div>
