@@ -6,7 +6,7 @@ import { GraduationCap, Users, MapPin, Building, Pill, LucideIcon } from 'lucide
 import { IntegratedAdmissionType } from '@/types/integratedAdmission';
 
 type RecommendationType = 'first-year' | 'direct-second-year';
-type ProgramType = RecommendationType | IntegratedAdmissionType;
+export type ProgramType = RecommendationType | IntegratedAdmissionType;
 
 interface ProgramOption {
   id: ProgramType;

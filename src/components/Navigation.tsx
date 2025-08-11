@@ -8,18 +8,38 @@ import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import LoginDialog from "@/components/auth/LoginDialog";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { RecommendationTypeDialog } from "@/components/recommendations/RecommendationTypeDialog";
-import { useRecommendationTypeDialog } from "@/hooks/useRecommendationTypeDialog";
+import { ProgramSelectionDialog } from "@/components/common/ProgramSelectionDialog";
+import type { ProgramType } from "@/components/common/ProgramSelectionDialog";
 
 const Navigation = () => {
   const navigate = useNavigate();
   const { user, isLoggedIn, logout } = useAuth();
   const [loginDialogOpen, setLoginDialogOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { isOpen, openDialog, closeDialog, handleSelectType } = useRecommendationTypeDialog();
+  const [showProgramDialog, setShowProgramDialog] = useState(false);
 
   const handleLogin = () => {
     setLoginDialogOpen(true);
+  };
+
+  const handleProgramSelect = (program: ProgramType) => {
+    localStorage.setItem('recommendation_type', program);
+    
+    switch (program) {
+      case 'first-year':
+        navigate('/recommendations');
+        break;
+      case 'direct-second-year':
+        navigate('/diploma-recommendations/steps');
+        break;
+      case 'BCA_MCA_Int':
+      case 'BBA_BMS_BBM_MBA_Int':
+      case 'B_and_D_Pharmacy':
+        navigate(`/integrated-steps?type=${program}`);
+        break;
+      default:
+        break;
+    }
   };
   
   const NavLinks = ({ mobile = false }: { mobile?: boolean }) => (
@@ -37,17 +57,7 @@ const Navigation = () => {
       </button>
       <button 
         onClick={() => {
-          // Check saved preference and navigate accordingly
-          const savedRecommendationType = localStorage.getItem('recommendation_type');
-          if (savedRecommendationType === 'direct-second-year') {
-            const hasExistingData = sessionStorage.getItem('cachedDiplomaRecommendations');
-            navigate(hasExistingData ? '/diploma-recommendations/results' : '/diploma-recommendations/steps');
-          } else if (savedRecommendationType === 'first-year') {
-            navigate('/recommendations');
-          } else {
-            // No preference saved, show dialog
-            openDialog();
-          }
+          setShowProgramDialog(true);
           if (mobile) setMobileMenuOpen(false);
         }}
         className={`flex items-center text-gray-600 hover:text-purple-600 transition-all duration-300 group relative ${mobile ? 'w-full text-left p-3 rounded-lg hover:bg-purple-50' : 'py-2'}`}
@@ -165,10 +175,10 @@ const Navigation = () => {
         onOpenChange={setLoginDialogOpen}
       />
       
-      <RecommendationTypeDialog
-        open={isOpen}
-        onOpenChange={closeDialog}
-        onSelectType={handleSelectType}
+      <ProgramSelectionDialog
+        open={showProgramDialog}
+        onOpenChange={setShowProgramDialog}
+        onSelectProgram={handleProgramSelect}
       />
     </>
   );
