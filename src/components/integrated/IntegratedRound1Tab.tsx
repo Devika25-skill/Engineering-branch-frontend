@@ -576,8 +576,9 @@ export const IntegratedRound1Tab = ({ admissionType }: IntegratedRound1TabProps)
                                   <PremiumGate 
                                     onUnlock={() => setIsUnlocked(true)}
                                     storageKey="integratedRecommendationUnlocked"
-                                    productType="integrated_round_1"
-                                    title="Unlock Integrated Round 1 Recommendations"
+                                    productType={`future-bridge-admissionType-${admissionType}`}
+                                    title={`Unlock Round 1 Recommendations`}
+
                                     description="Get access to your personalized integrated admission recommendations"
                                   />
                                 </div>
