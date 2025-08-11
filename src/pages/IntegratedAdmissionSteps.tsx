@@ -46,9 +46,11 @@ const IntegratedAdmissionSteps = () => {
     try {
       const response = await integratedAdmissionApi.getConfiguration();
       if (response.success && response.data.length > 0) {
-        // Check if current admission type has data
+        // Check if current admission type has data AND user has completed the form submission
         const hasCurrentTypeData = response.data.some(config => config.exam_type === admissionType);
-        if (hasCurrentTypeData) {
+        const hasCompletedForm = localStorage.getItem(`integrated_form_completed_${admissionType}`) === 'true';
+        
+        if (hasCurrentTypeData && hasCompletedForm) {
           // Navigate to rounds page only if coming from elsewhere, not if user explicitly came to form
           const fromForm = searchParams.get('from') === 'form';
           if (!fromForm) {
@@ -83,9 +85,11 @@ const IntegratedAdmissionSteps = () => {
         category: formData.category
       };
 
-      const response = await integratedAdmissionApi.saveConfiguration(configData);
-      
-      if (response.success) {
+      const result = await integratedAdmissionApi.saveConfiguration(configData);
+      if (result.success) {
+        // Mark form as completed only after successful save
+        localStorage.setItem(`integrated_form_completed_${admissionType}`, 'true');
+        
         toast({
           title: "Success",
           description: "Your preferences have been saved successfully!",
