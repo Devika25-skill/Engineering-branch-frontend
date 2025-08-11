@@ -7,11 +7,14 @@ import { Link, useNavigate } from 'react-router-dom';
 import { backgroundLoader } from '@/services/backgroundLoader';
 import { sessionStorageService } from '@/services/sessionStorage';
 import { RecommendationTypeDialog } from '@/components/recommendations/RecommendationTypeDialog';
+import { IntegratedAdmissionTypeDialog } from '@/components/integrated/IntegratedAdmissionTypeDialog';
 import { useAuth } from '@/contexts/AuthContext';
+import { IntegratedAdmissionType } from '@/types/integratedAdmission';
 
 const Index = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [showRecommendationDialog, setShowRecommendationDialog] = useState(false);
+  const [showIntegratedDialog, setShowIntegratedDialog] = useState(false);
   const navigate = useNavigate();
   const { user, isLoggedIn, logout } = useAuth();
 
@@ -71,6 +74,12 @@ const Index = () => {
       // Show selection dialog for first-time users
       setShowRecommendationDialog(true);
     }
+  };
+
+  const handleIntegratedAdmissionSelect = (type: IntegratedAdmissionType) => {
+    // Store the selected type and navigate to form
+    localStorage.setItem('integrated_admission_type', type);
+    navigate(`/integrated-steps?type=${type}`);
   };
 
   return (
@@ -136,6 +145,14 @@ const Index = () => {
             >
               <Sparkles className="mr-2" size={18} />
               Get AI Recommended CET List ✨
+            </Button>
+            <Button 
+              onClick={() => setShowIntegratedDialog(true)}
+              variant="outline"
+              className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg font-bold bg-white/20 backdrop-blur-sm border-2 border-white/30 text-white hover:bg-white/30 rounded-xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
+            >
+              <GraduationCap className="mr-2" size={18} />
+              Integrated Programs
             </Button>
             {/* Removing button for test */}
             {/* <Link to="/colleges" className="w-full sm:w-auto">
@@ -238,6 +255,12 @@ const Index = () => {
         open={showRecommendationDialog}
         onOpenChange={setShowRecommendationDialog}
         onSelectType={handleRecommendationTypeSelect}
+      />
+
+      <IntegratedAdmissionTypeDialog
+        open={showIntegratedDialog}
+        onOpenChange={setShowIntegratedDialog}
+        onSelectType={handleIntegratedAdmissionSelect}
       />
     </div>
   );

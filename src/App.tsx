@@ -14,6 +14,8 @@ import RecommendationSteps from "./pages/RecommendationSteps";
 import RecommendationResults from "./pages/RecommendationResults";
 import DiplomaRecommendationSteps from "./pages/DiplomaRecommendationSteps";
 import DiplomaRecommendationResults from "./pages/DiplomaRecommendationResults";
+import IntegratedAdmissionSteps from "./pages/IntegratedAdmissionSteps";
+import IntegratedRounds from "./pages/IntegratedRounds";
 import CollegeDetails from "./pages/CollegeDetails";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -40,6 +42,8 @@ const App = () => (
                 <Route path="/recommendations/results" element={<RecommendationResults />} />
                 <Route path="/diploma-recommendations/steps" element={<DiplomaRecommendationSteps />} />
                 <Route path="/diploma-recommendations/results" element={<DiplomaRecommendationResults />} />
+                <Route path="/integrated-steps" element={<IntegratedAdmissionSteps />} />
+                <Route path="/integrated-rounds" element={<IntegratedRounds />} />
                 <Route path="/college/:id" element={<CollegeDetails />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
