@@ -10,7 +10,7 @@ const API_BASE_URL = config.apiBaseUrl;
 export const integratedAdmissionApi = {
   // Save configuration
   saveConfiguration: async (data: IntegratedConfigurationRequest): Promise<IntegratedConfigurationResponse> => {
-    const token = localStorage.getItem('access_token');
+    const token = localStorage.getItem('accessToken');
     
     const response = await fetch(`${API_BASE_URL}/api/v1/common/college/configuration`, {
       method: 'POST',
@@ -30,7 +30,7 @@ export const integratedAdmissionApi = {
 
   // Get configuration
   getConfiguration: async (): Promise<IntegratedConfigurationResponse> => {
-    const token = localStorage.getItem('access_token');
+    const token = localStorage.getItem('accessToken');
     
     const response = await fetch(`${API_BASE_URL}/api/v1/common/college/configuration`, {
       method: 'GET',
