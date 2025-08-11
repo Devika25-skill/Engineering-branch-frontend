@@ -46,7 +46,8 @@ export const IntegratedRecommendationCard = ({
     probability_message, 
     cet_percentile, 
     reservation_category,
-    category 
+    category,
+    choice_code
   } = recommendation;
 
   const getCategoryColor = (category: string) => {
@@ -110,6 +111,9 @@ export const IntegratedRecommendationCard = ({
             <div className="bg-blue-50 rounded-md p-2 mb-2">
               <div className="text-xs text-blue-900">
                 <span className="font-medium">Course:</span> {course_name || 'Unknown Course'}
+                {choice_code && (
+                  <span className="ml-2 text-blue-700">• Code: {choice_code}</span>
+                )}
                 {cutoff_percentile && (
                   <span className="ml-2 text-blue-700">• Cutoff: {cutoff_percentile}%ile</span>
                 )}

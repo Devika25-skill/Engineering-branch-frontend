@@ -204,7 +204,8 @@ export const usePdfDownload = () => {
         pdf.setFont('helvetica', 'normal');
         pdf.setTextColor(107, 114, 128);
         const courseText = rec.course_name || 'Course not specified';
-        pdf.text(pdf.splitTextToSize(courseText, maxNameWidth)[0], margin + 15, yPosition + 14);
+        const choiceCode = (rec as any).choice_code ? ` (${(rec as any).choice_code})` : '';
+        pdf.text(pdf.splitTextToSize(courseText + choiceCode, maxNameWidth)[0], margin + 15, yPosition + 14);
         
         // Location
         pdf.setFontSize(9);
