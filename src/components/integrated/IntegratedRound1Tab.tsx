@@ -21,7 +21,6 @@ interface IntegratedRound1TabProps {
 }
 
 export const IntegratedRound1Tab = ({ admissionType }: IntegratedRound1TabProps) => {
-  const [formDataHash, setFormDataHash] = useState<string>('');
   const { user, isLoggedIn } = useAuth();
   const { toast } = useToast();
   
@@ -36,6 +35,8 @@ export const IntegratedRound1Tab = ({ admissionType }: IntegratedRound1TabProps)
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [filteredCategory, setFilteredCategory] = useState<string>('All');
   const [showRegenerateMessage, setShowRegenerateMessage] = useState(false);
+  const [formDataHash, setFormDataHash] = useState<string>('');
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
 
   const { generatePDF, isGenerating } = usePdfDownload();
 
@@ -100,6 +101,7 @@ export const IntegratedRound1Tab = ({ admissionType }: IntegratedRound1TabProps)
   // Load existing preferences and recommendations on mount
   useEffect(() => {
     const loadExistingData = async () => {
+      setIsInitialLoading(true);
       try {
         // First try to fetch from API
         const response = await integratedRecommendationApi.getRoundPreferences(1, admissionType);
@@ -139,6 +141,8 @@ export const IntegratedRound1Tab = ({ admissionType }: IntegratedRound1TabProps)
       } catch (error) {
         console.error('Error fetching from API, falling back to localStorage:', error);
         loadFromLocalStorage();
+      } finally {
+        setIsInitialLoading(false);
       }
     };
 
@@ -271,7 +275,6 @@ export const IntegratedRound1Tab = ({ admissionType }: IntegratedRound1TabProps)
           setIsUnlocked(true);
         }
         
-        
         // Store hash of current form data to detect future changes
         const currentFormData = localStorage.getItem(`integrated_form_${admissionType}`);
         if (currentFormData) {
@@ -335,6 +338,37 @@ export const IntegratedRound1Tab = ({ admissionType }: IntegratedRound1TabProps)
     return acc;
   }, { Dream: 0, Reach: 0, Match: 0, Safety: 0 });
 
+  // Show loading skeleton while initial data is loading
+  if (isInitialLoading) {
+    return (
+      <div className="space-y-6">
+        <Card className="w-full">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="h-6 bg-muted animate-pulse rounded w-1/3"></div>
+              <div className="h-6 bg-muted animate-pulse rounded w-8"></div>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <div className="h-4 bg-muted animate-pulse rounded w-1/4"></div>
+                <div className="h-12 bg-muted animate-pulse rounded"></div>
+              </div>
+              <div className="space-y-4">
+                <div className="h-4 bg-muted animate-pulse rounded w-1/4"></div>
+                <div className="h-12 bg-muted animate-pulse rounded"></div>
+              </div>
+            </div>
+            <div className="flex justify-end">
+              <div className="h-10 bg-muted animate-pulse rounded w-32"></div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Preferences Card */}
@@ -390,9 +424,14 @@ export const IntegratedRound1Tab = ({ admissionType }: IntegratedRound1TabProps)
               <Button 
                 onClick={handleSubmitPreferences}
                 disabled={isGeneratingRecommendations || selectedBranches.length === 0 || selectedCities.length === 0}
-                className="bg-blue-600 hover:bg-blue-700"
+                className="bg-blue-600 hover:bg-blue-700 min-w-[160px]"
               >
-                {isGeneratingRecommendations ? 'Generating...' : hasSubmittedPreferences ? 'Update & Generate' : 'Save & Generate'}
+                {isGeneratingRecommendations ? (
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    Generating...
+                  </div>
+                ) : hasSubmittedPreferences ? 'Update & Generate' : 'Save & Generate'}
               </Button>
             </div>
           </CardContent>
@@ -446,86 +485,125 @@ export const IntegratedRound1Tab = ({ admissionType }: IntegratedRound1TabProps)
             </div>
           </CardHeader>
           <CardContent>
-            {/* Disclaimer */}
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-              <div className="flex items-start gap-3">
-                <div className="text-yellow-600 text-lg">⚠️</div>
-                <div>
-                  <h4 className="font-semibold text-yellow-800 text-sm mb-1">Important Disclaimer</h4>
-                  <p className="text-xs text-yellow-700 leading-relaxed">
-                    These recommendations are based on previous year cutoff data and trends. 
-                    Actual admission depends on various factors including seat availability, competition, 
-                    category-wise cutoffs, and official announcements. Please verify with official sources 
-                    and consider multiple options before making final decisions.
-                  </p>
+            {/* Show loading skeleton during recommendation generation */}
+            {isGeneratingRecommendations ? (
+              <div className="space-y-6">
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                  <div className="flex items-start gap-3">
+                    <div className="text-yellow-600 text-lg">⚠️</div>
+                    <div>
+                      <div className="h-4 bg-yellow-200 animate-pulse rounded w-1/3 mb-2"></div>
+                      <div className="h-3 bg-yellow-200 animate-pulse rounded w-full mb-1"></div>
+                      <div className="h-3 bg-yellow-200 animate-pulse rounded w-3/4"></div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="space-y-4">
+                  {[1, 2, 3].map((i) => (
+                    <Card key={i} className="border border-gray-200">
+                      <CardContent className="p-6">
+                        <div className="space-y-4">
+                          <div className="flex items-center justify-between">
+                            <div className="h-6 bg-muted animate-pulse rounded w-1/4"></div>
+                            <div className="h-6 bg-muted animate-pulse rounded w-16"></div>
+                          </div>
+                          <div className="h-5 bg-muted animate-pulse rounded w-3/4"></div>
+                          <div className="flex gap-4">
+                            <div className="h-4 bg-muted animate-pulse rounded w-1/5"></div>
+                            <div className="h-4 bg-muted animate-pulse rounded w-1/5"></div>
+                            <div className="h-4 bg-muted animate-pulse rounded w-1/5"></div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
                 </div>
               </div>
-            </div>
-            <div className="space-y-4">  
-              {filteredRecommendations.length === 0 ? (
-                <NoResultsState />
-              ) : (
-                <div className="grid gap-4">
-                  {/* Show first 3 recommendations */}
-                  {filteredRecommendations.slice(0, 3).map((recommendation, index) => (
-                    <IntegratedRecommendationCard
-                      key={`${recommendation.college.id}-${index}`}
-                      recommendation={recommendation}
-                      index={index + 1}
-                    />
-                  ))}
-                  
-                  {/* Show remaining recommendations with blur if not unlocked */}
-                  {filteredRecommendations.length > 3 && (
-                    <>
-                      {!isUnlocked ? (
-                        <div className="relative">
-                          {/* Blurred recommendations */}
-                          <div className="filter blur-sm pointer-events-none space-y-4">
-                            {filteredRecommendations.slice(3, 6).map((recommendation, index) => (
+            ) : (
+              <>
+                {/* Disclaimer */}
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+                  <div className="flex items-start gap-3">
+                    <div className="text-yellow-600 text-lg">⚠️</div>
+                    <div>
+                      <h4 className="font-semibold text-yellow-800 text-sm mb-1">Important Disclaimer</h4>
+                      <p className="text-xs text-yellow-700 leading-relaxed">
+                        These recommendations are based on previous year cutoff data and trends. 
+                        Actual admission depends on various factors including seat availability, competition, 
+                        category-wise cutoffs, and official announcements. Please verify with official sources 
+                        and consider multiple options before making final decisions.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-4">  
+                  {filteredRecommendations.length === 0 ? (
+                    <NoResultsState />
+                  ) : (
+                    <div className="grid gap-4">
+                      {/* Show first 3 recommendations */}
+                      {filteredRecommendations.slice(0, 3).map((recommendation, index) => (
+                        <IntegratedRecommendationCard
+                          key={`${recommendation.college.id}-${index}`}
+                          recommendation={recommendation}
+                          index={index + 1}
+                        />
+                      ))}
+                      
+                      {/* Show remaining recommendations with blur if not unlocked */}
+                      {filteredRecommendations.length > 3 && (
+                        <>
+                          {!isUnlocked ? (
+                            <div className="relative">
+                              {/* Blurred recommendations */}
+                              <div className="filter blur-sm pointer-events-none space-y-4">
+                                {filteredRecommendations.slice(3, 6).map((recommendation, index) => (
+                                  <IntegratedRecommendationCard
+                                    key={`blurred-${recommendation.college.id}-${index}`}
+                                    recommendation={recommendation}
+                                    index={index + 4}
+                                  />
+                                ))}
+                              </div>
+                              
+                              {/* Unlock overlay */}
+                              <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center rounded-lg">
+                                <div className="text-center p-6 bg-white rounded-lg shadow-lg border-2 border-blue-200 max-w-sm mx-4">
+                                  <div className="text-3xl mb-3">🔒</div>
+                                  <h3 className="text-lg font-bold text-gray-900 mb-2">
+                                    Unlock All Recommendations
+                                  </h3>
+                                  <p className="text-sm text-gray-600 mb-4">
+                                    Get access to {filteredRecommendations.length - 3} more personalized recommendations
+                                  </p>
+                                  <PremiumGate 
+                                    onUnlock={() => setIsUnlocked(true)}
+                                    storageKey="integratedRecommendationUnlocked"
+                                    productType="integrated_round_1"
+                                    title="Unlock Integrated Round 1 Recommendations"
+                                    description="Get access to your personalized integrated admission recommendations"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          ) : (
+                            /* Show all remaining recommendations if unlocked */
+                            filteredRecommendations.slice(3).map((recommendation, index) => (
                               <IntegratedRecommendationCard
-                                key={`blurred-${recommendation.college.id}-${index}`}
+                                key={`${recommendation.college.id}-${index + 3}`}
                                 recommendation={recommendation}
                                 index={index + 4}
                               />
-                            ))}
-                          </div>
-                          
-                          {/* Unlock overlay */}
-                          <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center rounded-lg">
-                            <div className="text-center p-6 bg-white rounded-lg shadow-lg border-2 border-blue-200 max-w-sm mx-4">
-                              <div className="text-3xl mb-3">🔒</div>
-                              <h3 className="text-lg font-bold text-gray-900 mb-2">
-                                Unlock All Recommendations
-                              </h3>
-                              <p className="text-sm text-gray-600 mb-4">
-                                Get access to {filteredRecommendations.length - 3} more personalized recommendations
-                              </p>
-                              <PremiumGate 
-                                onUnlock={() => setIsUnlocked(true)}
-                                storageKey="integratedRecommendationUnlocked"
-                                productType="integrated_round_1"
-                                title="Unlock Integrated Round 1 Recommendations"
-                                description="Get access to your personalized integrated admission recommendations"
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      ) : (
-                        /* Show all remaining recommendations if unlocked */
-                        filteredRecommendations.slice(3).map((recommendation, index) => (
-                          <IntegratedRecommendationCard
-                            key={`${recommendation.college.id}-${index + 3}`}
-                            recommendation={recommendation}
-                            index={index + 4}
-                          />
-                        ))
+                            ))
+                          )}
+                        </>
                       )}
-                    </>
+                    </div>
                   )}
                 </div>
-              )}
-            </div>
+              </>
+            )}
           </CardContent>
         </Card>
       )}
