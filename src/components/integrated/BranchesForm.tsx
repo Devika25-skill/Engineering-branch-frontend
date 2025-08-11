@@ -5,6 +5,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { X, BookOpen } from 'lucide-react';
 import { IntegratedAdmissionType } from '@/types/integratedAdmission';
+import { getBranchesForAdmissionType } from '@/data/integratedAdmissionConfig';
 
 interface BranchesFormProps {
   admissionType: IntegratedAdmissionType;
@@ -12,49 +13,13 @@ interface BranchesFormProps {
   initialSelection?: string[];
 }
 
-// Different branches for different admission types
-const branchOptions: Record<IntegratedAdmissionType, string[]> = {
-  'BCA_MCA_Int': [
-    'Computer Applications',
-    'Information Technology',
-    'Data Science & Analytics',
-    'Cyber Security',
-    'Software Engineering',
-    'Web Development',
-    'Mobile App Development',
-    'AI & Machine Learning'
-  ],
-  'BBA_BMS_BBM_MBA_Int': [
-    'Finance',
-    'Marketing',
-    'Human Resources',
-    'Operations Management',
-    'International Business',
-    'Digital Marketing',
-    'Business Analytics',
-    'Entrepreneurship',
-    'Supply Chain Management',
-    'Banking & Insurance'
-  ],
-  'B_and_D_Pharmacy': [
-    'Pharmaceutical Sciences',
-    'Clinical Pharmacy',
-    'Pharmaceutical Technology',
-    'Quality Assurance',
-    'Drug Regulatory Affairs',
-    'Hospital Pharmacy',
-    'Community Pharmacy',
-    'Pharmaceutical Marketing'
-  ]
-};
-
 export const BranchesForm: React.FC<BranchesFormProps> = ({
   admissionType,
   onSelectionChange,
   initialSelection = []
 }) => {
   const [selectedBranches, setSelectedBranches] = useState<string[]>(initialSelection);
-  const branches = branchOptions[admissionType] || [];
+  const branches = getBranchesForAdmissionType(admissionType);
 
   useEffect(() => {
     onSelectionChange(selectedBranches);

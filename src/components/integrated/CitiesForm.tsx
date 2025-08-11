@@ -4,40 +4,22 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { X, MapPin } from 'lucide-react';
+import { IntegratedAdmissionType } from '@/types/integratedAdmission';
+import { getCitiesForAdmissionType } from '@/data/integratedAdmissionConfig';
 
 interface CitiesFormProps {
+  admissionType?: IntegratedAdmissionType;
   onSelectionChange: (selectedCities: string[]) => void;
   initialSelection?: string[];
 }
 
-const cityOptions = [
-  'Mumbai',
-  'Pune',
-  'Nashik',
-  'Nagpur',
-  'Aurangabad',
-  'Solapur',
-  'Amravati',
-  'Sangli',
-  'Kolhapur',
-  'Akola',
-  'Latur',
-  'Dhule',
-  'Ahmednagar',
-  'Chandrapur',
-  'Parbhani',
-  'Jalgaon',
-  'Bhiwandi',
-  'Nanded',
-  'Ulhasnagar',
-  'Malegaon'
-];
-
 export const CitiesForm: React.FC<CitiesFormProps> = ({
+  admissionType = 'BCA_MCA_Int',
   onSelectionChange,
   initialSelection = []
 }) => {
   const [selectedCities, setSelectedCities] = useState<string[]>(initialSelection);
+  const cityOptions = getCitiesForAdmissionType(admissionType);
 
   useEffect(() => {
     onSelectionChange(selectedCities);

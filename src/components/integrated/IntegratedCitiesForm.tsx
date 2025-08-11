@@ -6,60 +6,24 @@ import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MapPin, X, Plus, GripVertical } from "lucide-react";
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+import { IntegratedAdmissionType } from '@/types/integratedAdmission';
+import { getCitiesForAdmissionType } from '@/data/integratedAdmissionConfig';
 
 interface IntegratedCitiesFormProps {
+  admissionType?: IntegratedAdmissionType;
   onSelectionChange: (cities: string[]) => void;
   initialSelection?: string[];
   validationErrors?: string[];
 }
 
-const availableCities = [
-  "ALL",
-  "Ahmednagar",
-  "Akola",
-  "Amravati",
-  "Beed",
-  "Bhandara",
-  "Buldhana",
-  "Chandrapur",
-  "Chh. Sambhaji Nagar (Aurangabad)",
-  "Chikhli",
-  "Dharashiv (Osmanabad)",
-  "Dhule",
-  "Ichalkaranji",
-  "Jalgaon",
-  "Jalna",
-  "Kalyan",
-  "Kolhapur",
-  "Latur",
-  "Mumbai",
-  "Nagpur",
-  "Nanded",
-  "Nandurbar",
-  "Nashik",
-  "Palghar",
-  "Pandharpur",
-  "Parbhani",
-  "Pune",
-  "Raigad",
-  "Ratnagiri",
-  "Sangli",
-  "Satara",
-  "Sindhudurg",
-  "Solapur",
-  "Thane",
-  "Ulhasnagar",
-  "Wardha",
-  "Washim",
-  "Yavatmal"
-];
-
 export const IntegratedCitiesForm = ({ 
+  admissionType = 'BCA_MCA_Int',
   onSelectionChange, 
   initialSelection = [],
   validationErrors = [] 
 }: IntegratedCitiesFormProps) => {
   const [selectedCities, setSelectedCities] = useState<string[]>(initialSelection);
+  const availableCities = getCitiesForAdmissionType(admissionType);
 
   const isFieldError = (fieldName: string) => {
     return validationErrors.some(error => error.toLowerCase().includes(fieldName.toLowerCase()));

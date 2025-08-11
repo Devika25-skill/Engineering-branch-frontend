@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BookOpen, X, Plus, GripVertical, AlertCircle } from "lucide-react";
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { IntegratedAdmissionType } from '@/types/integratedAdmission';
+import { getBranchesForAdmissionType } from '@/data/integratedAdmissionConfig';
 
 interface IntegratedBranchesFormProps {
   admissionType: IntegratedAdmissionType;
@@ -14,45 +15,6 @@ interface IntegratedBranchesFormProps {
   initialSelection?: string[];
   validationErrors?: string[];
 }
-
-// Different branches for different admission types
-const branchOptions: Record<IntegratedAdmissionType, string[]> = {
-  'BCA_MCA_Int': [
-    'ALL',
-    'Computer Applications',
-    'Information Technology',
-    'Data Science & Analytics',
-    'Cyber Security',
-    'Software Engineering',
-    'Web Development',
-    'Mobile App Development',
-    'AI & Machine Learning'
-  ],
-  'BBA_BMS_BBM_MBA_Int': [
-    'ALL',
-    'Finance',
-    'Marketing',
-    'Human Resources',
-    'Operations Management',
-    'International Business',
-    'Digital Marketing',
-    'Business Analytics',
-    'Entrepreneurship',
-    'Supply Chain Management',
-    'Banking & Insurance'
-  ],
-  'B_and_D_Pharmacy': [
-    'ALL',
-    'Pharmaceutical Sciences',
-    'Clinical Pharmacy',
-    'Pharmaceutical Technology',
-    'Quality Assurance',
-    'Drug Regulatory Affairs',
-    'Hospital Pharmacy',
-    'Community Pharmacy',
-    'Pharmaceutical Marketing'
-  ]
-};
 
 export const IntegratedBranchesForm = ({ 
   admissionType, 
@@ -62,7 +24,7 @@ export const IntegratedBranchesForm = ({
 }: IntegratedBranchesFormProps) => {
   const [selectedBranches, setSelectedBranches] = useState<string[]>(initialSelection);
   
-  const availableBranches = branchOptions[admissionType] || [];
+  const availableBranches = getBranchesForAdmissionType(admissionType);
 
   const isFieldError = (fieldName: string) => {
     return validationErrors.some(error => error.toLowerCase().includes(fieldName.toLowerCase()));
