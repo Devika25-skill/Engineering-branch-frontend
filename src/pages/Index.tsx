@@ -69,13 +69,8 @@ const Index = () => {
       const hasExistingData = sessionStorage.getItem('recommendationFormData');
       navigate(hasExistingData ? '/recommendations/results' : '/recommendations/steps');
     } else if (savedIntegratedType && ['BCA_MCA_Int', 'BBA_BMS_BBM_MBA_Int', 'B_and_D_Pharmacy'].includes(savedIntegratedType)) {
-      // Navigate to integrated admission steps or rounds based on existing data
-      if (isLoggedIn) {
-        // Check if user has configuration data for this type
-        navigate(`/integrated-steps?type=${savedIntegratedType}`);
-      } else {
-        navigate(`/integrated-steps?type=${savedIntegratedType}`);
-      }
+      // Navigate to integrated admission steps - let the steps page handle configuration check
+      navigate(`/integrated-steps?type=${savedIntegratedType}`);
     } else {
       // No preference saved, show dialog for program selection
       setShowProgramDialog(true);

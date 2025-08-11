@@ -56,7 +56,7 @@ const IntegratedRounds = () => {
 
   const handleBackToForm = () => {
     if (admissionType) {
-      navigate(`/integrated-steps?type=${admissionType}`);
+      navigate(`/integrated-steps?type=${admissionType}&from=form`);
     }
   };
 

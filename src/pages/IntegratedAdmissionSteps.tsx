@@ -35,8 +35,31 @@ const IntegratedAdmissionSteps = () => {
     setAdmissionType(selectedType);
   }, [searchParams, navigate]);
 
-  // Remove auto-redirect logic to prevent immediate redirection
-  // This allows users to go back to the form without being redirected
+  useEffect(() => {
+    // Check if user has existing configuration when logged in
+    if (isLoggedIn && admissionType) {
+      checkExistingConfiguration();
+    }
+  }, [isLoggedIn, admissionType]);
+
+  const checkExistingConfiguration = async () => {
+    try {
+      const response = await integratedAdmissionApi.getConfiguration();
+      if (response.success && response.data.length > 0) {
+        // Check if current admission type has data
+        const hasCurrentTypeData = response.data.some(config => config.exam_type === admissionType);
+        if (hasCurrentTypeData) {
+          // Navigate to rounds page only if coming from elsewhere, not if user explicitly came to form
+          const fromForm = searchParams.get('from') === 'form';
+          if (!fromForm) {
+            navigate(`/integrated-rounds?type=${admissionType}`);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error checking existing configuration:', error);
+    }
+  };
 
   const handleFormSubmit = async (formData: IntegratedAdmissionFormData) => {
     if (!isLoggedIn) {
