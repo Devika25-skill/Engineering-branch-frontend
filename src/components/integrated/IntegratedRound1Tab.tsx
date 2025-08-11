@@ -385,43 +385,77 @@ export const IntegratedRound1Tab = ({ admissionType }: IntegratedRound1TabProps)
             </div>
           </CardHeader>
           <CardContent>
-            {!isUnlocked ? (
-              <PremiumGate 
-                onUnlock={() => setIsUnlocked(true)}
-                storageKey="integratedRecommendationUnlocked"
-                productType="integrated_round_1"
-                title="Unlock Integrated Round 1 Recommendations"
-                description="Get access to your personalized integrated admission recommendations"
+            <div className="space-y-4">
+              <CategoryFilter 
+                activeCategory={filteredCategory}
+                onCategoryChange={setFilteredCategory}
+                categoryStats={categoryStats}
               />
-            ) : (
-              <div className="space-y-4">
-                <CategoryFilter 
-                  activeCategory={filteredCategory}
-                  onCategoryChange={setFilteredCategory}
-                  categoryStats={categoryStats}
-                />
-                
-                {filteredRecommendations.length === 0 ? (
-                  <NoResultsState />
-                ) : (
-                  <div className="grid gap-4">
-                      {filteredRecommendations.slice(0, isUnlocked ? filteredRecommendations.length : 3).map((recommendation, index) => (
-                        <IntegratedRecommendationCard
-                          key={`${recommendation.college.id}-${index}`}
-                          recommendation={recommendation}
-                          index={index + 1}
-                        />
-                      ))}
-                      
-                      {!isUnlocked && filteredRecommendations.length > 3 && (
-                        <div className="mt-4">
-                          <PremiumGate onUnlock={() => setIsUnlocked(true)} />
+              
+              {filteredRecommendations.length === 0 ? (
+                <NoResultsState />
+              ) : (
+                <div className="grid gap-4">
+                  {/* Show first 3 recommendations */}
+                  {filteredRecommendations.slice(0, 3).map((recommendation, index) => (
+                    <IntegratedRecommendationCard
+                      key={`${recommendation.college.id}-${index}`}
+                      recommendation={recommendation}
+                      index={index + 1}
+                    />
+                  ))}
+                  
+                  {/* Show remaining recommendations with blur if not unlocked */}
+                  {filteredRecommendations.length > 3 && (
+                    <>
+                      {!isUnlocked ? (
+                        <div className="relative">
+                          {/* Blurred recommendations */}
+                          <div className="filter blur-sm pointer-events-none space-y-4">
+                            {filteredRecommendations.slice(3, 6).map((recommendation, index) => (
+                              <IntegratedRecommendationCard
+                                key={`blurred-${recommendation.college.id}-${index}`}
+                                recommendation={recommendation}
+                                index={index + 4}
+                              />
+                            ))}
+                          </div>
+                          
+                          {/* Unlock overlay */}
+                          <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center rounded-lg">
+                            <div className="text-center p-6 bg-white rounded-lg shadow-lg border-2 border-blue-200 max-w-sm mx-4">
+                              <div className="text-3xl mb-3">🔒</div>
+                              <h3 className="text-lg font-bold text-gray-900 mb-2">
+                                Unlock All Recommendations
+                              </h3>
+                              <p className="text-sm text-gray-600 mb-4">
+                                Get access to {filteredRecommendations.length - 3} more personalized recommendations
+                              </p>
+                              <PremiumGate 
+                                onUnlock={() => setIsUnlocked(true)}
+                                storageKey="integratedRecommendationUnlocked"
+                                productType="integrated_round_1"
+                                title="Unlock Integrated Round 1 Recommendations"
+                                description="Get access to your personalized integrated admission recommendations"
+                              />
+                            </div>
+                          </div>
                         </div>
+                      ) : (
+                        /* Show all remaining recommendations if unlocked */
+                        filteredRecommendations.slice(3).map((recommendation, index) => (
+                          <IntegratedRecommendationCard
+                            key={`${recommendation.college.id}-${index + 3}`}
+                            recommendation={recommendation}
+                            index={index + 4}
+                          />
+                        ))
                       )}
-                  </div>
-                )}
-              </div>
-            )}
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
           </CardContent>
         </Card>
       )}
