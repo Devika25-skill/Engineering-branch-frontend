@@ -3,11 +3,17 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Search, Building2, MapPin, ChevronDown, ChevronUp, Sparkles, Clock } from 'lucide-react';
+import { Search, Building2, MapPin, ChevronDown, ChevronUp, Sparkles, Clock, Lock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { IntegratedAdmissionType } from '@/types/integratedAdmission';
 import { IntegratedBranchesForm } from './IntegratedBranchesForm';
 import { IntegratedCitiesForm } from './IntegratedCitiesForm';
+import { integratedRecommendationApi } from '@/services/integratedRecommendationApi';
+import { RecommendationCard } from '@/components/recommendations/RecommendationCard';
+import { CategoryFilter } from '@/components/recommendations/CategoryFilter';
+import { PremiumGate } from '@/components/recommendations/PremiumGate';
+import { NoResultsState } from '@/components/recommendations/NoResultsState';
+import { usePdfDownload } from '@/hooks/usePdfDownload';
 
 interface IntegratedRound2TabProps {
   admissionType: IntegratedAdmissionType;
@@ -22,10 +28,54 @@ export const IntegratedRound2Tab = ({ admissionType }: IntegratedRound2TabProps)
   const [isStoring, setIsStoring] = useState(false);
   const [isPreferencesCardCollapsed, setIsPreferencesCardCollapsed] = useState(false);
   const [hasSubmittedPreferences, setHasSubmittedPreferences] = useState(false);
+  const [isGeneratingRecommendations, setIsGeneratingRecommendations] = useState(false);
+  const [round2Recommendations, setRound2Recommendations] = useState<any[]>([]);
+  const [hasGeneratedRecommendations, setHasGeneratedRecommendations] = useState(false);
+  const [isUnlocked, setIsUnlocked] = useState(false);
+  const [filteredCategory, setFilteredCategory] = useState<string>('All');
 
-  // Load existing preferences on mount
+  const { generatePDF, isGenerating } = usePdfDownload();
+
+  // Convert API response to recommendation format
+  const convertApiResponseToRecommendations = (apiData: any) => {
+    const recommendations: any[] = [];
+    
+    ['Dream', 'Reach', 'Match', 'Safety'].forEach(category => {
+      if (apiData[category] && Array.isArray(apiData[category])) {
+        apiData[category].forEach((item: any) => {
+          recommendations.push({
+            category: category,
+            college: {
+              id: item.college.College_Code,
+              name: item.college.College_Name,
+              city: item.college.Location,
+              logo: null,
+              website: '',
+              type: '',
+              nirf_rank: null,
+              fees: null,
+              placement_percentage: null,
+              top_recruiters: []
+            },
+            course_name: item.college.Course_Name,
+            cutoff_percentile: item.cutoff,
+            admission_probability: item.admission_probability,
+            probability_message: item.probability_message,
+            cet_percentile: item.cet_percentile,
+            reservation_category: item.category,
+            choice_code: item.college.Course_Code
+          });
+        });
+      }
+    });
+    
+    return recommendations;
+  };
+
+  // Load existing preferences and recommendations on mount
   useEffect(() => {
-    const loadExistingPreferences = () => {
+    const loadExistingData = () => {
+      // Load preferences
       const savedData = localStorage.getItem(`integrated_round2_${admissionType}`);
       if (savedData) {
         const parsed = JSON.parse(savedData);
@@ -34,10 +84,46 @@ export const IntegratedRound2Tab = ({ admissionType }: IntegratedRound2TabProps)
         setHasSubmittedPreferences(true);
         setIsPreferencesCardCollapsed(true);
       }
+
+      // Load recommendations
+      const savedRecommendations = localStorage.getItem(`integrated_round2_recommendations_${admissionType}`);
+      if (savedRecommendations) {
+        try {
+          const parsedRecs = JSON.parse(savedRecommendations);
+          if (parsedRecs && Object.keys(parsedRecs).length > 0) {
+            const convertedRecs = convertApiResponseToRecommendations(parsedRecs);
+            setRound2Recommendations(convertedRecs);
+            setHasGeneratedRecommendations(true);
+            
+            // Check if these recommendations were paid and should unlock
+            if (parsedRecs.is_payment === true) {
+              localStorage.setItem('integratedRecommendationUnlocked', 'true');
+              setIsUnlocked(true);
+            }
+          }
+        } catch (error) {
+          console.error('Error loading stored recommendations:', error);
+          localStorage.removeItem(`integrated_round2_recommendations_${admissionType}`);
+        }
+      }
     };
     
-    loadExistingPreferences();
+    loadExistingData();
   }, [admissionType]);
+
+  // Check unlock status
+  useEffect(() => {
+    const checkUnlockStatus = () => {
+      const isUnlocked = localStorage.getItem('integratedRecommendationUnlocked') === 'true';
+      setIsUnlocked(isUnlocked);
+    };
+    
+    checkUnlockStatus();
+    
+    // Listen for storage changes
+    window.addEventListener('storage', checkUnlockStatus);
+    return () => window.removeEventListener('storage', checkUnlockStatus);
+  }, []);
 
   const handleSubmitPreferences = async () => {
     if (selectedBranches.length === 0) {
@@ -59,8 +145,10 @@ export const IntegratedRound2Tab = ({ admissionType }: IntegratedRound2TabProps)
     }
 
     setIsStoring(true);
+    setIsGeneratingRecommendations(true);
     
     try {
+      // Save preferences first
       const round2Data = {
         branches: selectedBranches,
         cities: selectedCities,
@@ -70,25 +158,97 @@ export const IntegratedRound2Tab = ({ admissionType }: IntegratedRound2TabProps)
       localStorage.setItem(`integrated_round2_${admissionType}`, JSON.stringify(round2Data));
       setHasSubmittedPreferences(true);
       setIsPreferencesCardCollapsed(true);
+
+      // Get form data for API call
+      const formData = localStorage.getItem(`integrated_form_completed_${admissionType}`);
+      if (!formData) {
+        throw new Error('Form data not found');
+      }
+
+      const parsedFormData = JSON.parse(formData);
       
-      toast({
-        title: "Success",
-        description: "Round 2 preferences saved successfully!",
-      });
+      // Prepare API payload
+      const apiPayload = {
+        exam_type: admissionType,
+        branches: selectedBranches,
+        locations: selectedCities,
+        round_no: 2,
+        category: parsedFormData.category || 'GOPENS',
+        score: parsedFormData.score || 0
+      };
+
+      // Call API to generate recommendations
+      const response = await integratedRecommendationApi.generateRecommendations(apiPayload);
+      
+      if (response.success && response.data) {
+        // Store the raw API response
+        localStorage.setItem(`integrated_round2_recommendations_${admissionType}`, JSON.stringify(response.data));
+        
+        // Convert and set recommendations
+        const convertedRecs = convertApiResponseToRecommendations(response.data);
+        setRound2Recommendations(convertedRecs);
+        setHasGeneratedRecommendations(true);
+        
+        // Check payment status
+        if (response.data.is_payment === true) {
+          localStorage.setItem('integratedRecommendationUnlocked', 'true');
+          setIsUnlocked(true);
+        }
+        
+        toast({
+          title: "Success",
+          description: "Round 2 recommendations generated successfully!",
+        });
+      } else {
+        throw new Error('Failed to generate recommendations');
+      }
     } catch (error) {
+      console.error('Error generating recommendations:', error);
       toast({
         title: "Error",
-        description: "Failed to save preferences. Please try again.",
+        description: "Failed to generate recommendations. Please try again.",
         variant: "destructive"
       });
     } finally {
       setIsStoring(false);
+      setIsGeneratingRecommendations(false);
     }
   };
 
   const handleEditPreferences = () => {
     setIsPreferencesCardCollapsed(false);
   };
+
+  const handleDownloadPdf = async () => {
+    if (round2Recommendations.length === 0) return;
+    
+    try {
+      const formData = {
+        cetPercentile: 85, // Default or get from stored data
+        reservationCategory: 'GOPENS'
+      };
+      await generatePDF(round2Recommendations, formData);
+      toast({
+        title: "Success",
+        description: "PDF downloaded successfully!",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to download PDF",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const filteredRecommendations = filteredCategory === 'All' 
+    ? round2Recommendations 
+    : round2Recommendations.filter(rec => rec.category === filteredCategory);
+
+  const categoryStats = round2Recommendations.reduce((acc, rec) => {
+    acc[rec.category as keyof typeof acc] = (acc[rec.category as keyof typeof acc] || 0) + 1;
+    return acc;
+  }, { Dream: 0, Reach: 0, Match: 0, Safety: 0 });
 
   return (
     <div className="space-y-6">
@@ -144,41 +304,98 @@ export const IntegratedRound2Tab = ({ admissionType }: IntegratedRound2TabProps)
               )}
               <Button 
                 onClick={handleSubmitPreferences}
-                disabled={isStoring || selectedBranches.length === 0 || selectedCities.length === 0}
+                disabled={isGeneratingRecommendations || selectedBranches.length === 0 || selectedCities.length === 0}
                 className="bg-purple-600 hover:bg-purple-700"
               >
-                {isStoring ? 'Saving...' : hasSubmittedPreferences ? 'Update Preferences' : 'Save Preferences'}
+                {isGeneratingRecommendations ? 'Generating...' : hasSubmittedPreferences ? 'Update & Generate' : 'Save & Generate'}
               </Button>
             </div>
           </CardContent>
         )}
       </Card>
 
-      {/* Coming Soon Section */}
-      <Card className="bg-yellow-50 border-yellow-200">
-        <CardContent className="pt-6">
-          <div className="text-center space-y-4">
-            <div className="flex justify-center">
-              <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center">
-                <Clock className="w-8 h-8 text-yellow-600" />
+      {/* Recommendations Section */}
+      {hasGeneratedRecommendations && round2Recommendations.length > 0 && (
+        <Card className="mt-6">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-purple-600" />
+              Round 2 Recommendations ({round2Recommendations.length})
+            </CardTitle>
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={handleDownloadPdf}
+                disabled={!isUnlocked}
+              >
+                Download PDF
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {!isUnlocked ? (
+              <PremiumGate 
+                onUnlock={() => setIsUnlocked(true)}
+                storageKey="integratedRecommendationUnlocked"
+                productType="integrated_round_2"
+                title="Unlock Integrated Round 2 Recommendations"
+                description="Get access to your personalized integrated admission recommendations"
+              />
+            ) : (
+              <div className="space-y-4">
+                <CategoryFilter 
+                  activeCategory={filteredCategory}
+                  onCategoryChange={setFilteredCategory}
+                  categoryStats={categoryStats}
+                />
+                
+                {filteredRecommendations.length === 0 ? (
+                  <NoResultsState />
+                ) : (
+                  <div className="grid gap-4">
+                    {filteredRecommendations.map((recommendation, index) => (
+                      <RecommendationCard
+                        key={`${recommendation.college.id}-${index}`}
+                        recommendation={recommendation}
+                        index={index + 1}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Coming Soon Section - only show if no recommendations generated */}
+      {!hasGeneratedRecommendations && (
+        <Card className="bg-yellow-50 border-yellow-200">
+          <CardContent className="pt-6">
+            <div className="text-center space-y-4">
+              <div className="flex justify-center">
+                <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center">
+                  <Clock className="w-8 h-8 text-yellow-600" />
+                </div>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-yellow-800 mb-2">
+                  Generate Round 2 Recommendations
+                </h3>
+                <p className="text-yellow-700 text-sm max-w-md mx-auto">
+                  Save your branch and city preferences above to generate personalized Round 2 recommendations 
+                  for {admissionType.replace(/_/g, '/')} programs.
+                </p>
+              </div>
+              <div className="flex items-center justify-center gap-2 text-sm text-yellow-600">
+                <Sparkles className="w-4 h-4" />
+                <span>Opportunity for better choices awaits!</span>
               </div>
             </div>
-            <div>
-              <h3 className="text-lg font-semibold text-yellow-800 mb-2">
-                Round 2 Results Coming Soon
-              </h3>
-              <p className="text-yellow-700 text-sm max-w-md mx-auto">
-                Round 2 counseling will begin after Round 1 completion. This round includes seat upgradation 
-                and fresh allocation for vacant seats.
-              </p>
-            </div>
-            <div className="flex items-center justify-center gap-2 text-sm text-yellow-600">
-              <Sparkles className="w-4 h-4" />
-              <span>Opportunity for better choices awaits!</span>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };

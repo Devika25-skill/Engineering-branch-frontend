@@ -59,8 +59,8 @@ const IntegratedRounds = () => {
       return;
     }
 
-    // Check if form has been completed - this is the key check
-    const hasCompletedForm = localStorage.getItem(`integrated_form_completed_${selectedType}`) === 'true';
+    // Check if form has been completed AND preferences have been saved
+    const hasCompletedForm = localStorage.getItem(`integrated_form_completed_${selectedType}`);
     
     if (!hasCompletedForm) {
       // Redirect back to form if preferences not saved
