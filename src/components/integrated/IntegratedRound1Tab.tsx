@@ -159,22 +159,28 @@ export const IntegratedRound1Tab = ({ admissionType }: IntegratedRound1TabProps)
       setHasSubmittedPreferences(true);
       setIsPreferencesCardCollapsed(true);
 
-      // Get form data for API call from the configuration API data
-      const configData = localStorage.getItem(`integrated_configuration_${admissionType}`);
-      if (!configData) {
-        throw new Error('Configuration data not found');
+      // Get saved configuration data that was used when user submitted the form
+      const savedConfigData = localStorage.getItem(`integrated_form_data_${admissionType}`);
+      if (!savedConfigData) {
+        toast({
+          title: "Error",
+          description: "Form data not found. Please complete the form first.",
+          variant: "destructive"
+        });
+        return;
       }
 
-      const parsedConfigData = JSON.parse(configData);
+      const configData = JSON.parse(savedConfigData);
+      console.log('Using config data for API:', configData);
       
-      // Prepare API payload using configuration data
+      // Prepare API payload using the saved form data
       const apiPayload = {
         exam_type: admissionType,
         branches: selectedBranches,
         locations: selectedCities,
         round_no: 1,
-        category: parsedConfigData.category,
-        score: parsedConfigData.score // This is the CET score
+        category: configData.category,
+        score: configData.score // This is the CET score (0-100)
       };
 
       // Call API to generate recommendations
