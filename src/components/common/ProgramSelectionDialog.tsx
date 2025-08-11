@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { GraduationCap, Users, MapPin, Building, Pill, LucideIcon } from 'lucide-react';
 import { IntegratedAdmissionType } from '@/types/integratedAdmission';
@@ -21,10 +21,10 @@ interface ProgramSelectionDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSelectProgram: (program: ProgramType) => void;
-  mode: 'recommendation' | 'integrated';
 }
 
-const recommendationPrograms: ProgramOption[] = [
+const allPrograms: ProgramOption[] = [
+  // Engineering Programs (First Year & Direct Second Year)
   {
     id: 'first-year' as const,
     title: 'First Year Engineering',
@@ -40,10 +40,8 @@ const recommendationPrograms: ProgramOption[] = [
     icon: GraduationCap,
     gradient: 'from-indigo-500 to-indigo-600',
     details: ['2 Rounds', 'Simple form']
-  }
-];
-
-const integratedPrograms: ProgramOption[] = [
+  },
+  // Integrated Programs
   {
     id: 'BCA_MCA_Int' as const,
     title: 'BCA/MCA (Integrated)',
@@ -57,7 +55,7 @@ const integratedPrograms: ProgramOption[] = [
     title: 'BBA/BMS/BBM/MBA (Int.)',
     description: 'Business Administration programs with integrated MBA',
     icon: Building,
-    gradient: 'from-purple-500 to-pink-500',
+    gradient: 'from-emerald-500 to-teal-500',
     details: ['3 Rounds', 'Business focus']
   },
   {
@@ -73,19 +71,15 @@ const integratedPrograms: ProgramOption[] = [
 export function ProgramSelectionDialog({
   open,
   onOpenChange,
-  onSelectProgram,
-  mode
+  onSelectProgram
 }: ProgramSelectionDialogProps) {
   const [selectedProgram, setSelectedProgram] = useState<ProgramType | null>(null);
-
-  const programs = mode === 'recommendation' ? recommendationPrograms : integratedPrograms;
-  const title = mode === 'recommendation' ? 'Choose Admission Type' : 'Choose Your Program Type';
 
   const handleSelect = (program: ProgramType) => {
     setSelectedProgram(program);
     
     // Store selected program for future reference
-    if (mode === 'recommendation') {
+    if (program === 'first-year' || program === 'direct-second-year') {
       localStorage.setItem('recommendation_type', program as RecommendationType);
     } else {
       localStorage.setItem('integrated_admission_type', program as IntegratedAdmissionType);
@@ -100,18 +94,15 @@ export function ProgramSelectionDialog({
       <DialogContent className="w-[95vw] max-w-lg max-h-[90vh] overflow-y-auto p-0 bg-gradient-to-br from-background/95 to-background/90 backdrop-blur-lg border-0">
         <DialogHeader className="p-4 sm:p-6 pb-0">
           <DialogTitle className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent text-center leading-tight">
-            {title}
+            Choose Your Program Type
           </DialogTitle>
           <p className="text-muted-foreground text-center mt-2 text-sm sm:text-base">
-            {mode === 'recommendation' 
-              ? 'Select your admission pathway'
-              : 'Select the integrated program you\'re interested in'
-            }
+            Select the program that matches your educational background
           </p>
         </DialogHeader>
         
         <div className="p-4 sm:p-6 space-y-3 sm:space-y-4">
-          {programs.map((program) => {
+          {allPrograms.map((program) => {
             const Icon = program.icon;
             return (
               <Card 

@@ -13,7 +13,6 @@ import { IntegratedAdmissionType } from '@/types/integratedAdmission';
 const Index = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [showProgramDialog, setShowProgramDialog] = useState(false);
-  const [dialogMode, setDialogMode] = useState<'recommendation' | 'integrated'>('recommendation');
   const navigate = useNavigate();
   const { user, isLoggedIn, logout } = useAuth();
 
@@ -59,30 +58,12 @@ const Index = () => {
   };
 
   const handleRecommendationButtonClick = () => {
-    // Check if user has a previously selected preference
-    const savedRecommendationType = localStorage.getItem('recommendation_type');
-    
-    if (savedRecommendationType === 'direct-second-year') {
-      const hasExistingData = sessionStorage.getItem('cachedDiplomaRecommendations');
-      navigate(hasExistingData ? '/diploma-recommendations/results' : '/diploma-recommendations/steps');
-    } else if (savedRecommendationType === 'first-year') {
-      // Directly go to first year recommendations
-      const hasExistingData = sessionStorage.getItem('recommendationFormData');
-      navigate(hasExistingData ? '/recommendations/results' : '/recommendations/steps');
-    } else {
-      // Show selection dialog for first-time users
-      setDialogMode('recommendation');
-      setShowProgramDialog(true);
-    }
-  };
-
-  const handleIntegratedButtonClick = () => {
-    setDialogMode('integrated');
+    // Always show dialog for program selection
     setShowProgramDialog(true);
   };
 
   const handleProgramSelect = (program: string) => {
-    if (dialogMode === 'recommendation') {
+    if (program === 'first-year' || program === 'direct-second-year') {
       handleRecommendationTypeSelect(program as 'first-year' | 'direct-second-year');
     } else {
       // Store the selected type and navigate to form
@@ -146,7 +127,6 @@ const Index = () => {
             </div>
           </div>
 
-          {/* Mobile-Optimized Action Buttons */}
           <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4 animate-fade-in animation-delay-500 px-2">
             <Button 
               onClick={handleRecommendationButtonClick}
@@ -155,24 +135,6 @@ const Index = () => {
               <Sparkles className="mr-2" size={18} />
               Get AI Recommended CET List ✨
             </Button>
-            <Button 
-              onClick={handleIntegratedButtonClick}
-              variant="outline"
-              className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg font-bold bg-white/20 backdrop-blur-sm border-2 border-white/30 text-white hover:bg-white/30 rounded-xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
-            >
-              <GraduationCap className="mr-2" size={18} />
-              Integrated Programs
-            </Button>
-            {/* Removing button for test */}
-            {/* <Link to="/colleges" className="w-full sm:w-auto">
-              <Button 
-                variant="outline" 
-                className="w-full sm:w-auto px-4 sm:px-6 py-3 sm:py-4 text-base sm:text-lg font-bold bg-white/20 backdrop-blur-sm border-2 border-white/30 text-white hover:bg-white/30 rounded-xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
-              >
-                <GraduationCap className="mr-2" size={18} />
-                <span>Explore Colleges</span>
-              </Button>
-            </Link> */}
           </div>
         </div>
       </div>
@@ -264,7 +226,6 @@ const Index = () => {
         open={showProgramDialog}
         onOpenChange={setShowProgramDialog}
         onSelectProgram={handleProgramSelect}
-        mode={dialogMode}
       />
     </div>
   );
