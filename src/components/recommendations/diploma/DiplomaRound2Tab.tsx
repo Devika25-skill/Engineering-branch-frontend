@@ -364,6 +364,7 @@ export const DiplomaRound2Tab = () => {
       
       if (response.success) {
         setEditingPreferences(false);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
         toast({
           title: "Preferences Updated",
           description: "Your Round 2 preferences have been saved successfully.",

@@ -544,6 +544,8 @@ export const Round2Tab = () => {
           timestamp: Date.now()
         }));
         
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        
         toast({
           title: "Preferences Updated",
           description: "Your Round 2 preferences have been successfully updated.",
