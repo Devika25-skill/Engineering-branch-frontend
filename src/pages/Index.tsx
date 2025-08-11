@@ -6,15 +6,14 @@ import Navigation from "@/components/Navigation";
 import { Link, useNavigate } from 'react-router-dom';
 import { backgroundLoader } from '@/services/backgroundLoader';
 import { sessionStorageService } from '@/services/sessionStorage';
-import { RecommendationTypeDialog } from '@/components/recommendations/RecommendationTypeDialog';
-import { IntegratedAdmissionTypeDialog } from '@/components/integrated/IntegratedAdmissionTypeDialog';
+import { ProgramSelectionDialog } from '@/components/common/ProgramSelectionDialog';
 import { useAuth } from '@/contexts/AuthContext';
 import { IntegratedAdmissionType } from '@/types/integratedAdmission';
 
 const Index = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [showRecommendationDialog, setShowRecommendationDialog] = useState(false);
-  const [showIntegratedDialog, setShowIntegratedDialog] = useState(false);
+  const [showProgramDialog, setShowProgramDialog] = useState(false);
+  const [dialogMode, setDialogMode] = useState<'recommendation' | 'integrated'>('recommendation');
   const navigate = useNavigate();
   const { user, isLoggedIn, logout } = useAuth();
 
@@ -72,14 +71,24 @@ const Index = () => {
       navigate(hasExistingData ? '/recommendations/results' : '/recommendations/steps');
     } else {
       // Show selection dialog for first-time users
-      setShowRecommendationDialog(true);
+      setDialogMode('recommendation');
+      setShowProgramDialog(true);
     }
   };
 
-  const handleIntegratedAdmissionSelect = (type: IntegratedAdmissionType) => {
-    // Store the selected type and navigate to form
-    localStorage.setItem('integrated_admission_type', type);
-    navigate(`/integrated-steps?type=${type}`);
+  const handleIntegratedButtonClick = () => {
+    setDialogMode('integrated');
+    setShowProgramDialog(true);
+  };
+
+  const handleProgramSelect = (program: string) => {
+    if (dialogMode === 'recommendation') {
+      handleRecommendationTypeSelect(program as 'first-year' | 'direct-second-year');
+    } else {
+      // Store the selected type and navigate to form
+      localStorage.setItem('integrated_admission_type', program);
+      navigate(`/integrated-steps?type=${program}`);
+    }
   };
 
   return (
@@ -147,7 +156,7 @@ const Index = () => {
               Get AI Recommended CET List ✨
             </Button>
             <Button 
-              onClick={() => setShowIntegratedDialog(true)}
+              onClick={handleIntegratedButtonClick}
               variant="outline"
               className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg font-bold bg-white/20 backdrop-blur-sm border-2 border-white/30 text-white hover:bg-white/30 rounded-xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
             >
@@ -251,16 +260,11 @@ const Index = () => {
         </div>
       </div>
 
-      <RecommendationTypeDialog
-        open={showRecommendationDialog}
-        onOpenChange={setShowRecommendationDialog}
-        onSelectType={handleRecommendationTypeSelect}
-      />
-
-      <IntegratedAdmissionTypeDialog
-        open={showIntegratedDialog}
-        onOpenChange={setShowIntegratedDialog}
-        onSelectType={handleIntegratedAdmissionSelect}
+      <ProgramSelectionDialog
+        open={showProgramDialog}
+        onOpenChange={setShowProgramDialog}
+        onSelectProgram={handleProgramSelect}
+        mode={dialogMode}
       />
     </div>
   );
