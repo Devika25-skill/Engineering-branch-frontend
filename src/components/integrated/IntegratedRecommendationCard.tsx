@@ -36,7 +36,7 @@ export const IntegratedRecommendationCard = ({
   index
 }: IntegratedRecommendationCardProps) => {
   // Add defensive logging to understand the data structure
-  console.log('IntegratedRecommendationCard received:', { recommendation, index });
+  console.log("IntegratedRecommendationCard received:", { recommendation, index });
 
   const {
     college,
@@ -50,110 +50,102 @@ export const IntegratedRecommendationCard = ({
     choice_code
   } = recommendation;
 
+  // Utility function to truncate college names
+  const truncateText = (text: string, maxLength: number) => {
+    if (!text) return "";
+    return text.length > maxLength ? `${text.substring(0, maxLength)}...` : text;
+  };
+
   const getCategoryColor = (category: string) => {
     switch (category) {
-      case 'Dream': return 'bg-purple-100 text-purple-800 border-purple-200';
-      case 'Reach': return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'Match': return 'bg-green-100 text-green-800 border-green-200';
-      case 'Safety': return 'bg-orange-100 text-orange-800 border-orange-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+      case "Dream": return "bg-purple-100 text-purple-800 border-purple-200";
+      case "Reach": return "bg-blue-100 text-blue-800 border-blue-200";
+      case "Match": return "bg-green-100 text-green-800 border-green-200";
+      case "Safety": return "bg-orange-100 text-orange-800 border-orange-200";
+      default: return "bg-gray-100 text-gray-800 border-gray-200";
     }
   };
 
   const getProbabilityColor = (probability: number) => {
-    if (probability >= 80) return 'text-green-600';
-    if (probability >= 60) return 'text-yellow-600';
-    return 'text-red-600';
+    if (probability >= 80) return "text-green-600";
+    if (probability >= 60) return "text-yellow-600";
+    return "text-red-600";
   };
 
   return (
-    <Card className="hover:shadow-lg transition-all duration-300 border border-gray-200 bg-white relative w-full overflow-hidden">
-      <CardHeader className="pb-2">
-        <div className="flex items-start gap-3 pr-16 sm:pr-20 min-w-0">
-          {/* Index Number */}
-          <div className="flex-shrink-0 w-7 h-7 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-full flex items-center justify-center font-bold text-xs">
+    <Card className="hover:shadow-md transition-all duration-300 border border-gray-200 bg-white relative w-full overflow-hidden">
+      <CardHeader className="pb-3 pt-4 px-4">
+        <div className="flex items-start gap-3 min-w-0">
+          {/* Index Number - Smaller and cleaner */}
+          <div className="flex-shrink-0 w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-xs">
             {index}
-          </div>
-
-          {/* College Logo Placeholder */}
-          <div className="flex-shrink-0">
-            <div className="w-10 h-10 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg flex items-center justify-center border border-gray-100">
-              <span className="text-gray-600 text-xs font-bold">
-                {college?.name?.charAt(0) || '?'}
-              </span>
-            </div>
           </div>
 
           {/* Main Content */}
           <div className="flex-1 min-w-0">
-            <div className="flex items-start justify-between gap-2 mb-1">
+            <div className="flex items-start justify-between gap-2 mb-2">
               <div className="flex-1 min-w-0">
-                <h3 className="text-base font-bold text-gray-900 leading-tight break-words">
-                  {college?.name || 'Unknown College'}
+                <h3 className="text-sm font-semibold text-gray-900 leading-tight mb-1" title={college?.name || "Unknown College"}>
+                  {truncateText(college?.name || "Unknown College", 35)}
                 </h3>
-                <div className="flex items-center gap-2 mt-1 text-xs text-gray-600">
-                  <MapPin size={12} />
-                  <span className="truncate">{college?.city || 'Unknown Location'}</span>
+                <div className="flex items-center gap-1 text-xs text-gray-500">
+                  <MapPin size={10} />
+                  <span>{truncateText(college?.city || "Unknown Location", 20)}</span>
                   {college?.id && (
                     <>
-                      <span>•</span>
-                      <span>Code: {college.id}</span>
+                      <span className="mx-1">•</span>
+                      <span>ID: {college.id}</span>
                     </>
                   )}
                 </div>
               </div>
-              <Badge className={`${getCategoryColor(category)} px-2 py-1 text-xs font-medium flex-shrink-0`}>
+              <Badge className={`${getCategoryColor(category)} px-2 py-0.5 text-xs font-medium flex-shrink-0`}>
                 {category}
               </Badge>
             </div>
 
-            {/* Course Info */}
-            <div className="bg-blue-50 rounded-md p-2 mb-2">
-              <div className="text-xs text-blue-900">
-                <div className="mb-1">
-                  <span className="font-medium">Course:</span>{" "}
-                  <span className="break-words">{course_name || 'Unknown Course'}</span>
+            {/* Course Info - More compact */}
+            <div className="bg-blue-50 rounded-lg p-2 mb-2">
+              <div className="text-xs">
+                <div className="font-medium text-blue-900 mb-1" title={course_name || "Unknown Course"}>
+                  {truncateText(course_name || "Unknown Course", 50)}
                 </div>
-                <div className="flex flex-wrap gap-2 text-xs">
+                <div className="flex flex-wrap gap-1">
                   {choice_code && (
-                    <span className="text-blue-700 bg-blue-100 px-2 py-1 rounded">Code: {choice_code}</span>
+                    <span className="text-blue-700 bg-blue-200 px-1.5 py-0.5 rounded text-xs">
+                      {choice_code}
+                    </span>
                   )}
                   {cutoff_percentile && (
-                    <span className="text-blue-700 bg-blue-100 px-2 py-1 rounded">Cutoff: {cutoff_percentile}%ile</span>
+                    <span className="text-blue-700 bg-blue-200 px-1.5 py-0.5 rounded text-xs">
+                      {cutoff_percentile}%ile
+                    </span>
                   )}
                 </div>
               </div>
             </div>
 
-          </div>
-        </div>
-
-        {/* User Info Display */}
-        <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-3 mt-2">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-1">
-              <span className="font-medium text-green-800">Category:</span>
-              <span className="text-green-700">{reservation_category || 'General'}</span>
+            {/* Stats - Simplified */}
+            <div className="bg-gray-50 rounded-lg p-2">
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div>
+                  <span className="text-gray-600">Category:</span>
+                  <span className="ml-1 font-medium">{reservation_category || "General"}</span>
+                </div>
+                <div>
+                  <span className="text-gray-600">Score:</span>
+                  <span className="ml-1 font-medium">{cet_percentile || "N/A"}%</span>
+                </div>
+                <div className="col-span-2">
+                  <span className="text-gray-600">Admission Chances:</span>
+                  <span className={`ml-1 font-semibold ${getProbabilityColor(admission_probability)}`}>
+                    {admission_probability || "N/A"}%
+                  </span>
+                </div>
+              </div>
             </div>
-            <div className="flex flex-col sm:flex-row sm:items-center gap-1">
-              <span className="font-medium text-blue-800">MHT-CET Score:</span>
-              <span className="text-blue-700">{cet_percentile || 'N/A'}%</span>
-            </div>
-            <div className="flex flex-col sm:flex-row sm:items-center gap-1">
-              <span className="font-medium text-blue-800">Admission Chances:</span>
-              <span className="text-blue-700">{admission_probability || 'N/A'}%</span>
-            </div>         
-          </div>
-        </div>
 
-        {/* View Details Button - Positioned at top right */}
-        <div className="absolute top-3 right-3">
-          {/* <Button
-            size="sm"
-            className="h-8 px-3 text-xs font-medium bg-blue-600 hover:bg-blue-700 text-white rounded-md shadow-sm transition-all duration-200 flex items-center gap-1"
-          >
-            <ExternalLink size={12} />
-          </Button> */}
+          </div>
         </div>
       </CardHeader>
     </Card>

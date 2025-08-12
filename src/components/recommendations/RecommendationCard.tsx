@@ -13,23 +13,29 @@ interface RecommendationCardProps {
 
 export const RecommendationCard = ({ recommendation, index }: RecommendationCardProps) => {
   const { college, course_name, category, admission_probability, probability_message, cutoff_percentile } = recommendation;
-  const recommendationFormData = JSON.parse(sessionStorage.getItem('recommendation_form_data') || '{}');
+  const recommendationFormData = JSON.parse(sessionStorage.getItem("recommendation_form_data") || "{}");
   const { cetPercentile } = recommendationFormData.cetPercentile;
+
+  // Utility function to truncate text
+  const truncateText = (text: string, maxLength: number) => {
+    if (!text) return "";
+    return text.length > maxLength ? `${text.substring(0, maxLength)}...` : text;
+  };
 
   const getCategoryColor = (category: string) => {
     switch (category) {
-      case 'Dream': return 'bg-purple-100 text-purple-800 border-purple-200';
-      case 'Reach': return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'Match': return 'bg-green-100 text-green-800 border-green-200';
-      case 'Safety': return 'bg-orange-100 text-orange-800 border-orange-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+      case "Dream": return "bg-purple-100 text-purple-800 border-purple-200";
+      case "Reach": return "bg-blue-100 text-blue-800 border-blue-200";
+      case "Match": return "bg-green-100 text-green-800 border-green-200";
+      case "Safety": return "bg-orange-100 text-orange-800 border-orange-200";
+      default: return "bg-gray-100 text-gray-800 border-gray-200";
     }
   };
 
   const getProbabilityColor = (probability: number) => {
-    if (probability >= 80) return 'text-green-600';
-    if (probability >= 60) return 'text-yellow-600';
-    return 'text-red-600';
+    if (probability >= 80) return "text-green-600";
+    if (probability >= 60) return "text-yellow-600";
+    return "text-red-600";
   };
 
   const formatCurrency = (amount: number | null) => {
@@ -82,13 +88,14 @@ export const RecommendationCard = ({ recommendation, index }: RecommendationCard
                 <Link
                   to={`/college/${college.id}`}
                   onClick={handleCollegeClick}
-                  className="text-base font-bold text-gray-900 hover:text-blue-600 transition-colors block leading-tight break-words"
+                  className="text-sm font-semibold text-gray-900 hover:text-blue-600 transition-colors block leading-tight"
+                  title={college.name}
                 >
-                  {college.name}
+                  {truncateText(college.name, 40)}
                 </Link>
-                <div className="flex items-center gap-2 mt-1 text-xs text-gray-600">
-                  <MapPin size={12} />
-                  <span className="truncate">{college.city}</span>
+                <div className="flex items-center gap-1 mt-1 text-xs text-gray-500">
+                  <MapPin size={10} />
+                  <span>{truncateText(college.city, 20)}</span>
                   {college.rating && (
                     <>
                       <span>•</span>
@@ -97,19 +104,21 @@ export const RecommendationCard = ({ recommendation, index }: RecommendationCard
                   )}
                 </div>
               </div>
-              <Badge className={`${getCategoryColor(category)} px-2 py-1 text-xs font-medium flex-shrink-0`}>
+              <Badge className={`${getCategoryColor(category)} px-2 py-0.5 text-xs font-medium flex-shrink-0`}>
                 {category}
               </Badge>
             </div>
 
-            {/* Course Info */}
-            <div className="bg-blue-50 rounded-md p-2 mb-2">
-              <div className="text-xs text-blue-900">
-                <div className="mb-1">
-                  <span className="font-medium">Course:</span> <span className="break-words">{course_name}</span>
+            {/* Course Info - More compact */}
+            <div className="bg-blue-50 rounded-lg p-2 mb-2">
+              <div className="text-xs">
+                <div className="font-medium text-blue-900 mb-1" title={course_name}>
+                  {truncateText(course_name, 45)}
                 </div>
                 {cutoff_percentile && (
-                  <span className="text-blue-700 bg-blue-100 px-2 py-1 rounded text-xs">Cutoff: {cutoff_percentile}%ile</span>
+                  <span className="text-blue-700 bg-blue-200 px-1.5 py-0.5 rounded text-xs">
+                    {cutoff_percentile}%ile
+                  </span>
                 )}
               </div>
             </div>
