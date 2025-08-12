@@ -435,11 +435,12 @@ export const IntegratedRound1Tab = ({ admissionType }: IntegratedRound1TabProps)
               />
             </div>
             
-            <div className="flex justify-end gap-3">
+            <div className="flex flex-col sm:flex-row justify-end gap-3">
               {hasSubmittedPreferences && (
                 <Button 
                   variant="outline" 
                   onClick={handleEditPreferences}
+                  className="w-full sm:w-auto"
                 >
                   Edit Preferences
                 </Button>
@@ -447,7 +448,7 @@ export const IntegratedRound1Tab = ({ admissionType }: IntegratedRound1TabProps)
               <Button 
                 onClick={handleSubmitPreferences}
                 disabled={isGeneratingRecommendations || selectedBranches.length === 0 || selectedCities.length === 0}
-                className="bg-blue-600 hover:bg-blue-700 min-w-[160px]"
+                className="bg-blue-600 hover:bg-blue-700 min-w-[160px] w-full sm:w-auto"
               >
                 {isGeneratingRecommendations ? (
                   <div className="flex items-center gap-2">
@@ -464,17 +465,18 @@ export const IntegratedRound1Tab = ({ admissionType }: IntegratedRound1TabProps)
       {/* Recommendations Section */}
       {hasGeneratedRecommendations && round1Recommendations.length > 0 && (
         <Card className="mt-6">
-          <CardHeader className="flex flex-row items-center justify-between">
+          <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <CardTitle className="flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-blue-600" />
               Round 1 Recommendations ({round1Recommendations.length})
             </CardTitle>
-            <div className="flex gap-2">
+            <div className="flex gap-2 w-full sm:w-auto">
               <Button 
                 variant="outline" 
                 size="sm"
                 onClick={handleDownloadPdf}
                 disabled={!isUnlocked}
+                className="w-full sm:w-auto"
               >
                 Download PDF
               </Button>
