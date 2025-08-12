@@ -77,14 +77,15 @@ export function IntegratedAdmissionForm({
           const currentConfig = response.data.find(config => config.exam_type === admissionType);
           
           if (currentConfig) {
-            console.log('Loading existing configuration:', currentConfig);
-            setFormData({
+            const newFormData = {
               exam_type: currentConfig.exam_type,
               category: currentConfig.category,
               tenth_percentage: currentConfig.tenth_percentage || undefined,
               twelth_percentage: currentConfig.twelth_percentage || undefined,
               score: currentConfig.score
-            });
+            };
+            setFormData(newFormData);
+            localStorage.setItem(`integrated_form_${admissionType}`, JSON.stringify(newFormData));
           }
         }
       } catch (error) {
@@ -93,11 +94,10 @@ export function IntegratedAdmissionForm({
       }
     };
 
-    // Only load if we're logged in and don't have saved form data
-    const savedData = localStorage.getItem(`integrated_form_${admissionType}`);
+    // Only load from API if we're logged in
     const token = localStorage.getItem('accessToken');
     
-    if (token && !savedData) {
+    if (token) {
       loadExistingConfiguration();
     }
   }, [admissionType]);
@@ -166,8 +166,6 @@ export function IntegratedAdmissionForm({
 
   // Simplified handler for number inputs with proper decimal validation
   const handleNumberInputChange = (field: keyof IntegratedAdmissionFormData, inputValue: string) => {
-    console.log('Number input change:', { field, inputValue });
-    
     // Allow empty input
     if (inputValue === '' || inputValue === null) {
       handleInputChange(field, undefined);
@@ -234,6 +232,7 @@ export function IntegratedAdmissionForm({
                 Reservation Category *
               </Label>
               <SearchableSelect
+                key={`${admissionType}-${formData.category}`}
                 options={categoryOptions[admissionType]}
                 value={formData.category}
                 onValueChange={(value) => handleInputChange('category', value)}
@@ -274,7 +273,7 @@ export function IntegratedAdmissionForm({
               </Label>
               <Input
                 id="tenth"
-                type="flot"
+                type="float"
                 min="0"
                 max="100.000"
                 value={formData.tenth_percentage ?? ''}

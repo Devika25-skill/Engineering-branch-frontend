@@ -49,6 +49,7 @@ export function SearchableSelect({
     return (
       <>
         <Button
+          type="button"
           variant="outline"
           role="combobox"
           onClick={() => setOpen(true)}
@@ -78,8 +79,8 @@ export function SearchableSelect({
                       <CommandItem
                         key={option.value}
                         value={option.value}
-                        onSelect={(currentValue) => {
-                          onValueChange(currentValue === value ? "" : currentValue)
+                        onSelect={(selectedValue) => {
+                          onValueChange(selectedValue === value ? "" : selectedValue)
                           setOpen(false)
                         }}
                         className="cursor-pointer py-3 px-2 rounded-lg mx-1 my-0.5"
@@ -108,6 +109,7 @@ export function SearchableSelect({
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
+          type="button"
           variant="outline"
           role="combobox"
           aria-expanded={open}
