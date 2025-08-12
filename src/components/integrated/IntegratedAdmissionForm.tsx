@@ -7,7 +7,6 @@ import { SearchableSelect } from '@/components/ui/searchable-select';
 import { useToast } from '@/hooks/use-toast';
 import { IntegratedAdmissionFormData, IntegratedAdmissionType } from '@/types/integratedAdmission';
 import { categoryOptions } from '@/data/integratedAdmissionConfig';
-import { CAPFormInstructions } from '@/components/recommendations/CAPFormInstructions';
 import { GraduationCap, Building, Pill } from 'lucide-react';
 
 interface IntegratedAdmissionFormProps {
@@ -174,28 +173,8 @@ export function IntegratedAdmissionForm({
       handleInputChange(field, undefined);
       return;
     }
-    
-    // Allow partial decimal inputs while user is typing
-    if (/^(\d*\.?\d*)$/.test(inputValue)) {
-      // Convert to number for validation only if it's a complete number
-      const numValue = parseFloat(inputValue);
-      
-      // If it's a valid complete number, validate range
-      if (!isNaN(numValue)) {
-        if (numValue >= 0 && numValue <= 100) {
-          console.log('Valid number, updating:', numValue);
-          handleInputChange(field, numValue);
-        } else {
-          console.log('Number out of range, not updating:', numValue);
-          // Don't update if outside valid range, but don't prevent typing
-        }
-      } else {
-        console.log('Allowing partial input:', inputValue);
-        // Allow partial inputs like "99." or ".5" without updating state
-      }
-    } else {
-      console.log('Invalid input format:', inputValue);
-    }
+    handleInputChange(field, inputValue);
+
   };
 
   // Simplified keydown handler for better decimal support
@@ -247,10 +226,7 @@ export function IntegratedAdmissionForm({
           </CardDescription>
         </CardHeader>
 
-        <CardContent>
-          {/* Add CAP Form Instructions */}
-          <CAPFormInstructions />
-          
+        <CardContent>  
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Category Selection */}
             <div className="space-y-2">
@@ -277,10 +253,9 @@ export function IntegratedAdmissionForm({
               </Label>
               <Input
                 id="score"
-                type="number"
+                type="float"
                 min="0"
-                max="100"
-                step="0.01"
+                max="100.000"
                 value={formData.score ?? ''}
                 onChange={(e) => handleNumberInputChange('score', e.target.value)}
                 onKeyDown={handleKeyDown}
@@ -299,10 +274,9 @@ export function IntegratedAdmissionForm({
               </Label>
               <Input
                 id="tenth"
-                type="number"
+                type="flot"
                 min="0"
-                max="100"
-                step="0.01"
+                max="100.000"
                 value={formData.tenth_percentage ?? ''}
                 onChange={(e) => handleNumberInputChange('tenth_percentage', e.target.value)}
                 onKeyDown={handleKeyDown}
@@ -321,7 +295,7 @@ export function IntegratedAdmissionForm({
               </Label>
               <Input
                 id="twelth"
-                type="number"
+                type="float"
                 min="0"
                 max="100"
                 step="0.01"
