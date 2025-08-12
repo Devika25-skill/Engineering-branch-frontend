@@ -229,6 +229,7 @@ export const IntegratedRound1Tab = ({ admissionType }: IntegratedRound1TabProps)
   const handleSubmitPreferences = async () => {
     // Hide regenerate message when user actively updates
     setShowRegenerateMessage(false);
+
     if (selectedBranches.length === 0) {
       toast({
         title: "Error",
@@ -287,6 +288,7 @@ export const IntegratedRound1Tab = ({ admissionType }: IntegratedRound1TabProps)
         category: configData.category,
         score: configData.score // This is the CET score (0-100)
       };
+      localStorage.removeItem(`integrated_round1_recommendations_${admissionType}`);
 
       // Call API to generate recommendations
       const response = await integratedRecommendationApi.generateRecommendations(apiPayload);
@@ -321,6 +323,7 @@ export const IntegratedRound1Tab = ({ admissionType }: IntegratedRound1TabProps)
           description: "Round 1 recommendations generated successfully!",
         });
       } else {
+        setHasGeneratedRecommendations(true);
         throw new Error('Failed to generate recommendations');
       }
     } catch (error) {
@@ -446,15 +449,6 @@ export const IntegratedRound1Tab = ({ admissionType }: IntegratedRound1TabProps)
             </div>
             
             <div className="flex flex-col sm:flex-row justify-end gap-3">
-              {hasSubmittedPreferences && (
-                <Button 
-                  variant="outline" 
-                  onClick={handleEditPreferences}
-                  className="w-full sm:w-auto"
-                >
-                  Edit Preferences
-                </Button>
-              )}
               <Button 
                 onClick={handleSubmitPreferences}
                 disabled={isGeneratingRecommendations || selectedBranches.length === 0 || selectedCities.length === 0}
@@ -508,7 +502,7 @@ export const IntegratedRound1Tab = ({ admissionType }: IntegratedRound1TabProps)
       )}
 
       {/* Recommendations Section */}
-      {hasGeneratedRecommendations && round1Recommendations.length > 0 && (
+      {hasGeneratedRecommendations && round1Recommendations.length > 0 ? (
         <Card className="mt-6">
           <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <CardTitle className="flex items-center gap-2">
@@ -650,6 +644,8 @@ export const IntegratedRound1Tab = ({ admissionType }: IntegratedRound1TabProps)
             )}
           </CardContent>
         </Card>
+      ) : (
+        <NoResultsState />
       )}
 
       {/* Coming Soon Section - only show if no recommendations generated */}
@@ -679,6 +675,7 @@ export const IntegratedRound1Tab = ({ admissionType }: IntegratedRound1TabProps)
           </CardContent>
         </Card>
       )}
+
 
       {/* Feedback Section */}
       {hasGeneratedRecommendations && round1Recommendations.length > 0 && (
