@@ -20,6 +20,7 @@ const Index = () => {
   useEffect(() => {
     if(!isLoggedIn){
       localStorage.removeItem('recommendation_type');
+      localStorage.removeItem('integrated_admission_type');
     }
     sessionStorageService.clearFilters();
     
