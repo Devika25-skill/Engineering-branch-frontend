@@ -81,7 +81,7 @@ export const DiplomaRecommendationCard = ({ recommendation, index }: DiplomaReco
                 <Link
                   to={`/college/${college.SJ_Institute_code || college.id}`}
                   onClick={handleCollegeClick}
-                  className="text-base font-bold text-gray-900 hover:text-blue-600 transition-colors block leading-tight truncate"
+                  className="text-base font-bold text-gray-900 hover:text-blue-600 transition-colors block leading-tight break-words"
                 >
                   {college.name}
                 </Link>
@@ -104,9 +104,11 @@ export const DiplomaRecommendationCard = ({ recommendation, index }: DiplomaReco
             {/* Course Info */}
             <div className="bg-blue-50 rounded-md p-2 mb-2">
               <div className="text-xs text-blue-900">
-                <span className="font-medium">Course:</span> {course_name}
+                <div className="mb-1">
+                  <span className="font-medium">Course:</span> <span className="break-words">{course_name}</span>
+                </div>
                 {cutoff_percentile && (
-                  <span className="ml-2 text-blue-700">• Cutoff: {cutoff_percentile}%ile</span>
+                  <span className="text-blue-700 bg-blue-100 px-2 py-1 rounded text-xs">Cutoff: {cutoff_percentile}%ile</span>
                 )}
               </div>
             </div>
@@ -155,8 +157,8 @@ export const DiplomaRecommendationCard = ({ recommendation, index }: DiplomaReco
             {probability_message && (
               <>
              
-              <p className="text-xs text-gray-600 truncate">{recommendationFormData.diplomaPercentage ? `Your Diploma Percentage: ${recommendationFormData.diplomaPercentage}%` : ''} </p>
-              <p className="text-xs text-gray-600 truncate">{recommendationFormData.reservationCategory ? ` Reservation Category: ${recommendationFormData.reservationCategory}` : ''}</p>
+              <p className="text-xs text-gray-600 break-words">{recommendationFormData.diplomaPercentage ? `Your Diploma Percentage: ${recommendationFormData.diplomaPercentage}%` : ''} </p>
+              <p className="text-xs text-gray-600 break-words">{recommendationFormData.reservationCategory ? ` Reservation Category: ${recommendationFormData.reservationCategory}` : ''}</p>
             </> )}
           </div>
         </div>

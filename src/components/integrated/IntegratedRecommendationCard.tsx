@@ -88,7 +88,7 @@ export const IntegratedRecommendationCard = ({
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-2 mb-1">
               <div className="flex-1 min-w-0">
-                <h3 className="text-base font-bold text-gray-900 leading-tight truncate">
+                <h3 className="text-base font-bold text-gray-900 leading-tight break-words">
                   {college?.name || 'Unknown College'}
                 </h3>
                 <div className="flex items-center gap-2 mt-1 text-xs text-gray-600">
@@ -109,15 +109,19 @@ export const IntegratedRecommendationCard = ({
 
             {/* Course Info */}
             <div className="bg-blue-50 rounded-md p-2 mb-2">
-              <div className="text-xs text-blue-900 min-w-0">
-                <span className="font-medium">Course:</span>{" "}
-                <span className="truncate inline-block align-bottom max-w-full">{course_name || 'Unknown Course'}</span>
-                {choice_code && (
-                  <span className="ml-2 text-blue-700 whitespace-nowrap">• Code: {choice_code}</span>
-                )}
-                {cutoff_percentile && (
-                  <span className="ml-2 text-blue-700 whitespace-nowrap">• Cutoff: {cutoff_percentile}%ile</span>
-                )}
+              <div className="text-xs text-blue-900">
+                <div className="mb-1">
+                  <span className="font-medium">Course:</span>{" "}
+                  <span className="break-words">{course_name || 'Unknown Course'}</span>
+                </div>
+                <div className="flex flex-wrap gap-2 text-xs">
+                  {choice_code && (
+                    <span className="text-blue-700 bg-blue-100 px-2 py-1 rounded">Code: {choice_code}</span>
+                  )}
+                  {cutoff_percentile && (
+                    <span className="text-blue-700 bg-blue-100 px-2 py-1 rounded">Cutoff: {cutoff_percentile}%ile</span>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -126,16 +130,16 @@ export const IntegratedRecommendationCard = ({
 
         {/* User Info Display */}
         <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-3 mt-2">
-          <div className="flex flex-wrap gap-4 text-xs">
-            <div className="flex items-center gap-1">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-1">
               <span className="font-medium text-green-800">Category:</span>
               <span className="text-green-700">{reservation_category || 'General'}</span>
             </div>
-            <div className="flex items-center gap-1">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-1">
               <span className="font-medium text-blue-800">MHT-CET Score:</span>
               <span className="text-blue-700">{cet_percentile || 'N/A'}%</span>
             </div>
-             <div className="flex items-center gap-1">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-1">
               <span className="font-medium text-blue-800">Admission Chances:</span>
               <span className="text-blue-700">{admission_probability || 'N/A'}%</span>
             </div>         
