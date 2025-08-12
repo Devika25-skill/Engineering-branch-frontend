@@ -48,7 +48,7 @@ export function IntegratedAdmissionForm({
     category: '',
     tenth_percentage: undefined,
     twelth_percentage: undefined,
-    score: 0
+    score: undefined // Changed from 0 to undefined for better UX
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const { toast } = useToast();
@@ -109,16 +109,22 @@ export function IntegratedAdmissionForm({
       newErrors.category = 'Category is required';
     }
 
-    if (formData.score < 0 || formData.score > 100) {
-      newErrors.score = 'MHT-CET marks must be between 0 and 100';
+    if (formData.score === undefined || formData.score === null) {
+      newErrors.score = 'MHT-CET score is required';
+    } else if (formData.score < 0 || formData.score > 100) {
+      newErrors.score = 'MHT-CET score must be between 0 and 100';
     }
 
-    if (formData.tenth_percentage !== undefined && (formData.tenth_percentage < 0 || formData.tenth_percentage > 100)) {
-      newErrors.tenth_percentage = '10th marks must be between 0 and 100';
+    if (formData.tenth_percentage !== undefined && formData.tenth_percentage !== null) {
+      if (formData.tenth_percentage < 0 || formData.tenth_percentage > 100) {
+        newErrors.tenth_percentage = '10th marks must be between 0 and 100';
+      }
     }
 
-    if (formData.twelth_percentage !== undefined && (formData.twelth_percentage < 0 || formData.twelth_percentage > 100)) {
-      newErrors.twelth_percentage = '12th marks must be between 0 and 100';
+    if (formData.twelth_percentage !== undefined && formData.twelth_percentage !== null) {
+      if (formData.twelth_percentage < 0 || formData.twelth_percentage > 100) {
+        newErrors.twelth_percentage = '12th marks must be between 0 and 100';
+      }
     }
 
     setErrors(newErrors);
@@ -156,6 +162,25 @@ export function IntegratedAdmissionForm({
         [field]: ''
       }));
     }
+  };
+
+  // Specialized handler for number inputs with validation
+  const handleNumberInputChange = (field: keyof IntegratedAdmissionFormData, inputValue: string) => {
+    let value: number | undefined;
+    
+    if (inputValue === '' || inputValue === null) {
+      value = undefined;
+    } else {
+      const numValue = parseFloat(inputValue);
+      if (!isNaN(numValue)) {
+        // Clamp value between 0 and 100
+        value = Math.min(Math.max(numValue, 0), 100);
+      } else {
+        value = undefined;
+      }
+    }
+    
+    handleInputChange(field, value);
   };
 
   return (
@@ -198,7 +223,7 @@ export function IntegratedAdmissionForm({
             {/* MHT-CET Score */}
             <div className="space-y-2">
               <Label htmlFor="score" className="text-sm font-medium">
-                MHT-CET Percentile/Score * (0-100)
+                MHT-CET Score * (0-100)
               </Label>
               <Input
                 id="score"
@@ -206,10 +231,21 @@ export function IntegratedAdmissionForm({
                 min="0"
                 max="100"
                 step="0.01"
-                value={formData.score}
-                onChange={(e) => handleInputChange('score', parseFloat(e.target.value) || 0)}
+                value={formData.score ?? ''}
+                onChange={(e) => handleNumberInputChange('score', e.target.value)}
+                onBlur={(e) => {
+                  // Auto-correct on blur if value exceeds limits
+                  const value = parseFloat(e.target.value);
+                  if (!isNaN(value)) {
+                    if (value > 100) {
+                      handleInputChange('score', 100);
+                    } else if (value < 0) {
+                      handleInputChange('score', 0);
+                    }
+                  }
+                }}
                 className={errors.score ? 'border-destructive' : ''}
-                placeholder="Enter your MHT-CET percentile"
+                placeholder="Enter your MHT-CET score (0-100)"
               />
               {errors.score && (
                 <p className="text-sm text-destructive">{errors.score}</p>
@@ -227,8 +263,18 @@ export function IntegratedAdmissionForm({
                 min="0"
                 max="100"
                 step="0.01"
-                value={formData.tenth_percentage || ''}
-                onChange={(e) => handleInputChange('tenth_percentage', e.target.value ? parseFloat(e.target.value) : undefined)}
+                value={formData.tenth_percentage ?? ''}
+                onChange={(e) => handleNumberInputChange('tenth_percentage', e.target.value)}
+                onBlur={(e) => {
+                  const value = parseFloat(e.target.value);
+                  if (!isNaN(value)) {
+                    if (value > 100) {
+                      handleInputChange('tenth_percentage', 100);
+                    } else if (value < 0) {
+                      handleInputChange('tenth_percentage', 0);
+                    }
+                  }
+                }}
                 className={errors.tenth_percentage ? 'border-destructive' : ''}
                 placeholder="Enter your 10th grade percentage"
               />
@@ -248,8 +294,18 @@ export function IntegratedAdmissionForm({
                 min="0"
                 max="100"
                 step="0.01"
-                value={formData.twelth_percentage || ''}
-                onChange={(e) => handleInputChange('twelth_percentage', e.target.value ? parseFloat(e.target.value) : undefined)}
+                value={formData.twelth_percentage ?? ''}
+                onChange={(e) => handleNumberInputChange('twelth_percentage', e.target.value)}
+                onBlur={(e) => {
+                  const value = parseFloat(e.target.value);
+                  if (!isNaN(value)) {
+                    if (value > 100) {
+                      handleInputChange('twelth_percentage', 100);
+                    } else if (value < 0) {
+                      handleInputChange('twelth_percentage', 0);
+                    }
+                  }
+                }}
                 className={errors.twelth_percentage ? 'border-destructive' : ''}
                 placeholder="Enter your 12th grade percentage"
               />
