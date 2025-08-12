@@ -79,8 +79,8 @@ export function SearchableSelect({
                       <CommandItem
                         key={option.value}
                         value={option.value}
-                        onSelect={(selectedValue) => {
-                          onValueChange(selectedValue === value ? "" : selectedValue)
+                        onSelect={(currentValue) => {
+                          onValueChange(currentValue === value ? "" : currentValue)
                           setOpen(false)
                         }}
                         className="cursor-pointer py-3 px-2 rounded-lg mx-1 my-0.5"
