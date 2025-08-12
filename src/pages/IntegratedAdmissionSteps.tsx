@@ -26,12 +26,23 @@ const IntegratedAdmissionSteps = () => {
     
     const selectedType = typeFromParams || typeFromStorage;
     
+    console.log('IntegratedAdmissionSteps - checking admission type:', {
+      typeFromParams,
+      typeFromStorage,
+      selectedType,
+      validTypes: ['BCA_MCA_Int', 'BBA_BMS_BBM_MBA_Int', 'B_and_D_Pharmacy']
+    });
+    
     if (!selectedType || !['BCA_MCA_Int', 'BBA_BMS_BBM_MBA_Int', 'B_and_D_Pharmacy'].includes(selectedType)) {
-      // Redirect to selection if no valid type
-      navigate('/');
+      console.log('IntegratedAdmissionSteps - no valid type found, redirecting to home');
+      // Add a small delay to prevent immediate redirect race conditions
+      setTimeout(() => {
+        navigate('/');
+      }, 100);
       return;
     }
     
+    console.log('IntegratedAdmissionSteps - setting admission type:', selectedType);
     setAdmissionType(selectedType);
   }, [searchParams, navigate]);
 
@@ -128,7 +139,7 @@ const IntegratedAdmissionSteps = () => {
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-indigo-50">
       <Navigation />
       
-      <div className="container mx-auto py-8">
+      <div className="container mx-auto py-6 px-4">
         <IntegratedAdmissionForm
           admissionType={admissionType}
           onSubmit={handleFormSubmit}

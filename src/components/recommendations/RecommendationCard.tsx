@@ -13,23 +13,29 @@ interface RecommendationCardProps {
 
 export const RecommendationCard = ({ recommendation, index }: RecommendationCardProps) => {
   const { college, course_name, category, admission_probability, probability_message, cutoff_percentile } = recommendation;
-  const recommendationFormData = JSON.parse(sessionStorage.getItem('recommendation_form_data') || '{}');
+  const recommendationFormData = JSON.parse(sessionStorage.getItem("recommendation_form_data") || "{}");
   const { cetPercentile } = recommendationFormData.cetPercentile;
+
+  // Utility function to truncate text
+  const truncateText = (text: string, maxLength: number) => {
+    if (!text) return "";
+    return text.length > maxLength ? `${text.substring(0, maxLength)}...` : text;
+  };
 
   const getCategoryColor = (category: string) => {
     switch (category) {
-      case 'Dream': return 'bg-purple-100 text-purple-800 border-purple-200';
-      case 'Reach': return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'Match': return 'bg-green-100 text-green-800 border-green-200';
-      case 'Safety': return 'bg-orange-100 text-orange-800 border-orange-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+      case "Dream": return "bg-purple-100 text-purple-800 border-purple-200";
+      case "Reach": return "bg-blue-100 text-blue-800 border-blue-200";
+      case "Match": return "bg-green-100 text-green-800 border-green-200";
+      case "Safety": return "bg-orange-100 text-orange-800 border-orange-200";
+      default: return "bg-gray-100 text-gray-800 border-gray-200";
     }
   };
 
   const getProbabilityColor = (probability: number) => {
-    if (probability >= 80) return 'text-green-600';
-    if (probability >= 60) return 'text-yellow-600';
-    return 'text-red-600';
+    if (probability >= 80) return "text-green-600";
+    if (probability >= 60) return "text-yellow-600";
+    return "text-red-600";
   };
 
   const formatCurrency = (amount: number | null) => {
@@ -46,9 +52,9 @@ export const RecommendationCard = ({ recommendation, index }: RecommendationCard
   };
 
   return (
-    <Card className="hover:shadow-lg transition-all duration-300 border border-gray-200 bg-white relative">
+    <Card className="hover:shadow-lg transition-all duration-300 border border-gray-200 bg-white relative w-full overflow-hidden">
       <CardHeader className="pb-2">
-        <div className="flex gap-3 pr-16 sm:pr-20">
+        <div className="flex items-start gap-3 pr-16 sm:pr-20 min-w-0">
           {/* Index Number */}
           <div className="flex-shrink-0 w-7 h-7 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-full flex items-center justify-center font-bold text-xs">
             {index}
@@ -82,13 +88,14 @@ export const RecommendationCard = ({ recommendation, index }: RecommendationCard
                 <Link
                   to={`/college/${college.id}`}
                   onClick={handleCollegeClick}
-                  className="text-base font-bold text-gray-900 hover:text-blue-600 transition-colors block leading-tight line-clamp-1"
+                  className="text-sm font-semibold text-gray-900 hover:text-blue-600 transition-colors block leading-tight"
+                  title={college.name}
                 >
-                  {college.name}
+                  {truncateText(college.name, 40)}
                 </Link>
-                <div className="flex items-center gap-2 mt-1 text-xs text-gray-600">
-                  <MapPin size={12} />
-                  <span className="truncate">{college.city}</span>
+                <div className="flex items-center gap-1 mt-1 text-xs text-gray-500">
+                  <MapPin size={10} />
+                  <span>{truncateText(college.city, 20)}</span>
                   {college.rating && (
                     <>
                       <span>•</span>
@@ -97,23 +104,27 @@ export const RecommendationCard = ({ recommendation, index }: RecommendationCard
                   )}
                 </div>
               </div>
-              <Badge className={`${getCategoryColor(category)} px-2 py-1 text-xs font-medium flex-shrink-0`}>
+              <Badge className={`${getCategoryColor(category)} px-2 py-0.5 text-xs font-medium flex-shrink-0`}>
                 {category}
               </Badge>
             </div>
 
-            {/* Course Info */}
-            <div className="bg-blue-50 rounded-md p-2 mb-2">
-              <div className="text-xs text-blue-900">
-                <span className="font-medium">Course:</span> {course_name}
+            {/* Course Info - More compact */}
+            <div className="bg-blue-50 rounded-lg p-2 mb-2">
+              <div className="text-xs">
+                <div className="font-medium text-blue-900 mb-1" title={course_name}>
+                  {truncateText(course_name, 45)}
+                </div>
                 {cutoff_percentile && (
-                  <span className="ml-2 text-blue-700">• Cutoff: {cutoff_percentile}%ile</span>
+                  <span className="text-blue-700 bg-blue-200 px-1.5 py-0.5 rounded text-xs">
+                    {cutoff_percentile}%ile
+                  </span>
                 )}
               </div>
             </div>
 
             {/* Metrics Row */}
-            <div className="flex gap-2 mb-2 text-xs">
+            <div className="flex flex-wrap gap-2 mb-2 text-xs">
               {college.fees && (
                 <div className="bg-green-50 rounded-md px-2 py-1 border border-green-100 flex-1">
                   <div className="flex items-center gap-1">
@@ -145,7 +156,7 @@ export const RecommendationCard = ({ recommendation, index }: RecommendationCard
         </div>
 
         {/* Admission Probability */}
-        <div className="flex items-center justify-between bg-gray-50 rounded-lg p-2 mt-2">
+        <div className="flex flex-col sm:flex-row items-start justify-between bg-gray-50 rounded-lg p-2 mt-2 gap-2">
           <div className="flex-1">
             <div className="flex items-center justify-between mb-1">
               <span className="text-xs font-medium text-gray-800">Admission Chances</span>
@@ -156,8 +167,8 @@ export const RecommendationCard = ({ recommendation, index }: RecommendationCard
             {probability_message && (
               <>
              
-              <p className="text-xs text-gray-600 line-clamp-1">{recommendationFormData.cetPercentile ? `Your CET Percentile: ${recommendationFormData.cetPercentile}%` : ''} </p>
-              <p className="text-xs text-gray-600 line-clamp-1">{recommendationFormData.reservationCategory ? ` Reservation Category: ${recommendationFormData.reservationCategory}` : ''}</p>
+              <p className="text-xs text-gray-600 break-words">{recommendationFormData.cetPercentile ? `Your CET Percentile: ${recommendationFormData.cetPercentile}%` : ''} </p>
+              <p className="text-xs text-gray-600 break-words">{recommendationFormData.reservationCategory ? ` Reservation Category: ${recommendationFormData.reservationCategory}` : ''}</p>
             </> )}
           </div>
         </div>

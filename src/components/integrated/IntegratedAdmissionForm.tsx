@@ -48,7 +48,7 @@ export function IntegratedAdmissionForm({
     category: '',
     tenth_percentage: undefined,
     twelth_percentage: undefined,
-    score: 0
+    score: undefined // Changed from 0 to undefined for better UX
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const { toast } = useToast();
@@ -109,16 +109,22 @@ export function IntegratedAdmissionForm({
       newErrors.category = 'Category is required';
     }
 
-    if (formData.score < 0 || formData.score > 100) {
-      newErrors.score = 'MHT-CET marks must be between 0 and 100';
+    if (formData.score === undefined || formData.score === null) {
+      newErrors.score = 'MHT-CET score is required';
+    } else if (formData.score < 0 || formData.score > 100) {
+      newErrors.score = 'MHT-CET score must be between 0 and 100';
     }
 
-    if (formData.tenth_percentage !== undefined && (formData.tenth_percentage < 0 || formData.tenth_percentage > 100)) {
-      newErrors.tenth_percentage = '10th marks must be between 0 and 100';
+    if (formData.tenth_percentage !== undefined && formData.tenth_percentage !== null) {
+      if (formData.tenth_percentage < 0 || formData.tenth_percentage > 100) {
+        newErrors.tenth_percentage = '10th marks must be between 0 and 100';
+      }
     }
 
-    if (formData.twelth_percentage !== undefined && (formData.twelth_percentage < 0 || formData.twelth_percentage > 100)) {
-      newErrors.twelth_percentage = '12th marks must be between 0 and 100';
+    if (formData.twelth_percentage !== undefined && formData.twelth_percentage !== null) {
+      if (formData.twelth_percentage < 0 || formData.twelth_percentage > 100) {
+        newErrors.twelth_percentage = '12th marks must be between 0 and 100';
+      }
     }
 
     setErrors(newErrors);
@@ -155,6 +161,62 @@ export function IntegratedAdmissionForm({
         ...prev,
         [field]: ''
       }));
+    }
+  };
+
+  // Specialized handler for number inputs with validation
+  const handleNumberInputChange = (field: keyof IntegratedAdmissionFormData, inputValue: string) => {
+    let value: number | undefined;
+    
+    if (inputValue === '' || inputValue === null) {
+      value = undefined;
+    } else {
+      const numValue = parseFloat(inputValue);
+      if (!isNaN(numValue)) {
+        // Only allow values between 0 and 100
+        if (numValue >= 0 && numValue <= 100) {
+          value = numValue;
+        } else {
+          // Don't update if value would exceed limits
+          return;
+        }
+      } else {
+        value = undefined;
+      }
+    }
+    
+    handleInputChange(field, value);
+  };
+
+  // Handler to prevent typing digits that would exceed 100
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, currentValue: number | undefined) => {
+    // Allow navigation keys, backspace, delete, etc.
+    if (e.key === 'Backspace' || e.key === 'Delete' || e.key === 'Tab' || 
+        e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === 'ArrowUp' || e.key === 'ArrowDown' ||
+        e.key === 'Home' || e.key === 'End' || e.ctrlKey || e.metaKey) {
+      return;
+    }
+
+    // Allow decimal point
+    if (e.key === '.' && !(e.currentTarget.value.includes('.'))) {
+      return;
+    }
+
+    // Only allow digits
+    if (!/^\d$/.test(e.key)) {
+      e.preventDefault();
+      return;
+    }
+
+    // Check if adding this digit would exceed 100
+    const currentString = e.currentTarget.value;
+    const cursorPosition = e.currentTarget.selectionStart || 0;
+    const newValue = currentString.slice(0, cursorPosition) + e.key + currentString.slice(e.currentTarget.selectionEnd || 0);
+    
+    // If the new value would be greater than 100, prevent it
+    const newNumericValue = parseFloat(newValue);
+    if (!isNaN(newNumericValue) && newNumericValue > 100) {
+      e.preventDefault();
     }
   };
 
@@ -198,7 +260,7 @@ export function IntegratedAdmissionForm({
             {/* MHT-CET Score */}
             <div className="space-y-2">
               <Label htmlFor="score" className="text-sm font-medium">
-                MHT-CET Percentile/Score * (0-100)
+                MHT-CET Score * (0-100)
               </Label>
               <Input
                 id="score"
@@ -206,10 +268,11 @@ export function IntegratedAdmissionForm({
                 min="0"
                 max="100"
                 step="0.01"
-                value={formData.score}
-                onChange={(e) => handleInputChange('score', parseFloat(e.target.value) || 0)}
+                value={formData.score ?? ''}
+                onChange={(e) => handleNumberInputChange('score', e.target.value)}
+                onKeyDown={(e) => handleKeyDown(e, formData.score)}
                 className={errors.score ? 'border-destructive' : ''}
-                placeholder="Enter your MHT-CET percentile"
+                placeholder="Enter your MHT-CET score (0-100)"
               />
               {errors.score && (
                 <p className="text-sm text-destructive">{errors.score}</p>
@@ -227,8 +290,9 @@ export function IntegratedAdmissionForm({
                 min="0"
                 max="100"
                 step="0.01"
-                value={formData.tenth_percentage || ''}
-                onChange={(e) => handleInputChange('tenth_percentage', e.target.value ? parseFloat(e.target.value) : undefined)}
+                value={formData.tenth_percentage ?? ''}
+                onChange={(e) => handleNumberInputChange('tenth_percentage', e.target.value)}
+                onKeyDown={(e) => handleKeyDown(e, formData.tenth_percentage)}
                 className={errors.tenth_percentage ? 'border-destructive' : ''}
                 placeholder="Enter your 10th grade percentage"
               />
@@ -248,8 +312,9 @@ export function IntegratedAdmissionForm({
                 min="0"
                 max="100"
                 step="0.01"
-                value={formData.twelth_percentage || ''}
-                onChange={(e) => handleInputChange('twelth_percentage', e.target.value ? parseFloat(e.target.value) : undefined)}
+                value={formData.twelth_percentage ?? ''}
+                onChange={(e) => handleNumberInputChange('twelth_percentage', e.target.value)}
+                onKeyDown={(e) => handleKeyDown(e, formData.twelth_percentage)}
                 className={errors.twelth_percentage ? 'border-destructive' : ''}
                 placeholder="Enter your 12th grade percentage"
               />

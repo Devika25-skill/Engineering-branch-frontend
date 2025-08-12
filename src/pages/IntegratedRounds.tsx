@@ -133,10 +133,10 @@ const IntegratedRounds = () => {
             </Button>
             
             <div className="text-center">
-              <h1 className={`text-4xl font-bold mb-4 pb-1 bg-gradient-to-r ${admissionInfo.gradient} bg-clip-text text-transparent`}>
+              <h1 className={`text-2xl sm:text-4xl font-bold mb-4 pb-1 bg-gradient-to-r ${admissionInfo.gradient} bg-clip-text text-transparent`}>
                 {admissionInfo.title}
               </h1>
-              <p className="text-xl text-muted-foreground">
+              <p className="text-base sm:text-xl text-muted-foreground">
                 Round-wise Admission Recommendations
               </p>
             </div>
@@ -147,7 +147,7 @@ const IntegratedRounds = () => {
           {showFormUpdateWarning && (
             <Card className="border-orange-200 bg-orange-50 mb-6">
               <CardContent className="pt-6">
-                <div className="flex items-center gap-3">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
                   <Clock className="w-5 h-5 text-orange-600" />
                   <div className="flex-1">
                     <h4 className="font-semibold text-orange-900 text-sm mb-1">
@@ -160,7 +160,7 @@ const IntegratedRounds = () => {
                   </div>
                   <Button
                     size="sm"
-                    className="bg-orange-600 hover:bg-orange-700 text-white"
+                    className="bg-orange-600 hover:bg-orange-700 text-white w-full sm:w-auto"
                     onClick={handleUpdateRecommendations}
                   >
                     Update Recommendations
@@ -179,14 +179,14 @@ const IntegratedRounds = () => {
             }} 
             className="w-full"
           >
-            <TabsList className="grid w-full grid-cols-3 h-12 bg-muted">
-              <TabsTrigger value="round1" className="text-xs sm:text-sm font-medium">
+            <TabsList className="flex w-full gap-2 overflow-x-auto h-12 bg-muted -mx-4 px-4 sm:mx-0 sm:px-0">
+              <TabsTrigger value="round1" className="text-xs sm:text-sm font-medium flex-1 min-w-[7.5rem] whitespace-nowrap sm:flex-none">
                 Round 1
               </TabsTrigger>
-              <TabsTrigger value="round2" className="text-xs sm:text-sm font-medium">
+              <TabsTrigger value="round2" className="text-xs sm:text-sm font-medium flex-1 min-w-[7.5rem] whitespace-nowrap sm:flex-none">
                 Round 2
               </TabsTrigger>
-              <TabsTrigger value="round3" className="text-xs sm:text-sm font-medium">
+              <TabsTrigger value="round3" className="text-xs sm:text-sm font-medium flex-1 min-w-[7.5rem] whitespace-nowrap sm:flex-none">
                 Round 3
               </TabsTrigger>
             </TabsList>
