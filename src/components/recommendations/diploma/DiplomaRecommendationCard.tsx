@@ -45,9 +45,9 @@ export const DiplomaRecommendationCard = ({ recommendation, index }: DiplomaReco
   };
 
   return (
-    <Card className="hover:shadow-lg transition-all duration-300 border border-gray-200 bg-white relative">
+    <Card className="hover:shadow-lg transition-all duration-300 border border-gray-200 bg-white relative w-full overflow-hidden">
       <CardHeader className="pb-2">
-        <div className="flex gap-3 pr-16 sm:pr-20">
+        <div className="flex items-start gap-3 pr-16 sm:pr-20 min-w-0">
           {/* Index Number */}
           <div className="flex-shrink-0 w-7 h-7 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-full flex items-center justify-center font-bold text-xs">
             {index}
@@ -81,7 +81,7 @@ export const DiplomaRecommendationCard = ({ recommendation, index }: DiplomaReco
                 <Link
                   to={`/college/${college.SJ_Institute_code || college.id}`}
                   onClick={handleCollegeClick}
-                  className="text-base font-bold text-gray-900 hover:text-blue-600 transition-colors block leading-tight line-clamp-1"
+                  className="text-base font-bold text-gray-900 hover:text-blue-600 transition-colors block leading-tight truncate"
                 >
                   {college.name}
                 </Link>
@@ -112,7 +112,7 @@ export const DiplomaRecommendationCard = ({ recommendation, index }: DiplomaReco
             </div>
 
             {/* Metrics Row */}
-            <div className="flex gap-2 mb-2 text-xs">
+            <div className="flex flex-wrap gap-2 mb-2 text-xs">
               {college.fees && (
                 <div className="bg-green-50 rounded-md px-2 py-1 border border-green-100 flex-1">
                   <div className="flex items-center gap-1">
@@ -144,7 +144,7 @@ export const DiplomaRecommendationCard = ({ recommendation, index }: DiplomaReco
         </div>
 
         {/* Admission Probability */}
-        <div className="flex items-center justify-between bg-gray-50 rounded-lg p-2 mt-2">
+        <div className="flex flex-col sm:flex-row items-start justify-between bg-gray-50 rounded-lg p-2 mt-2 gap-2">
           <div className="flex-1">
             <div className="flex items-center justify-between mb-1">
               <span className="text-xs font-medium text-gray-800">Admission Chances</span>
@@ -155,8 +155,8 @@ export const DiplomaRecommendationCard = ({ recommendation, index }: DiplomaReco
             {probability_message && (
               <>
              
-              <p className="text-xs text-gray-600 line-clamp-1">{recommendationFormData.diplomaPercentage ? `Your Diploma Percentage: ${recommendationFormData.diplomaPercentage}%` : ''} </p>
-              <p className="text-xs text-gray-600 line-clamp-1">{recommendationFormData.reservationCategory ? ` Reservation Category: ${recommendationFormData.reservationCategory}` : ''}</p>
+              <p className="text-xs text-gray-600 truncate">{recommendationFormData.diplomaPercentage ? `Your Diploma Percentage: ${recommendationFormData.diplomaPercentage}%` : ''} </p>
+              <p className="text-xs text-gray-600 truncate">{recommendationFormData.reservationCategory ? ` Reservation Category: ${recommendationFormData.reservationCategory}` : ''}</p>
             </> )}
           </div>
         </div>

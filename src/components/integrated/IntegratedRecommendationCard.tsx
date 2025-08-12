@@ -67,9 +67,9 @@ export const IntegratedRecommendationCard = ({
   };
 
   return (
-    <Card className="hover:shadow-lg transition-all duration-300 border border-gray-200 bg-white relative">
+    <Card className="hover:shadow-lg transition-all duration-300 border border-gray-200 bg-white relative w-full overflow-hidden">
       <CardHeader className="pb-2">
-        <div className="flex gap-3 pr-16 sm:pr-20">
+        <div className="flex items-start gap-3 pr-16 sm:pr-20 min-w-0">
           {/* Index Number */}
           <div className="flex-shrink-0 w-7 h-7 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-full flex items-center justify-center font-bold text-xs">
             {index}
@@ -88,7 +88,7 @@ export const IntegratedRecommendationCard = ({
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-2 mb-1">
               <div className="flex-1 min-w-0">
-                <h3 className="text-base font-bold text-gray-900 leading-tight line-clamp-1">
+                <h3 className="text-base font-bold text-gray-900 leading-tight truncate">
                   {college?.name || 'Unknown College'}
                 </h3>
                 <div className="flex items-center gap-2 mt-1 text-xs text-gray-600">
@@ -109,13 +109,14 @@ export const IntegratedRecommendationCard = ({
 
             {/* Course Info */}
             <div className="bg-blue-50 rounded-md p-2 mb-2">
-              <div className="text-xs text-blue-900">
-                <span className="font-medium">Course:</span> {course_name || 'Unknown Course'}
+              <div className="text-xs text-blue-900 min-w-0">
+                <span className="font-medium">Course:</span>{" "}
+                <span className="truncate inline-block align-bottom max-w-full">{course_name || 'Unknown Course'}</span>
                 {choice_code && (
-                  <span className="ml-2 text-blue-700">• Code: {choice_code}</span>
+                  <span className="ml-2 text-blue-700 whitespace-nowrap">• Code: {choice_code}</span>
                 )}
                 {cutoff_percentile && (
-                  <span className="ml-2 text-blue-700">• Cutoff: {cutoff_percentile}%ile</span>
+                  <span className="ml-2 text-blue-700 whitespace-nowrap">• Cutoff: {cutoff_percentile}%ile</span>
                 )}
               </div>
             </div>
