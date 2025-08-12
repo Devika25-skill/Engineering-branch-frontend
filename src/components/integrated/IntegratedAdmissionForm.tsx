@@ -169,8 +169,28 @@ export function IntegratedAdmissionForm({
   const handleNumberInputChange = (field: keyof IntegratedAdmissionFormData, inputValue: string) => {
     let value: number | undefined;
     
+    // Allow empty input
     if (inputValue === '' || inputValue === null) {
       value = undefined;
+    } 
+    // Allow partial decimal inputs like ".", ".2", ".20", etc.
+    else if (inputValue === '.' || /^\.\d*$/.test(inputValue) || /^\d+\.$/.test(inputValue) || /^\d+\.\d*$/.test(inputValue) || /^\d+$/.test(inputValue)) {
+      // For partial inputs, store as string in a temporary way, but validate the numeric value
+      const numValue = parseFloat(inputValue);
+      
+      if (inputValue === '.' || inputValue.endsWith('.') || isNaN(numValue)) {
+        // Allow partial decimal inputs, don't validate yet
+        handleInputChange(field, inputValue === '.' ? 0 : (isNaN(numValue) ? undefined : numValue));
+        return;
+      }
+      
+      // Validate complete numeric values
+      if (numValue >= 0 && numValue <= 100) {
+        value = numValue;
+      } else {
+        // Don't update if value would exceed limits
+        return;
+      }
     } else {
       const numValue = parseFloat(inputValue);
       if (!isNaN(numValue)) {
@@ -213,6 +233,11 @@ export function IntegratedAdmissionForm({
     const currentString = e.currentTarget.value;
     const cursorPosition = e.currentTarget.selectionStart || 0;
     const newValue = currentString.slice(0, cursorPosition) + e.key + currentString.slice(e.currentTarget.selectionEnd || 0);
+    
+    // Allow partial decimal inputs like ".20"
+    if (newValue === '.' || /^\.\d*$/.test(newValue) || /^\d+\.$/.test(newValue)) {
+      return; // Allow these patterns
+    }
     
     // If the new value would be greater than 100, prevent it
     const newNumericValue = parseFloat(newValue);
