@@ -446,15 +446,6 @@ export const IntegratedRound1Tab = ({ admissionType }: IntegratedRound1TabProps)
             </div>
             
             <div className="flex flex-col sm:flex-row justify-end gap-3">
-              {hasSubmittedPreferences && (
-                <Button 
-                  variant="outline" 
-                  onClick={handleEditPreferences}
-                  className="w-full sm:w-auto"
-                >
-                  Edit Preferences
-                </Button>
-              )}
               <Button 
                 onClick={handleSubmitPreferences}
                 disabled={isGeneratingRecommendations || selectedBranches.length === 0 || selectedCities.length === 0}
