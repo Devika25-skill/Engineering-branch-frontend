@@ -7,6 +7,7 @@ import { SearchableSelect } from '@/components/ui/searchable-select';
 import { useToast } from '@/hooks/use-toast';
 import { IntegratedAdmissionFormData, IntegratedAdmissionType } from '@/types/integratedAdmission';
 import { categoryOptions } from '@/data/integratedAdmissionConfig';
+import { CAPFormInstructions } from '@/components/recommendations/CAPFormInstructions';
 import { GraduationCap, Building, Pill } from 'lucide-react';
 
 interface IntegratedAdmissionFormProps {
@@ -238,6 +239,9 @@ export function IntegratedAdmissionForm({
         </CardHeader>
 
         <CardContent>
+          {/* Add CAP Form Instructions */}
+          <CAPFormInstructions />
+          
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Category Selection */}
             <div className="space-y-2">
