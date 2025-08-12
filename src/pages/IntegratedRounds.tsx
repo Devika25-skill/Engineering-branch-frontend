@@ -142,34 +142,6 @@ const IntegratedRounds = () => {
             </div>
           </div>
 
-          
-          {/* Form Update Warning Banner */}
-          {showFormUpdateWarning && (
-            <Card className="border-orange-200 bg-orange-50 mb-6">
-              <CardContent className="pt-6">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-                  <Clock className="w-5 h-5 text-orange-600" />
-                  <div className="flex-1">
-                    <h4 className="font-semibold text-orange-900 text-sm mb-1">
-                      Form Data Updated
-                    </h4>
-                    <p className="text-sm text-orange-700">
-                      Your academic details have been updated. The current recommendations are based on previous data. 
-                      Click below to regenerate recommendations with your latest information.
-                    </p>
-                  </div>
-                  <Button
-                    size="sm"
-                    className="bg-orange-600 hover:bg-orange-700 text-white w-full sm:w-auto"
-                    onClick={handleUpdateRecommendations}
-                  >
-                    Update Recommendations
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
           {/* Rounds Tabs - Exactly replicating FY/DSY Layout */}
           <Tabs 
             value={activeRound} 

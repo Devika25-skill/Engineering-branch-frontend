@@ -82,10 +82,20 @@ export const IntegratedRound1Tab = ({ admissionType }: IntegratedRound1TabProps)
       const currentFormData = localStorage.getItem(`integrated_form_${admissionType}`);
       const storedHash = localStorage.getItem(`integrated_form_hash_${admissionType}`);
       
+      console.log('Checking form data changes:', {
+        currentFormData: !!currentFormData,
+        hasGeneratedRecommendations,
+        storedHash: !!storedHash,
+        showRegenerateMessage
+      });
+      
       if (currentFormData && hasGeneratedRecommendations) {
         const currentHash = btoa(currentFormData); // Simple hash using base64
         
+        console.log('Hash comparison:', { currentHash, storedHash, isEqual: currentHash === storedHash });
+        
         if (storedHash && currentHash !== storedHash && !showRegenerateMessage) {
+          console.log('Setting showRegenerateMessage to true');
           setShowRegenerateMessage(true);
         }
       }
@@ -461,6 +471,41 @@ export const IntegratedRound1Tab = ({ admissionType }: IntegratedRound1TabProps)
           </CardContent>
         )}
       </Card>
+
+      {/* Form Update Warning */}
+      {showRegenerateMessage && hasGeneratedRecommendations && (
+        <Card className="border-orange-200 bg-orange-50">
+          <CardContent className="pt-4">
+            <div className="flex items-start gap-3">
+              <div className="text-orange-600 text-lg">⚠️</div>
+              <div className="flex-1">
+                <h4 className="font-semibold text-orange-800 text-sm mb-1">
+                  Form Data Updated
+                </h4>
+                <p className="text-xs text-orange-700 leading-relaxed mb-3">
+                  Your academic details (CET score, category, or percentages) have been updated. 
+                  Please regenerate recommendations to get updated results based on your new information.
+                </p>
+                <Button 
+                  size="sm"
+                  onClick={handleSubmitPreferences}
+                  disabled={isGeneratingRecommendations}
+                  className="bg-orange-600 hover:bg-orange-700 text-white"
+                >
+                  {isGeneratingRecommendations ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      Updating...
+                    </div>
+                  ) : (
+                    'Update Recommendations'
+                  )}
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Recommendations Section */}
       {hasGeneratedRecommendations && round1Recommendations.length > 0 && (

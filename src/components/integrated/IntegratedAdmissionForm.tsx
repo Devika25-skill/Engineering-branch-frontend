@@ -164,32 +164,21 @@ export function IntegratedAdmissionForm({
     }
   };
 
-  // Specialized handler for number inputs with validation
+  // Simplified handler for number inputs with proper decimal validation
   const handleNumberInputChange = (field: keyof IntegratedAdmissionFormData, inputValue: string) => {
-    let value: number | undefined;
+    console.log('Number input change:', { field, inputValue });
     
+    // Allow empty input
     if (inputValue === '' || inputValue === null) {
-      value = undefined;
-    } else {
-      const numValue = parseFloat(inputValue);
-      if (!isNaN(numValue)) {
-        // Only allow values between 0 and 100
-        if (numValue >= 0 && numValue <= 100) {
-          value = numValue;
-        } else {
-          // Don't update if value would exceed limits
-          return;
-        }
-      } else {
-        value = undefined;
-      }
+      handleInputChange(field, undefined);
+      return;
     }
-    
-    handleInputChange(field, value);
+    handleInputChange(field, inputValue);
+
   };
 
-  // Handler to prevent typing digits that would exceed 100
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, currentValue: number | undefined) => {
+  // Simplified keydown handler for better decimal support
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     // Allow navigation keys, backspace, delete, etc.
     if (e.key === 'Backspace' || e.key === 'Delete' || e.key === 'Tab' || 
         e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === 'ArrowUp' || e.key === 'ArrowDown' ||
@@ -197,8 +186,8 @@ export function IntegratedAdmissionForm({
       return;
     }
 
-    // Allow decimal point
-    if (e.key === '.' && !(e.currentTarget.value.includes('.'))) {
+    // Allow decimal point only if there isn't one already
+    if (e.key === '.' && !e.currentTarget.value.includes('.')) {
       return;
     }
 
@@ -208,12 +197,12 @@ export function IntegratedAdmissionForm({
       return;
     }
 
-    // Check if adding this digit would exceed 100
+    // Check if adding this digit would create a value over 100
     const currentString = e.currentTarget.value;
     const cursorPosition = e.currentTarget.selectionStart || 0;
     const newValue = currentString.slice(0, cursorPosition) + e.key + currentString.slice(e.currentTarget.selectionEnd || 0);
     
-    // If the new value would be greater than 100, prevent it
+    // Parse the potential new value - only prevent if it's clearly over 100
     const newNumericValue = parseFloat(newValue);
     if (!isNaN(newNumericValue) && newNumericValue > 100) {
       e.preventDefault();
@@ -237,7 +226,7 @@ export function IntegratedAdmissionForm({
           </CardDescription>
         </CardHeader>
 
-        <CardContent>
+        <CardContent>  
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Category Selection */}
             <div className="space-y-2">
@@ -264,13 +253,12 @@ export function IntegratedAdmissionForm({
               </Label>
               <Input
                 id="score"
-                type="number"
+                type="float"
                 min="0"
-                max="100"
-                step="0.01"
+                max="100.000"
                 value={formData.score ?? ''}
                 onChange={(e) => handleNumberInputChange('score', e.target.value)}
-                onKeyDown={(e) => handleKeyDown(e, formData.score)}
+                onKeyDown={handleKeyDown}
                 className={errors.score ? 'border-destructive' : ''}
                 placeholder="Enter your MHT-CET score (0-100)"
               />
@@ -286,13 +274,12 @@ export function IntegratedAdmissionForm({
               </Label>
               <Input
                 id="tenth"
-                type="number"
+                type="flot"
                 min="0"
-                max="100"
-                step="0.01"
+                max="100.000"
                 value={formData.tenth_percentage ?? ''}
                 onChange={(e) => handleNumberInputChange('tenth_percentage', e.target.value)}
-                onKeyDown={(e) => handleKeyDown(e, formData.tenth_percentage)}
+                onKeyDown={handleKeyDown}
                 className={errors.tenth_percentage ? 'border-destructive' : ''}
                 placeholder="Enter your 10th grade percentage"
               />
@@ -308,13 +295,13 @@ export function IntegratedAdmissionForm({
               </Label>
               <Input
                 id="twelth"
-                type="number"
+                type="float"
                 min="0"
                 max="100"
                 step="0.01"
                 value={formData.twelth_percentage ?? ''}
                 onChange={(e) => handleNumberInputChange('twelth_percentage', e.target.value)}
-                onKeyDown={(e) => handleKeyDown(e, formData.twelth_percentage)}
+                onKeyDown={handleKeyDown}
                 className={errors.twelth_percentage ? 'border-destructive' : ''}
                 placeholder="Enter your 12th grade percentage"
               />
