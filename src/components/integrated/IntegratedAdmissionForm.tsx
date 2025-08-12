@@ -173,14 +173,51 @@ export function IntegratedAdmissionForm({
     } else {
       const numValue = parseFloat(inputValue);
       if (!isNaN(numValue)) {
-        // Clamp value between 0 and 100
-        value = Math.min(Math.max(numValue, 0), 100);
+        // Only allow values between 0 and 100
+        if (numValue >= 0 && numValue <= 100) {
+          value = numValue;
+        } else {
+          // Don't update if value would exceed limits
+          return;
+        }
       } else {
         value = undefined;
       }
     }
     
     handleInputChange(field, value);
+  };
+
+  // Handler to prevent typing digits that would exceed 100
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, currentValue: number | undefined) => {
+    // Allow navigation keys, backspace, delete, etc.
+    if (e.key === 'Backspace' || e.key === 'Delete' || e.key === 'Tab' || 
+        e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === 'ArrowUp' || e.key === 'ArrowDown' ||
+        e.key === 'Home' || e.key === 'End' || e.ctrlKey || e.metaKey) {
+      return;
+    }
+
+    // Allow decimal point
+    if (e.key === '.' && !(e.currentTarget.value.includes('.'))) {
+      return;
+    }
+
+    // Only allow digits
+    if (!/^\d$/.test(e.key)) {
+      e.preventDefault();
+      return;
+    }
+
+    // Check if adding this digit would exceed 100
+    const currentString = e.currentTarget.value;
+    const cursorPosition = e.currentTarget.selectionStart || 0;
+    const newValue = currentString.slice(0, cursorPosition) + e.key + currentString.slice(e.currentTarget.selectionEnd || 0);
+    
+    // If the new value would be greater than 100, prevent it
+    const newNumericValue = parseFloat(newValue);
+    if (!isNaN(newNumericValue) && newNumericValue > 100) {
+      e.preventDefault();
+    }
   };
 
   return (
@@ -233,17 +270,7 @@ export function IntegratedAdmissionForm({
                 step="0.01"
                 value={formData.score ?? ''}
                 onChange={(e) => handleNumberInputChange('score', e.target.value)}
-                onBlur={(e) => {
-                  // Auto-correct on blur if value exceeds limits
-                  const value = parseFloat(e.target.value);
-                  if (!isNaN(value)) {
-                    if (value > 100) {
-                      handleInputChange('score', 100);
-                    } else if (value < 0) {
-                      handleInputChange('score', 0);
-                    }
-                  }
-                }}
+                onKeyDown={(e) => handleKeyDown(e, formData.score)}
                 className={errors.score ? 'border-destructive' : ''}
                 placeholder="Enter your MHT-CET score (0-100)"
               />
@@ -265,16 +292,7 @@ export function IntegratedAdmissionForm({
                 step="0.01"
                 value={formData.tenth_percentage ?? ''}
                 onChange={(e) => handleNumberInputChange('tenth_percentage', e.target.value)}
-                onBlur={(e) => {
-                  const value = parseFloat(e.target.value);
-                  if (!isNaN(value)) {
-                    if (value > 100) {
-                      handleInputChange('tenth_percentage', 100);
-                    } else if (value < 0) {
-                      handleInputChange('tenth_percentage', 0);
-                    }
-                  }
-                }}
+                onKeyDown={(e) => handleKeyDown(e, formData.tenth_percentage)}
                 className={errors.tenth_percentage ? 'border-destructive' : ''}
                 placeholder="Enter your 10th grade percentage"
               />
@@ -296,16 +314,7 @@ export function IntegratedAdmissionForm({
                 step="0.01"
                 value={formData.twelth_percentage ?? ''}
                 onChange={(e) => handleNumberInputChange('twelth_percentage', e.target.value)}
-                onBlur={(e) => {
-                  const value = parseFloat(e.target.value);
-                  if (!isNaN(value)) {
-                    if (value > 100) {
-                      handleInputChange('twelth_percentage', 100);
-                    } else if (value < 0) {
-                      handleInputChange('twelth_percentage', 0);
-                    }
-                  }
-                }}
+                onKeyDown={(e) => handleKeyDown(e, formData.twelth_percentage)}
                 className={errors.twelth_percentage ? 'border-destructive' : ''}
                 placeholder="Enter your 12th grade percentage"
               />
