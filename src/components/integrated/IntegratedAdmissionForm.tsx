@@ -165,51 +165,42 @@ export function IntegratedAdmissionForm({
     }
   };
 
-  // Specialized handler for number inputs with validation
+  // Simplified handler for number inputs with proper decimal validation
   const handleNumberInputChange = (field: keyof IntegratedAdmissionFormData, inputValue: string) => {
-    let value: number | undefined;
+    console.log('Number input change:', { field, inputValue });
     
     // Allow empty input
     if (inputValue === '' || inputValue === null) {
-      value = undefined;
-    } 
-    // Allow partial decimal inputs like ".", ".2", ".20", etc.
-    else if (inputValue === '.' || /^\.\d*$/.test(inputValue) || /^\d+\.$/.test(inputValue) || /^\d+\.\d*$/.test(inputValue) || /^\d+$/.test(inputValue)) {
-      // For partial inputs, store as string in a temporary way, but validate the numeric value
-      const numValue = parseFloat(inputValue);
-      
-      if (inputValue === '.' || inputValue.endsWith('.') || isNaN(numValue)) {
-        // Allow partial decimal inputs, don't validate yet
-        handleInputChange(field, inputValue === '.' ? 0 : (isNaN(numValue) ? undefined : numValue));
-        return;
-      }
-      
-      // Validate complete numeric values
-      if (numValue >= 0 && numValue <= 100) {
-        value = numValue;
-      } else {
-        // Don't update if value would exceed limits
-        return;
-      }
-    } else {
-      const numValue = parseFloat(inputValue);
-      if (!isNaN(numValue)) {
-        // Only allow values between 0 and 100
-        if (numValue >= 0 && numValue <= 100) {
-          value = numValue;
-        } else {
-          // Don't update if value would exceed limits
-          return;
-        }
-      } else {
-        value = undefined;
-      }
+      handleInputChange(field, undefined);
+      return;
     }
     
-    handleInputChange(field, value);
+    // Convert to number for validation
+    const numValue = parseFloat(inputValue);
+    
+    // If it's a valid number
+    if (!isNaN(numValue)) {
+      if (numValue >= 0 && numValue <= 100) {
+        console.log('Valid number, updating:', numValue);
+        handleInputChange(field, numValue);
+      } else {
+        console.log('Number out of range:', numValue);
+        // Don't update if outside valid range
+      }
+    } else {
+      // Handle partial inputs (like "99." or ".5")
+      // Only allow if it looks like a valid partial decimal
+      if (/^(\d+\.?|\.\d*)$/.test(inputValue)) {
+        console.log('Allowing partial input:', inputValue);
+        // Allow user to continue typing
+        return;
+      } else {
+        console.log('Invalid input format:', inputValue);
+      }
+    }
   };
 
-  // Handler to prevent typing digits that would exceed 100
+  // Simplified keydown handler for better decimal support
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, currentValue: number | undefined) => {
     // Allow navigation keys, backspace, delete, etc.
     if (e.key === 'Backspace' || e.key === 'Delete' || e.key === 'Tab' || 
@@ -218,8 +209,8 @@ export function IntegratedAdmissionForm({
       return;
     }
 
-    // Allow decimal point
-    if (e.key === '.' && !(e.currentTarget.value.includes('.'))) {
+    // Allow decimal point only if there isn't one already
+    if (e.key === '.' && !e.currentTarget.value.includes('.')) {
       return;
     }
 
@@ -229,17 +220,12 @@ export function IntegratedAdmissionForm({
       return;
     }
 
-    // Check if adding this digit would exceed 100
+    // Check if adding this digit would create a value over 100
     const currentString = e.currentTarget.value;
     const cursorPosition = e.currentTarget.selectionStart || 0;
     const newValue = currentString.slice(0, cursorPosition) + e.key + currentString.slice(e.currentTarget.selectionEnd || 0);
     
-    // Allow partial decimal inputs like ".20"
-    if (newValue === '.' || /^\.\d*$/.test(newValue) || /^\d+\.$/.test(newValue)) {
-      return; // Allow these patterns
-    }
-    
-    // If the new value would be greater than 100, prevent it
+    // Parse the potential new value
     const newNumericValue = parseFloat(newValue);
     if (!isNaN(newNumericValue) && newNumericValue > 100) {
       e.preventDefault();
