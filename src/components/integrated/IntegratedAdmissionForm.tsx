@@ -175,33 +175,31 @@ export function IntegratedAdmissionForm({
       return;
     }
     
-    // Convert to number for validation
-    const numValue = parseFloat(inputValue);
-    
-    // If it's a valid number
-    if (!isNaN(numValue)) {
-      if (numValue >= 0 && numValue <= 100) {
-        console.log('Valid number, updating:', numValue);
-        handleInputChange(field, numValue);
+    // Allow partial decimal inputs while user is typing
+    if (/^(\d*\.?\d*)$/.test(inputValue)) {
+      // Convert to number for validation only if it's a complete number
+      const numValue = parseFloat(inputValue);
+      
+      // If it's a valid complete number, validate range
+      if (!isNaN(numValue)) {
+        if (numValue >= 0 && numValue <= 100) {
+          console.log('Valid number, updating:', numValue);
+          handleInputChange(field, numValue);
+        } else {
+          console.log('Number out of range, not updating:', numValue);
+          // Don't update if outside valid range, but don't prevent typing
+        }
       } else {
-        console.log('Number out of range:', numValue);
-        // Don't update if outside valid range
+        console.log('Allowing partial input:', inputValue);
+        // Allow partial inputs like "99." or ".5" without updating state
       }
     } else {
-      // Handle partial inputs (like "99." or ".5")
-      // Only allow if it looks like a valid partial decimal
-      if (/^(\d+\.?|\.\d*)$/.test(inputValue)) {
-        console.log('Allowing partial input:', inputValue);
-        // Allow user to continue typing
-        return;
-      } else {
-        console.log('Invalid input format:', inputValue);
-      }
+      console.log('Invalid input format:', inputValue);
     }
   };
 
   // Simplified keydown handler for better decimal support
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, currentValue: number | undefined) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     // Allow navigation keys, backspace, delete, etc.
     if (e.key === 'Backspace' || e.key === 'Delete' || e.key === 'Tab' || 
         e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === 'ArrowUp' || e.key === 'ArrowDown' ||
@@ -225,7 +223,7 @@ export function IntegratedAdmissionForm({
     const cursorPosition = e.currentTarget.selectionStart || 0;
     const newValue = currentString.slice(0, cursorPosition) + e.key + currentString.slice(e.currentTarget.selectionEnd || 0);
     
-    // Parse the potential new value
+    // Parse the potential new value - only prevent if it's clearly over 100
     const newNumericValue = parseFloat(newValue);
     if (!isNaN(newNumericValue) && newNumericValue > 100) {
       e.preventDefault();
@@ -285,7 +283,7 @@ export function IntegratedAdmissionForm({
                 step="0.01"
                 value={formData.score ?? ''}
                 onChange={(e) => handleNumberInputChange('score', e.target.value)}
-                onKeyDown={(e) => handleKeyDown(e, formData.score)}
+                onKeyDown={handleKeyDown}
                 className={errors.score ? 'border-destructive' : ''}
                 placeholder="Enter your MHT-CET score (0-100)"
               />
@@ -307,7 +305,7 @@ export function IntegratedAdmissionForm({
                 step="0.01"
                 value={formData.tenth_percentage ?? ''}
                 onChange={(e) => handleNumberInputChange('tenth_percentage', e.target.value)}
-                onKeyDown={(e) => handleKeyDown(e, formData.tenth_percentage)}
+                onKeyDown={handleKeyDown}
                 className={errors.tenth_percentage ? 'border-destructive' : ''}
                 placeholder="Enter your 10th grade percentage"
               />
@@ -329,7 +327,7 @@ export function IntegratedAdmissionForm({
                 step="0.01"
                 value={formData.twelth_percentage ?? ''}
                 onChange={(e) => handleNumberInputChange('twelth_percentage', e.target.value)}
-                onKeyDown={(e) => handleKeyDown(e, formData.twelth_percentage)}
+                onKeyDown={handleKeyDown}
                 className={errors.twelth_percentage ? 'border-destructive' : ''}
                 placeholder="Enter your 12th grade percentage"
               />
