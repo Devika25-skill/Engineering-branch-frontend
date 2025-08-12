@@ -58,9 +58,16 @@ const Index = () => {
   };
 
   const handleGetRecommendations = () => {
+    console.log('Index - handleGetRecommendations called');
+    
     // Check saved preference and navigate accordingly
     const savedRecommendationType = localStorage.getItem('recommendation_type');
     const savedIntegratedType = localStorage.getItem('integrated_admission_type');
+    
+    console.log('Index - saved preferences:', {
+      savedRecommendationType,
+      savedIntegratedType
+    });
     
     if (savedRecommendationType === 'direct-second-year') {
       const hasExistingData = sessionStorage.getItem('cachedDiplomaRecommendations');
@@ -71,19 +78,28 @@ const Index = () => {
       navigate(`/integrated-rounds?type=${savedIntegratedType}`);
     } else {
       // No preference saved, show dialog
+      console.log('Index - no saved preference, showing dialog');
       setShowProgramDialog(true);
     }
   };
 
   const handleProgramSelect = (program: string) => {
+    console.log('Index - handleProgramSelect called with:', program);
+    
     if (program === 'first-year' || program === 'direct-second-year') {
       localStorage.setItem('recommendation_type', program);
       localStorage.removeItem('integrated_admission_type');
       handleRecommendationTypeSelect(program as 'first-year' | 'direct-second-year');
     } else {
+      console.log('Index - setting integrated admission type:', program);
       localStorage.setItem('integrated_admission_type', program);
       localStorage.removeItem('recommendation_type');
-      navigate(`/integrated-steps?type=${program}`);
+      
+      // Add a small delay to ensure localStorage is set before navigation
+      setTimeout(() => {
+        console.log('Index - navigating to integrated steps with type:', program);
+        navigate(`/integrated-steps?type=${program}`);
+      }, 50);
     }
   };
 
