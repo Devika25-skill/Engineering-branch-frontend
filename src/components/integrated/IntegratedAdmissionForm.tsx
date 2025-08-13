@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { SearchableSelect } from '@/components/ui/searchable-select';
 import { useToast } from '@/hooks/use-toast';
 import { IntegratedAdmissionFormData, IntegratedAdmissionType } from '@/types/integratedAdmission';
-import { categoryOptions } from '@/data/integratedAdmissionConfig';
+import { categoryOptions, districtOptions } from '@/data/integratedAdmissionConfig';
 import { GraduationCap, Building, Pill } from 'lucide-react';
 
 interface IntegratedAdmissionFormProps {
@@ -46,6 +46,7 @@ export function IntegratedAdmissionForm({
   const [formData, setFormData] = useState<IntegratedAdmissionFormData>({
     exam_type: admissionType,
     category: '',
+    district: '',
     tenth_percentage: undefined,
     twelth_percentage: undefined,
     score: undefined // Changed from 0 to undefined for better UX
@@ -80,6 +81,7 @@ export function IntegratedAdmissionForm({
             const newFormData = {
               exam_type: currentConfig.exam_type,
               category: currentConfig.category,
+              district: currentConfig.district || undefined,
               tenth_percentage: currentConfig.tenth_percentage || undefined,
               twelth_percentage: currentConfig.twelth_percentage || undefined,
               score: currentConfig.score
@@ -108,7 +110,9 @@ export function IntegratedAdmissionForm({
     if (!formData.category) {
       newErrors.category = 'Category is required';
     }
-
+    if (!formData.district) {
+          newErrors.district = 'District is required';
+        }
     if (formData.score === undefined || formData.score === null) {
       newErrors.score = 'MHT-CET score is required';
     } else if (formData.score < 0 || formData.score > 100) {
@@ -242,6 +246,23 @@ export function IntegratedAdmissionForm({
               />
               {errors.category && (
                 <p className="text-sm text-destructive">{errors.category}</p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="category" className="text-sm font-medium">
+                Select The District Where Your Most Recent College Is Located *
+              </Label>
+              <SearchableSelect
+                key={`${admissionType}-${formData.district}`}
+                options={districtOptions[admissionType]}
+                value={formData.district}
+                onValueChange={(value) => handleInputChange('district', value)}
+                placeholder="Select your district"
+                searchPlaceholder="Search districts..."
+                className={errors.district ? 'border-destructive' : ''}
+              />
+              {errors.district && (
+                <p className="text-sm text-destructive">{errors.district}</p>
               )}
             </div>
 
