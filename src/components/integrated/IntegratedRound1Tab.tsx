@@ -13,7 +13,7 @@ import { IntegratedRecommendationCard } from './IntegratedRecommendationCard';
 import { CategoryFilter } from '@/components/recommendations/CategoryFilter';
 import { PremiumGate } from '@/components/recommendations/PremiumGate';
 import { NoResultsState } from '@/components/recommendations/NoResultsState';
-import { usePdfDownload } from '@/hooks/usePdfDownload';
+import { usePdfDownload } from '@/hooks/usePdfDownloadIntegrated';
 import { FeedbackSection } from '@/components/feedback/FeedbackSection';
 
 interface IntegratedRound1TabProps {
