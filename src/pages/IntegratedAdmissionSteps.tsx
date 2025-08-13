@@ -83,6 +83,7 @@ const IntegratedAdmissionSteps = () => {
       const configData = {
         exam_type: formData.exam_type,
         district: formData.district,
+        gender: formData.gender,
         score: formData.score,
         tenth_percentage: formData.tenth_percentage || 0,
         twelth_percentage: formData.twelth_percentage || 0,

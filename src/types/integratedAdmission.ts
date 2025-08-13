@@ -1,6 +1,8 @@
 export type IntegratedAdmissionType = 'BCA_MCA_Int' | 'BBA_BMS_BBM_MBA_Int' | 'B_and_D_Pharmacy';
 
 export interface IntegratedAdmissionFormData {
+  gender: 'male' | 'female' | 'other' | '';
+
   exam_type: IntegratedAdmissionType;
   category: string;
   district: string;
@@ -12,6 +14,7 @@ export interface IntegratedAdmissionFormData {
 export interface IntegratedConfigurationRequest {
   exam_type: IntegratedAdmissionType;
   district: string;
+  gender: 'male' | 'female' | 'other' | '';
   score: number;
   tenth_percentage: number;
   twelth_percentage: number;
@@ -23,6 +26,8 @@ export interface IntegratedConfigurationResponse {
   data: {
     useremail: string;
     district: string;
+    gender: 'male' | 'female' | 'other' | '';
+
     exam_type: IntegratedAdmissionType;
     score: number;
     tenth_percentage: number;
