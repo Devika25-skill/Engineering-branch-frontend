@@ -635,7 +635,7 @@ export const IntegratedRound1Tab = ({ admissionType }: IntegratedRound1TabProps)
             )}
           </CardContent>
         </Card>
-      ) : (
+      ) : (hasGeneratedRecommendations&&
         <NoResultsState />
       )}
 

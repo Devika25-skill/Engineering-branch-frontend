@@ -61,7 +61,7 @@ export const IntegratedCitiesForm = ({
             <MapPin className="text-white" size={20} />
           </div>
           Preferred Cities
-          <span className="text-xs text-slate-500 font-normal ml-2">(Optional)</span>
+          <span className="text-red-500">*</span>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
