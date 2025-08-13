@@ -103,7 +103,6 @@ export const Round2Tab = () => {
       if (cachedRound2Recommendations) {
         try {
           const parsedRecs = JSON.parse(cachedRound2Recommendations);
-          console.log('Loaded cached Round 2 recommendations from session storage:', parsedRecs);
           setRound2Recommendations(parsedRecs);
           setHasGeneratedRecommendations(true);
         } catch (error) {
@@ -120,7 +119,6 @@ export const Round2Tab = () => {
             const parsedRecs = JSON.parse(storedRecommendations);
             if (parsedRecs && Object.keys(parsedRecs).length > 0) {
               const convertedRecs = convertApiResponseToRecommendations(parsedRecs);
-              console.log('Loaded stored Round 2 recommendations from localStorage:', convertedRecs);
               setRound2Recommendations(convertedRecs);
               setHasGeneratedRecommendations(true);
               
@@ -187,9 +185,6 @@ export const Round2Tab = () => {
             // Also save to localStorage for future use
             const storageData = { selectedCollege, isConfirmed: true };
             localStorage.setItem('round2Selection', JSON.stringify(storageData));
-          } else {
-            // API returned empty object or no data - user needs to select college
-            console.log('No existing Round 2 selection found, user needs to select college');
           }
         } catch (error) {
           console.error('Error loading user round details:', error);
@@ -462,7 +457,7 @@ export const Round2Tab = () => {
         setSelectedCities(parsed.cities || []);
         return;
       } catch (error) {
-        console.log('Error parsing stored preferences, continuing...');
+        console.error('Error parsing stored preferences, continuing...');
       }
     }
 
@@ -487,7 +482,7 @@ export const Round2Tab = () => {
           return;
         }
       } catch (error) {
-        console.log('No existing preferences found in API, falling back to form data');
+        console.error('No existing preferences found in API, falling back to form data');
       }
     }
 
@@ -1264,7 +1259,6 @@ export const Round2Tab = () => {
             <div className="space-y-4">
               {categorizedRecommendations.map((recommendation, index) => {
                 // Add debugging and safety checks
-                console.log('Round 2 Recommendation:', recommendation);
                 if (!recommendation || !recommendation.college || !recommendation.college.name) {
                   console.error('Invalid recommendation data:', recommendation);
                   return null;

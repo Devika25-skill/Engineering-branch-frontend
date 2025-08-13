@@ -79,8 +79,6 @@ export const usePdfDownload = () => {
       // Extract user details from localStorage
       const sessionData = JSON.parse(localStorage.getItem(`integrated_form_${localStorage.getItem("integrated_admission_type")}`) || '{}');
       const sessionDataDetails = JSON.parse(localStorage.getItem(`integrated_round${localStorage.getItem("activeIntegratedRoundTab") === "round1" ? "1" : localStorage.getItem("activeIntegratedRoundTab") === "round2" ? "2" : "3"}_${localStorage.getItem("integrated_admission_type")}`) || '{}');
-
-      console.log(`integrated_round${localStorage.getItem("activeIntegratedRoundTab") === "round3" ? "3" : localStorage.getItem("activeIntegratedRoundTab") === "round2" ? "2" : "1"}_${localStorage.getItem("integrated_admission_type")}`)
       const userData = JSON.parse(localStorage.getItem('user') || '{}');
       const userName = userData.name || 'Student Name';
       const category = sessionData.category || 'Not specified';

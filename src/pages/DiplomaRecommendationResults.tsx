@@ -121,7 +121,6 @@ const DiplomaRecommendationResults = () => {
         location: formData.selectedCities || []
       };
 
-      console.log('Generating diploma recommendations with payload:', payload);
       
       // Call API to generate recommendations
       const response = await apiService.generateDiplomaRoundList(payload);

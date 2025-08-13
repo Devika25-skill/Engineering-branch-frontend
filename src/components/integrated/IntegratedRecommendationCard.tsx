@@ -36,7 +36,6 @@ export const IntegratedRecommendationCard = ({
   index
 }: IntegratedRecommendationCardProps) => {
   // Add defensive logging to understand the data structure
-  console.log("IntegratedRecommendationCard received:", { recommendation, index });
 
   const {
     college,

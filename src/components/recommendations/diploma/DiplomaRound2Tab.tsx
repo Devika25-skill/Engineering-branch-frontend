@@ -118,7 +118,6 @@ export const DiplomaRound2Tab = () => {
       if (cachedRound2Recommendations) {
         try {
           const parsedRecs = JSON.parse(cachedRound2Recommendations);
-          console.log('Loaded cached Diploma Round 2 recommendations from session storage:', parsedRecs);
           setRound2Recommendations(parsedRecs);
           setHasGeneratedRecommendations(true);
         } catch (error) {
@@ -135,7 +134,6 @@ export const DiplomaRound2Tab = () => {
             const parsedRecs = JSON.parse(storedRecommendations);
             if (parsedRecs && Object.keys(parsedRecs).length > 0) {
               const convertedRecs = convertApiResponseToRecommendations(parsedRecs);
-              console.log('Loaded stored Diploma Round 2 recommendations from localStorage:', convertedRecs);
               setRound2Recommendations(convertedRecs);
               setHasGeneratedRecommendations(true);
               
@@ -202,10 +200,7 @@ export const DiplomaRound2Tab = () => {
             // Also save to localStorage for future use
             const storageData = { selectedCollege, isConfirmed: true };
             localStorage.setItem('diplomaRound2Selection', JSON.stringify(storageData));
-          } else {
-            // API returned empty object or no data - user needs to select college
-            console.log('No existing Round 2 selection found, user needs to select college');
-          }
+          } 
         } catch (error) {
           console.error('Error loading user round details:', error);
         }
@@ -315,20 +310,18 @@ export const DiplomaRound2Tab = () => {
         try {
           const response = await apiService.getUserRoundPreferences(2, user.accessToken);
           if (response.success && response.data) {
-            console.log('Loaded preferences from API:', response.data);
             setSelectedBranches(response.data.branches || []);
             setSelectedCities(response.data.cities || []);
             return;
           }
         } catch (error) {
-          console.log('API preferences not available, falling back to form data');
+          console.error('API preferences not available, falling back to form data');
         }
       }
 
       // Fallback to form data from recommendation storage
       const formData = recommendationStorage.getFormData();
       if (formData) {
-        console.log('Loaded preferences from form data:', formData);
         // For diploma, these might be different field names
         const branches = formData.selectedBranches || [];
         const cities = formData.selectedCities || [];
@@ -481,12 +474,10 @@ export const DiplomaRound2Tab = () => {
         last_round_college_choice_code: skipRound1Selection ? 0 : (selectedCollege?.selectedDepartment.choice_code || 0)
       };
 
-      console.log('Generating Diploma Round 2 recommendations with payload:', payload);
 
       const response = await apiService.generateDiplomaRound2List(payload);
 
       if (response.success && response.data) {
-        console.log('Diploma Round 2 recommendations response:', response.data);
         
         // Store in localStorage
         localStorage.setItem('diplomaRound2Recommendations', JSON.stringify(response.data));
@@ -1195,7 +1186,6 @@ export const DiplomaRound2Tab = () => {
             <div className="space-y-4">
               {categorizedRecommendations.map((recommendation, index) => {
                 // Add debugging and safety checks
-                console.log('Round 2 Recommendation:', recommendation);
                 if (!recommendation || !recommendation.college || !recommendation.college.name) {
                   console.error('Invalid recommendation data:', recommendation);
                   return null;
