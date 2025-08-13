@@ -122,7 +122,7 @@ const RecommendationSteps = () => {
             toast.success("Loaded your previous details");
           }
         } catch (error) {
-          console.log('No existing data found or error fetching data:', error);
+          console.error('No existing data found or error fetching data:', error);
         }
       }
     };

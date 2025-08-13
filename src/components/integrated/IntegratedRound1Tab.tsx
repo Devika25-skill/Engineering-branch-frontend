@@ -81,21 +81,13 @@ export const IntegratedRound1Tab = ({ admissionType }: IntegratedRound1TabProps)
     const checkFormDataChanges = () => {
       const currentFormData = localStorage.getItem(`integrated_form_${admissionType}`);
       const storedHash = localStorage.getItem(`integrated_form_hash_${admissionType}`);
-      
-      console.log('Checking form data changes:', {
-        currentFormData: !!currentFormData,
-        hasGeneratedRecommendations,
-        storedHash: !!storedHash,
-        showRegenerateMessage
-      });
+
       
       if (currentFormData && hasGeneratedRecommendations) {
         const currentHash = btoa(currentFormData); // Simple hash using base64
         
-        console.log('Hash comparison:', { currentHash, storedHash, isEqual: currentHash === storedHash });
         
         if (storedHash && currentHash !== storedHash && !showRegenerateMessage) {
-          console.log('Setting showRegenerateMessage to true');
           setShowRegenerateMessage(true);
         }
       }
@@ -277,7 +269,6 @@ export const IntegratedRound1Tab = ({ admissionType }: IntegratedRound1TabProps)
       }
 
       const configData = JSON.parse(savedConfigData);
-      console.log('Using config data for API:', configData);
       
       // Prepare API payload using the saved form data
       const apiPayload = {

@@ -26,15 +26,8 @@ const IntegratedAdmissionSteps = () => {
     
     const selectedType = typeFromParams || typeFromStorage;
     
-    console.log('IntegratedAdmissionSteps - checking admission type:', {
-      typeFromParams,
-      typeFromStorage,
-      selectedType,
-      validTypes: ['BCA_MCA_Int', 'BBA_BMS_BBM_MBA_Int', 'B_and_D_Pharmacy']
-    });
-    
+  
     if (!selectedType || !['BCA_MCA_Int', 'BBA_BMS_BBM_MBA_Int', 'B_and_D_Pharmacy'].includes(selectedType)) {
-      console.log('IntegratedAdmissionSteps - no valid type found, redirecting to home');
       // Add a small delay to prevent immediate redirect race conditions
       setTimeout(() => {
         navigate('/');
@@ -42,7 +35,6 @@ const IntegratedAdmissionSteps = () => {
       return;
     }
     
-    console.log('IntegratedAdmissionSteps - setting admission type:', selectedType);
     setAdmissionType(selectedType);
   }, [searchParams, navigate]);
 
