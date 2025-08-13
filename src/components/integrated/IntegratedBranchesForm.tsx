@@ -79,7 +79,7 @@ export const IntegratedBranchesForm = ({
             className="w-full"
           />
         ) : (
-          <Select onValueChange={addBranch}>
+          <Select onValueChange={addBranch} value="">
             <SelectTrigger className="h-12 rounded-xl border-2 bg-white">
               <div className="flex items-center gap-2">
                 <Plus size={16} className="text-purple-600" />
