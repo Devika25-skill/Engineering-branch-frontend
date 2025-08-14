@@ -47,6 +47,7 @@ export function IntegratedAdmissionForm({
     exam_type: admissionType,
     category: '',
     district: '',
+    gender: '',
     tenth_percentage: undefined,
     twelth_percentage: undefined,
     score: undefined // Changed from 0 to undefined for better UX
@@ -81,6 +82,7 @@ export function IntegratedAdmissionForm({
             const newFormData = {
               exam_type: currentConfig.exam_type,
               category: currentConfig.category,
+              gender: currentConfig.gender,
               district: currentConfig.district || undefined,
               tenth_percentage: currentConfig.tenth_percentage || undefined,
               twelth_percentage: currentConfig.twelth_percentage || undefined,
@@ -113,6 +115,10 @@ export function IntegratedAdmissionForm({
     if (!formData.district) {
           newErrors.district = 'District is required';
         }
+    if (!formData.gender) {
+      newErrors.gender = 'Gender is required';
+    }
+
     if (formData.score === undefined || formData.score === null) {
       newErrors.score = 'MHT-CET score is required';
     } else if (formData.score < 0 || formData.score > 100) {
@@ -249,7 +255,7 @@ export function IntegratedAdmissionForm({
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="category" className="text-sm font-medium">
+              <Label htmlFor="district" className="text-sm font-medium">
                 Select The District Where Your Most Recent College Is Located *
               </Label>
               <SearchableSelect
@@ -265,7 +271,28 @@ export function IntegratedAdmissionForm({
                 <p className="text-sm text-destructive">{errors.district}</p>
               )}
             </div>
-
+            
+             <div className="space-y-2">
+              <Label htmlFor="gender" className="text-sm font-medium">
+                Select Your Gender *
+              </Label>
+              <SearchableSelect
+                key={`${admissionType}-${formData.gender}`}
+                options={[
+                  { label: 'Male', value: 'male' },
+                  { label: 'Female', value: 'female' },
+                  { label: 'Other', value: 'other' },
+                ]}
+                value={formData.gender}
+                onValueChange={(value) => handleInputChange('gender', value)}
+                placeholder="Select your gender"
+                searchPlaceholder="Search genders..."
+                className={errors.gender ? 'border-destructive' : ''}
+              />
+              {errors.gender && (
+                <p className="text-sm text-destructive">{errors.gender}</p>
+              )}
+            </div>
             {/* MHT-CET Score */}
             <div className="space-y-2">
               <Label htmlFor="score" className="text-sm font-medium">
