@@ -85,7 +85,7 @@ export const IntegratedRecommendationCard = ({
             <div className="flex items-start justify-between gap-2 mb-2">
               <div className="flex-1 min-w-0">
                 <h3 className="text-sm font-semibold text-gray-900 leading-tight mb-1" title={college?.name || "Unknown College"}>
-                  {truncateText(college?.name || "Unknown College", 35)}
+                  {truncateText(college?.name || "Unknown College", 100)}
                 </h3>
                 <div className="flex items-center gap-1 text-xs text-gray-500">
                   <MapPin size={10} />
