@@ -222,6 +222,7 @@ export const PremiumGate = ({
         const paymentData = await initiatePayment();
 
         // Immediately verify payment after initiation
+        setIsOpen(false);
         setTimeout(async () => {
           try {
             const verifyResult = await verifyPayment(formData.email, paymentData.order_id);
@@ -236,7 +237,6 @@ export const PremiumGate = ({
               localStorage.setItem('userData', JSON.stringify(formData));
 
               onUnlock();
-              setIsOpen(false);
               setIsLoading(false);
             }
           } catch (error) {
@@ -285,7 +285,6 @@ export const PremiumGate = ({
                 localStorage.setItem('userData', JSON.stringify(formData));
 
                 onUnlock();
-                setIsOpen(false);
               } else {
                 toast({
                   title: "Payment Failed",
