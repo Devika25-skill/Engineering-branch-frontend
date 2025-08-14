@@ -274,6 +274,8 @@ export const IntegratedRound1Tab = ({ admissionType }: IntegratedRound1TabProps)
       const apiPayload = {
         exam_type: admissionType,
         branches: selectedBranches,
+        gender: configData.gender,
+        district: configData.district,
         locations: selectedCities,
         round_no: 1,
         category: configData.category,
