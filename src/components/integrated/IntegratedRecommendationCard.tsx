@@ -89,7 +89,7 @@ export const IntegratedRecommendationCard = ({
                 </h3>
                 <div className="flex items-center gap-1 text-xs text-gray-500">
                   <MapPin size={10} />
-                  <span>{truncateText(college?.city || "Unknown Location", 50)}</span>
+                  <span>{truncateText(college?.city || "Unknown Location", 20)}</span>
                   {college?.id && (
                     <>
                       <span className="mx-1">•</span>
@@ -107,7 +107,7 @@ export const IntegratedRecommendationCard = ({
             <div className="bg-blue-50 rounded-lg p-2 mb-2">
               <div className="text-xs">
                 <div className="font-medium text-blue-900 mb-1" title={course_name || "Unknown Course"}>
-                  {truncateText(course_name || "Unknown Course", 50)}
+                  {truncateText(course_name || "Unknown Course", 100)}
                 </div>
                 <div className="flex flex-wrap gap-1">
                   {choice_code && (
