@@ -17,7 +17,7 @@ export const branchOptions: Record<IntegratedAdmissionType, string[]> = {
     "BBA Innovation and Entrepreneurship",
     "BMS Computer Application and Business Analytics",
     "BBA Business Administration",
-    "BBA/MBA  Integrated",
+    "BBA/MBA Integrated",
     "BBA Hospitality and Tourism Management",
     "BMS  Marketing Management",
     "BBA Aviation Management",

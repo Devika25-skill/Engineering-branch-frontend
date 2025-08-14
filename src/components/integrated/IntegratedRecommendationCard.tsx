@@ -107,7 +107,7 @@ export const IntegratedRecommendationCard = ({
             <div className="bg-blue-50 rounded-lg p-2 mb-2">
               <div className="text-xs">
                 <div className="font-medium text-blue-900 mb-1" title={course_name || "Unknown Course"}>
-                  {truncateText(course_name || "Unknown Course", 50)}
+                  {truncateText(course_name || "Unknown Course", 100)}
                 </div>
                 <div className="flex flex-wrap gap-1">
                   {choice_code && (
