@@ -132,7 +132,7 @@ const Index = () => {
             </div>
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 bg-gradient-to-r from-white to-purple-100 bg-clip-text text-transparent leading-tight">
               Find Your Dream
-              <span className="block text-2xl sm:text-3xl md:text-4xl lg:text-5xl mt-2 text-yellow-300">Engineering College! 🎓</span>
+              <span className="block text-3xl sm:text-4xl md:text-5xl lg:text-6xl mt-2 text-yellow-300">College! 🎓</span>
             </h1>
             <p className="text-base sm:text-lg md:text-xl mb-6 sm:mb-8 opacity-90 font-light max-w-3xl mx-auto px-2">
               Discover the perfect engineering college that matches your dreams, budget, and career goals with our 

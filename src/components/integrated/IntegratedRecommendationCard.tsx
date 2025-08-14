@@ -89,7 +89,7 @@ export const IntegratedRecommendationCard = ({
                 </h3>
                 <div className="flex items-center gap-1 text-xs text-gray-500">
                   <MapPin size={10} />
-                  <span>{truncateText(college?.city || "Unknown Location", 20)}</span>
+                  <span>{truncateText(college?.city || "Unknown Location", 50)}</span>
                   {college?.id && (
                     <>
                       <span className="mx-1">•</span>
