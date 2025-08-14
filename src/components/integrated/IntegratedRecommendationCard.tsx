@@ -93,7 +93,7 @@ export const IntegratedRecommendationCard = ({
                   {college?.id && (
                     <>
                       <span className="mx-1">•</span>
-                      <span>ID: {college.id}</span>
+                      <span>College Code: {college.id}</span>
                     </>
                   )}
                 </div>
@@ -112,12 +112,12 @@ export const IntegratedRecommendationCard = ({
                 <div className="flex flex-wrap gap-1">
                   {choice_code && (
                     <span className="text-blue-700 bg-blue-200 px-1.5 py-0.5 rounded text-xs">
-                      {choice_code}
+                      Choice Code: {choice_code}
                     </span>
                   )}
                   {cutoff_percentile && (
                     <span className="text-blue-700 bg-blue-200 px-1.5 py-0.5 rounded text-xs">
-                      {cutoff_percentile}%ile
+                      Previouis Year Cutoff: {cutoff_percentile}%ile
                     </span>
                   )}
                 </div>
@@ -126,19 +126,16 @@ export const IntegratedRecommendationCard = ({
 
             {/* Stats - Simplified */}
             <div className="bg-gray-50 rounded-lg p-2">
-              <div className="grid grid-cols-2 gap-2 text-xs">
+              <div className="grid grid-cols-1 gap-2 text-xs">
                 <div>
                   <span className="text-gray-600">Category:</span>
                   <span className="ml-1 font-medium">{reservation_category || "General"}</span>
                 </div>
-                <div>
-                  <span className="text-gray-600">Score:</span>
-                  <span className="ml-1 font-medium">{cet_percentile || "N/A"}%</span>
-                </div>
                 <div className="col-span-2">
-                  <span className="text-gray-600">Admission Chances:</span>
+                  <span className="text-gray-600">Your Admission Chances:</span>
                   <span className={`ml-1 font-semibold ${getProbabilityColor(admission_probability)}`}>
-                    {admission_probability || "N/A"}%
+                    {admission_probability || "N/A"}% 
+                    <span className="ml-1 font-medium">- {probability_message.split("-")[0].split("chances")[0] || ""}</span>
                   </span>
                 </div>
               </div>

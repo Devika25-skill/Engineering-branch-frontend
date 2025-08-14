@@ -143,7 +143,7 @@ export const IntegratedRound1Tab = ({ admissionType }: IntegratedRound1TabProps)
             
             // Check payment status
             if (apiData.is_payment === true) {
-              localStorage.setItem('integratedRecommendationUnlocked', 'true');
+              localStorage.setItem(`integratedRecommendationUnlocked_${admissionType}`, 'true');
               setIsUnlocked(true);
             }
             
@@ -190,7 +190,7 @@ export const IntegratedRound1Tab = ({ admissionType }: IntegratedRound1TabProps)
             
             // Check if these recommendations were paid and should unlock
             if (parsedRecs.is_payment === true) {
-              localStorage.setItem('integratedRecommendationUnlocked', 'true');
+              localStorage.setItem(`integratedRecommendationUnlocked_${admissionType}`, 'true');
               setIsUnlocked(true);
             }
           }
@@ -207,7 +207,7 @@ export const IntegratedRound1Tab = ({ admissionType }: IntegratedRound1TabProps)
   // Check unlock status
   useEffect(() => {
     const checkUnlockStatus = () => {
-      const isUnlocked = localStorage.getItem('integratedRecommendationUnlocked') === 'true';
+      const isUnlocked = localStorage.getItem(`integratedRecommendationUnlocked_${admissionType}`) === 'true';
       setIsUnlocked(isUnlocked);
     };
     
@@ -297,7 +297,7 @@ export const IntegratedRound1Tab = ({ admissionType }: IntegratedRound1TabProps)
         
         // Check payment status
         if (response.data.is_payment === true) {
-          localStorage.setItem('integratedRecommendationUnlocked', 'true');
+          localStorage.setItem(`integratedRecommendationUnlocked_${admissionType}`, 'true');
           setIsUnlocked(true);
         }
         
@@ -609,7 +609,7 @@ export const IntegratedRound1Tab = ({ admissionType }: IntegratedRound1TabProps)
                                   </p>
                                   <PremiumGate 
                                     onUnlock={() => setIsUnlocked(true)}
-                                    storageKey="integratedRecommendationUnlocked"
+                                    storageKey={`integratedRecommendationUnlocked_${admissionType}`}
                                     productType={`future-bridge-admissionType-${admissionType}`}
                                     title={`Unlock Round 1 Recommendations`}
 
