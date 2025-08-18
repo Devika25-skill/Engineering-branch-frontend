@@ -7,6 +7,7 @@ import { Lock, Unlock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from '@/contexts/AuthContext';
 import { config } from '@/config/env';
+import { useSearchParams } from 'react-router-dom';
 
 interface PremiumGateProps {
   onUnlock: () => void;
@@ -62,6 +63,12 @@ export const PremiumGate = ({
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const setPaidStatus = () => {
+    searchParams.set("status", "paid");
+    setSearchParams(searchParams);
+  };
 
   // Auto-fetch user data from AuthContext (similar to Round 1) on mount
   useEffect(() => {
@@ -235,7 +242,7 @@ export const PremiumGate = ({
 
               localStorage.setItem(storageKey, 'true');
               localStorage.setItem('userData', JSON.stringify(formData));
-
+              setPaidStatus();
               onUnlock();
               setIsLoading(false);
             }
