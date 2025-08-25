@@ -63,6 +63,12 @@ export const PremiumGate = ({
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const setPaidStatus = () => {
+    searchParams.set("status", "paid");
+    setSearchParams(searchParams);
+  };
 
   const [searchParams, setSearchParams] = useSearchParams();
 
