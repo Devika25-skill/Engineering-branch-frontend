@@ -161,7 +161,109 @@ export interface RoundPreferencesResponse {
   message: string;
 }
 
+export interface CollegeSearchByNameResponse {
+  success: boolean;
+  data: Array<{
+    "College Name": string;
+    "College Code": number;
+    "Courses": Array<{
+      "Course Name": string;
+      "Course Code": string;
+    }>;
+  }>;
+  message: string;
+}
+
+export interface CollegeSearchByCodeResponse {
+  success: boolean;
+  data: Array<{
+    "College Name": string;
+    "College Code": number;
+    "Courses": Array<{
+      "Course Name": string;
+      "Course Code": string;
+    }>;
+  }>;
+  message: string;
+}
+
+export interface CollegeSearchByChoiceCodeResponse {
+  success: boolean;
+  data: {
+    "College Code": number;
+    "Course Code": string;
+    "College Name": string;
+    "Course Name": string;
+    "City": string;
+    "District": string;
+  };
+  message: string;
+}
+
 export const integratedRecommendationApi = {
+  searchCollegeByName: async (
+    examType: string,
+    collegeName: string
+  ): Promise<CollegeSearchByNameResponse> => {
+    const token = localStorage.getItem('accessToken');
+    
+    const response = await fetch(`${API_BASE_URL}/api/v1/common/search_college_by_name/${examType}/${encodeURIComponent(collegeName)}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` })
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return response.json();
+  },
+
+  searchCollegeByCode: async (
+    examType: string,
+    collegeCode: number
+  ): Promise<CollegeSearchByCodeResponse> => {
+    const token = localStorage.getItem('accessToken');
+    
+    const response = await fetch(`${API_BASE_URL}/api/v1/common/search_college_by_college_code/${examType}/${collegeCode}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` })
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return response.json();
+  },
+
+  searchCollegeByChoiceCode: async (
+    examType: string,
+    choiceCode: string
+  ): Promise<CollegeSearchByChoiceCodeResponse> => {
+    const token = localStorage.getItem('accessToken');
+    
+    const response = await fetch(`${API_BASE_URL}/api/v1/common/search_college_by_choice_code/${examType}/${choiceCode}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` })
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return response.json();
+  },
+
   generateRecommendations: async (
     data: IntegratedRoundRecommendationRequest
   ): Promise<IntegratedRecommendationResponse> => {
