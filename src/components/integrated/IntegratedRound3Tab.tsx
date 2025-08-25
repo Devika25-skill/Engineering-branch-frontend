@@ -137,6 +137,7 @@ export const IntegratedRound3Tab = ({ admissionType }: IntegratedRound3TabProps)
       <div className="space-y-6">
         <IntegratedCollegeSelectionCard
           admissionType={admissionType}
+          roundNo={3}
           onCollegeSelect={handleCollegeSelect}
           onSkipSelection={handleSkipSelection}
           selectedCollege={selectedCollege}
