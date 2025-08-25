@@ -41,7 +41,7 @@ export const IntegratedCollegeSelectionCard = ({
   onSkipSelection,
   selectedCollege 
 }: IntegratedCollegeSelectionCardProps) => {
-  const [searchType, setSearchType] = useState('name');
+  const [searchType, setSearchType] = useState('choice');
   const [searchTerm, setSearchTerm] = useState('');
   const [nameResults, setNameResults] = useState<CollegeSearchByNameResponse['data']>([]);
   const [codeResults, setCodeResults] = useState<CollegeSearchByCodeResponse['data']>([]);
@@ -284,228 +284,227 @@ export const IntegratedCollegeSelectionCard = ({
         </Card>
       ) : (
         <>
-          {/* Fresh Recommendations Option */}
-          <Card className="border-2 border-blue-200 bg-blue-50">
-            <CardContent className="pt-6">
-              <div className="text-center space-y-4">
-                <div className="flex justify-center">
-                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                    <Sparkles className="w-6 h-6 text-blue-600" />
-                  </div>
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-blue-800 mb-2">
-                    Generate Fresh Recommendations
-                  </h3>
-                  <p className="text-blue-700 text-sm mb-4">
-                    Get new recommendations without considering any previous round choices
-                  </p>
+        {/* College Search Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Building2 className="w-5 h-5" />
+              Select Round {roundNo-1} Alloted College
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="search-type">Search By</Label>
+                <Select value={searchType} onValueChange={(value) => {
+                  setSearchType(value);
+                  clearResults();
+                }}>
+                  <SelectTrigger className="mt-2">
+                    <SelectValue placeholder="Select search method" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="name">
+                      <div className="flex items-center gap-2">
+                        <Search className="w-4 h-4" />
+                        College Name
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="code">
+                      <div className="flex items-center gap-2">
+                        <Hash className="w-4 h-4" />
+                        College Code
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="choice">
+                      <div className="flex items-center gap-2">
+                        <FileText className="w-4 h-4" />
+                        Choice Code
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label htmlFor="search-input">
+                  {searchType === 'name' && 'College Name'}
+                  {searchType === 'code' && 'College Code'}
+                  {searchType === 'choice' && 'Choice Code'}
+                </Label>
+                <div className="flex gap-2 mt-2">
+                  <Input
+                    id="search-input"
+                    placeholder={getPlaceholder()}
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                  />
                   <Button 
-                    onClick={onSkipSelection}
-                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                    onClick={handleSearch} 
+                    disabled={isSearching}
+                    size="icon"
                   >
-                    Generate Fresh List
+                    <Search className="w-4 h-4" />
                   </Button>
                 </div>
               </div>
-            </CardContent>
-          </Card>
 
-          <div className="text-center text-muted-foreground">
-            <span className="text-sm">OR</span>
-          </div>
-
-          {/* College Search Section */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Building2 className="w-5 h-5" />
-                Search Previous Round College Choice
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="search-type">Search By</Label>
-                  <Select value={searchType} onValueChange={(value) => {
-                    setSearchType(value);
-                    clearResults();
-                  }}>
-                    <SelectTrigger className="mt-2">
-                      <SelectValue placeholder="Select search method" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="name">
-                        <div className="flex items-center gap-2">
-                          <Search className="w-4 h-4" />
-                          College Name
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="code">
-                        <div className="flex items-center gap-2">
-                          <Hash className="w-4 h-4" />
-                          College Code
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="choice">
-                        <div className="flex items-center gap-2">
-                          <FileText className="w-4 h-4" />
-                          Choice Code
-                        </div>
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label htmlFor="search-input">
-                    {searchType === 'name' && 'College Name'}
-                    {searchType === 'code' && 'College Code'}
-                    {searchType === 'choice' && 'Choice Code'}
-                  </Label>
-                  <div className="flex gap-2 mt-2">
-                    <Input
-                      id="search-input"
-                      placeholder={getPlaceholder()}
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                    />
-                    <Button 
-                      onClick={handleSearch} 
-                      disabled={isSearching}
-                      size="icon"
-                    >
-                      <Search className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-
-                {/* Search Results */}
-                {searchType === 'name' && nameResults.length > 0 && (
-                  <div className="space-y-3 max-h-96 overflow-y-auto">
-                    <Label>Search Results ({nameResults.length} found):</Label>
-                    {nameResults.map((college) => (
-                      <Card key={college["College Code"]} className="border-l-4 border-l-primary">
-                        <CardContent className="pt-4">
-                          <div className="space-y-3">
-                            <div>
-                              <h4 className="font-medium text-primary">{college["College Name"]}</h4>
-                              <p className="text-sm text-muted-foreground">
-                                College Code: {college["College Code"]}
-                              </p>
-                            </div>
-                            
+              {/* Search Results */}
+              {searchType === 'name' && nameResults.length > 0 && (
+                <div className="space-y-3 max-h-96 overflow-y-auto">
+                  <Label>Search Results ({nameResults.length} found):</Label>
+                  {nameResults.map((college) => (
+                    <Card key={college["College Code"]} className="border-l-4 border-l-primary">
+                      <CardContent className="pt-4">
+                        <div className="space-y-3">
+                          <div>
+                            <h4 className="font-medium text-primary">{college["College Name"]}</h4>
+                            <p className="text-sm text-muted-foreground">
+                              College Code: {college["College Code"]}
+                            </p>
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <Label className="text-sm">Available Courses:</Label>
                             <div className="space-y-2">
-                              <Label className="text-sm">Available Courses:</Label>
-                              <div className="space-y-2">
-                                {college.Courses.map((course) => (
-                                  <div 
-                                    key={course["Course Code"]}
-                                    className="flex items-center justify-between p-3 bg-muted rounded-lg"
-                                  >
-                                    <div className="flex items-center gap-2">
-                                      <GraduationCap className="w-4 h-4 text-primary" />
-                                      <div>
-                                        <span className="font-medium">{course["Course Name"]}</span>
-                                        <Badge variant="outline" className="ml-2 text-xs">
-                                          {course["Course Code"]}
-                                        </Badge>
-                                      </div>
+                              {college.Courses.map((course) => (
+                                <div 
+                                  key={course["Course Code"]}
+                                  className="flex items-center justify-between p-3 bg-muted rounded-lg"
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <GraduationCap className="w-4 h-4 text-primary" />
+                                    <div>
+                                      <span className="font-medium">{course["Course Name"]}</span>
+                                      <Badge variant="outline" className="ml-2 text-xs">
+                                        {course["Course Code"]}
+                                      </Badge>
                                     </div>
-                                    <Button
-                                      size="sm"
-                                      onClick={() => handleCollegeSelectFromName(college, course)}
-                                    >
-                                      Select
-                                    </Button>
                                   </div>
-                                ))}
-                              </div>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                )}
-
-                {searchType === 'code' && codeResults.length > 0 && (
-                  <div className="space-y-3">
-                    <Label>Search Results ({codeResults.length} found):</Label>
-                    {codeResults.map((college) => (
-                      <Card key={college["College Code"]} className="border-l-4 border-l-primary">
-                        <CardContent className="pt-4">
-                          <div className="space-y-3">
-                            <div>
-                              <h4 className="font-medium text-primary">{college["College Name"]}</h4>
-                              <p className="text-sm text-muted-foreground">
-                                College Code: {college["College Code"]}
-                              </p>
-                            </div>
-                            
-                            <div className="space-y-2">
-                              <Label className="text-sm">Available Courses:</Label>
-                              <div className="space-y-2">
-                                {college.Courses.map((course) => (
-                                  <div 
-                                    key={course["Course Code"]}
-                                    className="flex items-center justify-between p-3 bg-muted rounded-lg"
+                                  <Button
+                                    size="sm"
+                                    onClick={() => handleCollegeSelectFromName(college, course)}
                                   >
-                                    <div className="flex items-center gap-2">
-                                      <GraduationCap className="w-4 h-4 text-primary" />
-                                      <div>
-                                        <span className="font-medium">{course["Course Name"]}</span>
-                                        <Badge variant="outline" className="ml-2 text-xs">
-                                          {course["Course Code"]}
-                                        </Badge>
-                                      </div>
-                                    </div>
-                                    <Button
-                                      size="sm"
-                                      onClick={() => handleCollegeSelectFromCode(college, course)}
-                                    >
-                                      Select
-                                    </Button>
-                                  </div>
-                                ))}
-                              </div>
+                                    Select
+                                  </Button>
+                                </div>
+                              ))}
                             </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                )}
-
-                {searchType === 'choice' && choiceResult && (
-                  <Card className="border-l-4 border-l-primary">
-                    <CardContent className="pt-4">
-                      <div className="space-y-3">
-                        <div>
-                          <h4 className="font-medium text-primary">{choiceResult["College Name"]}</h4>
-                          <div className="text-sm text-muted-foreground space-y-1">
-                            <p>College Code: {choiceResult["College Code"]}</p>
-                            <p>Course: {choiceResult["Course Name"]}</p>
-                            <p>Course Code: {choiceResult["Course Code"]}</p>
-                            <p>Location: {choiceResult["City"]}, {choiceResult["District"]}</p>
                           </div>
                         </div>
-                        
-                        <div className="flex justify-end">
-                          <Button
-                            onClick={() => handleCollegeSelectFromChoice(choiceResult)}
-                          >
-                            Select This College
-                          </Button>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+
+              {searchType === 'code' && codeResults.length > 0 && (
+                <div className="space-y-3">
+                  <Label>Search Results ({codeResults.length} found):</Label>
+                  {codeResults.map((college) => (
+                    <Card key={college["College Code"]} className="border-l-4 border-l-primary">
+                      <CardContent className="pt-4">
+                        <div className="space-y-3">
+                          <div>
+                            <h4 className="font-medium text-primary">{college["College Name"]}</h4>
+                            <p className="text-sm text-muted-foreground">
+                              College Code: {college["College Code"]}
+                            </p>
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <Label className="text-sm">Available Courses:</Label>
+                            <div className="space-y-2">
+                              {college.Courses.map((course) => (
+                                <div 
+                                  key={course["Course Code"]}
+                                  className="flex items-center justify-between p-3 bg-muted rounded-lg"
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <GraduationCap className="w-4 h-4 text-primary" />
+                                    <div>
+                                      <span className="font-medium">{course["Course Name"]}</span>
+                                      <Badge variant="outline" className="ml-2 text-xs">
+                                        {course["Course Code"]}
+                                      </Badge>
+                                    </div>
+                                  </div>
+                                  <Button
+                                    size="sm"
+                                    onClick={() => handleCollegeSelectFromCode(college, course)}
+                                  >
+                                    Select
+                                  </Button>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+
+              {searchType === 'choice' && choiceResult && (
+                <Card className="border-l-4 border-l-primary">
+                  <CardContent className="pt-4">
+                    <div className="space-y-3">
+                      <div>
+                        <h4 className="font-medium text-primary">{choiceResult["College Name"]}</h4>
+                        <div className="text-sm text-muted-foreground space-y-1">
+                          <p>College Code: {choiceResult["College Code"]}</p>
+                          <p>Course: {choiceResult["Course Name"]}</p>
+                          <p>Course Code: {choiceResult["Course Code"]}</p>
+                          <p>Location: {choiceResult["City"]}, {choiceResult["District"]}</p>
                         </div>
                       </div>
-                    </CardContent>
-                  </Card>
-                )}
+                      
+                      <div className="flex justify-end">
+                        <Button
+                          onClick={() => handleCollegeSelectFromChoice(choiceResult)}
+                        >
+                          Select This College
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+        <div className="text-center text-muted-foreground">
+          <span className="text-sm">OR</span>
+        </div>
+        {/* Fresh Recommendations Option */}
+        <Card className="border-2 border-blue-200 bg-blue-50">
+          <CardContent className="pt-6">
+            <div className="text-center space-y-4">
+              <div className="flex justify-center">
+                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                  <Sparkles className="w-6 h-6 text-blue-600" />
+                </div>
               </div>
-            </CardContent>
-          </Card>
+              <div>
+                <h3 className="text-lg font-semibold text-blue-800 mb-2">
+                  Generate Fresh Recommendations
+                </h3>
+                <p className="text-blue-700 text-sm mb-4">
+                  Get new recommendations without considering any previous round choices
+                </p>
+                <Button 
+                  onClick={onSkipSelection}
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  Generate Fresh List
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+         
         </>
       )}
 
