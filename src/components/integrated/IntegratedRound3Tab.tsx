@@ -45,6 +45,7 @@ export const IntegratedRound3Tab = ({ admissionType }: IntegratedRound3TabProps)
   const [formDataHash, setFormDataHash] = useState<string>('');
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [showChangeConfirmation, setShowChangeConfirmation] = useState(false);
+  const [showAddCollegeConfirmation, setShowAddCollegeConfirmation] = useState(false);
 
   const { generatePDF, isGenerating } = usePdfDownload();
 
@@ -106,9 +107,17 @@ export const IntegratedRound3Tab = ({ admissionType }: IntegratedRound3TabProps)
         checkFormDataChanges();
       }
     };
+
+    const handleClearRegenerateMessage = () => {
+      setShowRegenerateMessage(false);
+    };
     
     window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
+    window.addEventListener('clearRegenerateMessage', handleClearRegenerateMessage);
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('clearRegenerateMessage', handleClearRegenerateMessage);
+    };
   }, [admissionType, hasGeneratedRecommendations, showRegenerateMessage]);
 
   // Listen for regeneration events from parent component
@@ -346,6 +355,8 @@ export const IntegratedRound3Tab = ({ admissionType }: IntegratedRound3TabProps)
           const currentHash = btoa(currentFormData);
           localStorage.setItem(`integrated_form_hash_${admissionType}`, currentHash);
           setShowRegenerateMessage(false);
+          // Clear regenerate message across all rounds
+          window.dispatchEvent(new CustomEvent('clearRegenerateMessage'));
           localStorage.setItem('integrated_recommendations_updated', 'true');
         }
         
@@ -378,6 +389,7 @@ export const IntegratedRound3Tab = ({ admissionType }: IntegratedRound3TabProps)
 
   const handleAddCollegeSelection = () => {
     setShowCollegeSelection(true);
+    setShowAddCollegeConfirmation(false);
   };
 
   const handleDownloadPdf = async () => {
@@ -597,14 +609,31 @@ export const IntegratedRound3Tab = ({ admissionType }: IntegratedRound3TabProps)
             </CardTitle>
             <div className="flex gap-2 w-full sm:w-auto">
               {!selectedCollege && hasGeneratedRecommendations && (
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={handleAddCollegeSelection}
-                  className="w-full sm:w-auto"
-                >
-                  Add College Selection
-                </Button>
+                <AlertDialog open={showAddCollegeConfirmation} onOpenChange={setShowAddCollegeConfirmation}>
+                  <AlertDialogTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      className="w-full sm:w-auto"
+                    >
+                      Add College Selection
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Add College Selection</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Do you want to add a college selection from your previous round? This will help generate more targeted recommendations for this round.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleAddCollegeSelection}>
+                        Yes, Add College
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               )}
               <Button 
                 variant="outline" 
