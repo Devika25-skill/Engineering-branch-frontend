@@ -84,6 +84,45 @@ export const IntegratedRound3Tab = ({ admissionType }: IntegratedRound3TabProps)
     return recommendations;
   };
 
+  // Check for form data changes to show regenerate message
+  useEffect(() => {
+    const checkFormDataChanges = () => {
+      const currentFormData = localStorage.getItem(`integrated_form_${admissionType}`);
+      const storedHash = localStorage.getItem(`integrated_form_hash_${admissionType}`);
+      
+      if (currentFormData && hasGeneratedRecommendations) {
+        const currentHash = btoa(currentFormData);
+        
+        if (storedHash && currentHash !== storedHash && !showRegenerateMessage) {
+          setShowRegenerateMessage(true);
+        }
+      }
+    };
+    
+    checkFormDataChanges();
+    
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === `integrated_form_${admissionType}`) {
+        checkFormDataChanges();
+      }
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, [admissionType, hasGeneratedRecommendations, showRegenerateMessage]);
+
+  // Listen for regeneration events from parent component
+  useEffect(() => {
+    const handleRegenerateEvent = () => {
+      if (hasSubmittedPreferences && selectedBranches.length > 0 && selectedCities.length > 0) {
+        handleSubmitPreferences();
+      }
+    };
+    
+    window.addEventListener('regenerateRecommendations', handleRegenerateEvent);
+    return () => window.removeEventListener('regenerateRecommendations', handleRegenerateEvent);
+  }, [hasSubmittedPreferences, selectedBranches.length, selectedCities.length]);
+
   // Load existing preferences and recommendations on mount
   useEffect(() => {
     const loadExistingData = async () => {
@@ -337,6 +376,10 @@ export const IntegratedRound3Tab = ({ admissionType }: IntegratedRound3TabProps)
     setIsPreferencesCardCollapsed(false);
   };
 
+  const handleAddCollegeSelection = () => {
+    setShowCollegeSelection(true);
+  };
+
   const handleDownloadPdf = async () => {
     if (round3Recommendations.length === 0) return;
     
@@ -358,7 +401,6 @@ export const IntegratedRound3Tab = ({ admissionType }: IntegratedRound3TabProps)
       });
     }
   };
-
 
   // Show loading skeleton while initial data is loading
   if (isInitialLoading) {
@@ -500,17 +542,50 @@ export const IntegratedRound3Tab = ({ admissionType }: IntegratedRound3TabProps)
               >
                 {isGeneratingRecommendations ? (
                   <div className="flex items-center gap-2">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                     Generating...
                   </div>
-                ) : (
-                  selectedCollege ? 'Generate Round 3 Recommendations' : 'Generate Fresh Recommendations'
-                )}
+                ) : hasSubmittedPreferences ? 'Update & Generate' : 'Save & Generate'}
               </Button>
             </div>
           </CardContent>
         )}
       </Card>
+
+      {/* Form Update Warning */}
+      {showRegenerateMessage && hasGeneratedRecommendations && (
+        <Card className="border-orange-200 bg-orange-50">
+          <CardContent className="pt-4">
+            <div className="flex items-start gap-3">
+              <div className="text-orange-600 text-lg">⚠️</div>
+              <div className="flex-1">
+                <h4 className="font-semibold text-orange-800 text-sm mb-1">
+                  Form Data Updated
+                </h4>
+                <p className="text-xs text-orange-700 leading-relaxed mb-3">
+                  Your academic details (CET score, category, or percentages) have been updated. 
+                  Please regenerate recommendations to get updated results based on your new information.
+                </p>
+                <Button 
+                  size="sm"
+                  onClick={handleSubmitPreferences}
+                  disabled={isGeneratingRecommendations}
+                  className="bg-orange-600 hover:bg-orange-700 text-white"
+                >
+                  {isGeneratingRecommendations ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      Updating...
+                    </div>
+                  ) : (
+                    'Update Recommendations'
+                  )}
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Recommendations Section */}
       {hasGeneratedRecommendations && round3Recommendations.length > 0 ? (
@@ -521,6 +596,16 @@ export const IntegratedRound3Tab = ({ admissionType }: IntegratedRound3TabProps)
               Round 3 Recommendations ({round3Recommendations.length})
             </CardTitle>
             <div className="flex gap-2 w-full sm:w-auto">
+              {!selectedCollege && hasGeneratedRecommendations && (
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={handleAddCollegeSelection}
+                  className="w-full sm:w-auto"
+                >
+                  Add College Selection
+                </Button>
+              )}
               <Button 
                 variant="outline" 
                 size="sm"
