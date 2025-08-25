@@ -11,7 +11,6 @@ import { IntegratedCitiesForm } from './IntegratedCitiesForm';
 import { IntegratedCollegeSelectionCard } from './IntegratedCollegeSelectionCard';
 import { integratedRecommendationApi, RoundPreferencesResponse } from '@/services/integratedRecommendationApi';
 import { IntegratedRecommendationCard } from './IntegratedRecommendationCard';
-import { CategoryFilter } from '@/components/recommendations/CategoryFilter';
 import { PremiumGate } from '@/components/recommendations/PremiumGate';
 import { NoResultsState } from '@/components/recommendations/NoResultsState';
 import { usePdfDownload } from '@/hooks/usePdfDownloadIntegrated';
@@ -41,7 +40,6 @@ export const IntegratedRound2Tab = ({ admissionType }: IntegratedRound2TabProps)
   const [round2Recommendations, setRound2Recommendations] = useState<any[]>([]);
   const [hasGeneratedRecommendations, setHasGeneratedRecommendations] = useState(false);
   const [isUnlocked, setIsUnlocked] = useState(false);
-  const [filteredCategory, setFilteredCategory] = useState<string>('All');
   const [showRegenerateMessage, setShowRegenerateMessage] = useState(false);
   const [formDataHash, setFormDataHash] = useState<string>('');
   const [isInitialLoading, setIsInitialLoading] = useState(true);
@@ -183,7 +181,7 @@ export const IntegratedRound2Tab = ({ admissionType }: IntegratedRound2TabProps)
     loadExistingData();
   }, [admissionType]);
 
-  // Check unlock status
+  // Check unlock status - single payment for all rounds
   useEffect(() => {
     const checkUnlockStatus = () => {
       const isUnlocked = localStorage.getItem(`integratedRecommendationUnlocked_${admissionType}`) === 'true';
@@ -289,7 +287,7 @@ export const IntegratedRound2Tab = ({ admissionType }: IntegratedRound2TabProps)
         setRound2Recommendations(convertedRecs);
         setHasGeneratedRecommendations(true);
         
-        // Check payment status
+        // Check payment status - single payment for all rounds
         if (response.data.is_payment === true) {
           localStorage.setItem(`integratedRecommendationUnlocked_${admissionType}`, 'true');
           setIsUnlocked(true);
@@ -353,14 +351,6 @@ export const IntegratedRound2Tab = ({ admissionType }: IntegratedRound2TabProps)
     }
   };
 
-  const filteredRecommendations = filteredCategory === 'All' 
-    ? round2Recommendations 
-    : round2Recommendations.filter(rec => rec.category === filteredCategory);
-
-  const categoryStats = round2Recommendations.reduce((acc, rec) => {
-    acc[rec.category as keyof typeof acc] = (acc[rec.category as keyof typeof acc] || 0) + 1;
-    return acc;
-  }, { Dream: 0, Reach: 0, Match: 0, Safety: 0 });
 
   // Show loading skeleton while initial data is loading
   if (isInitialLoading) {
@@ -533,37 +523,24 @@ export const IntegratedRound2Tab = ({ admissionType }: IntegratedRound2TabProps)
             </div>
           </div>
 
-          <div className="space-y-4">
-            <div className="flex flex-wrap gap-2 mb-4">
-              {['All', 'Dream', 'Reach', 'Match', 'Safety'].map((category) => (
-                <Button
-                  key={category}
-                  variant={filteredCategory === category ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setFilteredCategory(category)}
-                >
-                  {category} {category !== 'All' && `(${categoryStats[category as keyof typeof categoryStats] || 0})`}
-                </Button>
-              ))}
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            {filteredRecommendations.length > 0 ? (
-              filteredRecommendations.map((recommendation, index) => (
+          {/* Recommendations List */}
+          {isUnlocked ? (
+            <div className="space-y-4">
+              {round2Recommendations.map((recommendation, index) => (
                 <IntegratedRecommendationCard
                   key={`${recommendation.college.id}-${recommendation.choice_code}-${index}`}
                   recommendation={recommendation}
                   index={index + 1}
                 />
-              ))
-            ) : (
-              <div className="text-center py-8">
-                <p className="text-muted-foreground">No recommendations found</p>
-                <p className="text-sm text-muted-foreground">Try adjusting your filters or preferences</p>
-              </div>
-            )}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <PremiumGate 
+              title="Unlock Round 2 Recommendations"
+              description="Get detailed college recommendations for Round 2 based on your previous choices and preferences."
+              onUnlock={() => setIsUnlocked(true)}
+            />
+          )}
 
           <div className="mt-6">
             <FeedbackSection />
