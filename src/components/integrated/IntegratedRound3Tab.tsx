@@ -486,72 +486,184 @@ export const IntegratedRound3Tab = ({ admissionType }: IntegratedRound3TabProps)
         )}
       </Card>
 
-      {/* Recommendations */}
-      {hasGeneratedRecommendations && round3Recommendations.length > 0 && (
-        <>
-          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-            <div>
-              <h2 className="text-xl font-bold text-gray-900">Round 3 Recommendations</h2>
-              <p className="text-sm text-gray-600 mt-1">
-                {selectedCollege 
-                  ? `Based on your previous choice: ${selectedCollege.collegeName}`
-                  : 'Fresh recommendations for Round 3'
-                }
-              </p>
+      {/* Recommendations Section */}
+      {hasGeneratedRecommendations && round3Recommendations.length > 0 ? (
+        <Card className="mt-6">
+          <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <CardTitle className="flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-blue-600" />
+              Round 3 Recommendations ({round3Recommendations.length})
+            </CardTitle>
+            <div className="flex gap-2 w-full sm:w-auto">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={handleDownloadPdf}
+                disabled={!isUnlocked}
+                className="w-full sm:w-auto"
+              >
+                Download PDF
+              </Button>
             </div>
-            
-            <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-              {hasSubmittedPreferences && !isGeneratingRecommendations && (
-                <Button 
-                  variant="outline" 
-                  onClick={handleEditPreferences}
-                  className="w-full sm:w-auto"
-                >
-                  Edit Preferences
-                </Button>
-              )}
-              
-              {isUnlocked && round3Recommendations.length > 0 && (
-                <Button 
-                  onClick={handleDownloadPdf}
-                  disabled={isGenerating}
-                  className="w-full sm:w-auto"
-                >
-                  {isGenerating ? 'Downloading...' : 'Download PDF'}
-                </Button>
-              )}
-            </div>
-          </div>
-
-          {/* Recommendations List */}
-          {isUnlocked ? (
-            <div className="space-y-4">
-              {round3Recommendations.map((recommendation, index) => (
-                <IntegratedRecommendationCard
-                  key={`${recommendation.college.id}-${recommendation.choice_code}-${index}`}
-                  recommendation={recommendation}
-                  index={index + 1}
-                />
-              ))}
-            </div>
-          ) : (
-            <PremiumGate 
-              title="Unlock Round 3 Recommendations"
-              description="Get detailed college recommendations for Round 3 based on your previous choices and preferences."
-              onUnlock={() => setIsUnlocked(true)}
-            />
-          )}
-
-          <div className="mt-6">
-            <FeedbackSection />
-          </div>
-        </>
+          </CardHeader>
+          <CardContent>
+            {/* Show loading skeleton during recommendation generation */}
+            {isGeneratingRecommendations ? (
+              <div className="space-y-6">
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                  <div className="flex items-start gap-3">
+                    <div className="text-yellow-600 text-lg">⚠️</div>
+                    <div>
+                      <div className="h-4 bg-yellow-200 animate-pulse rounded w-1/3 mb-2"></div>
+                      <div className="h-3 bg-yellow-200 animate-pulse rounded w-full mb-1"></div>
+                      <div className="h-3 bg-yellow-200 animate-pulse rounded w-3/4"></div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="space-y-4">
+                  {[1, 2, 3].map((i) => (
+                    <Card key={i} className="border border-gray-200">
+                      <CardContent className="p-6">
+                        <div className="space-y-4">
+                          <div className="flex items-center justify-between">
+                            <div className="h-6 bg-muted animate-pulse rounded w-1/4"></div>
+                            <div className="h-6 bg-muted animate-pulse rounded w-16"></div>
+                          </div>
+                          <div className="h-5 bg-muted animate-pulse rounded w-3/4"></div>
+                          <div className="flex gap-4">
+                            <div className="h-4 bg-muted animate-pulse rounded w-1/5"></div>
+                            <div className="h-4 bg-muted animate-pulse rounded w-1/5"></div>
+                            <div className="h-4 bg-muted animate-pulse rounded w-1/5"></div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <>
+                {/* Disclaimer */}
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+                  <div className="flex items-start gap-3">
+                    <div className="text-yellow-600 text-lg">⚠️</div>
+                    <div>
+                      <h4 className="font-semibold text-yellow-800 text-sm mb-1">Important Disclaimer</h4>
+                      <p className="text-xs text-yellow-700 leading-relaxed">
+                        These recommendations are based on previous year cutoff data and trends. 
+                        Actual admission depends on various factors including seat availability, competition, 
+                        category-wise cutoffs, and official announcements. Please verify with official sources 
+                        and consider multiple options before making final decisions.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-4">  
+                  {round3Recommendations.length === 0 ? (
+                    <NoResultsState />
+                  ) : (
+                    <div className="grid gap-4">
+                      {/* Show first 3 recommendations */}
+                      {round3Recommendations.slice(0, 3).map((recommendation, index) => (
+                        <IntegratedRecommendationCard
+                          key={`${recommendation.college.id}-${index}`}
+                          recommendation={recommendation}
+                          index={index + 1}
+                        />
+                      ))}
+                      
+                      {/* Show remaining recommendations with blur if not unlocked */}
+                      {round3Recommendations.length > 3 && (
+                        <>
+                          {!isUnlocked ? (
+                            <div className="relative">
+                              {/* Blurred recommendations */}
+                              <div className="filter blur-sm pointer-events-none space-y-4">
+                                {round3Recommendations.slice(3, 6).map((recommendation, index) => (
+                                  <IntegratedRecommendationCard
+                                    key={`blurred-${recommendation.college.id}-${index}`}
+                                    recommendation={recommendation}
+                                    index={index + 4}
+                                  />
+                                ))}
+                              </div>
+                              
+                              {/* Unlock overlay */}
+                              <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center rounded-lg">
+                                <div className="text-center p-6 bg-white rounded-lg shadow-lg border-2 border-blue-200 max-w-sm mx-4">
+                                  <div className="text-3xl mb-3">🔒</div>
+                                  <h3 className="text-lg font-bold text-gray-900 mb-2">
+                                    Unlock All Recommendations
+                                  </h3>
+                                  <p className="text-sm text-gray-600 mb-4">
+                                    Get access to {round3Recommendations.length - 3} more personalized recommendations
+                                  </p>
+                                  <PremiumGate 
+                                    onUnlock={() => setIsUnlocked(true)}
+                                    storageKey={`integratedRecommendationUnlocked_${admissionType}`}
+                                    productType={`future-bridge-admissionType-${admissionType}`}
+                                    title={`Unlock Round 3 Recommendations`}
+                                    description="Get access to your personalized integrated admission recommendations"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          ) : (
+                            /* Show all remaining recommendations if unlocked */
+                            round3Recommendations.slice(3).map((recommendation, index) => (
+                              <IntegratedRecommendationCard
+                                key={`${recommendation.college.id}-${index + 3}`}
+                                recommendation={recommendation}
+                                index={index + 4}
+                              />
+                            ))
+                          )}
+                        </>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
+          </CardContent>
+        </Card>
+      ) : (hasGeneratedRecommendations &&
+        <NoResultsState />
       )}
 
-      {hasSubmittedPreferences && !hasGeneratedRecommendations && !isGeneratingRecommendations && (
-        <div className="text-center py-8">
-          <p className="text-muted-foreground">No recommendations yet</p>
-          <p className="text-sm text-muted-foreground">Click 'Generate Recommendations' to see your college options</p>
+      {/* Coming Soon Section - only show if no recommendations generated */}
+      {!hasGeneratedRecommendations && (
+        <Card className="bg-yellow-50 border-yellow-200">
+          <CardContent className="pt-6">
+            <div className="text-center space-y-4">
+              <div className="flex justify-center">
+                <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center">
+                  <Clock className="w-8 h-8 text-yellow-600" />
+                </div>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-yellow-800 mb-2">
+                  Generate Round 3 Recommendations
+                </h3>
+                <p className="text-yellow-700 text-sm max-w-md mx-auto">
+                  Save your branch and city preferences above to generate personalized Round 3 recommendations 
+                  for {admissionType.replace(/_/g, '/')} programs.
+                </p>
+              </div>
+              <div className="flex items-center justify-center gap-2 text-sm text-yellow-600">
+                <Sparkles className="w-4 h-4" />
+                <span>Get ready for an exciting journey ahead!</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Feedback Section */}
+      {hasGeneratedRecommendations && round3Recommendations.length > 0 && (
+        <div className="mt-12 mb-8">
+          <FeedbackSection />
         </div>
       )}
     </div>
