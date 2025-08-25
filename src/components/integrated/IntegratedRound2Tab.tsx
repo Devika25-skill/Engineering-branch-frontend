@@ -61,8 +61,14 @@ export const IntegratedRound2Tab = ({ admissionType }: IntegratedRound2TabProps)
     setCurrentStep('preferences');
   };
 
+  const handleSkipSelection = () => {
+    setSelectedCollege(null);
+    localStorage.removeItem(`integrated_round2_college_${admissionType}`);
+    setCurrentStep('preferences');
+  };
+
   const handleGenerateRecommendations = async () => {
-    if (!selectedCollege || selectedBranches.length === 0 || selectedCities.length === 0) {
+    if (selectedBranches.length === 0 || selectedCities.length === 0) {
       toast({
         title: "Please complete all preferences",
         variant: "destructive"
@@ -81,7 +87,7 @@ export const IntegratedRound2Tab = ({ admissionType }: IntegratedRound2TabProps)
         round_no: 2,
         category: formData.category,
         score: formData.score,
-        last_college_round_choice_code: selectedCollege.courseCode
+        ...(selectedCollege && { last_college_round_choice_code: selectedCollege.courseCode })
       };
 
       const response = await integratedRecommendationApi.generateRecommendations(requestData);
@@ -94,7 +100,9 @@ export const IntegratedRound2Tab = ({ admissionType }: IntegratedRound2TabProps)
         setCurrentStep('results');
         
         toast({
-          title: "Round 2 recommendations generated successfully!"
+          title: selectedCollege 
+            ? "Round 2 recommendations generated successfully!" 
+            : "Fresh Round 2 recommendations generated successfully!"
         });
       }
     } catch (error) {
@@ -130,6 +138,7 @@ export const IntegratedRound2Tab = ({ admissionType }: IntegratedRound2TabProps)
         <IntegratedCollegeSelectionCard
           admissionType={admissionType}
           onCollegeSelect={handleCollegeSelect}
+          onSkipSelection={handleSkipSelection}
           selectedCollege={selectedCollege}
         />
       </div>
@@ -145,11 +154,14 @@ export const IntegratedRound2Tab = ({ admissionType }: IntegratedRound2TabProps)
               <div>
                 <h3 className="text-lg font-semibold">Round 2 Preferences</h3>
                 <p className="text-sm text-muted-foreground">
-                  Based on your selected college: {selectedCollege?.collegeName}
+                  {selectedCollege 
+                    ? `Based on your selected college: ${selectedCollege.collegeName}`
+                    : 'Fresh recommendations without previous round constraint'
+                  }
                 </p>
               </div>
               <Button variant="outline" onClick={() => setCurrentStep('college')}>
-                Change College
+                {selectedCollege ? 'Change College' : 'Select College'}
               </Button>
             </div>
 
@@ -216,7 +228,10 @@ export const IntegratedRound2Tab = ({ admissionType }: IntegratedRound2TabProps)
         <div>
           <h3 className="text-lg font-semibold">Round 2 Recommendations</h3>
           <p className="text-sm text-muted-foreground">
-            Based on your previous choice: {selectedCollege?.collegeName}
+            {selectedCollege 
+              ? `Based on your previous choice: ${selectedCollege.collegeName}`
+              : 'Fresh recommendations for Round 2'
+            }
           </p>
         </div>
         <Button variant="outline" onClick={resetRound}>
