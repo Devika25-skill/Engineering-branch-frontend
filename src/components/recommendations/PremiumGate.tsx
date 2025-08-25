@@ -70,12 +70,6 @@ export const PremiumGate = ({
     setSearchParams(searchParams);
   };
 
-  const [searchParams, setSearchParams] = useSearchParams();
-
-  const setPaidStatus = () => {
-    searchParams.set("status", "paid");
-    setSearchParams(searchParams);
-  };
   // Auto-fetch user data from AuthContext (similar to Round 1) on mount
   useEffect(() => {
     if (user) {
