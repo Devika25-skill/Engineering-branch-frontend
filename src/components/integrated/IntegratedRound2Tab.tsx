@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Search, Building2, MapPin, ChevronDown, ChevronUp, Sparkles, Clock, Lock } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { IntegratedAdmissionType } from '@/types/integratedAdmission';
 import { IntegratedBranchesForm } from './IntegratedBranchesForm';
@@ -43,6 +44,7 @@ export const IntegratedRound2Tab = ({ admissionType }: IntegratedRound2TabProps)
   const [showRegenerateMessage, setShowRegenerateMessage] = useState(false);
   const [formDataHash, setFormDataHash] = useState<string>('');
   const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [showChangeConfirmation, setShowChangeConfirmation] = useState(false);
 
   const { generatePDF, isGenerating } = usePdfDownload();
 
@@ -203,6 +205,12 @@ export const IntegratedRound2Tab = ({ admissionType }: IntegratedRound2TabProps)
   }) => {
     setSelectedCollege(college);
     setShowCollegeSelection(false);
+  };
+
+  const handleChangeCollege = () => {
+    setSelectedCollege(null);
+    setShowCollegeSelection(true);
+    setShowChangeConfirmation(false);
   };
 
   const handleSkipSelection = () => {
@@ -416,9 +424,27 @@ export const IntegratedRound2Tab = ({ admissionType }: IntegratedRound2TabProps)
                   </div>
                 </div>
               </div>
-              <Button variant="outline" size="sm" onClick={() => setShowCollegeSelection(true)}>
-                Change
-              </Button>
+              <AlertDialog open={showChangeConfirmation} onOpenChange={setShowChangeConfirmation}>
+                <AlertDialogTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    Change
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Change College Selection</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Are you sure you want to change your college selection? This will remove your current choice and you'll need to select a college again.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleChangeCollege}>
+                      Yes, Change
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
           </CardContent>
         </Card>
