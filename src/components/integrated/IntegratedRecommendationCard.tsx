@@ -112,12 +112,12 @@ export const IntegratedRecommendationCard = ({
                 <div className="flex flex-wrap gap-1">
                   {choice_code && (
                     <span className="text-blue-700 bg-blue-200 px-1.5 py-0.5 rounded text-xs">
-                      Choice Code: {choice_code}
+                      Choice Code: {choice_code} {choice_code.includes("U") ? "- Un-Aided" : ""}
                     </span>
                   )}
                   {cutoff_percentile && (
                     <span className="text-blue-700 bg-blue-200 px-1.5 py-0.5 rounded text-xs">
-                      Previouis Year Cutoff: {cutoff_percentile}%ile
+                      Previous Year Cutoff: {cutoff_percentile}%ile
                     </span>
                   )}
                 </div>
