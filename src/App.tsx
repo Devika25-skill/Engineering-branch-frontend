@@ -21,6 +21,7 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
+import RaiseIssue from "./pages/RaiseIssue";
 
 const queryClient = new QueryClient();
 
@@ -45,6 +46,7 @@ const App = () => (
                 <Route path="/integrated-steps" element={<IntegratedAdmissionSteps />} />
                 <Route path="/integrated-rounds" element={<IntegratedRounds />} />
                 <Route path="/college/:id" element={<CollegeDetails />} />
+                <Route path="/raise-issue" element={<RaiseIssue />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </div>

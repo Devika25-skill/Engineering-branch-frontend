@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { GraduationCap, User, Heart, Sparkles, Building, LogOut, Menu } from "lucide-react";
+import { GraduationCap, User, Heart, Sparkles, Building, LogOut, Menu, MessageSquare } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -141,6 +141,13 @@ const Navigation = () => {
                       <p className="text-sm font-medium leading-none">{user?.name || 'Guest User'}</p>
                       <p className="text-xs leading-none text-muted-foreground">{user?.email}</p>
                     </div>
+                    <DropdownMenuItem 
+                      onClick={() => navigate('/raise-issue')} 
+                      className="focus:bg-accent"
+                    >
+                      <MessageSquare className="mr-2 h-4 w-4" />
+                      <span>Raise Issue</span>
+                    </DropdownMenuItem>
                     <DropdownMenuItem onClick={logout} className="text-red-600 focus:text-red-600">
                       <LogOut className="mr-2 h-4 w-4" />
                       <span>Log out</span>
