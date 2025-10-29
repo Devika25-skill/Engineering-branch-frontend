@@ -396,14 +396,14 @@ export default function MyTickets() {
                               <Paperclip className="w-4 h-4" />
                               Attachments
                             </h4>
-                            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                               {ticket.attachments.map((url, index) => {
                                 const isVideo = url.match(/\.(mp4|mov|avi|webm)$/i);
                                 
                                 return (
                                   <div
                                     key={index}
-                                    className="group relative w-full max-w-[120px] aspect-square rounded-lg overflow-hidden border-2 border-border/50 hover:border-primary/50 transition-all duration-300 hover:shadow-lg bg-muted/30 flex items-center justify-center"
+                                    className="group relative aspect-square rounded-lg overflow-hidden border-2 border-border/50 hover:border-primary/50 transition-all duration-300 hover:shadow-lg bg-muted/30 flex items-center justify-center"
                                   >
                                     {isVideo ? (
                                       <video
@@ -466,14 +466,14 @@ export default function MyTickets() {
                                     </div>
                                     <p className="text-sm whitespace-pre-wrap leading-relaxed">{comment.comment}</p>
                                     {comment.attachments && comment.attachments.length > 0 && (
-                                      <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 mt-3">
+                                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-3">
                                         {comment.attachments.map((url, idx) => {
                                           const isVideo = url.match(/\.(mp4|mov|avi|webm)$/i);
                                           
                                           return (
                                             <div
                                               key={idx}
-                                              className="group relative w-full max-w-[100px] aspect-square rounded-lg overflow-hidden border-2 border-border/50 hover:border-primary/50 transition-all duration-300 hover:shadow-lg bg-muted/30 flex items-center justify-center"
+                                              className="group relative aspect-square rounded-lg overflow-hidden border-2 border-border/50 hover:border-primary/50 transition-all duration-300 hover:shadow-lg bg-muted/30 flex items-center justify-center"
                                             >
                                               {isVideo ? (
                                                 <video
@@ -570,7 +570,7 @@ export default function MyTickets() {
 
                             {/* Selected Files Preview */}
                             {selectedFiles[ticket.ticket_id] && selectedFiles[ticket.ticket_id].length > 0 && (
-                              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                                 {selectedFiles[ticket.ticket_id].map((file, index) => {
                                   const isImage = file.type.startsWith('image/');
                                   const isVideo = file.type.startsWith('video/');
@@ -578,7 +578,7 @@ export default function MyTickets() {
                                   
                                   return (
                                     <div key={index} className="relative group animate-scale-in">
-                                      <div className="w-full max-w-[100px] aspect-square rounded-lg border-2 border-border/50 hover:border-primary/50 overflow-hidden bg-muted/30 shadow-sm hover:shadow-lg transition-all duration-300 flex items-center justify-center p-1">
+                                      <div className="aspect-square rounded-lg border-2 border-border/50 hover:border-primary/50 overflow-hidden bg-muted/30 shadow-sm hover:shadow-lg transition-all duration-300 flex items-center justify-center p-2">
                                         {isImage && (
                                           <img
                                             src={fileUrl}
