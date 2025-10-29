@@ -466,42 +466,49 @@ export default function MyTickets() {
                                     </div>
                                     <p className="text-sm whitespace-pre-wrap leading-relaxed">{comment.comment}</p>
                                     {comment.attachments && comment.attachments.length > 0 && (
-                                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-3">
-                                        {comment.attachments.map((url, idx) => {
-                                          const isVideo = url.match(/\.(mp4|mov|avi|webm)$/i);
-                                          
-                                          return (
-                                            <div
-                                              key={idx}
-                                              className="group relative aspect-square rounded-lg overflow-hidden border-2 border-border/50 hover:border-primary/50 transition-all duration-300 hover:shadow-lg bg-muted/30 flex items-center justify-center"
-                                            >
-                                              {isVideo ? (
-                                                <video
-                                                  src={url}
-                                                  controls
-                                                  className="w-full h-full object-contain"
-                                                  preload="metadata"
-                                                >
-                                                  Your browser does not support the video tag.
-                                                </video>
-                                              ) : (
-                                                <a
-                                                  href={url}
-                                                  target="_blank"
-                                                  rel="noopener noreferrer"
-                                                  className="block w-full h-full flex items-center justify-center p-2"
-                                                >
-                                                  <img
+                                      <div className="mt-4">
+                                        <div className="text-xs text-muted-foreground mb-2 flex items-center gap-1.5">
+                                          <Paperclip className="w-3 h-3" />
+                                          <span>{comment.attachments.length} {comment.attachments.length === 1 ? 'attachment' : 'attachments'}</span>
+                                        </div>
+                                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                                          {comment.attachments.map((url, idx) => {
+                                            const isVideo = url.match(/\.(mp4|mov|avi|webm)$/i);
+                                            
+                                            return (
+                                              <div
+                                                key={idx}
+                                                className="group relative aspect-square rounded-lg overflow-hidden border-2 border-border/50 hover:border-primary/50 transition-all duration-300 hover:shadow-lg bg-muted/30 flex items-center justify-center animate-scale-in"
+                                                style={{ animationDelay: `${idx * 50}ms` }}
+                                              >
+                                                {isVideo ? (
+                                                  <video
                                                     src={url}
-                                                    alt={`Comment attachment ${idx + 1}`}
-                                                    className="max-w-full max-h-full object-contain transition-transform duration-300 group-hover:scale-105"
-                                                    loading="lazy"
-                                                  />
-                                                </a>
-                                              )}
-                                            </div>
-                                          );
-                                        })}
+                                                    controls
+                                                    className="w-full h-full object-contain"
+                                                    preload="metadata"
+                                                  >
+                                                    Your browser does not support the video tag.
+                                                  </video>
+                                                ) : (
+                                                  <a
+                                                    href={url}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="block w-full h-full flex items-center justify-center p-2"
+                                                  >
+                                                    <img
+                                                      src={url}
+                                                      alt={`Comment attachment ${idx + 1}`}
+                                                      className="max-w-full max-h-full object-contain transition-transform duration-300 group-hover:scale-105"
+                                                      loading="lazy"
+                                                    />
+                                                  </a>
+                                                )}
+                                              </div>
+                                            );
+                                          })}
+                                        </div>
                                       </div>
                                     )}
                                   </div>
