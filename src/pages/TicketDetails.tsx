@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, Calendar, Hash, MapPin, Globe, Monitor, Paperclip, Send, X, Image as ImageIcon, Video, FileText } from "lucide-react";
+import { ArrowLeft, Calendar, Hash, MapPin, Globe, Monitor, Paperclip, Send, X, Image as ImageIcon, Video, FileText, Upload, AlertCircle } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import { ticketService, Ticket } from "@/services/ticketService";
 import { useAuth } from "@/contexts/AuthContext";
@@ -370,89 +370,109 @@ const TicketDetails = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="file-upload">Attachments (Optional)</Label>
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <Input
-                    id="file-upload"
+              <Label>
+                Attachments (Screenshots / Videos)
+              </Label>
+              <p className="text-sm text-muted-foreground">
+                Upload up to 2 files (jpeg, jpg, png, mp4, mov, avi). Max 100MB per file.
+              </p>
+              
+              {/* Error Message */}
+              {fileError && (
+                <div className="flex items-center gap-2 p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
+                  <AlertCircle className="h-4 w-4 text-destructive flex-shrink-0" />
+                  <p className="text-sm text-destructive">{fileError}</p>
+                </div>
+              )}
+              
+              {/* Upload Area - Only show if less than 2 files */}
+              {files.length < 2 && (
+                <div className="border-2 border-dashed rounded-lg p-6 text-center hover:border-primary/50 transition-colors bg-card">
+                  <input
                     type="file"
                     multiple
-                    accept=".jpeg,.jpg,.png,.mp4,.mov,.avi,image/jpeg,image/jpg,image/png,video/mp4,video/quicktime,video/x-msvideo"
+                    accept=".jpeg,.jpg,.png,.mp4,.mov,.avi"
                     onChange={handleFileSelect}
                     className="hidden"
+                    id="file-upload"
                   />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => document.getElementById('file-upload')?.click()}
-                    disabled={files.length >= 2}
-                    className="border-2 border-purple-200 hover:border-purple-400"
+                  <label
+                    htmlFor="file-upload"
+                    className="cursor-pointer flex flex-col items-center"
                   >
-                    <Paperclip className="mr-2 h-4 w-4" />
-                    Choose Files ({files.length}/2)
-                  </Button>
+                    <Upload className="h-10 w-10 text-muted-foreground mb-2" />
+                    <p className="text-sm text-foreground font-medium">
+                      Click to upload or drag and drop
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {files.length === 0 ? "Up to 2 files" : `${2 - files.length} file remaining`}
+                    </p>
+                  </label>
                 </div>
-                {fileError && (
-                  <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">
-                    {fileError}
-                  </p>
-                )}
-                <p className="text-xs text-muted-foreground">
-                  Max 2 files • jpeg, jpg, png, mp4, mov, avi • 100 MB per file
-                </p>
-              </div>
+              )}
 
+              {/* File Previews */}
               {files.length > 0 && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
                   {files.map((file, index) => {
                     const isVideo = file.type.startsWith('video/');
-                    const isImage = file.type.startsWith('image/');
                     const previewUrl = URL.createObjectURL(file);
-
+                    
                     return (
                       <div
                         key={index}
-                        className="relative aspect-video bg-muted rounded-lg overflow-hidden border-2 border-purple-100 group"
+                        className="relative group rounded-lg overflow-hidden border-2 border-border/50 hover:border-primary/50 bg-muted/30 hover:shadow-lg transition-all duration-300"
                       >
-                        {isVideo ? (
-                          <div className="w-full h-full flex items-center justify-center bg-black/5">
-                            <Video size={32} className="text-muted-foreground" />
-                          </div>
-                        ) : isImage ? (
-                          <img
-                            src={previewUrl}
-                            alt={file.name}
-                            className="w-full h-full object-contain"
-                            loading="lazy"
-                          />
-                        ) : (
-                          <video
-                            src={previewUrl}
-                            className="w-full h-full object-contain"
-                            controls
-                          />
-                        )}
+                        {/* Preview */}
+                        <div className="aspect-video bg-muted/50 flex items-center justify-center p-4">
+                          {isVideo ? (
+                            <video
+                              src={previewUrl}
+                              controls
+                              className="max-w-full max-h-full object-contain rounded"
+                            >
+                              Your browser does not support the video tag.
+                            </video>
+                          ) : (
+                            <img
+                              src={previewUrl}
+                              alt={file.name}
+                              className="max-w-full max-h-full object-contain rounded"
+                            />
+                          )}
+                        </div>
                         
-                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                          <div className="text-center p-2">
-                            <p className="text-white text-xs font-medium truncate max-w-full">
-                              {file.name}
-                            </p>
-                            <p className="text-white/80 text-xs">
-                              {(file.size / 1024).toFixed(1)} KB
-                            </p>
+                        {/* File Info Overlay */}
+                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-3">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex items-center gap-2 min-w-0 flex-1">
+                              {isVideo ? (
+                                <Video className="h-4 w-4 text-white flex-shrink-0" />
+                              ) : (
+                                <ImageIcon className="h-4 w-4 text-white flex-shrink-0" />
+                              )}
+                              <div className="min-w-0 flex-1">
+                                <p className="text-xs text-white font-medium truncate">
+                                  {file.name}
+                                </p>
+                                <p className="text-xs text-white/80">
+                                  {(file.size / (1024 * 1024)).toFixed(2)} MB
+                                </p>
+                              </div>
+                            </div>
+                            
+                            {/* Remove Button */}
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => removeFile(index)}
+                              className="h-8 w-8 bg-white/10 hover:bg-white/20 text-white flex-shrink-0 transition-colors"
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
                           </div>
                         </div>
-
-                        <Button
-                          type="button"
-                          variant="destructive"
-                          size="sm"
-                          className="absolute top-2 right-2 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                          onClick={() => removeFile(index)}
-                        >
-                          <X size={14} />
-                        </Button>
                       </div>
                     );
                   })}
