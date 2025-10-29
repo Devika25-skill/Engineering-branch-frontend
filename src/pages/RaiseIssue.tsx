@@ -20,7 +20,7 @@ const RaiseIssue = () => {
   const [formData, setFormData] = useState({
     name: user?.name || "",
     email: user?.email || "",
-    productType: "Standard",
+    productType: "First Year Engineering",
     details: "",
   });
   
@@ -252,10 +252,13 @@ const RaiseIssue = () => {
                     <SelectTrigger id="productType">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="bg-white z-50">
-                      <SelectItem value="Standard">Standard</SelectItem>
-                      <SelectItem value="Premium">Premium</SelectItem>
-                    </SelectContent>
+                  <SelectContent className="bg-white z-50">
+                    <SelectItem value="First Year Engineering">First Year Engineering</SelectItem>
+                    <SelectItem value="Direct Second Year">Direct Second Year</SelectItem>
+                    <SelectItem value="BCA/MCA (Integrated)">BCA/MCA (Integrated)</SelectItem>
+                    <SelectItem value="BBA/BMS/BBM/MBA (Int.)">BBA/BMS/BBM/MBA (Int.)</SelectItem>
+                    <SelectItem value="B.Pharmacy/Pharm D">B.Pharmacy/Pharm D</SelectItem>
+                  </SelectContent>
                   </Select>
                 </div>
 
