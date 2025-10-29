@@ -2,14 +2,16 @@
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { GraduationCap, User, Heart, Sparkles, Building, LogOut, Menu, MessageSquare } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { GraduationCap, User, Heart, Sparkles, Building, LogOut, Menu, MessageSquare, TicketIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import LoginDialog from "@/components/auth/LoginDialog";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { ProgramSelectionDialog } from "@/components/common/ProgramSelectionDialog";
 import type { ProgramType } from "@/components/common/ProgramSelectionDialog";
+import { ticketService } from "@/services/ticketService";
 
 const Navigation = () => {
   const navigate = useNavigate();
@@ -17,6 +19,24 @@ const Navigation = () => {
   const [loginDialogOpen, setLoginDialogOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showProgramDialog, setShowProgramDialog] = useState(false);
+  const [ticketCount, setTicketCount] = useState<number>(0);
+
+  useEffect(() => {
+    const fetchTicketCount = async () => {
+      if (isLoggedIn && user?.email && user?.accessToken) {
+        try {
+          const response = await ticketService.fetchUserTickets(user.email, user.accessToken);
+          setTicketCount(response.data.total_tickets);
+        } catch (error) {
+          console.error("Failed to fetch ticket count:", error);
+        }
+      } else {
+        setTicketCount(0);
+      }
+    };
+
+    fetchTicketCount();
+  }, [isLoggedIn, user]);
 
   const handleLogin = () => {
     setLoginDialogOpen(true);
@@ -142,6 +162,16 @@ const Navigation = () => {
                       <p className="text-xs leading-none text-muted-foreground">{user?.email}</p>
                     </div>
                     <DropdownMenuItem 
+                      onClick={() => navigate('/my-tickets')} 
+                      className="focus:bg-accent"
+                    >
+                      <TicketIcon className="mr-2 h-4 w-4" />
+                      <span>My Tickets</span>
+                      {ticketCount > 0 && (
+                        <Badge variant="secondary" className="ml-auto">{ticketCount}</Badge>
+                      )}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
                       onClick={() => navigate('/raise-issue')} 
                       className="focus:bg-accent"
                     >
@@ -174,6 +204,47 @@ const Navigation = () => {
                 <SheetContent side="right" className="w-[300px] bg-white z-50">
                   <div className="flex flex-col space-y-4 mt-8">
                     <NavLinks mobile />
+                    
+                    {isLoggedIn && (
+                      <div className="border-t pt-4 space-y-2">
+                        <Button 
+                          variant="outline"
+                          onClick={() => {
+                            navigate('/my-tickets');
+                            setMobileMenuOpen(false);
+                          }}
+                          className="w-full justify-start"
+                        >
+                          <TicketIcon className="mr-2 h-4 w-4" />
+                          My Tickets
+                          {ticketCount > 0 && (
+                            <Badge variant="secondary" className="ml-auto">{ticketCount}</Badge>
+                          )}
+                        </Button>
+                        <Button 
+                          variant="outline"
+                          onClick={() => {
+                            navigate('/raise-issue');
+                            setMobileMenuOpen(false);
+                          }}
+                          className="w-full justify-start"
+                        >
+                          <MessageSquare className="mr-2 h-4 w-4" />
+                          Raise Issue
+                        </Button>
+                        <Button 
+                          variant="outline"
+                          onClick={() => {
+                            logout();
+                            setMobileMenuOpen(false);
+                          }}
+                          className="w-full justify-start text-red-600 hover:text-red-600"
+                        >
+                          <LogOut className="mr-2 h-4 w-4" />
+                          Log out
+                        </Button>
+                      </div>
+                    )}
                     
                     {!isLoggedIn && (
                       <div className="border-t pt-4">

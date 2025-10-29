@@ -22,6 +22,7 @@ import Signup from "./pages/Signup";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 import RaiseIssue from "./pages/RaiseIssue";
+import MyTickets from "./pages/MyTickets";
 
 const queryClient = new QueryClient();
 
@@ -46,8 +47,9 @@ const App = () => (
                 <Route path="/integrated-steps" element={<IntegratedAdmissionSteps />} />
                 <Route path="/integrated-rounds" element={<IntegratedRounds />} />
                 <Route path="/college/:id" element={<CollegeDetails />} />
-                <Route path="/raise-issue" element={<RaiseIssue />} />
-                <Route path="*" element={<NotFound />} />
+              <Route path="/raise-issue" element={<RaiseIssue />} />
+              <Route path="/my-tickets" element={<MyTickets />} />
+              <Route path="*" element={<NotFound />} />
               </Routes>
             </div>
             <Footer />
