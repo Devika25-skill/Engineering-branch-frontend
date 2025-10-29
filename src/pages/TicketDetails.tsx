@@ -314,14 +314,15 @@ const TicketDetails = () => {
                             Attachments ({comment.attachments.length})
                           </span>
                         </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                           {comment.attachments.map((url, idx) => (
                             <a
                               key={idx}
                               href={url}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="group relative aspect-video bg-card rounded-lg overflow-hidden border-2 border-border hover:border-primary/50 transition-all hover:shadow-lg flex items-center justify-center"
+                              className="group relative aspect-video bg-card rounded-lg overflow-hidden border-2 border-border hover:border-primary/50 transition-all hover:shadow-lg animate-scale-in flex items-center justify-center"
+                              style={{ animationDelay: `${idx * 0.1}s` }}
                             >
                               <div className="w-full h-full flex items-center justify-center p-2">
                                 {renderMedia(url)}
