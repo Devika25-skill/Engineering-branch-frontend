@@ -396,23 +396,43 @@ export default function MyTickets() {
                               <Paperclip className="w-4 h-4" />
                               Attachments
                             </h4>
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                              {ticket.attachments.map((url, index) => (
-                                <a
-                                  key={index}
-                                  href={url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="group relative aspect-video rounded-lg overflow-hidden border border-border/50 hover:border-primary transition-all duration-300 hover:shadow-lg hover:scale-105"
-                                >
-                                  <img
-                                    src={url}
-                                    alt={`Attachment ${index + 1}`}
-                                    className="w-full h-full object-cover"
-                                  />
-                                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
-                                </a>
-                              ))}
+                            <div className="flex flex-wrap gap-3">
+                              {ticket.attachments.map((url, index) => {
+                                const isVideo = url.match(/\.(mp4|mov|avi|webm)$/i);
+                                
+                                return (
+                                  <div
+                                    key={index}
+                                    className="group relative w-[150px] h-[150px] rounded-lg overflow-hidden border border-border/50 hover:border-primary/70 transition-all duration-300 hover:shadow-lg hover:scale-105 bg-muted/30"
+                                  >
+                                    {isVideo ? (
+                                      <video
+                                        src={url}
+                                        controls
+                                        className="w-full h-full object-cover"
+                                        preload="metadata"
+                                      >
+                                        Your browser does not support the video tag.
+                                      </video>
+                                    ) : (
+                                      <a
+                                        href={url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="block w-full h-full"
+                                      >
+                                        <img
+                                          src={url}
+                                          alt={`Attachment ${index + 1}`}
+                                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                                          loading="lazy"
+                                        />
+                                      </a>
+                                    )}
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                                  </div>
+                                );
+                              })}
                             </div>
                           </div>
                         )}
@@ -447,23 +467,43 @@ export default function MyTickets() {
                                     </div>
                                     <p className="text-sm whitespace-pre-wrap leading-relaxed">{comment.comment}</p>
                                     {comment.attachments && comment.attachments.length > 0 && (
-                                      <div className="grid grid-cols-2 gap-2 mt-3">
-                                        {comment.attachments.map((url, idx) => (
-                                          <a
-                                            key={idx}
-                                            href={url}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="group relative aspect-video rounded-lg overflow-hidden border border-border/50 hover:border-primary transition-all duration-300 hover:shadow-lg hover:scale-105"
-                                          >
-                                            <img
-                                              src={url}
-                                              alt={`Comment attachment ${idx + 1}`}
-                                              className="w-full h-full object-cover"
-                                            />
-                                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
-                                          </a>
-                                        ))}
+                                      <div className="flex flex-wrap gap-2 mt-3">
+                                        {comment.attachments.map((url, idx) => {
+                                          const isVideo = url.match(/\.(mp4|mov|avi|webm)$/i);
+                                          
+                                          return (
+                                            <div
+                                              key={idx}
+                                              className="group relative w-[150px] h-[150px] rounded-lg overflow-hidden border border-border/50 hover:border-primary/70 transition-all duration-300 hover:shadow-lg hover:scale-105 bg-muted/30"
+                                            >
+                                              {isVideo ? (
+                                                <video
+                                                  src={url}
+                                                  controls
+                                                  className="w-full h-full object-cover"
+                                                  preload="metadata"
+                                                >
+                                                  Your browser does not support the video tag.
+                                                </video>
+                                              ) : (
+                                                <a
+                                                  href={url}
+                                                  target="_blank"
+                                                  rel="noopener noreferrer"
+                                                  className="block w-full h-full"
+                                                >
+                                                  <img
+                                                    src={url}
+                                                    alt={`Comment attachment ${idx + 1}`}
+                                                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                                                    loading="lazy"
+                                                  />
+                                                </a>
+                                              )}
+                                              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                                            </div>
+                                          );
+                                        })}
                                       </div>
                                     )}
                                   </div>
@@ -532,7 +572,7 @@ export default function MyTickets() {
 
                             {/* Selected Files Preview */}
                             {selectedFiles[ticket.ticket_id] && selectedFiles[ticket.ticket_id].length > 0 && (
-                              <div className="grid grid-cols-2 gap-3">
+                              <div className="flex flex-wrap gap-3">
                                 {selectedFiles[ticket.ticket_id].map((file, index) => {
                                   const isImage = file.type.startsWith('image/');
                                   const isVideo = file.type.startsWith('video/');
@@ -540,7 +580,7 @@ export default function MyTickets() {
                                   
                                   return (
                                     <div key={index} className="relative group animate-scale-in">
-                                      <div className="aspect-video rounded-lg border border-border/50 overflow-hidden bg-muted/50 shadow-sm hover:shadow-md transition-all duration-300">
+                                      <div className="w-[150px] h-[150px] rounded-lg border-2 border-border/50 hover:border-primary/70 overflow-hidden bg-muted/30 shadow-sm hover:shadow-lg transition-all duration-300">
                                         {isImage && (
                                           <img
                                             src={fileUrl}
@@ -574,7 +614,7 @@ export default function MyTickets() {
                                       >
                                         <X className="w-4 h-4" />
                                       </Button>
-                                      <p className="text-xs text-muted-foreground mt-2 truncate text-center px-1">
+                                      <p className="text-xs text-muted-foreground mt-1.5 truncate text-center max-w-[150px]">
                                         {file.name}
                                       </p>
                                       <p className="text-xs text-muted-foreground/70 text-center">
