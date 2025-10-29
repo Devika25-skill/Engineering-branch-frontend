@@ -293,14 +293,14 @@ const TicketDetails = () => {
                     className="bg-gradient-to-r from-purple-50 to-pink-50 p-4 rounded-lg animate-fade-in"
                     style={{ animationDelay: `${index * 0.1}s` }}
                   >
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline" className="text-xs">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4 mb-3">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Badge variant="outline" className="text-xs shrink-0">
                           {comment.user_type}
                         </Badge>
-                        <span className="text-sm text-muted-foreground">{comment.email}</span>
+                        <span className="text-sm text-muted-foreground truncate">{comment.email}</span>
                       </div>
-                      <span className="text-xs text-muted-foreground">
+                      <span className="text-xs text-muted-foreground shrink-0">
                         {new Date(comment.commented_at).toLocaleString()}
                       </span>
                     </div>
