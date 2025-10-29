@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { ticketService, Ticket } from "@/services/ticketService";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,7 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { AlertCircle, FileText, MessageSquare, Paperclip, Calendar, ChevronDown, ChevronUp } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { AlertCircle, FileText, MessageSquare, Paperclip, Calendar, ChevronDown, ChevronUp, Send, X, Upload } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
@@ -20,6 +21,10 @@ export default function MyTickets() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [expandedTickets, setExpandedTickets] = useState<Set<string>>(new Set());
+  const [commentText, setCommentText] = useState<{ [ticketId: string]: string }>({});
+  const [selectedFiles, setSelectedFiles] = useState<{ [ticketId: string]: File[] }>({});
+  const [isSubmittingComment, setIsSubmittingComment] = useState<{ [ticketId: string]: boolean }>({});
+  const fileInputRefs = useRef<{ [ticketId: string]: HTMLInputElement | null }>({});
 
   useEffect(() => {
     if (!isLoggedIn) {
@@ -69,6 +74,97 @@ export default function MyTickets() {
       return format(new Date(dateString), "MMM dd, yyyy 'at' hh:mm a");
     } catch {
       return dateString;
+    }
+  };
+
+  const handleFileSelect = (ticketId: string, event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || []);
+    const validFiles = files.filter(file => {
+      const isImage = file.type.startsWith('image/');
+      const isVideo = file.type.startsWith('video/');
+      return isImage || isVideo;
+    });
+
+    if (validFiles.length !== files.length) {
+      toast({
+        title: "Invalid file type",
+        description: "Only images and videos are allowed",
+        variant: "destructive",
+      });
+    }
+
+    const currentFiles = selectedFiles[ticketId] || [];
+    const newFiles = [...currentFiles, ...validFiles].slice(0, 2);
+    
+    if (currentFiles.length + validFiles.length > 2) {
+      toast({
+        title: "Maximum 2 files",
+        description: "You can only upload up to 2 files",
+        variant: "destructive",
+      });
+    }
+
+    setSelectedFiles(prev => ({ ...prev, [ticketId]: newFiles }));
+  };
+
+  const removeFile = (ticketId: string, index: number) => {
+    setSelectedFiles(prev => ({
+      ...prev,
+      [ticketId]: (prev[ticketId] || []).filter((_, i) => i !== index)
+    }));
+  };
+
+  const handleSubmitComment = async (ticketId: string) => {
+    const comment = commentText[ticketId]?.trim();
+    
+    if (!comment) {
+      toast({
+        title: "Comment required",
+        description: "Please enter a comment",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!user?.email || !user?.accessToken) return;
+
+    try {
+      setIsSubmittingComment(prev => ({ ...prev, [ticketId]: true }));
+      
+      const files = selectedFiles[ticketId] || [];
+      const updatedTicket = await ticketService.addComment(
+        ticketId,
+        user.email,
+        comment,
+        files,
+        user.accessToken
+      );
+
+      // Update the ticket in the list
+      setTickets(prevTickets => 
+        prevTickets.map(t => t.ticket_id === ticketId ? updatedTicket : t)
+      );
+
+      // Clear the form
+      setCommentText(prev => ({ ...prev, [ticketId]: '' }));
+      setSelectedFiles(prev => ({ ...prev, [ticketId]: [] }));
+      if (fileInputRefs.current[ticketId]) {
+        fileInputRefs.current[ticketId]!.value = '';
+      }
+
+      toast({
+        title: "Success",
+        description: "Comment added successfully",
+      });
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Failed to add comment";
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmittingComment(prev => ({ ...prev, [ticketId]: false }));
     }
   };
 
@@ -318,6 +414,95 @@ export default function MyTickets() {
                           Last updated: {formatDate(ticket.updated_at)}
                         </p>
                       )}
+
+                      {/* Add Comment Section */}
+                      <div className="pt-4 border-t space-y-3">
+                        <h4 className="font-semibold text-sm">Add Comment</h4>
+                        <Textarea
+                          placeholder="Type your comment here..."
+                          value={commentText[ticket.ticket_id] || ''}
+                          onChange={(e) => setCommentText(prev => ({ ...prev, [ticket.ticket_id]: e.target.value }))}
+                          className="min-h-[100px]"
+                          disabled={isSubmittingComment[ticket.ticket_id]}
+                        />
+                        
+                        {/* File Upload Section */}
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => fileInputRefs.current[ticket.ticket_id]?.click()}
+                              disabled={isSubmittingComment[ticket.ticket_id] || (selectedFiles[ticket.ticket_id]?.length || 0) >= 2}
+                            >
+                              <Upload className="w-4 h-4 mr-2" />
+                              Upload Files
+                            </Button>
+                            <span className="text-xs text-muted-foreground">
+                              Max 2 files (images/videos only)
+                            </span>
+                            <input
+                              ref={el => fileInputRefs.current[ticket.ticket_id] = el}
+                              type="file"
+                              multiple
+                              accept="image/*,video/*"
+                              onChange={(e) => handleFileSelect(ticket.ticket_id, e)}
+                              className="hidden"
+                            />
+                          </div>
+
+                          {/* Selected Files Preview */}
+                          {selectedFiles[ticket.ticket_id] && selectedFiles[ticket.ticket_id].length > 0 && (
+                            <div className="flex gap-2 flex-wrap">
+                              {selectedFiles[ticket.ticket_id].map((file, index) => (
+                                <div key={index} className="relative group">
+                                  <div className="w-20 h-20 rounded border overflow-hidden bg-muted flex items-center justify-center">
+                                    {file.type.startsWith('image/') ? (
+                                      <img
+                                        src={URL.createObjectURL(file)}
+                                        alt={file.name}
+                                        className="w-full h-full object-cover"
+                                      />
+                                    ) : (
+                                      <FileText className="w-8 h-8 text-muted-foreground" />
+                                    )}
+                                  </div>
+                                  <Button
+                                    type="button"
+                                    variant="destructive"
+                                    size="icon"
+                                    className="absolute -top-2 -right-2 w-6 h-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                                    onClick={() => removeFile(ticket.ticket_id, index)}
+                                  >
+                                    <X className="w-3 h-3" />
+                                  </Button>
+                                  <p className="text-xs text-muted-foreground mt-1 truncate max-w-[80px]">
+                                    {file.name}
+                                  </p>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="flex justify-end">
+                          <Button
+                            onClick={() => handleSubmitComment(ticket.ticket_id)}
+                            disabled={isSubmittingComment[ticket.ticket_id] || !commentText[ticket.ticket_id]?.trim()}
+                            size="sm"
+                          >
+                            {isSubmittingComment[ticket.ticket_id] ? (
+                              <>Processing...</>
+                            ) : (
+                              <>
+                                <Send className="w-4 h-4 mr-2" />
+                                Submit Comment
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                      </div>
                     </div>
                   )}
                 </CardContent>

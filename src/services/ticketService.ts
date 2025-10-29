@@ -65,6 +65,48 @@ class TicketService {
       throw error;
     }
   }
+
+  async addComment(
+    ticketId: string,
+    email: string,
+    comment: string,
+    files: File[],
+    accessToken: string
+  ): Promise<Ticket> {
+    try {
+      const formData = new FormData();
+      
+      files.forEach(file => {
+        formData.append('files', file);
+      });
+
+      const url = `${this.baseUrl}/api/v1/support/tickets/${ticketId}/comments?email=${encodeURIComponent(email)}&user_type=User&comment=${encodeURIComponent(comment)}`;
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'accept': 'application/json',
+          'Authorization': `Bearer ${accessToken}`,
+        },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      if (!data.success) {
+        throw new Error(data.message || 'Failed to add comment');
+      }
+
+      return data.data;
+    } catch (error) {
+      console.error('Error adding comment:', error);
+      throw error;
+    }
+  }
 }
 
 export const ticketService = new TicketService();
