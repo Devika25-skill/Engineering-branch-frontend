@@ -22,6 +22,7 @@ const TicketDetails = () => {
   const [comment, setComment] = useState("");
   const [files, setFiles] = useState<File[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [fileError, setFileError] = useState<string>("");
 
   useEffect(() => {
     if (!user || !ticketId) return;
@@ -50,12 +51,45 @@ const TicketDetails = () => {
   }, [user, ticketId, navigate]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFileError("");
     const selectedFiles = Array.from(e.target.files || []);
-    setFiles(prev => [...prev, ...selectedFiles].slice(0, 5));
+    
+    // Check if adding these files would exceed the limit
+    if (files.length + selectedFiles.length > 2) {
+      setFileError("You can only upload a maximum of 2 files");
+      e.target.value = "";
+      return;
+    }
+    
+    // Validate each file
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'video/mp4', 'video/quicktime', 'video/x-msvideo'];
+    const allowedExtensions = ['.jpeg', '.jpg', '.png', '.mp4', '.mov', '.avi'];
+    const maxSize = 100 * 1024 * 1024; // 100MB in bytes
+    
+    for (const file of selectedFiles) {
+      // Check file type
+      const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
+      if (!allowedTypes.includes(file.type) && !allowedExtensions.includes(fileExtension)) {
+        setFileError("Only jpeg, jpg, png, mp4, mov, and avi files are allowed");
+        e.target.value = "";
+        return;
+      }
+      
+      // Check file size
+      if (file.size > maxSize) {
+        setFileError(`File "${file.name}" exceeds 100 MB limit`);
+        e.target.value = "";
+        return;
+      }
+    }
+    
+    setFiles(prev => [...prev, ...selectedFiles]);
+    e.target.value = "";
   };
 
   const removeFile = (index: number) => {
     setFiles(prev => prev.filter((_, i) => i !== index));
+    setFileError("");
   };
 
   const handleSubmitComment = async () => {
@@ -337,25 +371,35 @@ const TicketDetails = () => {
 
             <div className="space-y-2">
               <Label htmlFor="file-upload">Attachments (Optional)</Label>
-              <div className="flex items-center gap-2">
-                <Input
-                  id="file-upload"
-                  type="file"
-                  multiple
-                  accept="image/*,video/*"
-                  onChange={handleFileSelect}
-                  className="hidden"
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => document.getElementById('file-upload')?.click()}
-                  disabled={files.length >= 5}
-                  className="border-2 border-purple-200 hover:border-purple-400"
-                >
-                  <Paperclip className="mr-2 h-4 w-4" />
-                  Choose Files ({files.length}/5)
-                </Button>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Input
+                    id="file-upload"
+                    type="file"
+                    multiple
+                    accept=".jpeg,.jpg,.png,.mp4,.mov,.avi,image/jpeg,image/jpg,image/png,video/mp4,video/quicktime,video/x-msvideo"
+                    onChange={handleFileSelect}
+                    className="hidden"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => document.getElementById('file-upload')?.click()}
+                    disabled={files.length >= 2}
+                    className="border-2 border-purple-200 hover:border-purple-400"
+                  >
+                    <Paperclip className="mr-2 h-4 w-4" />
+                    Choose Files ({files.length}/2)
+                  </Button>
+                </div>
+                {fileError && (
+                  <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">
+                    {fileError}
+                  </p>
+                )}
+                <p className="text-xs text-muted-foreground">
+                  Max 2 files • jpeg, jpg, png, mp4, mov, avi • 100 MB per file
+                </p>
               </div>
 
               {files.length > 0 && (
@@ -379,8 +423,15 @@ const TicketDetails = () => {
                             src={previewUrl}
                             alt={file.name}
                             className="w-full h-full object-contain"
+                            loading="lazy"
                           />
-                        ) : null}
+                        ) : (
+                          <video
+                            src={previewUrl}
+                            className="w-full h-full object-contain"
+                            controls
+                          />
+                        )}
                         
                         <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                           <div className="text-center p-2">
