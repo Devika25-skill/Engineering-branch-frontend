@@ -384,15 +384,15 @@ const RaiseIssue = () => {
                         return (
                           <div
                             key={index}
-                            className="relative group rounded-lg overflow-hidden border border-border bg-card hover:shadow-md transition-all"
+                            className="relative group rounded-lg overflow-hidden border-2 border-border/50 hover:border-primary/50 bg-muted/30 hover:shadow-lg transition-all duration-300"
                           >
                             {/* Preview */}
-                            <div className="aspect-video bg-muted flex items-center justify-center">
+                            <div className="aspect-video bg-muted/50 flex items-center justify-center p-4">
                               {isVideo ? (
                                 <video
                                   src={filePreviews[index]}
                                   controls
-                                  className="w-full h-full object-contain"
+                                  className="max-w-full max-h-full object-contain rounded"
                                 >
                                   Your browser does not support the video tag.
                                 </video>
@@ -400,13 +400,13 @@ const RaiseIssue = () => {
                                 <img
                                   src={filePreviews[index]}
                                   alt={file.name}
-                                  className="w-full h-full object-contain"
+                                  className="max-w-full max-h-full object-contain rounded"
                                 />
                               )}
                             </div>
                             
                             {/* File Info Overlay */}
-                            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-3">
+                            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-3">
                               <div className="flex items-start justify-between gap-2">
                                 <div className="flex items-center gap-2 min-w-0 flex-1">
                                   {isVideo ? (
@@ -418,7 +418,7 @@ const RaiseIssue = () => {
                                     <p className="text-xs text-white font-medium truncate">
                                       {file.name}
                                     </p>
-                                    <p className="text-xs text-white/70">
+                                    <p className="text-xs text-white/80">
                                       {(file.size / (1024 * 1024)).toFixed(2)} MB
                                     </p>
                                   </div>
@@ -430,7 +430,7 @@ const RaiseIssue = () => {
                                   variant="ghost"
                                   size="icon"
                                   onClick={() => removeFile(index)}
-                                  className="h-8 w-8 bg-white/10 hover:bg-white/20 text-white flex-shrink-0"
+                                  className="h-8 w-8 bg-white/10 hover:bg-white/20 text-white flex-shrink-0 transition-colors"
                                 >
                                   <X className="h-4 w-4" />
                                 </Button>

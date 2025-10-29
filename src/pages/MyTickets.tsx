@@ -396,20 +396,20 @@ export default function MyTickets() {
                               <Paperclip className="w-4 h-4" />
                               Attachments
                             </h4>
-                            <div className="flex flex-wrap gap-3">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                               {ticket.attachments.map((url, index) => {
                                 const isVideo = url.match(/\.(mp4|mov|avi|webm)$/i);
                                 
                                 return (
                                   <div
                                     key={index}
-                                    className="group relative w-[150px] h-[150px] rounded-lg overflow-hidden border border-border/50 hover:border-primary/70 transition-all duration-300 hover:shadow-lg hover:scale-105 bg-muted/30"
+                                    className="group relative aspect-square rounded-lg overflow-hidden border-2 border-border/50 hover:border-primary/50 transition-all duration-300 hover:shadow-lg bg-muted/30 flex items-center justify-center"
                                   >
                                     {isVideo ? (
                                       <video
                                         src={url}
                                         controls
-                                        className="w-full h-full object-cover"
+                                        className="w-full h-full object-contain"
                                         preload="metadata"
                                       >
                                         Your browser does not support the video tag.
@@ -419,17 +419,16 @@ export default function MyTickets() {
                                         href={url}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="block w-full h-full"
+                                        className="block w-full h-full flex items-center justify-center p-2"
                                       >
                                         <img
                                           src={url}
                                           alt={`Attachment ${index + 1}`}
-                                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                                          className="max-w-full max-h-full object-contain transition-transform duration-300 group-hover:scale-105"
                                           loading="lazy"
                                         />
                                       </a>
                                     )}
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
                                   </div>
                                 );
                               })}
@@ -467,20 +466,20 @@ export default function MyTickets() {
                                     </div>
                                     <p className="text-sm whitespace-pre-wrap leading-relaxed">{comment.comment}</p>
                                     {comment.attachments && comment.attachments.length > 0 && (
-                                      <div className="flex flex-wrap gap-2 mt-3">
+                                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-3">
                                         {comment.attachments.map((url, idx) => {
                                           const isVideo = url.match(/\.(mp4|mov|avi|webm)$/i);
                                           
                                           return (
                                             <div
                                               key={idx}
-                                              className="group relative w-[150px] h-[150px] rounded-lg overflow-hidden border border-border/50 hover:border-primary/70 transition-all duration-300 hover:shadow-lg hover:scale-105 bg-muted/30"
+                                              className="group relative aspect-square rounded-lg overflow-hidden border-2 border-border/50 hover:border-primary/50 transition-all duration-300 hover:shadow-lg bg-muted/30 flex items-center justify-center"
                                             >
                                               {isVideo ? (
                                                 <video
                                                   src={url}
                                                   controls
-                                                  className="w-full h-full object-cover"
+                                                  className="w-full h-full object-contain"
                                                   preload="metadata"
                                                 >
                                                   Your browser does not support the video tag.
@@ -490,17 +489,16 @@ export default function MyTickets() {
                                                   href={url}
                                                   target="_blank"
                                                   rel="noopener noreferrer"
-                                                  className="block w-full h-full"
+                                                  className="block w-full h-full flex items-center justify-center p-2"
                                                 >
                                                   <img
                                                     src={url}
                                                     alt={`Comment attachment ${idx + 1}`}
-                                                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                                                    className="max-w-full max-h-full object-contain transition-transform duration-300 group-hover:scale-105"
                                                     loading="lazy"
                                                   />
                                                 </a>
                                               )}
-                                              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
                                             </div>
                                           );
                                         })}
@@ -572,7 +570,7 @@ export default function MyTickets() {
 
                             {/* Selected Files Preview */}
                             {selectedFiles[ticket.ticket_id] && selectedFiles[ticket.ticket_id].length > 0 && (
-                              <div className="flex flex-wrap gap-3">
+                              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                                 {selectedFiles[ticket.ticket_id].map((file, index) => {
                                   const isImage = file.type.startsWith('image/');
                                   const isVideo = file.type.startsWith('video/');
@@ -580,12 +578,12 @@ export default function MyTickets() {
                                   
                                   return (
                                     <div key={index} className="relative group animate-scale-in">
-                                      <div className="w-[150px] h-[150px] rounded-lg border-2 border-border/50 hover:border-primary/70 overflow-hidden bg-muted/30 shadow-sm hover:shadow-lg transition-all duration-300">
+                                      <div className="aspect-square rounded-lg border-2 border-border/50 hover:border-primary/50 overflow-hidden bg-muted/30 shadow-sm hover:shadow-lg transition-all duration-300 flex items-center justify-center p-2">
                                         {isImage && (
                                           <img
                                             src={fileUrl}
                                             alt={file.name}
-                                            className="w-full h-full object-cover"
+                                            className="max-w-full max-h-full object-contain"
                                             onLoad={() => URL.revokeObjectURL(fileUrl)}
                                           />
                                         )}
@@ -593,7 +591,7 @@ export default function MyTickets() {
                                           <video
                                             src={fileUrl}
                                             controls
-                                            className="w-full h-full object-cover"
+                                            className="max-w-full max-h-full object-contain"
                                             preload="metadata"
                                           >
                                             Your browser does not support the video tag.
@@ -609,17 +607,19 @@ export default function MyTickets() {
                                         type="button"
                                         variant="destructive"
                                         size="icon"
-                                        className="absolute -top-2 -right-2 w-6 h-6 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                                        className="absolute top-1 right-1 w-7 h-7 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-10"
                                         onClick={() => removeFile(ticket.ticket_id, index)}
                                       >
                                         <X className="w-4 h-4" />
                                       </Button>
-                                      <p className="text-xs text-muted-foreground mt-1.5 truncate text-center max-w-[150px]">
-                                        {file.name}
-                                      </p>
-                                      <p className="text-xs text-muted-foreground/70 text-center">
-                                        {(file.size / (1024 * 1024)).toFixed(2)} MB
-                                      </p>
+                                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-2 opacity-0 group-hover:opacity-100 transition-opacity rounded-b-lg">
+                                        <p className="text-xs text-white font-medium truncate">
+                                          {file.name}
+                                        </p>
+                                        <p className="text-xs text-white/80">
+                                          {(file.size / (1024 * 1024)).toFixed(2)} MB
+                                        </p>
+                                      </div>
                                     </div>
                                   );
                                 })}
