@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, Calendar, Hash, MapPin, Globe, Monitor, Paperclip, Send, X, Image, Video, FileText, Upload, AlertCircle } from "lucide-react";
+import { ArrowLeft, Calendar, Hash, Paperclip, Send, X, Image, Video, FileText, Upload, AlertCircle } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import { ticketService, Ticket } from "@/services/ticketService";
 import { useAuth } from "@/contexts/AuthContext";
@@ -149,7 +149,7 @@ const TicketDetails = () => {
       return (
         <video 
           controls 
-          className="w-full h-full object-contain"
+          className="max-w-full max-h-full object-contain"
         >
           <source src={url} />
         </video>
@@ -159,7 +159,7 @@ const TicketDetails = () => {
         <img
           src={url}
           alt="Attachment"
-          className="w-full h-full object-contain"
+          className="max-w-full max-h-full object-contain"
           loading="lazy"
         />
       );
@@ -228,33 +228,18 @@ const TicketDetails = () => {
               <div className="flex flex-col gap-2 text-sm text-muted-foreground">
                 <div className="flex items-center gap-2">
                   <Calendar size={16} />
-                  <span>Created: {new Date(ticket.created_at).toLocaleDateString()}</span>
+                  <span>Created: {new Date(ticket.created_at).toLocaleString()}</span>
                 </div>
                 {ticket.updated_at && (
                   <div className="flex items-center gap-2">
                     <Calendar size={16} />
-                    <span>Updated: {new Date(ticket.updated_at).toLocaleDateString()}</span>
+                    <span>Updated: {new Date(ticket.updated_at).toLocaleString()}</span>
                   </div>
                 )}
               </div>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-              <div className="flex items-center gap-2">
-                <MapPin size={16} className="text-purple-600" />
-                <span className="font-medium">Origin:</span>
-                <span className="text-muted-foreground">{ticket.user_origin}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Monitor size={16} className="text-purple-600" />
-                <span className="font-medium">Browser:</span>
-                <span className="text-muted-foreground">{ticket.browser_info}</span>
-              </div>
-            </div>
-            
-            <Separator />
-            
             <div>
               <h3 className="font-semibold text-gray-800 mb-2">Issue Details</h3>
               <p className="text-muted-foreground whitespace-pre-wrap">{ticket.details}</p>
@@ -270,17 +255,19 @@ const TicketDetails = () => {
                       Attachments ({ticket.attachments.length})
                     </h3>
                   </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {ticket.attachments.map((url, index) => (
                       <a
                         key={index}
                         href={url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="group relative aspect-video bg-muted rounded-lg overflow-hidden border-2 border-purple-100 hover:border-purple-300 transition-all hover:scale-105 animate-scale-in"
+                        className="group relative aspect-video bg-card rounded-lg overflow-hidden border-2 border-border hover:border-primary/50 transition-all hover:shadow-lg animate-scale-in flex items-center justify-center"
                         style={{ animationDelay: `${index * 0.1}s` }}
                       >
-                        {renderMedia(url)}
+                        <div className="w-full h-full flex items-center justify-center p-2">
+                          {renderMedia(url)}
+                        </div>
                       </a>
                     ))}
                   </div>
@@ -327,16 +314,18 @@ const TicketDetails = () => {
                             Attachments ({comment.attachments.length})
                           </span>
                         </div>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           {comment.attachments.map((url, idx) => (
                             <a
                               key={idx}
                               href={url}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="group relative aspect-video bg-white rounded-lg overflow-hidden border border-purple-200 hover:border-purple-400 transition-all hover:scale-105"
+                              className="group relative aspect-video bg-card rounded-lg overflow-hidden border-2 border-border hover:border-primary/50 transition-all hover:shadow-lg flex items-center justify-center"
                             >
-                              {renderMedia(url)}
+                              <div className="w-full h-full flex items-center justify-center p-2">
+                                {renderMedia(url)}
+                              </div>
                             </a>
                           ))}
                         </div>
