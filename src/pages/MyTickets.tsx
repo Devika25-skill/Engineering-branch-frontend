@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
-import { AlertCircle, FileText, MessageSquare, Paperclip, Calendar, ChevronDown, ChevronUp, Send, X, Upload } from "lucide-react";
+import { AlertCircle, FileText, MessageSquare, Paperclip, Calendar, ChevronDown, ChevronUp, Send, X, Upload, Video, Image } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
@@ -570,55 +570,74 @@ export default function MyTickets() {
 
                             {/* Selected Files Preview */}
                             {selectedFiles[ticket.ticket_id] && selectedFiles[ticket.ticket_id].length > 0 && (
-                              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 {selectedFiles[ticket.ticket_id].map((file, index) => {
                                   const isImage = file.type.startsWith('image/');
                                   const isVideo = file.type.startsWith('video/');
                                   const fileUrl = URL.createObjectURL(file);
                                   
                                   return (
-                                    <div key={index} className="relative group animate-scale-in">
-                                      <div className="aspect-square rounded-lg border-2 border-border/50 hover:border-primary/50 overflow-hidden bg-muted/30 shadow-sm hover:shadow-lg transition-all duration-300 flex items-center justify-center p-2">
-                                        {isImage && (
-                                          <img
-                                            src={fileUrl}
-                                            alt={file.name}
-                                            className="max-w-full max-h-full object-contain"
-                                            onLoad={() => URL.revokeObjectURL(fileUrl)}
-                                          />
-                                        )}
-                                        {isVideo && (
+                                    <div
+                                      key={index}
+                                      className="relative group rounded-lg overflow-hidden border-2 border-border/50 hover:border-primary/50 bg-muted/30 hover:shadow-lg transition-all duration-300"
+                                    >
+                                      {/* Preview */}
+                                      <div className="aspect-video bg-muted/50 flex items-center justify-center p-4">
+                                        {isVideo ? (
                                           <video
                                             src={fileUrl}
                                             controls
-                                            className="max-w-full max-h-full object-contain"
+                                            className="max-w-full max-h-full object-contain rounded"
                                             preload="metadata"
                                           >
                                             Your browser does not support the video tag.
                                           </video>
-                                        )}
-                                        {!isImage && !isVideo && (
+                                        ) : isImage ? (
+                                          <img
+                                            src={fileUrl}
+                                            alt={file.name}
+                                            className="max-w-full max-h-full object-contain rounded"
+                                            onLoad={() => URL.revokeObjectURL(fileUrl)}
+                                          />
+                                        ) : (
                                           <div className="w-full h-full flex items-center justify-center">
                                             <FileText className="w-8 h-8 text-muted-foreground" />
                                           </div>
                                         )}
                                       </div>
-                                      <Button
-                                        type="button"
-                                        variant="destructive"
-                                        size="icon"
-                                        className="absolute top-1 right-1 w-7 h-7 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-10"
-                                        onClick={() => removeFile(ticket.ticket_id, index)}
-                                      >
-                                        <X className="w-4 h-4" />
-                                      </Button>
-                                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-2 opacity-0 group-hover:opacity-100 transition-opacity rounded-b-lg">
-                                        <p className="text-xs text-white font-medium truncate">
-                                          {file.name}
-                                        </p>
-                                        <p className="text-xs text-white/80">
-                                          {(file.size / (1024 * 1024)).toFixed(2)} MB
-                                        </p>
+                                      
+                                      {/* File Info Overlay */}
+                                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-3">
+                                        <div className="flex items-start justify-between gap-2">
+                                          <div className="flex items-center gap-2 min-w-0 flex-1">
+                                            {isVideo ? (
+                                              <Video className="h-4 w-4 text-white flex-shrink-0" />
+                                            ) : isImage ? (
+                                              <Image className="h-4 w-4 text-white flex-shrink-0" />
+                                            ) : (
+                                              <FileText className="h-4 w-4 text-white flex-shrink-0" />
+                                            )}
+                                            <div className="min-w-0 flex-1">
+                                              <p className="text-xs text-white font-medium truncate">
+                                                {file.name}
+                                              </p>
+                                              <p className="text-xs text-white/80">
+                                                {(file.size / (1024 * 1024)).toFixed(2)} MB
+                                              </p>
+                                            </div>
+                                          </div>
+                                          
+                                          {/* Remove Button */}
+                                          <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={() => removeFile(ticket.ticket_id, index)}
+                                            className="h-8 w-8 bg-white/10 hover:bg-white/20 text-white flex-shrink-0 transition-colors"
+                                          >
+                                            <X className="h-4 w-4" />
+                                          </Button>
+                                        </div>
                                       </div>
                                     </div>
                                   );
