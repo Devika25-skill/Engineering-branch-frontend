@@ -23,6 +23,7 @@ export default function MyTickets() {
   const [expandedTickets, setExpandedTickets] = useState<Set<string>>(new Set());
   const [commentText, setCommentText] = useState<{ [ticketId: string]: string }>({});
   const [selectedFiles, setSelectedFiles] = useState<{ [ticketId: string]: File[] }>({});
+  const [fileErrors, setFileErrors] = useState<{ [ticketId: string]: string }>({});
   const [isSubmittingComment, setIsSubmittingComment] = useState<{ [ticketId: string]: boolean }>({});
   const fileInputRefs = useRef<{ [ticketId: string]: HTMLInputElement | null }>({});
 
@@ -79,31 +80,54 @@ export default function MyTickets() {
 
   const handleFileSelect = (ticketId: string, event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
-    const validFiles = files.filter(file => {
-      const isImage = file.type.startsWith('image/');
-      const isVideo = file.type.startsWith('video/');
-      return isImage || isVideo;
-    });
-
-    if (validFiles.length !== files.length) {
-      toast({
-        title: "Invalid file type",
-        description: "Only images and videos are allowed",
-        variant: "destructive",
-      });
-    }
-
     const currentFiles = selectedFiles[ticketId] || [];
-    const newFiles = [...currentFiles, ...validFiles].slice(0, 2);
     
-    if (currentFiles.length + validFiles.length > 2) {
-      toast({
-        title: "Maximum 2 files",
-        description: "You can only upload up to 2 files",
-        variant: "destructive",
-      });
+    // Clear previous errors
+    setFileErrors(prev => ({ ...prev, [ticketId]: '' }));
+
+    // Check if adding these files would exceed the limit
+    if (currentFiles.length + files.length > 2) {
+      setFileErrors(prev => ({ 
+        ...prev, 
+        [ticketId]: 'Maximum 2 files allowed. Please remove existing files first.' 
+      }));
+      return;
     }
 
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'video/mp4', 'video/quicktime', 'video/x-msvideo'];
+    const allowedExtensions = ['jpeg', 'jpg', 'png', 'mp4', 'mov', 'avi'];
+    const maxSize = 100 * 1024 * 1024; // 100MB in bytes
+
+    const validFiles: File[] = [];
+    let errorMessage = '';
+
+    for (const file of files) {
+      const fileExtension = file.name.split('.').pop()?.toLowerCase() || '';
+      
+      // Check file type
+      if (!allowedTypes.includes(file.type) && !allowedExtensions.includes(fileExtension)) {
+        errorMessage = `Invalid file type: ${file.name}. Only jpeg, jpg, png, mp4, mov, avi files are allowed.`;
+        break;
+      }
+
+      // Check file size
+      if (file.size > maxSize) {
+        errorMessage = `File too large: ${file.name}. Maximum size is 100MB.`;
+        break;
+      }
+
+      validFiles.push(file);
+    }
+
+    if (errorMessage) {
+      setFileErrors(prev => ({ ...prev, [ticketId]: errorMessage }));
+      if (fileInputRefs.current[ticketId]) {
+        fileInputRefs.current[ticketId]!.value = '';
+      }
+      return;
+    }
+
+    const newFiles = [...currentFiles, ...validFiles].slice(0, 2);
     setSelectedFiles(prev => ({ ...prev, [ticketId]: newFiles }));
   };
 
@@ -112,6 +136,12 @@ export default function MyTickets() {
       ...prev,
       [ticketId]: (prev[ticketId] || []).filter((_, i) => i !== index)
     }));
+    // Clear error when files are removed
+    setFileErrors(prev => ({ ...prev, [ticketId]: '' }));
+    // Reset file input
+    if (fileInputRefs.current[ticketId]) {
+      fileInputRefs.current[ticketId]!.value = '';
+    }
   };
 
   const handleSubmitComment = async (ticketId: string) => {
@@ -148,6 +178,7 @@ export default function MyTickets() {
       // Clear the form
       setCommentText(prev => ({ ...prev, [ticketId]: '' }));
       setSelectedFiles(prev => ({ ...prev, [ticketId]: [] }));
+      setFileErrors(prev => ({ ...prev, [ticketId]: '' }));
       if (fileInputRefs.current[ticketId]) {
         fileInputRefs.current[ticketId]!.value = '';
       }
@@ -477,48 +508,81 @@ export default function MyTickets() {
                                 Upload Files
                               </Button>
                               <span className="text-xs text-muted-foreground bg-muted/50 px-3 py-1.5 rounded-full">
-                                Max 2 files (images/videos only)
+                                Max 2 files • jpeg, jpg, png, mp4, mov, avi • 100MB each
                               </span>
-                              <input
+                               <input
                                 ref={el => fileInputRefs.current[ticket.ticket_id] = el}
                                 type="file"
                                 multiple
-                                accept="image/*,video/*"
+                                accept=".jpeg,.jpg,.png,.mp4,.mov,.avi,image/jpeg,image/jpg,image/png,video/mp4,video/quicktime,video/x-msvideo"
                                 onChange={(e) => handleFileSelect(ticket.ticket_id, e)}
                                 className="hidden"
                               />
                             </div>
 
+                            {/* Error Message */}
+                            {fileErrors[ticket.ticket_id] && (
+                              <div className="flex items-start gap-2 p-3 bg-destructive/10 border border-destructive/30 rounded-lg animate-fade-in">
+                                <AlertCircle className="w-4 h-4 text-destructive mt-0.5 flex-shrink-0" />
+                                <p className="text-xs text-destructive">
+                                  {fileErrors[ticket.ticket_id]}
+                                </p>
+                              </div>
+                            )}
+
                             {/* Selected Files Preview */}
                             {selectedFiles[ticket.ticket_id] && selectedFiles[ticket.ticket_id].length > 0 && (
-                              <div className="flex gap-3 flex-wrap">
-                                {selectedFiles[ticket.ticket_id].map((file, index) => (
-                                  <div key={index} className="relative group animate-scale-in">
-                                    <div className="w-24 h-24 rounded-lg border border-border/50 overflow-hidden bg-muted flex items-center justify-center shadow-sm hover:shadow-md transition-shadow">
-                                      {file.type.startsWith('image/') ? (
-                                        <img
-                                          src={URL.createObjectURL(file)}
-                                          alt={file.name}
-                                          className="w-full h-full object-cover"
-                                        />
-                                      ) : (
-                                        <FileText className="w-8 h-8 text-muted-foreground" />
-                                      )}
+                              <div className="grid grid-cols-2 gap-3">
+                                {selectedFiles[ticket.ticket_id].map((file, index) => {
+                                  const isImage = file.type.startsWith('image/');
+                                  const isVideo = file.type.startsWith('video/');
+                                  const fileUrl = URL.createObjectURL(file);
+                                  
+                                  return (
+                                    <div key={index} className="relative group animate-scale-in">
+                                      <div className="aspect-video rounded-lg border border-border/50 overflow-hidden bg-muted/50 shadow-sm hover:shadow-md transition-all duration-300">
+                                        {isImage && (
+                                          <img
+                                            src={fileUrl}
+                                            alt={file.name}
+                                            className="w-full h-full object-cover"
+                                            onLoad={() => URL.revokeObjectURL(fileUrl)}
+                                          />
+                                        )}
+                                        {isVideo && (
+                                          <video
+                                            src={fileUrl}
+                                            controls
+                                            className="w-full h-full object-cover"
+                                            preload="metadata"
+                                          >
+                                            Your browser does not support the video tag.
+                                          </video>
+                                        )}
+                                        {!isImage && !isVideo && (
+                                          <div className="w-full h-full flex items-center justify-center">
+                                            <FileText className="w-8 h-8 text-muted-foreground" />
+                                          </div>
+                                        )}
+                                      </div>
+                                      <Button
+                                        type="button"
+                                        variant="destructive"
+                                        size="icon"
+                                        className="absolute -top-2 -right-2 w-6 h-6 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                                        onClick={() => removeFile(ticket.ticket_id, index)}
+                                      >
+                                        <X className="w-4 h-4" />
+                                      </Button>
+                                      <p className="text-xs text-muted-foreground mt-2 truncate text-center px-1">
+                                        {file.name}
+                                      </p>
+                                      <p className="text-xs text-muted-foreground/70 text-center">
+                                        {(file.size / (1024 * 1024)).toFixed(2)} MB
+                                      </p>
                                     </div>
-                                    <Button
-                                      type="button"
-                                      variant="destructive"
-                                      size="icon"
-                                      className="absolute -top-2 -right-2 w-6 h-6 rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
-                                      onClick={() => removeFile(ticket.ticket_id, index)}
-                                    >
-                                      <X className="w-3 h-3" />
-                                    </Button>
-                                    <p className="text-xs text-muted-foreground mt-1.5 truncate max-w-[96px] text-center">
-                                      {file.name}
-                                    </p>
-                                  </div>
-                                ))}
+                                  );
+                                })}
                               </div>
                             )}
                           </div>
