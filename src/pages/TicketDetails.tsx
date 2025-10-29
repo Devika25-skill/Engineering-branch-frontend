@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, Calendar, Hash, MapPin, Globe, Monitor, Paperclip, Send, X, Image as ImageIcon, Video, FileText, Upload, AlertCircle } from "lucide-react";
+import { ArrowLeft, Calendar, Hash, MapPin, Globe, Monitor, Paperclip, Send, X, Image, Video, FileText, Upload, AlertCircle } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import { ticketService, Ticket } from "@/services/ticketService";
 import { useAuth } from "@/contexts/AuthContext";
@@ -449,7 +449,7 @@ const TicketDetails = () => {
                               {isVideo ? (
                                 <Video className="h-4 w-4 text-white flex-shrink-0" />
                               ) : (
-                                <ImageIcon className="h-4 w-4 text-white flex-shrink-0" />
+                                <Image className="h-4 w-4 text-white flex-shrink-0" />
                               )}
                               <div className="min-w-0 flex-1">
                                 <p className="text-xs text-white font-medium truncate">
