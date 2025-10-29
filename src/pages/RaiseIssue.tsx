@@ -377,17 +377,17 @@ const RaiseIssue = () => {
 
                   {/* File Previews */}
                   {files.length > 0 && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                    <div className="grid grid-cols-2 gap-3 mt-4">
                       {files.map((file, index) => {
                         const isVideo = file.type.startsWith('video/');
                         
                         return (
                           <div
                             key={index}
-                            className="relative group rounded-lg overflow-hidden border-2 border-border/50 hover:border-primary/50 bg-muted/30 hover:shadow-lg transition-all duration-300"
+                            className="relative group rounded-lg overflow-hidden border-2 border-border/50 hover:border-primary/50 bg-muted/30 hover:shadow-lg transition-all duration-300 max-w-[200px]"
                           >
                             {/* Preview */}
-                            <div className="aspect-video bg-muted/50 flex items-center justify-center p-4">
+                            <div className="aspect-square bg-muted/50 flex items-center justify-center p-2">
                               {isVideo ? (
                                 <video
                                   src={filePreviews[index]}
