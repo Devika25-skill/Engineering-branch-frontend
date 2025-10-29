@@ -10,6 +10,7 @@ import { AlertCircle, FileText, MessageSquare, Paperclip, Calendar, ChevronDown,
 import { toast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
+import Navigation from "@/components/Navigation";
 
 export default function MyTickets() {
   const { user, isLoggedIn } = useAuth();
@@ -73,8 +74,10 @@ export default function MyTickets() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background py-8 px-4">
-        <div className="max-w-4xl mx-auto space-y-6">
+      <>
+        <Navigation />
+        <div className="min-h-screen bg-background py-8 px-4">
+          <div className="max-w-4xl mx-auto space-y-6">
           <Skeleton className="h-12 w-64" />
           {[1, 2, 3].map(i => (
             <Card key={i}>
@@ -88,14 +91,17 @@ export default function MyTickets() {
             </Card>
           ))}
         </div>
-      </div>
+        </div>
+      </>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-background py-8 px-4">
-        <div className="max-w-4xl mx-auto">
+      <>
+        <Navigation />
+        <div className="min-h-screen bg-background py-8 px-4">
+          <div className="max-w-4xl mx-auto">
           <Card className="border-destructive">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-destructive">
@@ -111,14 +117,17 @@ export default function MyTickets() {
             </CardContent>
           </Card>
         </div>
-      </div>
+        </div>
+      </>
     );
   }
 
   if (tickets.length === 0) {
     return (
-      <div className="min-h-screen bg-background py-8 px-4">
-        <div className="max-w-4xl mx-auto">
+      <>
+        <Navigation />
+        <div className="min-h-screen bg-background py-8 px-4">
+          <div className="max-w-4xl mx-auto">
           <h1 className="text-3xl font-bold mb-6">My Support Tickets</h1>
           <Card>
             <CardHeader>
@@ -137,13 +146,16 @@ export default function MyTickets() {
             </CardContent>
           </Card>
         </div>
-      </div>
+        </div>
+      </>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background py-8 px-4">
-      <div className="max-w-4xl mx-auto">
+    <>
+      <Navigation />
+      <div className="min-h-screen bg-background py-8 px-4">
+        <div className="max-w-4xl mx-auto">
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-3xl font-bold">My Support Tickets</h1>
@@ -313,7 +325,8 @@ export default function MyTickets() {
             );
           })}
         </div>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
