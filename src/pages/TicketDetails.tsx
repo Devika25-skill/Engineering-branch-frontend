@@ -93,8 +93,8 @@ const TicketDetails = () => {
   };
 
   const handleSubmitComment = async () => {
-    if (!comment.trim() && files.length === 0) {
-      toast.error("Please add a comment or attachment");
+    if (!comment.trim()) {
+      toast.error("Please add a comment");
       return;
     }
 
@@ -358,7 +358,7 @@ const TicketDetails = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="comment">Your Comment</Label>
+              <Label htmlFor="comment">Your Comment *</Label>
               <Textarea
                 id="comment"
                 placeholder="Type your comment here..."
@@ -366,6 +366,7 @@ const TicketDetails = () => {
                 onChange={(e) => setComment(e.target.value)}
                 rows={4}
                 className="resize-none border-2 border-purple-200 focus:border-purple-400"
+                required
               />
             </div>
 
@@ -482,7 +483,7 @@ const TicketDetails = () => {
 
             <Button
               onClick={handleSubmitComment}
-              disabled={isSubmitting || (!comment.trim() && files.length === 0)}
+              disabled={isSubmitting || !comment.trim()}
               className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
             >
               {isSubmitting ? (
