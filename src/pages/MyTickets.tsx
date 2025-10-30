@@ -160,19 +160,38 @@ const MyTickets = () => {
                 className="animate-scale-in"
                 style={{ animationDelay: `${index * 0.05}s` }}
               >
-                <Card className="group bg-white/90 backdrop-blur-sm border-0 shadow-md hover:shadow-lg transition-all duration-300 h-full">
+                <Card className="group bg-white/90 backdrop-blur-sm border-0 shadow-md hover:shadow-xl transition-all duration-300 h-full hover:scale-[1.02]">
                   <CardContent className="p-4 md:p-5">
-                    <Link to={`/ticket/${ticket.ticket_id}`} className="block">
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <Hash size={18} className="text-purple-600 flex-shrink-0" />
-                          <span className="font-mono text-xs text-muted-foreground">
-                            {ticket.ticket_id}
-                          </span>
-                        </div>
-                        <ChevronRight className="text-purple-600 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" size={20} />
+                    <div className="flex items-start justify-between mb-3">
+                      <Link to={`/ticket/${ticket.ticket_id}`} className="flex items-center gap-2 flex-wrap flex-1">
+                        <Hash size={18} className="text-purple-600 flex-shrink-0" />
+                        <span className="font-mono text-xs text-muted-foreground">
+                          {ticket.ticket_id}
+                        </span>
+                      </Link>
+                      <div className="flex items-center gap-2">
+                        {ticket.status?.toLowerCase() !== 'closed' && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              setTicketToClose(ticket.ticket_id);
+                            }}
+                            disabled={closingTicketId === ticket.ticket_id}
+                            className="h-8 px-2 text-green-600 hover:text-green-700 hover:bg-green-50"
+                            title="Mark as Resolved"
+                          >
+                            <CheckCircle2 size={16} />
+                          </Button>
+                        )}
+                        <Link to={`/ticket/${ticket.ticket_id}`}>
+                          <ChevronRight className="text-purple-600 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" size={20} />
+                        </Link>
                       </div>
+                    </div>
 
+                    <Link to={`/ticket/${ticket.ticket_id}`} className="block">
                       <h3 className="font-bold text-gray-800 text-base md:text-lg mb-3 line-clamp-1 group-hover:text-purple-600 transition-colors">
                         {ticket.product_type}
                       </h3>
@@ -214,22 +233,6 @@ const MyTickets = () => {
                         </div>
                       </div>
                     </Link>
-
-                    {ticket.status?.toLowerCase() !== 'closed' && (
-                      <div className="mt-4 pt-4 border-t border-purple-100">
-                        <Button
-                          onClick={(e) => {
-                            e.preventDefault();
-                            setTicketToClose(ticket.ticket_id);
-                          }}
-                          disabled={closingTicketId === ticket.ticket_id}
-                          className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white"
-                        >
-                          <CheckCircle2 size={16} className="mr-2" />
-                          {closingTicketId === ticket.ticket_id ? "Resolving..." : "Mark as Resolved"}
-                        </Button>
-                      </div>
-                    )}
                   </CardContent>
                 </Card>
               </div>
