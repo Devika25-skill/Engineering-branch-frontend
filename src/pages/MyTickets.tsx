@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Hash, MapPin, MessageSquare, ChevronRight, Plus, CheckCircle2 } from "lucide-react";
+import { Calendar, Hash, MessageSquare, ChevronRight, Plus, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -225,13 +225,6 @@ const MyTickets = () => {
                             <Calendar size={14} className="text-purple-600" />
                             <span>{new Date(ticket.created_at).toLocaleDateString()}</span>
                           </div>
-                        </div>
-                      </div>
-
-                      <div className="mt-3 pt-3 border-t border-purple-100">
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          <MapPin size={12} className="text-purple-600" />
-                          <span>{ticket.user_origin}</span>
                         </div>
                       </div>
                     </Link>
