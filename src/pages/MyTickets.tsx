@@ -162,45 +162,47 @@ const MyTickets = () => {
               >
                 <Card className="group bg-white/90 backdrop-blur-sm border-0 shadow-md hover:shadow-xl transition-all duration-300 h-full hover:scale-[1.02]">
                   <CardContent className="p-4 md:p-5">
-                    <div className="flex items-start justify-between mb-3">
-                      <Link to={`/ticket/${ticket.ticket_id}`} className="flex items-center gap-2 flex-wrap flex-1">
-                        <Hash size={18} className="text-purple-600 flex-shrink-0" />
-                        <span className="font-mono text-xs text-muted-foreground">
-                          {ticket.ticket_id}
-                        </span>
-                      </Link>
-                      <div className="flex items-center gap-2">
-                        {ticket.status?.toLowerCase() !== 'closed' && (
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              setTicketToClose(ticket.ticket_id);
-                            }}
-                            disabled={closingTicketId === ticket.ticket_id}
-                            className="h-8 px-2 text-green-600 hover:text-green-700 hover:bg-green-50"
-                            title="Mark as Resolved"
-                          >
-                            <CheckCircle2 size={16} />
-                          </Button>
-                        )}
-                        <Link to={`/ticket/${ticket.ticket_id}`}>
-                          <ChevronRight className="text-purple-600 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" size={20} />
-                        </Link>
-                      </div>
-                    </div>
-
                     <Link to={`/ticket/${ticket.ticket_id}`} className="block">
+                      {/* Ticket ID and Actions */}
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-2">
+                          <Hash size={16} className="text-purple-600 flex-shrink-0" />
+                          <span className="font-mono text-xs text-muted-foreground">
+                            {ticket.ticket_id}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {ticket.status?.toLowerCase() !== 'closed' && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                setTicketToClose(ticket.ticket_id);
+                              }}
+                              disabled={closingTicketId === ticket.ticket_id}
+                              className="h-8 px-2 text-green-600 hover:text-green-700 hover:bg-green-50"
+                              title="Mark as Resolved"
+                            >
+                              <CheckCircle2 size={16} />
+                            </Button>
+                          )}
+                          <ChevronRight className="text-purple-600 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" size={20} />
+                        </div>
+                      </div>
+
+                      {/* Product Type */}
                       <h3 className="font-bold text-gray-800 text-base md:text-lg mb-3 line-clamp-1 group-hover:text-purple-600 transition-colors">
                         {ticket.product_type}
                       </h3>
 
+                      {/* Details */}
                       <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
                         {ticket.details}
                       </p>
 
-                      <div className="flex items-center justify-between flex-wrap gap-2">
+                      {/* Status and Metadata */}
+                      <div className="flex items-center justify-between flex-wrap gap-3 mb-4">
                         <div className="flex items-center gap-2 flex-wrap">
                           <Badge className={`${getStatusColor(ticket.status)} border text-xs`}>
                             {ticket.status}
@@ -226,7 +228,8 @@ const MyTickets = () => {
                         </div>
                       </div>
 
-                      <div className="mt-3 pt-3 border-t border-purple-100">
+                      {/* Location */}
+                      <div className="pt-3 border-t border-purple-100">
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
                           <MapPin size={12} className="text-purple-600" />
                           <span>{ticket.user_origin}</span>
