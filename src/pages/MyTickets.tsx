@@ -1,14 +1,16 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Hash, MapPin, MessageSquare, ChevronRight } from "lucide-react";
+import { Calendar, Hash, MapPin, MessageSquare, ChevronRight, Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import Navigation from "@/components/Navigation";
 import { ticketService, Ticket } from "@/services/ticketService";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
 const MyTickets = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -50,7 +52,7 @@ const MyTickets = () => {
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-indigo-50">
         <Navigation />
         <div className="container mx-auto px-4 py-6 md:py-8">
-          <h1 className="text-2xl md:text-3xl font-bold mb-6 text-gray-800">My Tickets</h1>
+          <h1 className="text-2xl md:text-3xl font-bold mb-6 text-gray-800">Open Issues</h1>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {[1, 2, 3, 4].map((i) => (
               <div key={i} className="h-48 bg-purple-200 rounded-lg animate-pulse"></div>
@@ -66,11 +68,11 @@ const MyTickets = () => {
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-indigo-50">
         <Navigation />
         <div className="container mx-auto px-4 py-6 md:py-8">
-          <h1 className="text-2xl md:text-3xl font-bold mb-6 text-gray-800">My Tickets</h1>
+          <h1 className="text-2xl md:text-3xl font-bold mb-6 text-gray-800">Open Issues</h1>
           <Card className="bg-white/90 backdrop-blur-sm">
             <CardContent className="p-8 text-center">
               <p className="text-muted-foreground text-lg">
-                Please log in to view your tickets.
+                Please log in to view your issues.
               </p>
             </CardContent>
           </Card>
@@ -84,11 +86,20 @@ const MyTickets = () => {
       <Navigation />
       
       <div className="container mx-auto px-4 py-6 md:py-8">
-        <div className="mb-6">
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-800 mb-2">My Tickets</h1>
-          <p className="text-muted-foreground">
-            {tickets.length === 0 ? 'No tickets found' : `${tickets.length} ticket${tickets.length === 1 ? '' : 's'} found`}
-          </p>
+        <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-800 mb-2">Open Issues</h1>
+            <p className="text-muted-foreground">
+              {tickets.length === 0 ? 'No issues found' : `${tickets.length} issue${tickets.length === 1 ? '' : 's'} found`}
+            </p>
+          </div>
+          <Button
+            onClick={() => navigate('/raise-issue')}
+            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shrink-0"
+          >
+            <Plus size={18} className="mr-2" />
+            Raise Issue
+          </Button>
         </div>
         
         {tickets.length === 0 ? (
@@ -97,13 +108,13 @@ const MyTickets = () => {
               <div className="mb-4">
                 <Hash size={64} className="mx-auto text-purple-300" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-800 mb-2">No Tickets Yet</h3>
+              <h3 className="text-xl font-semibold text-gray-800 mb-2">No Issues Yet</h3>
               <p className="text-muted-foreground mb-6">
-                You haven't raised any support tickets yet.
+                You haven't raised any support issues yet.
               </p>
               <Link to="/raise-issue">
                 <button className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all">
-                  Raise Your First Ticket
+                  Raise Your First Issue
                 </button>
               </Link>
             </CardContent>
