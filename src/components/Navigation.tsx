@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { GraduationCap, User, Heart, Sparkles, Building, LogOut, Menu, Headphones } from "lucide-react";
+import { GraduationCap, User, Heart, Sparkles, Building, LogOut, Menu, LifeBuoy } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -165,7 +165,7 @@ const Navigation = () => {
                       onClick={() => navigate('/my-tickets')} 
                       className="focus:bg-accent"
                     >
-                      <Headphones className="mr-2 h-4 w-4" />
+                      <LifeBuoy className="mr-2 h-4 w-4" />
                       <span>Support</span>
                       {ticketCount > 0 && (
                         <Badge variant="secondary" className="ml-auto">{ticketCount}</Badge>
@@ -208,7 +208,7 @@ const Navigation = () => {
                           }}
                           className="w-full justify-start"
                         >
-                          <Headphones className="mr-2 h-4 w-4" />
+                          <LifeBuoy className="mr-2 h-4 w-4" />
                           Support
                           {ticketCount > 0 && (
                             <Badge variant="secondary" className="ml-auto">{ticketCount}</Badge>

@@ -200,7 +200,7 @@ const TicketDetails = () => {
         <Link to="/my-tickets">
           <Button variant="ghost" className="mb-4 hover:bg-purple-100">
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to My Tickets
+            Back to Support
           </Button>
         </Link>
 
