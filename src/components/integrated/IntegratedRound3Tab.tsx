@@ -220,6 +220,17 @@ export const IntegratedRound3Tab = ({ admissionType }: IntegratedRound3TabProps)
               localStorage.setItem(`integratedRecommendationUnlocked_${admissionType}`, 'true');
               setIsUnlocked(true);
             }
+            
+            // Check if form data has changed since these recommendations were generated
+            const currentFormData = localStorage.getItem(`integrated_form_${admissionType}`);
+            const storedHash = localStorage.getItem(`integrated_form_hash_${admissionType}`);
+            
+            if (currentFormData && storedHash) {
+              const currentHash = btoa(currentFormData);
+              if (currentHash !== storedHash) {
+                setShowRegenerateMessage(true);
+              }
+            }
           }
         } catch (error) {
           console.error('Error loading stored recommendations:', error);
