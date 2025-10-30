@@ -170,21 +170,23 @@ const MyTickets = () => {
                         </span>
                       </Link>
                       <div className="flex items-center gap-2">
-                        {ticket.status?.toLowerCase() !== 'closed' && (
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              setTicketToClose(ticket.ticket_id);
-                            }}
-                            disabled={closingTicketId === ticket.ticket_id}
-                            className="h-8 px-2 text-green-600 hover:text-green-700 hover:bg-green-50"
-                            title="Mark as Resolved"
-                          >
-                            <CheckCircle2 size={16} />
-                          </Button>
-                        )}
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setTicketToClose(ticket.ticket_id);
+                          }}
+                          disabled={closingTicketId === ticket.ticket_id}
+                          className={`h-8 px-2 text-green-600 hover:text-green-700 hover:bg-green-50 transition-opacity ${
+                            ticket.status?.toLowerCase() === 'closed' 
+                              ? 'opacity-0 pointer-events-none' 
+                              : 'opacity-100'
+                          }`}
+                          title="Mark as Resolved"
+                        >
+                          <CheckCircle2 size={16} />
+                        </Button>
                         <Link to={`/ticket/${ticket.ticket_id}`}>
                           <ChevronRight className="text-purple-600 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" size={20} />
                         </Link>
