@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Hash, MapPin, MessageSquare, ChevronRight, Plus, X } from "lucide-react";
+import { Calendar, Hash, MapPin, MessageSquare, ChevronRight, Plus, X, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Navigation from "@/components/Navigation";
 import { ticketService, Ticket } from "@/services/ticketService";
@@ -170,19 +170,6 @@ const MyTickets = () => {
                             {ticket.ticket_id}
                           </span>
                         </div>
-                        {ticket.status?.toLowerCase() !== 'closed' && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10 flex-shrink-0"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              setClosingTicketId(ticket.ticket_id);
-                            }}
-                          >
-                            <X size={18} />
-                          </Button>
-                        )}
                       </div>
 
                       <Link to={`/ticket/${ticket.ticket_id}`} className="block">
@@ -227,6 +214,23 @@ const MyTickets = () => {
                           </div>
                         </div>
                       </Link>
+
+                      {ticket.status?.toLowerCase() !== 'closed' && (
+                        <div className="mt-3 pt-3 border-t border-purple-100">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="w-full text-xs hover:bg-green-50 hover:text-green-700 hover:border-green-300 transition-colors"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              setClosingTicketId(ticket.ticket_id);
+                            }}
+                          >
+                            <CheckCircle2 size={14} className="mr-2" />
+                            Mark as Resolved
+                          </Button>
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 </div>
