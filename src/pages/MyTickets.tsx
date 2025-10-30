@@ -164,7 +164,7 @@ const MyTickets = () => {
                   <CardContent className="p-4 md:p-5">
                     <Link to={`/ticket/${ticket.ticket_id}`} className="block">
                       {/* Ticket ID and Actions */}
-                      <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center justify-between mb-5">
                         <div className="flex items-center gap-2">
                           <Hash size={16} className="text-purple-600 flex-shrink-0" />
                           <span className="font-mono text-xs text-muted-foreground">
@@ -197,13 +197,13 @@ const MyTickets = () => {
                       </h3>
 
                       {/* Details */}
-                      <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
+                      <p className="text-sm text-muted-foreground mb-4 line-clamp-2 min-h-[2.5rem]">
                         {ticket.details}
                       </p>
 
                       {/* Status and Metadata */}
-                      <div className="flex items-center justify-between flex-wrap gap-3 mb-4">
-                        <div className="flex items-center gap-2 flex-wrap">
+                      <div className="flex items-start justify-between gap-3 mb-4">
+                        <div className="flex items-center gap-2 flex-shrink-0">
                           <Badge className={`${getStatusColor(ticket.status)} border text-xs`}>
                             {ticket.status}
                           </Badge>
@@ -214,7 +214,7 @@ const MyTickets = () => {
                           )}
                         </div>
                         
-                        <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                        <div className="flex items-center gap-3 text-xs text-muted-foreground flex-shrink-0">
                           {ticket.comments && ticket.comments.length > 0 && (
                             <div className="flex items-center gap-1">
                               <MessageSquare size={14} className="text-purple-600" />
@@ -223,7 +223,7 @@ const MyTickets = () => {
                           )}
                           <div className="flex items-center gap-1">
                             <Calendar size={14} className="text-purple-600" />
-                            <span>{new Date(ticket.created_at).toLocaleDateString()}</span>
+                            <span className="whitespace-nowrap">{new Date(ticket.created_at).toLocaleDateString()}</span>
                           </div>
                         </div>
                       </div>
@@ -231,7 +231,7 @@ const MyTickets = () => {
                       {/* Location */}
                       <div className="pt-3 border-t border-purple-100">
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          <MapPin size={12} className="text-purple-600" />
+                          <MapPin size={12} className="text-purple-600 flex-shrink-0" />
                           <span>{ticket.user_origin}</span>
                         </div>
                       </div>
