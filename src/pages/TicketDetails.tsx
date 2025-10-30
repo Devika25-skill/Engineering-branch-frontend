@@ -7,7 +7,17 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, Calendar, Hash, Paperclip, Send, X, Image, Video, FileText, Upload, AlertCircle } from "lucide-react";
+import { ArrowLeft, Calendar, Hash, Paperclip, Send, X, Image, Video, FileText, Upload, AlertCircle, CheckCircle2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import Navigation from "@/components/Navigation";
 import { ticketService, Ticket } from "@/services/ticketService";
 import { useAuth } from "@/contexts/AuthContext";
@@ -23,6 +33,8 @@ const TicketDetails = () => {
   const [files, setFiles] = useState<File[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [fileError, setFileError] = useState<string>("");
+  const [isClosing, setIsClosing] = useState(false);
+  const [showCloseDialog, setShowCloseDialog] = useState(false);
 
   useEffect(() => {
     if (!user || !ticketId) return;
@@ -128,6 +140,30 @@ const TicketDetails = () => {
     }
   };
 
+  const handleCloseTicket = async () => {
+    if (!user || !ticketId) return;
+
+    try {
+      setIsClosing(true);
+      await ticketService.closeTickets([ticketId], user.accessToken);
+      
+      toast.success("Issue marked as resolved successfully");
+      
+      // Refresh ticket details
+      const response = await ticketService.fetchUserTickets(user.email, user.accessToken);
+      const updatedTicket = response.data.tickets.find(t => t.ticket_id === ticketId);
+      if (updatedTicket) {
+        setTicket(updatedTicket);
+      }
+    } catch (error) {
+      console.error("Error closing ticket:", error);
+      toast.error("Failed to close issue");
+    } finally {
+      setIsClosing(false);
+      setShowCloseDialog(false);
+    }
+  };
+
   const getStatusColor = (status: string) => {
     switch (status?.toLowerCase()) {
       case 'open':
@@ -207,35 +243,49 @@ const TicketDetails = () => {
         {/* Ticket Header */}
         <Card className="mb-6 shadow-lg border-0 bg-white/90 backdrop-blur-sm animate-scale-in">
           <CardHeader>
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <Hash size={20} className="text-purple-600" />
-                  <span className="font-mono text-sm text-muted-foreground">{ticket.ticket_id}</span>
-                  <Badge className={`${getStatusColor(ticket.status)} border`}>
-                    {ticket.status}
-                  </Badge>
-                  {ticket.is_paid && (
-                    <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-300">
-                      Premium
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+                <div className="space-y-2 flex-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Hash size={20} className="text-purple-600" />
+                    <span className="font-mono text-sm text-muted-foreground">{ticket.ticket_id}</span>
+                    <Badge className={`${getStatusColor(ticket.status)} border`}>
+                      {ticket.status}
                     </Badge>
+                    {ticket.is_paid && (
+                      <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-300">
+                        Premium
+                      </Badge>
+                    )}
+                  </div>
+                  <CardTitle className="text-xl md:text-2xl text-gray-800">
+                    {ticket.product_type}
+                  </CardTitle>
+                </div>
+                <div className="flex flex-col gap-2">
+                  <div className="flex flex-col gap-2 text-sm text-muted-foreground">
+                    <div className="flex items-center gap-2">
+                      <Calendar size={16} />
+                      <span>Created: {new Date(ticket.created_at).toLocaleString()}</span>
+                    </div>
+                    {ticket.updated_at && (
+                      <div className="flex items-center gap-2">
+                        <Calendar size={16} />
+                        <span>Updated: {new Date(ticket.updated_at).toLocaleString()}</span>
+                      </div>
+                    )}
+                  </div>
+                  {ticket.status?.toLowerCase() !== 'closed' && (
+                    <Button
+                      onClick={() => setShowCloseDialog(true)}
+                      disabled={isClosing}
+                      className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white"
+                    >
+                      <CheckCircle2 size={16} className="mr-2" />
+                      {isClosing ? "Resolving..." : "Mark as Resolved"}
+                    </Button>
                   )}
                 </div>
-                <CardTitle className="text-xl md:text-2xl text-gray-800">
-                  {ticket.product_type}
-                </CardTitle>
-              </div>
-              <div className="flex flex-col gap-2 text-sm text-muted-foreground">
-                <div className="flex items-center gap-2">
-                  <Calendar size={16} />
-                  <span>Created: {new Date(ticket.created_at).toLocaleString()}</span>
-                </div>
-                {ticket.updated_at && (
-                  <div className="flex items-center gap-2">
-                    <Calendar size={16} />
-                    <span>Updated: {new Date(ticket.updated_at).toLocaleString()}</span>
-                  </div>
-                )}
               </div>
             </div>
           </CardHeader>
@@ -341,12 +391,13 @@ const TicketDetails = () => {
           </CardContent>
         </Card>
 
-        {/* Submit Comment Section */}
-        <Card className="shadow-lg border-0 bg-white/90 backdrop-blur-sm animate-scale-in">
-          <CardHeader>
-            <CardTitle className="text-lg md:text-xl text-gray-800">Add Comment</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
+        {/* Submit Comment Section - Only show if ticket is not closed */}
+        {ticket.status?.toLowerCase() !== 'closed' && (
+          <Card className="shadow-lg border-0 bg-white/90 backdrop-blur-sm animate-scale-in">
+            <CardHeader>
+              <CardTitle className="text-lg md:text-xl text-gray-800">Add Comment</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="comment">Your Comment *</Label>
               <Textarea
@@ -487,7 +538,30 @@ const TicketDetails = () => {
             </Button>
           </CardContent>
         </Card>
+        )}
       </div>
+
+      {/* Close Ticket Confirmation Dialog */}
+      <AlertDialog open={showCloseDialog} onOpenChange={setShowCloseDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Mark Issue as Resolved?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will close the issue. You won't be able to add more comments after closing.
+              Are you sure you want to proceed?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleCloseTicket}
+              className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+            >
+              Yes, Mark as Resolved
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
