@@ -12,6 +12,16 @@ import Navigation from "@/components/Navigation";
 import { ticketService, Ticket } from "@/services/ticketService";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const TicketDetails = () => {
   const { ticketId } = useParams<{ ticketId: string }>();
@@ -23,6 +33,8 @@ const TicketDetails = () => {
   const [files, setFiles] = useState<File[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [fileError, setFileError] = useState<string>("");
+  const [showCloseDialog, setShowCloseDialog] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
 
   useEffect(() => {
     if (!user || !ticketId) return;
@@ -125,6 +137,30 @@ const TicketDetails = () => {
       toast.error("Failed to add comment");
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleCloseTicket = async () => {
+    if (!user || !ticketId) return;
+
+    try {
+      setIsClosing(true);
+      await ticketService.closeTickets([ticketId], user.accessToken);
+      
+      toast.success("Issue closed successfully");
+      
+      // Refresh ticket details
+      const response = await ticketService.fetchUserTickets(user.email, user.accessToken);
+      const updatedTicket = response.data.tickets.find(t => t.ticket_id === ticketId);
+      if (updatedTicket) {
+        setTicket(updatedTicket);
+      }
+    } catch (error) {
+      console.error("Error closing ticket:", error);
+      toast.error("Failed to close issue");
+    } finally {
+      setIsClosing(false);
+      setShowCloseDialog(false);
     }
   };
 
@@ -236,6 +272,17 @@ const TicketDetails = () => {
                     <span>Updated: {new Date(ticket.updated_at).toLocaleString()}</span>
                   </div>
                 )}
+                {ticket.status?.toLowerCase() !== 'closed' && (
+                  <Button
+                    onClick={() => setShowCloseDialog(true)}
+                    variant="destructive"
+                    size="sm"
+                    className="mt-2"
+                  >
+                    <X className="mr-2 h-4 w-4" />
+                    Close Issue
+                  </Button>
+                )}
               </div>
             </div>
           </CardHeader>
@@ -341,152 +388,168 @@ const TicketDetails = () => {
           </CardContent>
         </Card>
 
-        {/* Submit Comment Section */}
-        <Card className="shadow-lg border-0 bg-white/90 backdrop-blur-sm animate-scale-in">
-          <CardHeader>
-            <CardTitle className="text-lg md:text-xl text-gray-800">Add Comment</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="comment">Your Comment *</Label>
-              <Textarea
-                id="comment"
-                placeholder="Type your comment here..."
-                value={comment}
-                onChange={(e) => setComment(e.target.value)}
-                rows={4}
-                className="resize-none border-2 border-purple-200 focus:border-purple-400"
-                required
-              />
-            </div>
+        {/* Submit Comment Section - Only show if ticket is not closed */}
+        {ticket.status?.toLowerCase() !== 'closed' && (
+          <Card className="shadow-lg border-0 bg-white/90 backdrop-blur-sm animate-scale-in">
+            <CardHeader>
+              <CardTitle className="text-lg md:text-xl text-gray-800">Add Comment</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="comment">Your Comment *</Label>
+                <Textarea
+                  id="comment"
+                  placeholder="Type your comment here..."
+                  value={comment}
+                  onChange={(e) => setComment(e.target.value)}
+                  rows={4}
+                  className="resize-none border-2 border-purple-200 focus:border-purple-400"
+                  required
+                />
+              </div>
 
-            <div className="space-y-2">
-              <Label>
-                Attachments (Screenshots / Videos)
-              </Label>
-              <p className="text-sm text-muted-foreground">
-                Upload up to 2 files (jpeg, jpg, png, mp4, mov, avi). Max 100MB per file.
-              </p>
-              
-              {/* Error Message */}
-              {fileError && (
-                <div className="flex items-center gap-2 p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
-                  <AlertCircle className="h-4 w-4 text-destructive flex-shrink-0" />
-                  <p className="text-sm text-destructive">{fileError}</p>
-                </div>
-              )}
-              
-              {/* Upload Area - Only show if less than 2 files */}
-              {files.length < 2 && (
-                <div className="border-2 border-dashed rounded-lg p-6 text-center hover:border-primary/50 transition-colors bg-card">
-                  <input
-                    type="file"
-                    multiple
-                    accept=".jpeg,.jpg,.png,.mp4,.mov,.avi"
-                    onChange={handleFileSelect}
-                    className="hidden"
-                    id="file-upload"
-                  />
-                  <label
-                    htmlFor="file-upload"
-                    className="cursor-pointer flex flex-col items-center"
-                  >
-                    <Upload className="h-10 w-10 text-muted-foreground mb-2" />
-                    <p className="text-sm text-foreground font-medium">
-                      Click to upload or drag and drop
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {files.length === 0 ? "Up to 2 files" : `${2 - files.length} file remaining`}
-                    </p>
-                  </label>
-                </div>
-              )}
+              <div className="space-y-2">
+                <Label>
+                  Attachments (Screenshots / Videos)
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  Upload up to 2 files (jpeg, jpg, png, mp4, mov, avi). Max 100MB per file.
+                </p>
+                
+                {/* Error Message */}
+                {fileError && (
+                  <div className="flex items-center gap-2 p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
+                    <AlertCircle className="h-4 w-4 text-destructive flex-shrink-0" />
+                    <p className="text-sm text-destructive">{fileError}</p>
+                  </div>
+                )}
+                
+                {/* Upload Area - Only show if less than 2 files */}
+                {files.length < 2 && (
+                  <div className="border-2 border-dashed rounded-lg p-6 text-center hover:border-primary/50 transition-colors bg-card">
+                    <input
+                      type="file"
+                      multiple
+                      accept=".jpeg,.jpg,.png,.mp4,.mov,.avi"
+                      onChange={handleFileSelect}
+                      className="hidden"
+                      id="file-upload"
+                    />
+                    <label
+                      htmlFor="file-upload"
+                      className="cursor-pointer flex flex-col items-center"
+                    >
+                      <Upload className="h-10 w-10 text-muted-foreground mb-2" />
+                      <p className="text-sm text-foreground font-medium">
+                        Click to upload or drag and drop
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {files.length === 0 ? "Up to 2 files" : `${2 - files.length} file remaining`}
+                      </p>
+                    </label>
+                  </div>
+                )}
 
-              {/* File Previews */}
-              {files.length > 0 && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-                  {files.map((file, index) => {
-                    const isVideo = file.type.startsWith('video/');
-                    const previewUrl = URL.createObjectURL(file);
-                    
-                    return (
-                      <div
-                        key={index}
-                        className="relative group rounded-lg overflow-hidden border-2 border-border/50 hover:border-primary/50 bg-muted/30 hover:shadow-lg transition-all duration-300"
-                      >
-                        {/* Preview */}
-                        <div className="aspect-video bg-muted/50 flex items-center justify-center p-4">
-                          {isVideo ? (
-                            <video
-                              src={previewUrl}
-                              controls
-                              className="max-w-full max-h-full object-contain rounded"
-                            >
-                              Your browser does not support the video tag.
-                            </video>
-                          ) : (
-                            <img
-                              src={previewUrl}
-                              alt={file.name}
-                              className="max-w-full max-h-full object-contain rounded"
-                            />
-                          )}
-                        </div>
-                        
-                        {/* File Info Overlay */}
-                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-3">
-                          <div className="flex items-start justify-between gap-2">
-                            <div className="flex items-center gap-2 min-w-0 flex-1">
-                              {isVideo ? (
-                                <Video className="h-4 w-4 text-white flex-shrink-0" />
-                              ) : (
-                                <Image className="h-4 w-4 text-white flex-shrink-0" />
-                              )}
-                              <div className="min-w-0 flex-1">
-                                <p className="text-xs text-white font-medium truncate">
+                {/* File Previews */}
+                {files.length > 0 && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                    {files.map((file, index) => {
+                      const isVideo = file.type.startsWith('video/');
+                      const previewUrl = URL.createObjectURL(file);
+                      
+                      return (
+                        <div
+                          key={index}
+                          className="relative group rounded-lg overflow-hidden border-2 border-border/50 hover:border-primary/50 bg-muted/30 hover:shadow-lg transition-all duration-300"
+                        >
+                          {/* Preview */}
+                          <div className="aspect-video bg-muted/50 flex items-center justify-center p-4">
+                            {isVideo ? (
+                              <video
+                                src={previewUrl}
+                                controls
+                                className="max-w-full max-h-full object-contain rounded"
+                              >
+                                Your browser does not support the video tag.
+                              </video>
+                            ) : (
+                              <img
+                                src={previewUrl}
+                                alt={file.name}
+                                className="max-w-full max-h-full object-contain rounded"
+                              />
+                            )}
+                          </div>
+                          
+                          {/* File Info Overlay */}
+                          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 via-black/50 to-transparent p-4 pt-8">
+                            <div className="flex items-center justify-between gap-2">
+                              <div className="flex-1 min-w-0">
+                                <p className="text-white text-sm font-medium truncate">
                                   {file.name}
                                 </p>
-                                <p className="text-xs text-white/80">
+                                <p className="text-white/80 text-xs">
                                   {(file.size / (1024 * 1024)).toFixed(2)} MB
                                 </p>
                               </div>
+                              
+                              {/* Remove Button */}
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => removeFile(index)}
+                                className="h-8 w-8 bg-white/10 hover:bg-white/20 text-white flex-shrink-0 transition-colors"
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
                             </div>
-                            
-                            {/* Remove Button */}
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => removeFile(index)}
-                              className="h-8 w-8 bg-white/10 hover:bg-white/20 text-white flex-shrink-0 transition-colors"
-                            >
-                              <X className="h-4 w-4" />
-                            </Button>
                           </div>
                         </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
 
-            <Button
-              onClick={handleSubmitComment}
-              disabled={isSubmitting || !comment.trim()}
-              className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
-            >
-              {isSubmitting ? (
-                <>Submitting...</>
-              ) : (
-                <>
-                  <Send className="mr-2 h-4 w-4" />
-                  Submit Comment
-                </>
-              )}
-            </Button>
-          </CardContent>
-        </Card>
+              <Button
+                onClick={handleSubmitComment}
+                disabled={isSubmitting || !comment.trim()}
+                className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+              >
+                {isSubmitting ? (
+                  <>Submitting...</>
+                ) : (
+                  <>
+                    <Send className="mr-2 h-4 w-4" />
+                    Submit Comment
+                  </>
+                )}
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
+        <AlertDialog open={showCloseDialog} onOpenChange={setShowCloseDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Close Issue</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to close this issue? You won't be able to add more comments after closing.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={isClosing}>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleCloseTicket}
+                disabled={isClosing}
+                className="bg-destructive hover:bg-destructive/90"
+              >
+                {isClosing ? "Closing..." : "Close Issue"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );

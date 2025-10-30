@@ -107,6 +107,44 @@ class TicketService {
       throw error;
     }
   }
+
+  async closeTickets(
+    ticketIds: string[],
+    accessToken: string
+  ): Promise<{ message: string; success: boolean; data: { modified_count: number } }> {
+    try {
+      const response = await fetch(
+        `${this.baseUrl}/api/v1/support/tickets/bulk-action`,
+        {
+          method: 'PATCH',
+          headers: {
+            'accept': 'application/json',
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            action: 'Close',
+            ticket_ids: ticketIds,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      if (!data.success) {
+        throw new Error(data.message || 'Failed to close tickets');
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error closing tickets:', error);
+      throw error;
+    }
+  }
 }
 
 export const ticketService = new TicketService();
