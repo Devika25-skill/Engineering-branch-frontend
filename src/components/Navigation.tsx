@@ -61,6 +61,7 @@ const Navigation = () => {
       case 'BCA_MCA_Int':
       case 'BBA_BMS_BBM_MBA_Int':
       case 'B_and_D_Pharmacy':
+      case 'First_Year_Medical':
         navigate(`/integrated-steps?type=${program}`);
         break;
       default:
