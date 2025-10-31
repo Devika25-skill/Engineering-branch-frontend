@@ -6,7 +6,7 @@ import Navigation from "@/components/Navigation";
 import { Link, useNavigate } from 'react-router-dom';
 import { backgroundLoader } from '@/services/backgroundLoader';
 import { sessionStorageService } from '@/services/sessionStorage';
-import { ProgramSelectionDialog, ProgramType } from '@/components/common/ProgramSelectionDialog';
+import { ProgramSelectionDialog } from '@/components/common/ProgramSelectionDialog';
 import { useAuth } from '@/contexts/AuthContext';
 import { IntegratedAdmissionType } from '@/types/integratedAdmission';
 
@@ -45,15 +45,13 @@ const Index = () => {
     }
   };
 
-  const handleRecommendationTypeSelect = (type: 'first-year' | 'first-year-medical' | 'direct-second-year') => {
+  const handleRecommendationTypeSelect = (type: 'first-year' | 'direct-second-year') => {
     // Store the selected type for future reference
     localStorage.setItem('recommendation_type', type);
     
     if (type === 'first-year') {
       const hasExistingData = sessionStorage.getItem('recommendationFormData');
       navigate(hasExistingData ? '/recommendations/results' : '/recommendations/steps');
-    } else if (type === 'first-year-medical') {
-      navigate('/medical-recommendations/steps');
     } else {
       const hasExistingData = sessionStorage.getItem('cachedDiplomaRecommendations');
       navigate(hasExistingData ? '/diploma-recommendations/results' : '/diploma-recommendations/steps');
@@ -73,8 +71,6 @@ const Index = () => {
       navigate(hasExistingData ? '/diploma-recommendations/results' : '/diploma-recommendations/steps');
     } else if (savedRecommendationType === 'first-year') {
       navigate('/recommendations');
-    } else if (savedRecommendationType === 'first-year-medical') {
-      navigate('/medical-recommendations/steps');
     } else if (savedIntegratedType) {
       navigate(`/integrated-rounds?type=${savedIntegratedType}`);
     } else {
@@ -83,16 +79,12 @@ const Index = () => {
     }
   };
 
-  const handleProgramSelect = (program: ProgramType) => {
+  const handleProgramSelect = (program: string) => {
     
-    if (program === 'first-year' || program === 'first-year-medical' || program === 'direct-second-year') {
+    if (program === 'first-year' || program === 'direct-second-year') {
       localStorage.setItem('recommendation_type', program);
       localStorage.removeItem('integrated_admission_type');
-      
-      // Add a small delay to ensure localStorage is set and dialog closes before navigation
-      setTimeout(() => {
-        handleRecommendationTypeSelect(program as 'first-year' | 'first-year-medical' | 'direct-second-year');
-      }, 50);
+      handleRecommendationTypeSelect(program as 'first-year' | 'direct-second-year');
     } else {
       localStorage.setItem('integrated_admission_type', program);
       localStorage.removeItem('recommendation_type');
