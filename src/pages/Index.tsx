@@ -80,36 +80,26 @@ const Index = () => {
   };
 
   const handleProgramSelect = (program: string) => {
-    try {
-      console.log('=== INDEX HANDLEPROGRAM START ===');
-      console.log('Index - handleProgramSelect ENTRY - called with:', program, 'type:', typeof program);
-      console.log('Index - navigate function exists?', typeof navigate);
+    console.log('=== INDEX.TSX - handleProgramSelect CALLED ===');
+    console.log('Program received:', program);
+    console.log('Program type:', typeof program);
+    
+    if (program === 'first-year' || program === 'direct-second-year') {
+      console.log('Route: Recommendation type');
+      localStorage.setItem('recommendation_type', program);
+      localStorage.removeItem('integrated_admission_type');
+      handleRecommendationTypeSelect(program as 'first-year' | 'direct-second-year');
+    } else {
+      console.log('Route: Integrated admission type');
+      localStorage.setItem('integrated_admission_type', program);
+      localStorage.removeItem('recommendation_type');
       
-      if (program === 'first-year' || program === 'direct-second-year') {
-        console.log('Index - RECOMMENDATION BRANCH');
-        localStorage.setItem('recommendation_type', program);
-        localStorage.removeItem('integrated_admission_type');
-        handleRecommendationTypeSelect(program as 'first-year' | 'direct-second-year');
-      } else {
-        console.log('Index - INTEGRATED BRANCH for program:', program);
-        localStorage.setItem('integrated_admission_type', program);
-        localStorage.removeItem('recommendation_type');
-        
-        const targetUrl = `/integrated-steps?type=${program}`;
-        console.log('Index - About to navigate to:', targetUrl);
-        
-        // Use window.location as fallback to ensure navigation happens
-        try {
-          navigate(targetUrl);
-          console.log('Index - React Router navigate() called');
-        } catch (navError) {
-          console.error('Index - React Router navigate failed, using window.location:', navError);
-          window.location.href = targetUrl;
-        }
-      }
-      console.log('=== INDEX HANDLEPROGRAM END ===');
-    } catch (error) {
-      console.error('=== INDEX HANDLEPROGRAM ERROR ===', error);
+      const targetUrl = `/integrated-steps?type=${program}`;
+      console.log('Target URL:', targetUrl);
+      console.log('Navigating now...');
+      
+      // Force navigation using window.location for reliability
+      window.location.href = targetUrl;
     }
   };
 
@@ -293,10 +283,7 @@ const Index = () => {
       <ProgramSelectionDialog
         open={showProgramDialog}
         onOpenChange={setShowProgramDialog}
-        onSelectProgram={(program) => {
-          console.log('=== INLINE CALLBACK TRIGGERED ===', program);
-          handleProgramSelect(program);
-        }}
+        onSelectProgram={handleProgramSelect}
       />
     </div>
   );
