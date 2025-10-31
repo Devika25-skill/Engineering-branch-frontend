@@ -94,7 +94,9 @@ const Navigation = () => {
           } else if (savedRecommendationType === 'first-year') {
             navigate('/recommendations');
           } else if (savedIntegratedType) {
-            navigate(`/integrated-rounds?type=${savedIntegratedType}`);
+            // Check if form data exists for this integrated type
+            const hasExistingData = sessionStorage.getItem(`integrated_${savedIntegratedType}_formData`);
+            navigate(hasExistingData ? `/integrated-rounds?type=${savedIntegratedType}` : `/integrated-steps?type=${savedIntegratedType}`);
           } else {
             // No preference saved, show dialog
             setShowProgramDialog(true);
