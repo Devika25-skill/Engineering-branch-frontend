@@ -6,7 +6,7 @@ import Navigation from "@/components/Navigation";
 import { Link, useNavigate } from 'react-router-dom';
 import { backgroundLoader } from '@/services/backgroundLoader';
 import { sessionStorageService } from '@/services/sessionStorage';
-import { ProgramSelectionDialog } from '@/components/common/ProgramSelectionDialog';
+import { ProgramSelectionDialog, ProgramType } from '@/components/common/ProgramSelectionDialog';
 import { useAuth } from '@/contexts/AuthContext';
 import { IntegratedAdmissionType } from '@/types/integratedAdmission';
 
@@ -83,7 +83,7 @@ const Index = () => {
     }
   };
 
-  const handleProgramSelect = (program: string) => {
+  const handleProgramSelect = (program: ProgramType) => {
     
     if (program === 'first-year' || program === 'first-year-medical' || program === 'direct-second-year') {
       localStorage.setItem('recommendation_type', program);
