@@ -80,19 +80,49 @@ const Index = () => {
   };
 
   const handleProgramSelect = (program: string) => {
-    
-    if (program === 'first-year' || program === 'direct-second-year') {
-      localStorage.setItem('recommendation_type', program);
-      localStorage.removeItem('integrated_admission_type');
-      handleRecommendationTypeSelect(program as 'first-year' | 'direct-second-year');
-    } else {
-      localStorage.setItem('integrated_admission_type', program);
-      localStorage.removeItem('recommendation_type');
+    switch (program) {
+      case 'first-year':
+      case 'direct-second-year':
+        localStorage.setItem('recommendation_type', program);
+        localStorage.removeItem('integrated_admission_type');
+        handleRecommendationTypeSelect(program as 'first-year' | 'direct-second-year');
+        break;
       
-      // Add a small delay to ensure localStorage is set before navigation
-      setTimeout(() => {
-        navigate(`/integrated-steps?type=${program}`);
-      }, 50);
+      case 'BCA_MCA_Int':
+        localStorage.setItem('integrated_admission_type', program);
+        localStorage.removeItem('recommendation_type');
+        setTimeout(() => {
+          navigate(`/integrated-steps?type=BCA_MCA_Int`);
+        }, 50);
+        break;
+      
+      case 'BBA_BMS_BBM_MBA_Int':
+        localStorage.setItem('integrated_admission_type', program);
+        localStorage.removeItem('recommendation_type');
+        setTimeout(() => {
+          navigate(`/integrated-steps?type=BBA_BMS_BBM_MBA_Int`);
+        }, 50);
+        break;
+      
+      case 'B_and_D_Pharmacy':
+        localStorage.setItem('integrated_admission_type', program);
+        localStorage.removeItem('recommendation_type');
+        setTimeout(() => {
+          navigate(`/integrated-steps?type=B_and_D_Pharmacy`);
+        }, 50);
+        break;
+      
+      case 'First_Year_Medical':
+        localStorage.setItem('integrated_admission_type', program);
+        localStorage.removeItem('recommendation_type');
+        setTimeout(() => {
+          navigate(`/integrated-steps?type=First_Year_Medical`);
+        }, 50);
+        break;
+      
+      default:
+        console.error('Unknown program type:', program);
+        break;
     }
   };
 
