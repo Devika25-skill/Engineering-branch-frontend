@@ -84,19 +84,23 @@ export function ProgramSelectionDialog({
   const [selectedProgram, setSelectedProgram] = useState<ProgramType | null>(null);
 
   const handleSelect = (program: ProgramType) => {
+    console.log('ProgramSelectionDialog - Selected program:', program);
     setSelectedProgram(program);
     
     // Store selected program for future reference
     if (program === 'first-year' || program === 'direct-second-year') {
       localStorage.setItem('recommendation_type', program as RecommendationType);
+      console.log('ProgramSelectionDialog - Stored as recommendation_type:', program);
     } else {
       localStorage.setItem('integrated_admission_type', program as IntegratedAdmissionType);
+      console.log('ProgramSelectionDialog - Stored as integrated_admission_type:', program);
     }
     
     // Close dialog first, then trigger navigation after a small delay
     onOpenChange(false);
     
     setTimeout(() => {
+      console.log('ProgramSelectionDialog - Calling onSelectProgram with:', program);
       onSelectProgram(program);
     }, 100);
   };

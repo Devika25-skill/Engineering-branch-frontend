@@ -80,17 +80,26 @@ const Index = () => {
   };
 
   const handleProgramSelect = (program: string) => {
+    console.log('Index - handleProgramSelect called with:', program);
+    console.log('Index - Program type check:', {
+      isFirstYear: program === 'first-year',
+      isDirectSecondYear: program === 'direct-second-year',
+      isIntegrated: program !== 'first-year' && program !== 'direct-second-year'
+    });
     
     if (program === 'first-year' || program === 'direct-second-year') {
       localStorage.setItem('recommendation_type', program);
       localStorage.removeItem('integrated_admission_type');
+      console.log('Index - Calling handleRecommendationTypeSelect');
       handleRecommendationTypeSelect(program as 'first-year' | 'direct-second-year');
     } else {
       localStorage.setItem('integrated_admission_type', program);
       localStorage.removeItem('recommendation_type');
+      console.log('Index - Navigating to integrated-steps with type:', program);
       
       // Add a small delay to ensure localStorage is set before navigation
       setTimeout(() => {
+        console.log('Index - Actually navigating now to:', `/integrated-steps?type=${program}`);
         navigate(`/integrated-steps?type=${program}`);
       }, 50);
     }
