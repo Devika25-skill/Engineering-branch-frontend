@@ -2,10 +2,10 @@ import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { GraduationCap, Users, MapPin, Building, Pill, LucideIcon } from 'lucide-react';
+import { GraduationCap, Users, MapPin, Building, Pill, Heart, LucideIcon } from 'lucide-react';
 import { IntegratedAdmissionType } from '@/types/integratedAdmission';
 
-type RecommendationType = 'first-year' | 'direct-second-year';
+type RecommendationType = 'first-year' | 'first-year-medical' | 'direct-second-year';
 export type ProgramType = RecommendationType | IntegratedAdmissionType;
 
 interface ProgramOption {
@@ -32,6 +32,14 @@ const allPrograms: ProgramOption[] = [
     icon: GraduationCap,
     gradient: 'from-purple-500 to-purple-600',
     details: ['3 Rounds', 'Full form']
+  },
+  {
+    id: 'first-year-medical' as const,
+    title: 'First Year Medical',
+    description: 'UG-NEET for medical admission',
+    icon: Heart,
+    gradient: 'from-red-500 to-pink-600',
+    details: ['CET recommendations', 'Medical programs']
   },
   {
     id: 'direct-second-year' as const,
@@ -79,7 +87,7 @@ export function ProgramSelectionDialog({
     setSelectedProgram(program);
     
     // Store selected program for future reference
-    if (program === 'first-year' || program === 'direct-second-year') {
+    if (program === 'first-year' || program === 'first-year-medical' || program === 'direct-second-year') {
       localStorage.setItem('recommendation_type', program as RecommendationType);
     } else {
       localStorage.setItem('integrated_admission_type', program as IntegratedAdmissionType);
