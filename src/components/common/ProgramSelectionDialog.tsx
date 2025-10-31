@@ -85,31 +85,22 @@ export function ProgramSelectionDialog({
 
   const handleSelect = (program: ProgramType) => {
     console.log('ProgramSelectionDialog - Selected program:', program);
-    console.log('ProgramSelectionDialog - onSelectProgram exists?', typeof onSelectProgram);
     setSelectedProgram(program);
     
     // Store selected program for future reference
     if (program === 'first-year' || program === 'direct-second-year') {
       localStorage.setItem('recommendation_type', program as RecommendationType);
-      console.log('ProgramSelectionDialog - Stored as recommendation_type:', program);
     } else {
       localStorage.setItem('integrated_admission_type', program as IntegratedAdmissionType);
-      console.log('ProgramSelectionDialog - Stored as integrated_admission_type:', program);
     }
     
-    // Close dialog immediately
-    onOpenChange(false);
+    // Call the callback FIRST before closing dialog
+    console.log('ProgramSelectionDialog - Calling onSelectProgram with:', program);
+    onSelectProgram(program);
+    console.log('ProgramSelectionDialog - onSelectProgram called, now closing dialog');
     
-    // Call the callback in the next tick to ensure dialog is closed
-    requestAnimationFrame(() => {
-      console.log('ProgramSelectionDialog - About to call onSelectProgram with:', program);
-      try {
-        onSelectProgram(program);
-        console.log('ProgramSelectionDialog - onSelectProgram called successfully');
-      } catch (error) {
-        console.error('ProgramSelectionDialog - Error calling onSelectProgram:', error);
-      }
-    });
+    // Close dialog after callback is executed
+    setTimeout(() => onOpenChange(false), 100);
   };
 
   return (
