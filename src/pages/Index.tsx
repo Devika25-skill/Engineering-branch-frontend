@@ -88,7 +88,11 @@ const Index = () => {
     if (program === 'first-year' || program === 'first-year-medical' || program === 'direct-second-year') {
       localStorage.setItem('recommendation_type', program);
       localStorage.removeItem('integrated_admission_type');
-      handleRecommendationTypeSelect(program as 'first-year' | 'first-year-medical' | 'direct-second-year');
+      
+      // Add a small delay to ensure localStorage is set and dialog closes before navigation
+      setTimeout(() => {
+        handleRecommendationTypeSelect(program as 'first-year' | 'first-year-medical' | 'direct-second-year');
+      }, 50);
     } else {
       localStorage.setItem('integrated_admission_type', program);
       localStorage.removeItem('recommendation_type');
