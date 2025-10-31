@@ -85,6 +85,8 @@ export function ProgramSelectionDialog({
 
   const handleSelect = (program: ProgramType) => {
     console.log('ProgramSelectionDialog - Selected program:', program);
+    console.log('ProgramSelectionDialog - onSelectProgram type:', typeof onSelectProgram);
+    console.log('ProgramSelectionDialog - onSelectProgram function:', onSelectProgram.toString().substring(0, 100));
     setSelectedProgram(program);
     
     // Store selected program for future reference
@@ -95,12 +97,15 @@ export function ProgramSelectionDialog({
     }
     
     // Call the callback FIRST before closing dialog
-    console.log('ProgramSelectionDialog - Calling onSelectProgram with:', program);
-    onSelectProgram(program);
-    console.log('ProgramSelectionDialog - onSelectProgram called, now closing dialog');
+    console.log('ProgramSelectionDialog - About to call onSelectProgram with:', program);
+    const result = onSelectProgram(program);
+    console.log('ProgramSelectionDialog - onSelectProgram returned:', result);
     
     // Close dialog after callback is executed
-    setTimeout(() => onOpenChange(false), 100);
+    setTimeout(() => {
+      console.log('ProgramSelectionDialog - Closing dialog now');
+      onOpenChange(false);
+    }, 100);
   };
 
   return (
