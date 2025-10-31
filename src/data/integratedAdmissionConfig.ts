@@ -2,6 +2,14 @@ import { IntegratedAdmissionType } from '@/types/integratedAdmission';
 
 // Branch options for each admission type
 export const branchOptions: Record<IntegratedAdmissionType, string[]> = {
+  'First_Year_Medical': [
+    "ALL",
+    "MBBS",
+    "BDS",
+    "BAMS",
+    "BHMS",
+    "BUMS"
+  ],
   'BCA_MCA_Int': [
     "ALL",
     "B.C.A. Visual Arts",
@@ -41,6 +49,23 @@ export const branchOptions: Record<IntegratedAdmissionType, string[]> = {
 
 // City options for each admission type
 export const cityOptions: Record<IntegratedAdmissionType, string[]> = {
+  'First_Year_Medical': [
+    "ALL",
+    "Mumbai",
+    "Pune",
+    "Nagpur",
+    "Nashik",
+    "Aurangabad/Chhatrapati Sambhajinagar",
+    "Kolhapur",
+    "Sangli",
+    "Solapur",
+    "Ahmednagar/Ahilyanagar",
+    "Latur",
+    "Nanded",
+    "Satara",
+    "Thane",
+    "Kalyan"
+  ],
   'BCA_MCA_Int': [
     "ALL",
     "Ahmednagar",
@@ -533,6 +558,20 @@ export const cityOptions: Record<IntegratedAdmissionType, string[]> = {
 
 // Category options for each admission type
 export const categoryOptions: Record<IntegratedAdmissionType, Array<{ value: string; label: string }>> = {
+  'First_Year_Medical': [
+    { value: 'GOPENH', label: 'Open Category (General)' },
+    { value: 'GOBCH', label: 'Other Backward Class (OBC)' },
+    { value: 'GNTAH', label: 'Nomadic Tribe - Category A (NT-A)' },
+    { value: 'GNTBH', label: 'Nomadic Tribe - Category B (NT-B)' },
+    { value: 'GNTCH', label: 'Nomadic Tribe - Category C (NT-C)' },
+    { value: 'GNTDH', label: 'Nomadic Tribe - Category D (NT-D)' },
+    { value: 'GSCH', label: 'Scheduled Caste (SC)' },
+    { value: 'GSEBCH', label: 'Socially and Educationally Backward Class (SEBC)' },
+    { value: 'GSTH', label: 'Scheduled Tribe (ST)' },
+    { value: 'EWS', label: 'Economically Weaker Section' },
+    { value: 'MI', label: 'Minority Quota' },
+    { value: 'TFWS', label: 'Tuition Fee Waiver Scheme' }
+  ],
   'BCA_MCA_Int': [
     { value: 'GOPENH', label: 'Open Category (General)' },
     { value: 'GOBCH', label: 'Other Backward Class (OBC)' },
@@ -617,6 +656,44 @@ export const categoryOptions: Record<IntegratedAdmissionType, Array<{ value: str
 };
 
 export const districtOptions: Record<IntegratedAdmissionType, Array<{ value: string; label: string }>> = {
+  "First_Year_Medical": [
+    { value: 'Ahmednagar', label: 'Ahmednagar' },
+    { value: 'Akola', label: 'Akola' },
+    { value: 'Amravati', label: 'Amravati' },
+    { value: 'Beed', label: 'Beed' },
+    { value: 'Bhandara', label: 'Bhandara' },
+    { value: 'Buldana', label: 'Buldana' },
+    { value: 'Chandrapur', label: 'Chandrapur' },
+    { value: 'Chhatrapati Sambhajinagar', label: 'Chhatrapati Sambhajinagar' },
+    { value: 'Dharashiv', label: 'Dharashiv' },
+    { value: 'Dhule', label: 'Dhule' },
+    { value: 'Gadchiroli', label: 'Gadchiroli' },
+    { value: 'Gondia', label: 'Gondia' },
+    { value: 'Hingoli', label: 'Hingoli' },
+    { value: 'Jalgaon', label: 'Jalgaon' },
+    { value: 'Jalna', label: 'Jalna' },
+    { value: 'Kolhapur', label: 'Kolhapur' },
+    { value: 'Latur', label: 'Latur' },
+    { value: 'Mumbai City', label: 'Mumbai City' },
+    { value: 'Mumbai Suburban', label: 'Mumbai Suburban' },
+    { value: 'Nagpur', label: 'Nagpur' },
+    { value: 'Nanded', label: 'Nanded' },
+    { value: 'Nandurbar', label: 'Nandurbar' },
+    { value: 'Nashik', label: 'Nashik' },
+    { value: 'Palghar', label: 'Palghar' },
+    { value: 'Parbhani', label: 'Parbhani' },
+    { value: 'Pune', label: 'Pune' },
+    { value: 'Raigad', label: 'Raigad' },
+    { value: 'Ratnagiri', label: 'Ratnagiri' },
+    { value: 'Sangli', label: 'Sangli' },
+    { value: 'Satara', label: 'Satara' },
+    { value: 'Sindhudurg', label: 'Sindhudurg' },
+    { value: 'Solapur', label: 'Solapur' },
+    { value: 'Thane', label: 'Thane' },
+    { value: 'Wardha', label: 'Wardha' },
+    { value: 'Washim', label: 'Washim' },
+    { value: 'Yavatmal', label: 'Yavatmal' }
+  ],
   "BCA_MCA_Int": [
     { value: 'Ahmednagar', label: 'Ahmednagar' },
     { value: 'Akola', label: 'Akola' },

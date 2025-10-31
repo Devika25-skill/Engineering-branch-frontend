@@ -7,7 +7,7 @@ import { SearchableSelect } from '@/components/ui/searchable-select';
 import { useToast } from '@/hooks/use-toast';
 import { IntegratedAdmissionFormData, IntegratedAdmissionType } from '@/types/integratedAdmission';
 import { categoryOptions, districtOptions } from '@/data/integratedAdmissionConfig';
-import { GraduationCap, Building, Pill } from 'lucide-react';
+import { GraduationCap, Building, Pill, Heart } from 'lucide-react';
 
 interface IntegratedAdmissionFormProps {
   admissionType: IntegratedAdmissionType;
@@ -34,6 +34,12 @@ const getAdmissionTypeInfo = (type: IntegratedAdmissionType) => {
         title: 'B.Pharmacy/Pharm D', 
         icon: Pill,
         gradient: 'from-green-500 to-emerald-500'
+      };
+    case 'First_Year_Medical':
+      return { 
+        title: 'First Year Medical', 
+        icon: Heart,
+        gradient: 'from-red-500 to-pink-500'
       };
   }
 };

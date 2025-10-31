@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { GraduationCap, Users, MapPin, Building, Pill, LucideIcon } from 'lucide-react';
+import { GraduationCap, Users, MapPin, Building, Pill, Heart, LucideIcon } from 'lucide-react';
 import { IntegratedAdmissionType } from '@/types/integratedAdmission';
 
 type RecommendationType = 'first-year' | 'direct-second-year';
@@ -65,6 +65,14 @@ const allPrograms: ProgramOption[] = [
     icon: Pill,
     gradient: 'from-green-500 to-emerald-500',
     details: ['3 Rounds', 'Healthcare sector']
+  },
+  {
+    id: 'First_Year_Medical' as const,
+    title: 'First Year Medical',
+    description: 'MBBS and Medical programs after 12th',
+    icon: Heart,
+    gradient: 'from-red-500 to-pink-500',
+    details: ['3 Rounds', 'Medical focus']
   }
 ];
 
