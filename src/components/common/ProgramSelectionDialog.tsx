@@ -96,13 +96,14 @@ export function ProgramSelectionDialog({
       console.log('ProgramSelectionDialog - Stored as integrated_admission_type:', program);
     }
     
-    // Close dialog first, then trigger navigation after a small delay
-    onOpenChange(false);
+    // Trigger navigation first, then close dialog
+    console.log('ProgramSelectionDialog - Calling onSelectProgram with:', program);
+    onSelectProgram(program);
     
+    // Close dialog after triggering navigation
     setTimeout(() => {
-      console.log('ProgramSelectionDialog - Calling onSelectProgram with:', program);
-      onSelectProgram(program);
-    }, 100);
+      onOpenChange(false);
+    }, 50);
   };
 
   return (
