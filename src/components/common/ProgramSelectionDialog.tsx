@@ -84,28 +84,31 @@ export function ProgramSelectionDialog({
   const [selectedProgram, setSelectedProgram] = useState<ProgramType | null>(null);
 
   const handleSelect = (program: ProgramType) => {
-    console.log('ProgramSelectionDialog - Selected program:', program);
-    console.log('ProgramSelectionDialog - onSelectProgram type:', typeof onSelectProgram);
-    console.log('ProgramSelectionDialog - onSelectProgram function:', onSelectProgram.toString().substring(0, 100));
-    setSelectedProgram(program);
+    console.log('=== DIALOG handleSelect START ===');
+    console.log('Selected program:', program);
     
-    // Store selected program for future reference
+    // Store selected program
     if (program === 'first-year' || program === 'direct-second-year') {
       localStorage.setItem('recommendation_type', program as RecommendationType);
     } else {
       localStorage.setItem('integrated_admission_type', program as IntegratedAdmissionType);
     }
     
-    // Call the callback FIRST before closing dialog
-    console.log('ProgramSelectionDialog - About to call onSelectProgram with:', program);
-    const result = onSelectProgram(program);
-    console.log('ProgramSelectionDialog - onSelectProgram returned:', result);
+    console.log('Stored in localStorage');
+    console.log('Calling parent callback...');
     
-    // Close dialog after callback is executed
-    setTimeout(() => {
-      console.log('ProgramSelectionDialog - Closing dialog now');
-      onOpenChange(false);
-    }, 100);
+    // Call parent immediately
+    try {
+      onSelectProgram(program);
+      console.log('Parent callback completed');
+    } catch (error) {
+      console.error('ERROR calling parent callback:', error);
+    }
+    
+    console.log('=== DIALOG handleSelect END ===');
+    
+    // Close dialog
+    setTimeout(() => onOpenChange(false), 150);
   };
 
   return (

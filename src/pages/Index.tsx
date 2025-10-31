@@ -11,10 +11,12 @@ import { useAuth } from '@/contexts/AuthContext';
 import { IntegratedAdmissionType } from '@/types/integratedAdmission';
 
 const Index = () => {
+  console.log('Index component rendering');
   const [searchTerm, setSearchTerm] = useState("");
   const [showProgramDialog, setShowProgramDialog] = useState(false);
   const navigate = useNavigate();
   const { user, isLoggedIn, logout } = useAuth();
+  console.log('navigate function exists:', !!navigate);
 
 // Remove All the applied filters on Coming back to home
   useEffect(() => {
