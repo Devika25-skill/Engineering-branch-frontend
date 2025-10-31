@@ -20,7 +20,7 @@ const RaiseIssue = () => {
   const [formData, setFormData] = useState({
     name: user?.name || "",
     email: user?.email || "",
-    productType: "First Year Engineering",
+    productType: "",
     details: "",
   });
   
@@ -172,7 +172,7 @@ const RaiseIssue = () => {
       setFormData({
         name: user?.name || "",
         email: user?.email || "",
-        productType: "Standard",
+        productType: "",
         details: "",
       });
       
@@ -302,7 +302,7 @@ const RaiseIssue = () => {
                     ]}
                     value={formData.productType}
                     onValueChange={(value) => setFormData({ ...formData, productType: value })}
-                    placeholder="Select product type"
+                    placeholder="Select your product type"
                     searchPlaceholder="Search product types..."
                   />
                 </div>
