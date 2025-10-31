@@ -80,30 +80,36 @@ const Index = () => {
   };
 
   const handleProgramSelect = (program: string) => {
-    console.log('Index - handleProgramSelect ENTRY - called with:', program, 'type:', typeof program);
-    console.log('Index - Program type check:', {
-      isFirstYear: program === 'first-year',
-      isDirectSecondYear: program === 'direct-second-year',
-      isIntegrated: program !== 'first-year' && program !== 'direct-second-year',
-      programValue: program
-    });
-    
-    if (program === 'first-year' || program === 'direct-second-year') {
-      localStorage.setItem('recommendation_type', program);
-      localStorage.removeItem('integrated_admission_type');
-      console.log('Index - Calling handleRecommendationTypeSelect');
-      handleRecommendationTypeSelect(program as 'first-year' | 'direct-second-year');
-    } else {
-      console.log('Index - INTEGRATED BRANCH - Setting localStorage and navigating');
-      localStorage.setItem('integrated_admission_type', program);
-      localStorage.removeItem('recommendation_type');
-      console.log('Index - localStorage set, about to navigate to integrated-steps with type:', program);
+    try {
+      console.log('=== INDEX HANDLEPROGRAM START ===');
+      console.log('Index - handleProgramSelect ENTRY - called with:', program, 'type:', typeof program);
+      console.log('Index - navigate function exists?', typeof navigate);
       
-      // Navigate immediately without delay
-      const targetUrl = `/integrated-steps?type=${program}`;
-      console.log('Index - Navigating to:', targetUrl);
-      navigate(targetUrl);
-      console.log('Index - Navigate called');
+      if (program === 'first-year' || program === 'direct-second-year') {
+        console.log('Index - RECOMMENDATION BRANCH');
+        localStorage.setItem('recommendation_type', program);
+        localStorage.removeItem('integrated_admission_type');
+        handleRecommendationTypeSelect(program as 'first-year' | 'direct-second-year');
+      } else {
+        console.log('Index - INTEGRATED BRANCH for program:', program);
+        localStorage.setItem('integrated_admission_type', program);
+        localStorage.removeItem('recommendation_type');
+        
+        const targetUrl = `/integrated-steps?type=${program}`;
+        console.log('Index - About to navigate to:', targetUrl);
+        
+        // Use window.location as fallback to ensure navigation happens
+        try {
+          navigate(targetUrl);
+          console.log('Index - React Router navigate() called');
+        } catch (navError) {
+          console.error('Index - React Router navigate failed, using window.location:', navError);
+          window.location.href = targetUrl;
+        }
+      }
+      console.log('=== INDEX HANDLEPROGRAM END ===');
+    } catch (error) {
+      console.error('=== INDEX HANDLEPROGRAM ERROR ===', error);
     }
   };
 
