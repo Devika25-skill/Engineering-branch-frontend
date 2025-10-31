@@ -293,7 +293,10 @@ const Index = () => {
       <ProgramSelectionDialog
         open={showProgramDialog}
         onOpenChange={setShowProgramDialog}
-        onSelectProgram={handleProgramSelect}
+        onSelectProgram={(program) => {
+          console.log('=== INLINE CALLBACK TRIGGERED ===', program);
+          handleProgramSelect(program);
+        }}
       />
     </div>
   );
