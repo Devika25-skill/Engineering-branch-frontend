@@ -80,11 +80,12 @@ const Index = () => {
   };
 
   const handleProgramSelect = (program: string) => {
-    console.log('Index - handleProgramSelect called with:', program);
+    console.log('Index - handleProgramSelect ENTRY - called with:', program, 'type:', typeof program);
     console.log('Index - Program type check:', {
       isFirstYear: program === 'first-year',
       isDirectSecondYear: program === 'direct-second-year',
-      isIntegrated: program !== 'first-year' && program !== 'direct-second-year'
+      isIntegrated: program !== 'first-year' && program !== 'direct-second-year',
+      programValue: program
     });
     
     if (program === 'first-year' || program === 'direct-second-year') {
@@ -93,15 +94,16 @@ const Index = () => {
       console.log('Index - Calling handleRecommendationTypeSelect');
       handleRecommendationTypeSelect(program as 'first-year' | 'direct-second-year');
     } else {
+      console.log('Index - INTEGRATED BRANCH - Setting localStorage and navigating');
       localStorage.setItem('integrated_admission_type', program);
       localStorage.removeItem('recommendation_type');
-      console.log('Index - Navigating to integrated-steps with type:', program);
+      console.log('Index - localStorage set, about to navigate to integrated-steps with type:', program);
       
-      // Add a small delay to ensure localStorage is set before navigation
-      setTimeout(() => {
-        console.log('Index - Actually navigating now to:', `/integrated-steps?type=${program}`);
-        navigate(`/integrated-steps?type=${program}`);
-      }, 50);
+      // Navigate immediately without delay
+      const targetUrl = `/integrated-steps?type=${program}`;
+      console.log('Index - Navigating to:', targetUrl);
+      navigate(targetUrl);
+      console.log('Index - Navigate called');
     }
   };
 

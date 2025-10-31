@@ -85,6 +85,7 @@ export function ProgramSelectionDialog({
 
   const handleSelect = (program: ProgramType) => {
     console.log('ProgramSelectionDialog - Selected program:', program);
+    console.log('ProgramSelectionDialog - onSelectProgram exists?', typeof onSelectProgram);
     setSelectedProgram(program);
     
     // Store selected program for future reference
@@ -96,14 +97,19 @@ export function ProgramSelectionDialog({
       console.log('ProgramSelectionDialog - Stored as integrated_admission_type:', program);
     }
     
-    // Trigger navigation first, then close dialog
-    console.log('ProgramSelectionDialog - Calling onSelectProgram with:', program);
-    onSelectProgram(program);
+    // Close dialog immediately
+    onOpenChange(false);
     
-    // Close dialog after triggering navigation
-    setTimeout(() => {
-      onOpenChange(false);
-    }, 50);
+    // Call the callback in the next tick to ensure dialog is closed
+    requestAnimationFrame(() => {
+      console.log('ProgramSelectionDialog - About to call onSelectProgram with:', program);
+      try {
+        onSelectProgram(program);
+        console.log('ProgramSelectionDialog - onSelectProgram called successfully');
+      } catch (error) {
+        console.error('ProgramSelectionDialog - Error calling onSelectProgram:', error);
+      }
+    });
   };
 
   return (
