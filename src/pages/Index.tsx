@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { GraduationCap, Search, MapPin, Users, TrendingUp, Building, Sparkles } from "lucide-react";
@@ -11,12 +11,10 @@ import { useAuth } from '@/contexts/AuthContext';
 import { IntegratedAdmissionType } from '@/types/integratedAdmission';
 
 const Index = () => {
-  console.log('Index component rendering');
   const [searchTerm, setSearchTerm] = useState("");
   const [showProgramDialog, setShowProgramDialog] = useState(false);
   const navigate = useNavigate();
   const { user, isLoggedIn, logout } = useAuth();
-  console.log('navigate function exists:', !!navigate);
 
 // Remove All the applied filters on Coming back to home
   useEffect(() => {
@@ -81,29 +79,22 @@ const Index = () => {
     }
   };
 
-  const handleProgramSelect = useCallback((program: string) => {
-    console.log('=== INDEX.TSX - handleProgramSelect CALLED ===');
-    console.log('Program received:', program);
-    console.log('Program type:', typeof program);
+  const handleProgramSelect = (program: string) => {
     
     if (program === 'first-year' || program === 'direct-second-year') {
-      console.log('Route: Recommendation type');
       localStorage.setItem('recommendation_type', program);
       localStorage.removeItem('integrated_admission_type');
       handleRecommendationTypeSelect(program as 'first-year' | 'direct-second-year');
     } else {
-      console.log('Route: Integrated admission type');
       localStorage.setItem('integrated_admission_type', program);
       localStorage.removeItem('recommendation_type');
       
-      const targetUrl = `/integrated-steps?type=${program}`;
-      console.log('Target URL:', targetUrl);
-      console.log('Navigating now...');
-      
-      // Force navigation using window.location for reliability
-      window.location.href = targetUrl;
+      // Add a small delay to ensure localStorage is set before navigation
+      setTimeout(() => {
+        navigate(`/integrated-steps?type=${program}`);
+      }, 50);
     }
-  }, [navigate]);
+  };
 
   // Check if user has any saved program selection
   const hasSavedSelection = () => {

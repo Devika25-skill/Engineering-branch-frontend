@@ -26,15 +26,8 @@ const IntegratedAdmissionSteps = () => {
     
     const selectedType = typeFromParams || typeFromStorage;
     
-    console.log('IntegratedAdmissionSteps - useEffect:', {
-      typeFromParams,
-      typeFromStorage,
-      selectedType,
-      isValid: selectedType && ['BCA_MCA_Int', 'BBA_BMS_BBM_MBA_Int', 'B_and_D_Pharmacy', 'First_Year_Medical'].includes(selectedType)
-    });
   
-    if (!selectedType || !['BCA_MCA_Int', 'BBA_BMS_BBM_MBA_Int', 'B_and_D_Pharmacy', 'First_Year_Medical'].includes(selectedType)) {
-      console.log('IntegratedAdmissionSteps - Invalid type, redirecting to home');
+    if (!selectedType || !['BCA_MCA_Int', 'BBA_BMS_BBM_MBA_Int', 'B_and_D_Pharmacy'].includes(selectedType)) {
       // Add a small delay to prevent immediate redirect race conditions
       setTimeout(() => {
         navigate('/');
@@ -42,7 +35,6 @@ const IntegratedAdmissionSteps = () => {
       return;
     }
     
-    console.log('IntegratedAdmissionSteps - Valid type, setting admission type:', selectedType);
     setAdmissionType(selectedType);
   }, [searchParams, navigate]);
 

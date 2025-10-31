@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { GraduationCap, Users, MapPin, Building, Pill, Heart, LucideIcon } from 'lucide-react';
+import { GraduationCap, Users, MapPin, Building, Pill, LucideIcon } from 'lucide-react';
 import { IntegratedAdmissionType } from '@/types/integratedAdmission';
 
 type RecommendationType = 'first-year' | 'direct-second-year';
@@ -65,14 +65,6 @@ const allPrograms: ProgramOption[] = [
     icon: Pill,
     gradient: 'from-green-500 to-emerald-500',
     details: ['3 Rounds', 'Healthcare sector']
-  },
-  {
-    id: 'First_Year_Medical' as const,
-    title: 'First Year Medical',
-    description: 'Medical and allied health sciences programs',
-    icon: Heart,
-    gradient: 'from-red-500 to-pink-500',
-    details: ['3 Rounds', 'Medical programs']
   }
 ];
 
@@ -84,31 +76,17 @@ export function ProgramSelectionDialog({
   const [selectedProgram, setSelectedProgram] = useState<ProgramType | null>(null);
 
   const handleSelect = (program: ProgramType) => {
-    console.log('=== DIALOG handleSelect START ===');
-    console.log('Selected program:', program);
+    setSelectedProgram(program);
     
-    // Store selected program
+    // Store selected program for future reference
     if (program === 'first-year' || program === 'direct-second-year') {
       localStorage.setItem('recommendation_type', program as RecommendationType);
     } else {
       localStorage.setItem('integrated_admission_type', program as IntegratedAdmissionType);
     }
     
-    console.log('Stored in localStorage');
-    console.log('Calling parent callback...');
-    
-    // Call parent immediately
-    try {
-      onSelectProgram(program);
-      console.log('Parent callback completed');
-    } catch (error) {
-      console.error('ERROR calling parent callback:', error);
-    }
-    
-    console.log('=== DIALOG handleSelect END ===');
-    
-    // Close dialog
-    setTimeout(() => onOpenChange(false), 150);
+    onSelectProgram(program);
+    onOpenChange(false);
   };
 
   return (
