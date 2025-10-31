@@ -24,6 +24,15 @@ interface ProgramSelectionDialogProps {
 }
 
 const allPrograms: ProgramOption[] = [
+  // Medical Program
+  {
+    id: 'First_Year_Medical' as const,
+    title: 'First Year Medical',
+    description: 'MBBS and Medical programs after 12th',
+    icon: Heart,
+    gradient: 'from-red-500 to-pink-500',
+    details: ['3 Rounds', 'Medical focus']
+  },
   // Engineering Programs (First Year & Direct Second Year)
   {
     id: 'first-year' as const,
@@ -65,14 +74,6 @@ const allPrograms: ProgramOption[] = [
     icon: Pill,
     gradient: 'from-green-500 to-emerald-500',
     details: ['3 Rounds', 'Healthcare sector']
-  },
-  {
-    id: 'First_Year_Medical' as const,
-    title: 'First Year Medical',
-    description: 'MBBS and Medical programs after 12th',
-    icon: Heart,
-    gradient: 'from-red-500 to-pink-500',
-    details: ['3 Rounds', 'Medical focus']
   }
 ];
 
