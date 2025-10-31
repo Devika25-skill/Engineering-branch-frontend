@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { GraduationCap, Search, MapPin, Users, TrendingUp, Building, Sparkles } from "lucide-react";
@@ -81,7 +81,7 @@ const Index = () => {
     }
   };
 
-  const handleProgramSelect = (program: string) => {
+  const handleProgramSelect = useCallback((program: string) => {
     console.log('=== INDEX.TSX - handleProgramSelect CALLED ===');
     console.log('Program received:', program);
     console.log('Program type:', typeof program);
@@ -103,7 +103,7 @@ const Index = () => {
       // Force navigation using window.location for reliability
       window.location.href = targetUrl;
     }
-  };
+  }, [navigate]);
 
   // Check if user has any saved program selection
   const hasSavedSelection = () => {
