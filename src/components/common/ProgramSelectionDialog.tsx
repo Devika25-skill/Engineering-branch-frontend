@@ -93,8 +93,12 @@ export function ProgramSelectionDialog({
       localStorage.setItem('integrated_admission_type', program as IntegratedAdmissionType);
     }
     
-    onSelectProgram(program);
+    // Close dialog first, then trigger navigation after a small delay
     onOpenChange(false);
+    
+    setTimeout(() => {
+      onSelectProgram(program);
+    }, 100);
   };
 
   return (
