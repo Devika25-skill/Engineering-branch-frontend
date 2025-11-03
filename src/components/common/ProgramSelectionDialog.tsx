@@ -88,7 +88,7 @@ export function ProgramSelectionDialog({
     setSelectedProgram(program);
     
     // Store selected program for future reference
-    if (program === 'first-year' || program === 'direct-second-year') {
+    if (program === 'first-year' || program === 'direct-second-year' || program === 'First_Year_Medical') {
       localStorage.setItem('recommendation_type', program as RecommendationType);
     } else {
       localStorage.setItem('integrated_admission_type', program as IntegratedAdmissionType);
