@@ -3,6 +3,7 @@ import Navigation from "@/components/Navigation";
 import { AcademicInfoForm } from "@/components/recommendations/AcademicInfoForm";
 import { MedicalAcademicInfoForm } from "@/components/recommendations/MedicalAcademicInfoForm";
 import { PreferencesForm } from "@/components/recommendations/PreferencesForm";
+import { MedicalPreferencesForm } from "@/components/recommendations/MedicalPreferencesForm";
 import { PrioritiesForm } from "@/components/recommendations/PrioritiesForm";
 import { RecommendationHistory } from "@/components/recommendations/RecommendationHistory";
 import { useRecommendation } from "@/hooks/useRecommendation";
@@ -31,6 +32,7 @@ interface FormData {
   grouping?: string;
   groupingMarks?: number;
   preferredStreams?: string[];
+  preferredMedicalPrograms?: string[];
   preferredCities?: string[];
   maxBudget?: number;
   cetPercentile?: number;
@@ -150,7 +152,7 @@ const RecommendationSteps = () => {
     },
     {
       number: 2,
-      component: PreferencesForm,
+      component: isMedical ? MedicalPreferencesForm : PreferencesForm,
     },
     {
       number: 3,
@@ -179,8 +181,14 @@ const RecommendationSteps = () => {
     }
     
     if (currentStep === 2) {
-      if (!formData.preferredStreams || formData.preferredStreams.length === 0) {
-        errors.push('Engineering Branches');
+      if (isMedical) {
+        if (!formData.preferredMedicalPrograms || formData.preferredMedicalPrograms.length === 0) {
+          errors.push('Medical Programs');
+        }
+      } else {
+        if (!formData.preferredStreams || formData.preferredStreams.length === 0) {
+          errors.push('Engineering Branches');
+        }
       }
     }
     
