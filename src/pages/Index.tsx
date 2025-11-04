@@ -69,7 +69,7 @@ const Index = () => {
     if (savedRecommendationType === 'direct-second-year') {
       const hasExistingData = sessionStorage.getItem('cachedDiplomaRecommendations');
       navigate(hasExistingData ? '/diploma-recommendations/results' : '/diploma-recommendations/steps');
-    } else if (savedRecommendationType === 'first-year') {
+    } else if (savedRecommendationType === 'first-year' || savedRecommendationType === 'First_Year_Medical') {
       navigate('/recommendations');
     } else if (savedIntegratedType) {
       navigate(`/integrated-rounds?type=${savedIntegratedType}`);
@@ -81,10 +81,16 @@ const Index = () => {
 
   const handleProgramSelect = (program: string) => {
     
-    if (program === 'first-year' || program === 'direct-second-year') {
+    if (program === 'first-year' || program === 'direct-second-year' || program === 'First_Year_Medical') {
       localStorage.setItem('recommendation_type', program);
       localStorage.removeItem('integrated_admission_type');
-      handleRecommendationTypeSelect(program as 'first-year' | 'direct-second-year');
+      
+      if (program === 'First_Year_Medical') {
+        // Navigate to medical recommendations (using same flow as first-year for now)
+        navigate('/recommendations');
+      } else {
+        handleRecommendationTypeSelect(program as 'first-year' | 'direct-second-year');
+      }
     } else {
       localStorage.setItem('integrated_admission_type', program);
       localStorage.removeItem('recommendation_type');
