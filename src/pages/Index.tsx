@@ -133,7 +133,7 @@ const Index = () => {
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 bg-gradient-to-r from-white to-purple-100 bg-clip-text text-transparent leading-tight">
               Find Your Dream
               <span className="block text-3xl sm:text-4xl md:text-5xl lg:text-6xl mt-2 text-yellow-300">College! 🎓</span>
-              <span className="block text-sm sm:text-4xl md:text-5xl lg:text-6xl mt-2 text-white-300">Engineering, BCA, BBA, B-Pharmacy</span>
+              <span className="block text-sm sm:text-4xl md:text-5xl lg:text-6xl mt-2 text-white-300 leading-tight sm:leading-tight">Engineering, BCA, BBA, B-Pharmacy</span>
 
             </h1>
             <p className="text-base sm:text-lg md:text-xl mb-6 sm:mb-8 opacity-90 font-light max-w-3xl mx-auto px-2">
