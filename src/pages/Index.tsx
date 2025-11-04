@@ -130,9 +130,9 @@ const Index = () => {
                 <Sparkles size={24} className="sm:w-8 sm:h-8 absolute -top-2 -right-2 text-pink-300 animate-spin" />
               </div>
             </div>
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 bg-gradient-to-r from-white to-purple-100 bg-clip-text text-transparent leading-tight">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-[3.5rem] font-bold mb-4 sm:mb-6 bg-gradient-to-r from-white to-purple-100 bg-clip-text text-transparent leading-tight">
               Find Your Dream
-              <span className="block text-3xl sm:text-4xl md:text-5xl lg:text-6xl mt-2 text-yellow-300">College! 🎓</span>
+              <span className="block text-3xl sm:text-4xl md:text-5xl lg:text-[3.5rem] mt-2 text-yellow-300">College! 🎓</span>
               <span className="block text-sm sm:text-4xl md:text-5xl lg:text-[3.5rem] mt-2 text-white-300 leading-tight sm:leading-tight md:leading-[1.35] lg:leading-[1.35]">Medical, Engineering, BCA, BBA, B-Pharmacy</span>
 
             </h1>
