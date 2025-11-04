@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Upload, X, AlertCircle, Image, Video } from "lucide-react";
@@ -20,7 +20,7 @@ const RaiseIssue = () => {
   const [formData, setFormData] = useState({
     name: user?.name || "",
     email: user?.email || "",
-    productType: "First Year Engineering",
+    productType: "",
     details: "",
   });
   
@@ -172,7 +172,7 @@ const RaiseIssue = () => {
       setFormData({
         name: user?.name || "",
         email: user?.email || "",
-        productType: "Standard",
+        productType: "",
         details: "",
       });
       
@@ -292,21 +292,19 @@ const RaiseIssue = () => {
                   <Label htmlFor="productType">
                     Product Type <span className="text-red-500">*</span>
                   </Label>
-                  <Select
+                  <SearchableSelect
+                    options={[
+                      { value: "First Year Engineering", label: "First Year Engineering" },
+                      { value: "Direct Second Year", label: "Direct Second Year" },
+                      { value: "BCA/MCA (Integrated)", label: "BCA/MCA (Integrated)" },
+                      { value: "BBA/BMS/BBM/MBA (Int.)", label: "BBA/BMS/BBM/MBA (Int.)" },
+                      { value: "B.Pharmacy/Pharm D", label: "B.Pharmacy/Pharm D" },
+                    ]}
                     value={formData.productType}
                     onValueChange={(value) => setFormData({ ...formData, productType: value })}
-                  >
-                    <SelectTrigger id="productType">
-                      <SelectValue />
-                    </SelectTrigger>
-                  <SelectContent className="bg-white z-50">
-                    <SelectItem value="First Year Engineering">First Year Engineering</SelectItem>
-                    <SelectItem value="Direct Second Year">Direct Second Year</SelectItem>
-                    <SelectItem value="BCA/MCA (Integrated)">BCA/MCA (Integrated)</SelectItem>
-                    <SelectItem value="BBA/BMS/BBM/MBA (Int.)">BBA/BMS/BBM/MBA (Int.)</SelectItem>
-                    <SelectItem value="B.Pharmacy/Pharm D">B.Pharmacy/Pharm D</SelectItem>
-                  </SelectContent>
-                  </Select>
+                    placeholder="Select your product type"
+                    searchPlaceholder="Search product types..."
+                  />
                 </div>
 
                 {/* Details */}

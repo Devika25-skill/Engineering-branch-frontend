@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import Navigation from "@/components/Navigation";
 import { AcademicInfoForm } from "@/components/recommendations/AcademicInfoForm";
+import { MedicalAcademicInfoForm } from "@/components/recommendations/MedicalAcademicInfoForm";
 import { PreferencesForm } from "@/components/recommendations/PreferencesForm";
+import { MedicalPreferencesForm } from "@/components/recommendations/MedicalPreferencesForm";
 import { PrioritiesForm } from "@/components/recommendations/PrioritiesForm";
 import { RecommendationHistory } from "@/components/recommendations/RecommendationHistory";
 import { useRecommendation } from "@/hooks/useRecommendation";
@@ -30,6 +32,7 @@ interface FormData {
   grouping?: string;
   groupingMarks?: number;
   preferredStreams?: string[];
+  preferredMedicalPrograms?: string[];
   preferredCities?: string[];
   maxBudget?: number;
   cetPercentile?: number;
@@ -47,13 +50,20 @@ interface FormData {
   coCurricularActivities?: string;
   collegeTypes?: string[];
   priorities?: string[];
+  // Medical-specific fields
+  neetPercentile?: number;
+  neetAllIndiaRank?: number;
+  neetRollNumber?: string;
 }
 
 const RecommendationSteps = () => {
   const [currentStep, setCurrentStep] = useState(1);
+  const recommendationType = localStorage.getItem('recommendation_type');
+  const isMedical = recommendationType === 'First_Year_Medical';
+  
   const [formData, setFormData] = useState<FormData>({
     reservationCategory: "GOPENS",
-    grouping: "PCM (Physics, Chemistry, Mathematics)"
+    grouping: isMedical ? "PCB (Physics, Chemistry, Biology)" : "PCM (Physics, Chemistry, Mathematics)"
   });
   const [loginOpen, setLoginOpen] = useState(false);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
@@ -138,11 +148,11 @@ const RecommendationSteps = () => {
   const steps = [
     {
       number: 1,
-      component: AcademicInfoForm,
+      component: isMedical ? MedicalAcademicInfoForm : AcademicInfoForm,
     },
     {
       number: 2,
-      component: PreferencesForm,
+      component: isMedical ? MedicalPreferencesForm : PreferencesForm,
     },
     {
       number: 3,
@@ -159,12 +169,26 @@ const RecommendationSteps = () => {
       if (!formData.twelfthMarks || formData.twelfthMarks <= 0) errors.push('12th Grade Marks');
       if (!formData.grouping) errors.push('12th Grade Grouping');
       if (!formData.groupingMarks || formData.groupingMarks <= 0) errors.push('Grouping Marks');
-      if (!formData.cetPercentile || formData.cetPercentile <= 0) errors.push('CET Percentile');
+      
+      // Different validation for medical vs engineering
+      if (isMedical) {
+        if (!formData.neetPercentile || formData.neetPercentile <= 0) errors.push('NEET Percentile');
+        if (!formData.neetAllIndiaRank || formData.neetAllIndiaRank <= 0) errors.push('All India Rank');
+        if (!formData.neetRollNumber || formData.neetRollNumber.trim() === '') errors.push('NEET Roll Number');
+      } else {
+        if (!formData.cetPercentile || formData.cetPercentile <= 0) errors.push('CET Percentile');
+      }
     }
     
     if (currentStep === 2) {
-      if (!formData.preferredStreams || formData.preferredStreams.length === 0) {
-        errors.push('Engineering Branches');
+      if (isMedical) {
+        if (!formData.preferredMedicalPrograms || formData.preferredMedicalPrograms.length === 0) {
+          errors.push('Medical Programs');
+        }
+      } else {
+        if (!formData.preferredStreams || formData.preferredStreams.length === 0) {
+          errors.push('Engineering Branches');
+        }
       }
     }
     

@@ -2,10 +2,10 @@ import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { GraduationCap, Users, MapPin, Building, Pill, LucideIcon } from 'lucide-react';
+import { GraduationCap, Users, MapPin, Building, Pill, Heart, LucideIcon } from 'lucide-react';
 import { IntegratedAdmissionType } from '@/types/integratedAdmission';
 
-type RecommendationType = 'first-year' | 'direct-second-year';
+type RecommendationType = 'first-year' | 'direct-second-year' | 'First_Year_Medical';
 export type ProgramType = RecommendationType | IntegratedAdmissionType;
 
 interface ProgramOption {
@@ -24,6 +24,15 @@ interface ProgramSelectionDialogProps {
 }
 
 const allPrograms: ProgramOption[] = [
+  // Medical Program
+  {
+    id: 'First_Year_Medical' as const,
+    title: 'First Year Medical',
+    description: 'MBBS and Medical programs after 12th',
+    icon: Heart,
+    gradient: 'from-red-500 to-pink-500',
+    details: ['3 Rounds', 'Medical focus']
+  },
   // Engineering Programs (First Year & Direct Second Year)
   {
     id: 'first-year' as const,
@@ -79,7 +88,7 @@ export function ProgramSelectionDialog({
     setSelectedProgram(program);
     
     // Store selected program for future reference
-    if (program === 'first-year' || program === 'direct-second-year') {
+    if (program === 'first-year' || program === 'direct-second-year' || program === 'First_Year_Medical') {
       localStorage.setItem('recommendation_type', program as RecommendationType);
     } else {
       localStorage.setItem('integrated_admission_type', program as IntegratedAdmissionType);

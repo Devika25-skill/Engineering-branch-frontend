@@ -27,7 +27,7 @@ const IntegratedAdmissionSteps = () => {
     const selectedType = typeFromParams || typeFromStorage;
     
   
-    if (!selectedType || !['BCA_MCA_Int', 'BBA_BMS_BBM_MBA_Int', 'B_and_D_Pharmacy'].includes(selectedType)) {
+    if (!selectedType || !['BCA_MCA_Int', 'BBA_BMS_BBM_MBA_Int', 'B_and_D_Pharmacy', 'First_Year_Medical'].includes(selectedType)) {
       // Add a small delay to prevent immediate redirect race conditions
       setTimeout(() => {
         navigate('/');

@@ -43,7 +43,7 @@ const Navigation = () => {
   };
 
   const handleProgramSelect = (program: ProgramType) => {
-    if (program === 'first-year' || program === 'direct-second-year') {
+    if (program === 'first-year' || program === 'direct-second-year' || program === 'First_Year_Medical') {
       localStorage.setItem('recommendation_type', program);
       localStorage.removeItem('integrated_admission_type');
     } else {
@@ -53,6 +53,7 @@ const Navigation = () => {
     
     switch (program) {
       case 'first-year':
+      case 'First_Year_Medical':
         navigate('/recommendations');
         break;
       case 'direct-second-year':
@@ -90,10 +91,12 @@ const Navigation = () => {
           if (savedRecommendationType === 'direct-second-year') {
             const hasExistingData = sessionStorage.getItem('cachedDiplomaRecommendations');
             navigate(hasExistingData ? '/diploma-recommendations/results' : '/diploma-recommendations/steps');
-          } else if (savedRecommendationType === 'first-year') {
+          } else if (savedRecommendationType === 'first-year' || savedRecommendationType === 'First_Year_Medical') {
             navigate('/recommendations');
           } else if (savedIntegratedType) {
-            navigate(`/integrated-rounds?type=${savedIntegratedType}`);
+            // Check if form data exists for this integrated type
+            const hasExistingData = sessionStorage.getItem(`integrated_${savedIntegratedType}_formData`);
+            navigate(hasExistingData ? `/integrated-rounds?type=${savedIntegratedType}` : `/integrated-steps?type=${savedIntegratedType}`);
           } else {
             // No preference saved, show dialog
             setShowProgramDialog(true);
