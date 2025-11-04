@@ -1,4 +1,4 @@
-export type IntegratedAdmissionType = 'BCA_MCA_Int' | 'BBA_BMS_BBM_MBA_Int' | 'B_and_D_Pharmacy' | 'First_Year_Medical';
+export type IntegratedAdmissionType = 'BCA_MCA_Int' | 'BBA_BMS_BBM_MBA_Int' | 'B_and_D_Pharmacy';
 
 export interface IntegratedAdmissionFormData {
   gender: 'male' | 'female' | 'other' | '';

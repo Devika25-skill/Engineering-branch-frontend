@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { GraduationCap, Users, MapPin, Building, Pill, Heart, LucideIcon } from 'lucide-react';
 import { IntegratedAdmissionType } from '@/types/integratedAdmission';
 
-type RecommendationType = 'first-year' | 'direct-second-year';
+type RecommendationType = 'first-year' | 'direct-second-year' | 'First_Year_Medical';
 export type ProgramType = RecommendationType | IntegratedAdmissionType;
 
 interface ProgramOption {
