@@ -3,8 +3,10 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import { GraduationCap, User, Award, AlertCircle, ChevronDown } from "lucide-react";
 import { useEffect } from "react";
+import type { ReservationCategory } from "@/types/medical";
 
 interface MedicalAcademicInfoFormProps {
   data: any;
@@ -16,7 +18,7 @@ export const MedicalAcademicInfoForm = ({ data, onUpdate, validationErrors = [] 
   // Set default values when component mounts
   useEffect(() => {
     const defaultData = {
-      reservationCategory: data.reservationCategory || "GOPENS",
+      reservationCategory: data.reservationCategory || "OPEN",
       grouping: data.grouping || "PCB (Physics, Chemistry, Biology)"
     };
     
@@ -54,38 +56,30 @@ export const MedicalAcademicInfoForm = ({ data, onUpdate, validationErrors = [] 
       : baseClass;
   };
 
-  const reservationCategories = [
-    { "code": "GOPENS", "label": "General – Open" },
-    { "code": "GSCS", "label": "General – Scheduled Caste (SC)" },
-    { "code": "GSTS", "label": "General – Scheduled Tribe (ST)" },
-    { "code": "GVJS", "label": "General – Vimukta Jati/De-notified Tribes (VJ/DT)" },
-    { "code": "GNT1S", "label": "General – Nomadic Tribe 1 (NT1)" },
-    { "code": "GNT2S", "label": "General – Nomadic Tribe 2 (NT2)" },
-    { "code": "GNT3S", "label": "General – Nomadic Tribe 3 (NT3)" },
-    { "code": "GOBCS", "label": "General – Other Backward Class (OBC)" },
-    { "code": "GSEBCS", "label": "General – Socially and Educationally Backward Class (SEBC)" },
-    { "code": "LOPENS", "label": "Ladies – Open" },
-    { "code": "LSCS", "label": "Ladies – Scheduled Caste (SC)" },
-    { "code": "LSTS", "label": "Ladies – Scheduled Tribe (ST)" },
-    { "code": "LVJS", "label": "Ladies – Vimukta Jati/De-notified Tribes (VJ/DT)" },
-    { "code": "LNT1S", "label": "Ladies – Nomadic Tribe 1 (NT1)" },
-    { "code": "LNT2S", "label": "Ladies – Nomadic Tribe 2 (NT2)" },
-    { "code": "LOBCS", "label": "Ladies – Other Backward Class (OBC)" },
-    { "code": "LSEBCS", "label": "Ladies – Socially and Educationally Backward Class (SEBC)" },
-    { "code": "PWDOPENS", "label": "Persons with Disabilities – Open" },
-    { "code": "PWDOBCS", "label": "Persons with Disabilities – Other Backward Class (OBC)" },
-    { "code": "DEFOPENS", "label": "Defence – Open" },
-    { "code": "DEFSCS", "label": "Defence – Scheduled Caste (SC)" },
-    { "code": "DEFOBCS", "label": "Defence – Other Backward Class (OBC)" },
-    { "code": "DEFSEBCS", "label": "Defence – Socially and Educationally Backward Class (SEBC)" },
-    { "code": "TFWS", "label": "Tuition Fee Waiver Scheme" },
-    { "code": "PWDRNT3S", "label": "Persons with Disabilities – Nomadic Tribe 3 (NT3)" },
-    { "code": "DEFRNT3S", "label": "Defence – Nomadic Tribe 3 (NT3)" },
-    { "code": "PWDROBC", "label": "Persons with Disabilities – Reserved OBC" },
-    { "code": "DEFRSEBCS", "label": "Defence – Reserved SEBC" },
-    { "code": "ORPHAN", "label": "Orphan Category" },
-    { "code": "EWS", "label": "Economically Weaker Sections" }
+  // Reservation categories from medical.ts enum
+  const reservationCategories: ReservationCategory[] = [
+    "HEWS", "EMNTDW", "OPEN", "EMNTD", "ORPHANC-SE", "PH", "VJ", "HOPEN",
+    "PWD-VJA", "PHVJ", "PWD-OPEN", "ORPHANC-VJ", "ORP-A", "PWD-NTC",
+    "HVJA", "PHNT3", "D1HA", "PHEWS", "EMVJA", "EWS(W)", "PHOBC", "D3",
+    "NRI", "ORPHAN", "NTC", "EMSEBC", "MINO", "ORPHANC-OB", "NTB(W)",
+    "EWS", "HNTD", "SIDDIQUI", "EMST", "HOPENW", "PWD-ST", "OBCW",
+    "HAORP-ORPHANC", "HAORP-C", "DEF2", "EMSCW", "SEB", "ORPHAN-OBC",
+    "ORPHAN-NTC", "NTC(W)", "NTD(W)", "OBC(W)", "EMSC", "WMINO", "EMOBC",
+    "ORPHANC-ST", "PHSEBC", "ORPHAN-C", "PWD-NTB", "(EMD)", "ORPHANC-EW",
+    "PEM", "I.Q.", "EMSEBCW", "HSCW", "PHNT2", "PWD-SEB", "ORP-C", "NT2",
+    "NTD", "PHNT1", "ORPHANC-SC", "PWD-OBC", "OBC", "ORPHAN-A", "(W)",
+    "PWD", "HA", "VJA", "EMNTBW", "D1PWD", "ORPHANC-NT", "HEM", "HST",
+    "SC", "PWD-SEBC", "PWD-NTD", "(W", "NTB", "HNTC", "HOBC", "DEF3",
+    "EMNTCW", "PWD-SC", "D1", "HAORP-", "MKB", "EMVJAW", "D2", "DEF1",
+    "EMNTB", "W", "PWD-EWS", "(EMR)", "HSC", "EMSTW", "HSEBC", "HNTB",
+    "EMNTC", "HSTW", "ORPHANC", "NT1", "SEBC", "ST", "HVJAW", "SEBC(W)",
+    "EMOBCW"
   ];
+
+  const reservationCategoryOptions = reservationCategories.map(category => ({
+    value: category,
+    label: category
+  }));
 
   const groupingOptions = [
     "PCB (Physics, Chemistry, Biology)",
@@ -114,21 +108,14 @@ export const MedicalAcademicInfoForm = ({ data, onUpdate, validationErrors = [] 
                 <span className="text-red-500">*</span>
                 {isFieldError('Reservation Category') && <AlertCircle size={14} className="text-red-500" />}
               </Label>
-              <Select 
-                onValueChange={(value) => handleChange('reservationCategory', value)} 
-                value={data.reservationCategory || "GOPENS"}
-              >
-                <SelectTrigger className={getFieldClassName('Reservation Category', "h-10 rounded-xl border-2 bg-white")}>
-                  <SelectValue placeholder="Select your category" />
-                </SelectTrigger>
-                <SelectContent className="max-h-80">
-                  {reservationCategories.map((category) => (
-                    <SelectItem key={category.code} value={category.code}>
-                      {category.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <SearchableSelect
+                options={reservationCategoryOptions}
+                value={data.reservationCategory || "OPEN"}
+                onValueChange={(value) => handleChange('reservationCategory', value)}
+                placeholder="Select your category"
+                searchPlaceholder="Search category..."
+                className={getFieldClassName('Reservation Category', "h-10 rounded-xl border-2 bg-white")}
+              />
             </div>
 
             <div className="space-y-2">
