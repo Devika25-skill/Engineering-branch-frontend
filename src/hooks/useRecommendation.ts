@@ -5,13 +5,26 @@ import { type CollegeRecommendation } from '@/services/cutoffService';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { recommendationStorage } from '@/services/recommendationStorage';
+import { useMedicalRecommendation } from './useMedicalRecommendation';
 
 export const useRecommendation = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const { user, isLoggedIn } = useAuth();
   const { toast } = useToast();
+  const { generateMedicalRecommendation } = useMedicalRecommendation();
 
   const generateRecommendation = async (formData: any) => {
+    const recommendationType = localStorage.getItem('recommendation_type');
+    
+    // Route to medical recommendations if it's a medical program
+    if (recommendationType === 'First_Year_Medical') {
+      const result = await generateMedicalRecommendation(formData);
+      return {
+        recommendations: result.recommendations,
+        formData: result.formData,
+        success: true
+      };
+    }
     if (!isLoggedIn || !user) {
       throw new Error('User must be logged in to generate recommendations');
     }

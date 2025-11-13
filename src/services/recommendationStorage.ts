@@ -106,6 +106,34 @@ class RecommendationStorageService {
       console.error('Failed to clear form data:', error);
     }
   }
+
+  // Medical recommendation storage methods
+  setMedicalRecommendations(recommendations: any[], formData: any): void {
+    try {
+      sessionStorage.setItem('cachedMedicalRecommendations', JSON.stringify(recommendations));
+      this.saveFormData(formData);
+    } catch (error) {
+      console.error('Failed to save medical recommendations:', error);
+    }
+  }
+
+  getMedicalRecommendations(): any[] | null {
+    try {
+      const cached = sessionStorage.getItem('cachedMedicalRecommendations');
+      return cached ? JSON.parse(cached) : null;
+    } catch (error) {
+      console.error('Failed to get medical recommendations:', error);
+      return null;
+    }
+  }
+
+  clearMedicalRecommendations(): void {
+    try {
+      sessionStorage.removeItem('cachedMedicalRecommendations');
+    } catch (error) {
+      console.error('Failed to clear medical recommendations:', error);
+    }
+  }
 }
 
 export const recommendationStorage = new RecommendationStorageService();

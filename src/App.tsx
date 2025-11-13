@@ -12,6 +12,7 @@ import Colleges from "./pages/Colleges";
 import Recommendations from "./pages/Recommendations";
 import RecommendationSteps from "./pages/RecommendationSteps";
 import RecommendationResults from "./pages/RecommendationResults";
+import MedicalRecommendationResults from "./pages/MedicalRecommendationResults";
 import DiplomaRecommendationSteps from "./pages/DiplomaRecommendationSteps";
 import DiplomaRecommendationResults from "./pages/DiplomaRecommendationResults";
 import IntegratedAdmissionSteps from "./pages/IntegratedAdmissionSteps";
