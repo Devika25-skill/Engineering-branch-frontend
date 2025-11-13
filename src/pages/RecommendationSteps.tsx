@@ -265,30 +265,38 @@ const RecommendationSteps = () => {
       return;
     }
 
+    const recommendationType = localStorage.getItem('recommendation_type');
+    
     // Directly navigate to results without confirmation
     sessionStorage.removeItem('cachedRecommendations');
-    navigate('/recommendations/results');
+    sessionStorage.removeItem('cachedMedicalRecommendations');
+    
+    if (recommendationType === 'First_Year_Medical') {
+      navigate('/medical-recommendations/results');
+    } else {
+      navigate('/recommendations/results');
+    }
   };
 
   const handleConfirmPreferences = async () => {
     setShowPreferencesConfirmation(false);
     sessionStorage.removeItem('cachedRecommendations');
-    navigate('/recommendations/results');
+    sessionStorage.removeItem('cachedMedicalRecommendations');
+    
+    const recommendationType = localStorage.getItem('recommendation_type');
+    
+    if (recommendationType === 'First_Year_Medical') {
+      navigate('/medical-recommendations/results');
+    } else {
+      navigate('/recommendations/results');
+    }
     
     // Start generation in background
     try {
       window.scrollTo(0, 0);
       setIsLoading(true);
-      
-      // const result = await generateRecommendation(formData);
-      // if (result && result.success) {
-      //   navigate('/recommendations/results');
-      // } else {
-      //   console.error('❌ Failed to generate recommendations');
-      // }
     } catch (error) {
       console.error('Error generating recommendations:', error);
-      // If there's an error, we could navigate back or handle it on the results page
     } finally {
       setIsLoading(false);
     }
@@ -296,9 +304,14 @@ const RecommendationSteps = () => {
 
   const handleLoginSuccess = async () => {
     setLoginOpen(false);
+    const recommendationType = localStorage.getItem('recommendation_type');
     
     // Navigate immediately to results page after login
-    navigate('/recommendations/results');
+    if (recommendationType === 'First_Year_Medical') {
+      navigate('/medical-recommendations/results');
+    } else {
+      navigate('/recommendations/results');
+    }
     
     // Start generation in background
     try {
