@@ -117,7 +117,7 @@ export const MedicalAcademicInfoForm = ({ data, onUpdate, validationErrors = [] 
               </Label>
               <Select 
                 onValueChange={(value) => handleChange('gender', value)} 
-                value={data.gender}
+                value={data.gender ?? ""}
               >
                 <SelectTrigger className={getFieldClassName('Gender', "h-10 rounded-xl border-2 bg-white")}>
                   <SelectValue placeholder="Select your gender" />
