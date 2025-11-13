@@ -1041,11 +1041,11 @@ class ApiService {
     });
   }
 
-  async fetchMedicalStudentDetails(): Promise<FetchMedicalDetailsResponse> {
+  async fetchMedicalStudentDetails(token: string): Promise<FetchMedicalDetailsResponse> {
     return this.request<FetchMedicalDetailsResponse>('/api/v1/medical/student/details', {
       method: 'GET',
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+        'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
     });
