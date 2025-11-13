@@ -118,43 +118,44 @@ const RecommendationSteps = () => {
   // Map API response to form data structure for Medical
   const mapMedicalApiResponseToFormData = (apiData: any) => {
     // Extract other exam details if available
-    const otherExam = apiData.examPercentiles?.otherEntranceExam?.[0];
+    const credentials = apiData.academic_credentials || apiData;
+    const otherExam = credentials.examPercentiles?.otherEntranceExam?.[0];
     
     return {
-      // Academic Info
+      // Academic Info - gender is at top level
       gender: apiData.gender || undefined,
-      reservationCategory: apiData.reservationCategory || 'OPEN',
-      grouping: apiData.educationBackground?.stream || 'PCB (Physics, Chemistry, Biology)',
-      tenthMarks: apiData.academicMarks?.tenthGradeMarksPercent || undefined,
-      twelfthMarks: apiData.academicMarks?.twelfthGradeMarksPercent || undefined,
-      groupingMarks: apiData.academicMarks?.groupingMarksPercent || undefined,
+      reservationCategory: credentials.reservationCategory || 'OPEN',
+      grouping: credentials.educationBackground?.stream || 'PCB (Physics, Chemistry, Biology)',
+      tenthMarks: credentials.academicMarks?.tenthGradeMarksPercent || undefined,
+      twelfthMarks: credentials.academicMarks?.twelfthGradeMarksPercent || undefined,
+      groupingMarks: credentials.academicMarks?.groupingMarksPercent || undefined,
       
       // Medical Exam Info
-      neetPercentile: apiData.examPercentiles?.NEETPercentile || undefined,
-      neetAllIndiaRank: apiData.examPercentiles?.NEETAllIndiaRank || undefined,
-      neetRollNumber: apiData.examPercentiles?.NEETRollNumber || undefined,
+      neetPercentile: credentials.examPercentiles?.NEETPercentile || undefined,
+      neetAllIndiaRank: credentials.examPercentiles?.NEETAllIndiaRank || undefined,
+      neetRollNumber: credentials.examPercentiles?.NEETRollNumber || undefined,
       otherExamName: otherExam?.examName || undefined,
       otherExamPercentile: otherExam?.percentileOrScore || undefined,
       
       // Achievements
-      sportsAchievements: apiData.achievementsExperience?.sportsAchievements || undefined,
-      certifications: apiData.achievementsExperience?.certifications || undefined,
-      internships: apiData.achievementsExperience?.internshipsWorkExperience || undefined,
-      otherAchievements: apiData.achievementsExperience?.otherAchievements || undefined,
+      sportsAchievements: credentials.achievementsExperience?.sportsAchievements || undefined,
+      certifications: credentials.achievementsExperience?.certifications || undefined,
+      internships: credentials.achievementsExperience?.internshipsWorkExperience || undefined,
+      otherAchievements: credentials.achievementsExperience?.otherAchievements || undefined,
       
       // Preferences
-      preferredMedicalPrograms: apiData.preferences?.medicalPrograms || [],
-      preferredCities: apiData.preferences?.preferredCities || [],
+      preferredMedicalPrograms: credentials.preferences?.medicalPrograms || [],
+      preferredCities: credentials.preferences?.preferredCities || [],
       
       // Campus Facilities
-      hostelPreference: apiData.campusFacilitiesEnvironment?.hostelFacility || undefined,
-      campusSetting: apiData.campusFacilitiesEnvironment?.campusSetting || undefined,
-      transportFacility: apiData.campusFacilitiesEnvironment?.transportFacility || undefined,
+      hostelPreference: credentials.campusFacilitiesEnvironment?.hostelFacility || undefined,
+      campusSetting: credentials.campusFacilitiesEnvironment?.campusSetting || undefined,
+      transportFacility: credentials.campusFacilitiesEnvironment?.transportFacility || undefined,
       
       // Budget and Priorities
-      maxBudget: apiData.annualBudget || undefined,
-      collegeTypes: apiData.collegeTypePreferences || [],
-      priorities: apiData.priorityFactors || [],
+      maxBudget: credentials.annualBudget || undefined,
+      collegeTypes: credentials.collegeTypePreferences || [],
+      priorities: credentials.priorityFactors || [],
     };
   };
 
@@ -177,7 +178,7 @@ const RecommendationSteps = () => {
           if (response.success && response.data?.academic_credentials) {
             // Use appropriate mapping function based on program type
             const mappedData = isMedical 
-              ? mapMedicalApiResponseToFormData(response.data.academic_credentials)
+              ? mapMedicalApiResponseToFormData(response.data)
               : mapApiResponseToFormData(response.data.academic_credentials);
             setFormData(prev => ({ ...prev, ...mappedData }));
             toast.success("Loaded your previous details");
