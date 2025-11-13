@@ -223,6 +223,7 @@ const RecommendationSteps = () => {
       
       // Different validation for medical vs engineering
       if (isMedical) {
+        if (!formData.gender) errors.push('Gender');
         if (!formData.neetPercentile || formData.neetPercentile <= 0) errors.push('NEET Percentile');
         if (!formData.neetAllIndiaRank || formData.neetAllIndiaRank <= 0) errors.push('All India Rank');
         if (!formData.neetRollNumber || formData.neetRollNumber.trim() === '') errors.push('NEET Roll Number');
