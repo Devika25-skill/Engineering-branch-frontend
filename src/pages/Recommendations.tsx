@@ -11,21 +11,36 @@ const Recommendations = () => {
   useEffect(() => {
     const checkExistingRecommendations = async () => {
       try {
+        const recommendationType = localStorage.getItem('recommendation_type');
+        const isMedical = recommendationType === 'First_Year_Medical';
+        
         // Check cached data first
-        const cachedData = sessionStorage.getItem("cachedRecommendations");
+        const cacheKey = isMedical ? "cachedMedicalRecommendations" : "cachedRecommendations";
+        const cachedData = sessionStorage.getItem(cacheKey);
         if (cachedData) {
-          navigate('/recommendations/results', { replace: true });
+          const resultsPath = isMedical ? '/medical-recommendations/results' : '/recommendations/results';
+          navigate(resultsPath, { replace: true });
           return;
         }
 
         // If user is logged in, check if they have profile details first
         if (isLoggedIn && user?.accessToken) {
           try {
-            // First check if user has filled profile details
-            const profileResponse = await apiService.fetchAICapDetails(user.accessToken);
+            // Call appropriate API based on program type
+            const profileResponse = isMedical 
+              ? await apiService.fetchMedicalStudentDetails(user.accessToken)
+              : await apiService.fetchAICapDetails(user.accessToken);
             
             if (profileResponse.success && profileResponse.data) {
-              // User has profile details, now check for existing recommendations
+              // For medical, check if recommendations exist
+              if (isMedical) {
+                // For now, go directly to steps page
+                // In future, we can check for existing medical recommendations here
+                navigate('/recommendations/steps', { replace: true });
+                return;
+              }
+              
+              // For engineering, check for existing recommendations
               const response = await apiService.getExistingRecommendations(user.accessToken);
               if (response.success && response.data) {
                 // Check if any recommendations exist (Dream, Reach, Match, Safety)

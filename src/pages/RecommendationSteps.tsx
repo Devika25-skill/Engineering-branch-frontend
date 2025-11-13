@@ -125,7 +125,11 @@ const RecommendationSteps = () => {
       // Fetch existing user details if logged in
       if (isLoggedIn && user?.accessToken) {
         try {
-          const response = await apiService.fetchAICapDetails(user.accessToken);
+          // Call appropriate API based on program type
+          const response = isMedical 
+            ? await apiService.fetchMedicalStudentDetails(user.accessToken)
+            : await apiService.fetchAICapDetails(user.accessToken);
+            
           if (response.success && response.data?.academic_credentials) {
             const mappedData = mapApiResponseToFormData(response.data.academic_credentials);
             setFormData(prev => ({ ...prev, ...mappedData }));
@@ -138,7 +142,7 @@ const RecommendationSteps = () => {
     };
 
     loadFormData();
-  }, [isLoggedIn, user]);
+  }, [isLoggedIn, user, isMedical]);
 
   // Save form data whenever it changes
   useEffect(() => {
