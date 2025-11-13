@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { GraduationCap, User, Award, AlertCircle, ChevronDown } from "lucide-react";
 import { useEffect } from "react";
-import type { ReservationCategory } from "@/types/medical";
+import type { ReservationCategory, Gender, Stream } from "@/types/medical";
 
 interface MedicalAcademicInfoFormProps {
   data: any;
@@ -81,10 +81,18 @@ export const MedicalAcademicInfoForm = ({ data, onUpdate, validationErrors = [] 
     label: category
   }));
 
-  const groupingOptions = [
+  // Stream options from medical.ts Stream type
+  const streamOptions: Stream[] = [
     "PCB (Physics, Chemistry, Biology)",
     "PCMB (Physics, Chemistry, Mathematics, Biology)",
     "PCM (Physics, Chemistry, Mathematics)"
+  ];
+
+  // Gender options
+  const genderOptions: Array<{ value: Gender; label: string }> = [
+    { value: "M", label: "Male" },
+    { value: "F", label: "Female" },
+    { value: "O", label: "Other" }
   ];
 
   return (
@@ -100,7 +108,31 @@ export const MedicalAcademicInfoForm = ({ data, onUpdate, validationErrors = [] 
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2 text-slate-700 font-semibold text-sm">
+                <User size={14} />
+                Gender
+                <span className="text-red-500">*</span>
+                {isFieldError('Gender') && <AlertCircle size={14} className="text-red-500" />}
+              </Label>
+              <Select 
+                onValueChange={(value) => handleChange('gender', value)} 
+                value={data.gender}
+              >
+                <SelectTrigger className={getFieldClassName('Gender', "h-10 rounded-xl border-2 bg-white")}>
+                  <SelectValue placeholder="Select your gender" />
+                </SelectTrigger>
+                <SelectContent>
+                  {genderOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
             <div className="space-y-2">
               <Label className="flex items-center gap-2 text-slate-700 font-semibold text-sm">
                 <GraduationCap size={14} />
@@ -133,9 +165,9 @@ export const MedicalAcademicInfoForm = ({ data, onUpdate, validationErrors = [] 
                   <SelectValue placeholder="What did you study in 12th?" />
                 </SelectTrigger>
                 <SelectContent>
-                  {groupingOptions.map((grouping) => (
-                    <SelectItem key={grouping} value={grouping}>
-                      {grouping}
+                  {streamOptions.map((stream) => (
+                    <SelectItem key={stream} value={stream}>
+                      {stream}
                     </SelectItem>
                   ))}
                 </SelectContent>
