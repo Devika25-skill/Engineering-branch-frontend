@@ -77,7 +77,7 @@ const RecommendationSteps = () => {
 
   const totalSteps = 3;
 
-  // Map API response to form data structure
+  // Map API response to form data structure for Engineering
   const mapApiResponseToFormData = (apiData: any) => {
     // Extract other exam details if available
     const otherExam = apiData.examPercentiles?.otherEntranceExam?.[0];
@@ -114,6 +114,48 @@ const RecommendationSteps = () => {
     };
   };
 
+  // Map API response to form data structure for Medical
+  const mapMedicalApiResponseToFormData = (apiData: any) => {
+    // Extract other exam details if available
+    const otherExam = apiData.examPercentiles?.otherEntranceExam?.[0];
+    
+    return {
+      // Academic Info
+      reservationCategory: apiData.reservationCategory || 'OPEN',
+      grouping: apiData.educationBackground?.stream || 'PCB (Physics, Chemistry, Biology)',
+      tenthMarks: apiData.academicMarks?.tenthGradeMarksPercent || undefined,
+      twelfthMarks: apiData.academicMarks?.twelfthGradeMarksPercent || undefined,
+      groupingMarks: apiData.academicMarks?.groupingMarksPercent || undefined,
+      
+      // Medical Exam Info
+      neetPercentile: apiData.examPercentiles?.NEETPercentile || undefined,
+      neetAllIndiaRank: apiData.examPercentiles?.NEETAllIndiaRank || undefined,
+      neetRollNumber: apiData.examPercentiles?.NEETRollNumber || undefined,
+      otherExamName: otherExam?.examName || undefined,
+      otherExamPercentile: otherExam?.percentileOrScore || undefined,
+      
+      // Achievements
+      sportsAchievements: apiData.achievementsExperience?.sportsAchievements || undefined,
+      certifications: apiData.achievementsExperience?.certifications || undefined,
+      internships: apiData.achievementsExperience?.internshipsWorkExperience || undefined,
+      otherAchievements: apiData.achievementsExperience?.otherAchievements || undefined,
+      
+      // Preferences
+      preferredMedicalPrograms: apiData.preferences?.medicalPrograms || [],
+      preferredCities: apiData.preferences?.preferredCities || [],
+      
+      // Campus Facilities
+      hostelPreference: apiData.campusFacilitiesEnvironment?.hostelFacility || undefined,
+      campusSetting: apiData.campusFacilitiesEnvironment?.campusSetting || undefined,
+      transportFacility: apiData.campusFacilitiesEnvironment?.transportFacility || undefined,
+      
+      // Budget and Priorities
+      maxBudget: apiData.annualBudget || undefined,
+      collegeTypes: apiData.collegeTypePreferences || [],
+      priorities: apiData.priorityFactors || [],
+    };
+  };
+
   // Load saved form data on mount and fetch existing details if user is logged in
   useEffect(() => {
     const loadFormData = async () => {
@@ -131,7 +173,10 @@ const RecommendationSteps = () => {
             : await apiService.fetchAICapDetails(user.accessToken);
             
           if (response.success && response.data?.academic_credentials) {
-            const mappedData = mapApiResponseToFormData(response.data.academic_credentials);
+            // Use appropriate mapping function based on program type
+            const mappedData = isMedical 
+              ? mapMedicalApiResponseToFormData(response.data.academic_credentials)
+              : mapApiResponseToFormData(response.data.academic_credentials);
             setFormData(prev => ({ ...prev, ...mappedData }));
             toast.success("Loaded your previous details");
           }
