@@ -51,7 +51,6 @@ interface FormData {
   collegeTypes?: string[];
   priorities?: string[];
   // Medical-specific fields
-  gender?: string;
   neetPercentile?: number;
   neetAllIndiaRank?: number;
   neetRollNumber?: string;
@@ -122,7 +121,6 @@ const RecommendationSteps = () => {
     
     return {
       // Academic Info
-      gender: apiData.gender || undefined,
       reservationCategory: apiData.reservationCategory || 'OPEN',
       grouping: apiData.educationBackground?.stream || 'PCB (Physics, Chemistry, Biology)',
       tenthMarks: apiData.academicMarks?.tenthGradeMarksPercent || undefined,
