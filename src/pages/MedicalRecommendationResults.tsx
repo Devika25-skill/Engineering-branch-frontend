@@ -35,7 +35,6 @@ const MedicalRecommendationResults = () => {
   const [isPaid, setIsPaid] = useState(false);
   const [activeChanceFilter, setActiveChanceFilter] = useState<string>('All');
   const [activeRound, setActiveRound] = useState<string>('round1');
-  const [isUnlocked, setIsUnlocked] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { toast } = useToast();
   
@@ -56,10 +55,12 @@ const MedicalRecommendationResults = () => {
       try {
         const cached = recommendationStorage.getMedicalRecommendations();
         const savedFormData = recommendationStorage.getFormData();
+        const paidStatus = recommendationStorage.getMedicalPaidStatus();
 
         if (cached && savedFormData) {
           setRecommendations(cached);
           setFormData(savedFormData);
+          setIsPaid(paidStatus);
           setIsLoading(false);
         } else if (isLoggedIn) {
           navigate('/recommendations');
@@ -76,9 +77,6 @@ const MedicalRecommendationResults = () => {
   }, [isLoggedIn, navigate]);
 
   useEffect(() => {
-    const isUnlocked: any = localStorage.getItem('medicalRecommendationUnlocked');
-    setIsUnlocked(isUnlocked === "true");
-    
     const userData = localStorage.getItem('userData');
     if (userData) {
       const parsed = JSON.parse(userData);
@@ -92,10 +90,10 @@ const MedicalRecommendationResults = () => {
   }, []);
 
   const handleDownloadPDF = () => {
-    if (!isUnlocked && !isPaid) {
+    if (!isPaid) {
       toast({
         title: "Download Locked",
-        description: "Please unlock recommendations to download the PDF report.",
+        description: "Please upgrade to download the PDF report.",
         variant: "destructive"
       });
       return;
@@ -174,7 +172,7 @@ const MedicalRecommendationResults = () => {
 
   const chanceStats = getChanceFilterStats();
   const filteredRecommendations = getFilteredRecommendations();
-  const displayedRecommendations = isUnlocked || isPaid ? filteredRecommendations : filteredRecommendations.slice(0, 3);
+  const displayedRecommendations = isPaid ? filteredRecommendations : filteredRecommendations.slice(0, 3);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
@@ -226,8 +224,8 @@ const MedicalRecommendationResults = () => {
                   </div>
                   <div className="space-y-1">
                     <p className="text-xs sm:text-sm text-muted-foreground">Status</p>
-                    <Badge variant={isUnlocked || isPaid ? "default" : "secondary"} className="text-xs">
-                      {isUnlocked || isPaid ? "Premium" : "Free"}
+                    <Badge variant={isPaid ? "default" : "secondary"} className="text-xs">
+                      {isPaid ? "Premium" : "Free"}
                     </Badge>
                   </div>
                 </div>
@@ -244,11 +242,11 @@ const MedicalRecommendationResults = () => {
                   </Button>
                 </div>
 
-                {!isUnlocked && !isPaid && (
+                {!isPaid && recommendations.length > 3 && (
                   <div className="mt-4 p-3 sm:p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200">
                     <p className="text-xs sm:text-sm text-yellow-800 dark:text-yellow-200">
                       <strong>Free Preview:</strong> Showing {Math.min(3, recommendations.length)} of {recommendations.length} recommendations. 
-                      Unlock all to see complete list with detailed insights.
+                      Upgrade to see complete list with detailed insights.
                     </p>
                   </div>
                 )}
@@ -344,7 +342,7 @@ const MedicalRecommendationResults = () => {
                 ))}
 
                 {/* Unlock Section */}
-                {!isUnlocked && !isPaid && filteredRecommendations.length > 3 && (
+                {!isPaid && filteredRecommendations.length > 3 && (
                   <div className="relative">
                     <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/50 to-white z-10 backdrop-blur-sm" />
                     <div className="space-y-3 opacity-40 pointer-events-none">

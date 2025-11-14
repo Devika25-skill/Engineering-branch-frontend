@@ -108,9 +108,10 @@ class RecommendationStorageService {
   }
 
   // Medical recommendation storage methods
-  setMedicalRecommendations(recommendations: any[], formData: any): void {
+  setMedicalRecommendations(recommendations: any[], formData: any, isPaid: boolean = false): void {
     try {
       sessionStorage.setItem('cachedMedicalRecommendations', JSON.stringify(recommendations));
+      sessionStorage.setItem('medicalRecommendationPaidStatus', JSON.stringify(isPaid));
       this.saveFormData(formData);
     } catch (error) {
       console.error('Failed to save medical recommendations:', error);
@@ -127,9 +128,20 @@ class RecommendationStorageService {
     }
   }
 
+  getMedicalPaidStatus(): boolean {
+    try {
+      const status = sessionStorage.getItem('medicalRecommendationPaidStatus');
+      return status ? JSON.parse(status) : false;
+    } catch (error) {
+      console.error('Failed to get medical paid status:', error);
+      return false;
+    }
+  }
+
   clearMedicalRecommendations(): void {
     try {
       sessionStorage.removeItem('cachedMedicalRecommendations');
+      sessionStorage.removeItem('medicalRecommendationPaidStatus');
     } catch (error) {
       console.error('Failed to clear medical recommendations:', error);
     }
