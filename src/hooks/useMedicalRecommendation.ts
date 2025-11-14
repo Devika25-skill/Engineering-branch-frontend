@@ -47,8 +47,8 @@ export const useMedicalRecommendation = () => {
     setIsGenerating(true);
 
     try {
-      // Determine gender from reservation category
-      const gender = formData.reservationCategory?.startsWith('L') ? 'F' : 'M';
+      // Use gender from form data
+      const gender = formData.gender || 'M';
 
       // Create medical configuration request
       const configPayload: StoreMedicalConfigRequest = {
