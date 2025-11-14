@@ -320,14 +320,38 @@ const RecommendationSteps = () => {
 
     const recommendationType = localStorage.getItem('recommendation_type');
     
-    // Directly navigate to results without confirmation
+    // Check login status
+    if (!user) {
+      setLoginOpen(true);
+      return;
+    }
+
+    // Clear cached recommendations
     sessionStorage.removeItem('cachedRecommendations');
     sessionStorage.removeItem('cachedMedicalRecommendations');
     
-    if (recommendationType === 'First_Year_Medical') {
-      navigate('/medical-recommendations/results');
-    } else {
-      navigate('/recommendations/results');
+    // Show loading state
+    setIsLoading(true);
+    
+    try {
+      // Call the recommendation generation
+      await generateRecommendation(formData);
+      
+      // Navigate to results page after successful generation
+      if (recommendationType === 'First_Year_Medical') {
+        navigate('/medical-recommendations/results');
+      } else {
+        navigate('/recommendations/results');
+      }
+    } catch (error) {
+      console.error('Error generating recommendations:', error);
+      toastHook({
+        title: "Error",
+        description: "Failed to generate recommendations. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -359,18 +383,28 @@ const RecommendationSteps = () => {
     setLoginOpen(false);
     const recommendationType = localStorage.getItem('recommendation_type');
     
-    // Navigate immediately to results page after login
-    if (recommendationType === 'First_Year_Medical') {
-      navigate('/medical-recommendations/results');
-    } else {
-      navigate('/recommendations/results');
-    }
+    // Show loading state
+    setIsLoading(true);
     
-    // Start generation in background
     try {
-      // await generateRecommendation(formData);
+      // Generate recommendations after successful login
+      await generateRecommendation(formData);
+      
+      // Navigate to results page after successful generation
+      if (recommendationType === 'First_Year_Medical') {
+        navigate('/medical-recommendations/results');
+      } else {
+        navigate('/recommendations/results');
+      }
     } catch (error) {
       console.error('Error generating recommendations after login:', error);
+      toastHook({
+        title: "Error",
+        description: "Failed to generate recommendations. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
