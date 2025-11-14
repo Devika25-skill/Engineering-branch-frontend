@@ -134,19 +134,19 @@ export const useMedicalRecommendation = () => {
             }))
         );
 
-        // Store in session storage for quick access
-        recommendationStorage.setMedicalRecommendations(transformedRecommendations, formData);
+      // Store in session storage for quick access
+      recommendationStorage.setMedicalRecommendations(transformedRecommendations, formData, response.data.is_paid || false);
 
-        toast({
-          title: "Recommendations Generated!",
-          description: `Found ${transformedRecommendations.length} medical colleges matching your profile.`,
-        });
+      toast({
+        title: "Recommendations Generated!",
+        description: `Found ${transformedRecommendations.length} medical colleges matching your profile.`,
+      });
 
-        return {
-          recommendations: transformedRecommendations,
-          formData,
-          isPaid: response.data.is_paid
-        };
+      return {
+        recommendations: transformedRecommendations,
+        formData,
+        isPaid: response.data.is_paid
+      };
       } else {
         throw new Error(response.message || 'Failed to generate recommendations');
       }
