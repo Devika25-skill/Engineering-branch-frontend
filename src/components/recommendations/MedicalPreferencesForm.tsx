@@ -29,8 +29,8 @@ export const MedicalPreferencesForm = ({ data, onUpdate, validationErrors = [] }
     "BHMS",
     "BUMS",
     "BNYS",
-    "BPTh",
-    "BOTh",
+    "BPTH",
+    "BOTH",
     "BASLP",
     "BP&O"
   ];
