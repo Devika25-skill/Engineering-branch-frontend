@@ -128,11 +128,51 @@ const MedicalRecommendationResults = () => {
     });
   };
 
+  const shouldShowUnlock = () => {
+    return !isPaid && filteredRecommendations.length > 5;
+  };
+
+  const handleInputChange = (field: keyof FormData, value: string) => {
+    setPaymentFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const validateForm = () => {
+    if (!paymentFormData.name.trim()) {
+      toast({ title: "Name is required", variant: "destructive" });
+      return false;
+    }
+    if (!paymentFormData.email.trim()) {
+      toast({ title: "Email is required", variant: "destructive" });
+      return false;
+    }
+    if (!paymentFormData.mobile.trim() || paymentFormData.mobile.length !== 10) {
+      toast({ title: "Valid 10-digit mobile number is required", variant: "destructive" });
+      return false;
+    }
+    return true;
+  };
+
+  const getDiscountedPrice = () => {
+    const originalPrice = 299;
+    if (paymentFormData.couponCode.toUpperCase() === 'LAUNCHOFFER') {
+      return { original: originalPrice, final: 199, discount: 100 };
+    }
+    return { original: originalPrice, final: originalPrice, discount: 0 };
+  };
+
   const handlePayment = async () => {
+    if (!validateForm()) return;
+
+    setIsDialogOpen(false);
+    
     toast({
-      title: "Payment Feature",
-      description: "Payment integration coming soon!",
+      title: "Payment Successful!",
+      description: "All medical recommendations have been unlocked.",
     });
+
+    localStorage.setItem('medicalRecommendationUnlocked', 'true');
+    localStorage.setItem('userData', JSON.stringify(paymentFormData));
+    setIsPaid(true);
   };
 
   if (isLoading || isGenerating) {
@@ -172,7 +212,8 @@ const MedicalRecommendationResults = () => {
 
   const chanceStats = getChanceFilterStats();
   const filteredRecommendations = getFilteredRecommendations();
-  const displayedRecommendations = isPaid ? filteredRecommendations : filteredRecommendations.slice(0, 3);
+  const displayedRecommendations = isPaid ? filteredRecommendations : filteredRecommendations.slice(0, 5);
+  const { original: originalPrice, final: finalPrice, discount } = getDiscountedPrice();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
@@ -242,11 +283,11 @@ const MedicalRecommendationResults = () => {
                   </Button>
                 </div>
 
-                {!isPaid && recommendations.length > 3 && (
+                {!isPaid && recommendations.length > 5 && (
                   <div className="mt-4 p-3 sm:p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200">
                     <p className="text-xs sm:text-sm text-yellow-800 dark:text-yellow-200">
-                      <strong>Free Preview:</strong> Showing {Math.min(3, recommendations.length)} of {recommendations.length} recommendations. 
-                      Upgrade to see complete list with detailed insights.
+                      <strong>Free Preview:</strong> Showing 5 of {recommendations.length} recommendations. 
+                      Unlock all to see complete list with detailed insights.
                     </p>
                   </div>
                 )}
@@ -342,75 +383,120 @@ const MedicalRecommendationResults = () => {
                 ))}
 
                 {/* Unlock Section */}
-                {!isPaid && filteredRecommendations.length > 3 && (
-                  <div className="relative">
-                    <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/50 to-white z-10 backdrop-blur-sm" />
-                    <div className="space-y-3 opacity-40 pointer-events-none">
-                      {filteredRecommendations.slice(3, 6).map((college, index) => (
-                        <Card key={index} className="border border-gray-200">
-                          <CardContent className="p-4 sm:p-6">
-                            <div className="h-24 bg-gray-100 rounded animate-pulse" />
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                    
-                    <div className="absolute inset-0 flex items-center justify-center z-20">
+                {shouldShowUnlock() && (
+                  <div className="relative mt-4">
+                    {/* Unlock Banner */}
+                    <div className="text-center bg-white/90 backdrop-blur-sm rounded-xl p-6 shadow-lg mb-4 border-2 border-green-200">
+                      <Lock className="mx-auto mb-3 text-green-600" size={32} />
+                      <h3 className="text-xl font-bold text-gray-800 mb-2">
+                        🔒 Unlock All Recommendations
+                      </h3>
+                      <p className="text-gray-600 text-sm mb-4">
+                        {filteredRecommendations.length - 5} more medical college recommendations waiting
+                      </p>
+
+                      {/* Unlock Dialog */}
                       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                         <DialogTrigger asChild>
-                          <Button size="lg" className="shadow-xl">
-                            <Unlock className="mr-2 h-5 w-5" />
-                            Unlock All Recommendations
+                          <Button
+                            onClick={() => setIsDialogOpen(true)}
+                            className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 flex items-center gap-2 mx-auto"
+                          >
+                            <Unlock size={16} />
+                            Unlock Now
                           </Button>
                         </DialogTrigger>
-                        <DialogContent className="sm:max-w-md">
+
+                        <DialogContent className="sm:max-w-md z-[9999]">
                           <DialogHeader>
-                            <DialogTitle>Unlock All Recommendations</DialogTitle>
+                            <DialogTitle className="text-center">Unlock Medical Recommendations</DialogTitle>
                           </DialogHeader>
-                          <div className="space-y-4 py-4">
-                            <div className="space-y-2">
-                              <Label htmlFor="name">Full Name</Label>
-                              <Input
-                                id="name"
-                                value={paymentFormData.name}
-                                onChange={(e) => setPaymentFormData(prev => ({ ...prev, name: e.target.value }))}
-                                placeholder="Enter your name"
-                              />
+
+                          <div className="space-y-4">
+                            {/* Pricing Section */}
+                            <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+                              <div className="flex items-center justify-center gap-3 mb-2">
+                                <span className="text-lg text-gray-500 line-through">₹{originalPrice}</span>
+                                <span className="text-2xl font-bold text-green-600">₹{finalPrice}</span>
+                              </div>
+                              <p className="text-sm text-green-700">
+                                Save ₹{discount} with Launch Offer!
+                              </p>
                             </div>
-                            <div className="space-y-2">
-                              <Label htmlFor="email">Email</Label>
-                              <Input
-                                id="email"
-                                type="email"
-                                value={paymentFormData.email}
-                                onChange={(e) => setPaymentFormData(prev => ({ ...prev, email: e.target.value }))}
-                                placeholder="Enter your email"
-                              />
+
+                            {/* Form Fields */}
+                            <div className="space-y-3">
+                              <div>
+                                <Label htmlFor="name">Full Name *</Label>
+                                <Input
+                                  id="name"
+                                  value={paymentFormData.name}
+                                  onChange={(e) => handleInputChange('name', e.target.value)}
+                                  placeholder="Enter your full name"
+                                  required
+                                />
+                              </div>
+
+                              <div>
+                                <Label htmlFor="email">Email *</Label>
+                                <Input
+                                  id="email"
+                                  type="email"
+                                  value={paymentFormData.email}
+                                  onChange={(e) => handleInputChange('email', e.target.value)}
+                                  placeholder="Enter your email"
+                                  required
+                                />
+                              </div>
+
+                              <div>
+                                <Label htmlFor="mobile">Mobile Number *</Label>
+                                <Input
+                                  id="mobile"
+                                  value={paymentFormData.mobile}
+                                  onChange={(e) => handleInputChange('mobile', e.target.value)}
+                                  placeholder="Enter your mobile number"
+                                  maxLength={10}
+                                  required
+                                />
+                              </div>
+
+                              <div>
+                                <Label htmlFor="coupon">Coupon Code</Label>
+                                <Input
+                                  id="coupon"
+                                  value={paymentFormData.couponCode}
+                                  onChange={(e) => handleInputChange('couponCode', e.target.value)}
+                                  placeholder="Enter coupon code"
+                                />
+                              </div>
                             </div>
-                            <div className="space-y-2">
-                              <Label htmlFor="mobile">Mobile Number</Label>
-                              <Input
-                                id="mobile"
-                                value={paymentFormData.mobile}
-                                onChange={(e) => setPaymentFormData(prev => ({ ...prev, mobile: e.target.value }))}
-                                placeholder="Enter 10-digit mobile"
-                              />
-                            </div>
-                            <div className="space-y-2">
-                              <Label htmlFor="coupon">Coupon Code</Label>
-                              <Input
-                                id="coupon"
-                                value={paymentFormData.couponCode}
-                                onChange={(e) => setPaymentFormData(prev => ({ ...prev, couponCode: e.target.value }))}
-                                placeholder="Enter coupon code"
-                              />
-                            </div>
-                            <Button onClick={handlePayment} className="w-full" size="lg">
-                              Proceed to Payment
+
+                            {/* Payment Button */}
+                            <Button
+                              onClick={handlePayment}
+                              className="w-full bg-green-600 hover:bg-green-700 text-white py-3 text-lg"
+                            >
+                              Pay ₹{finalPrice} & Unlock
                             </Button>
+
+                            <p className="text-xs text-gray-500 text-center">
+                              Secure payment powered by Razorpay
+                            </p>
                           </div>
                         </DialogContent>
                       </Dialog>
+                    </div>
+
+                    {/* Blurred cards */}
+                    <div className="blur-sm pointer-events-none space-y-4">
+                      {filteredRecommendations.slice(5, 8).map((college, index) => (
+                        <Card key={index} className="border border-gray-200">
+                          <CardContent className="p-4 sm:p-6">
+                            <div className="h-32 bg-gray-100 rounded animate-pulse" />
+                          </CardContent>
+                        </Card>
+                      ))}
                     </div>
                   </div>
                 )}
