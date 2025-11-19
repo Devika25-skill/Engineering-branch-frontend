@@ -58,18 +58,44 @@ export const MedicalAcademicInfoForm = ({ data, onUpdate, validationErrors = [] 
   };
 
   const handleRankChange = (field: string, value: string) => {
+    // Allow empty string
+    if (value === '') {
+      onUpdate({ [field]: undefined });
+      return;
+    }
+
+    // Validate input: only digits, no decimal points or special characters
+    // Reject 'e', '--', '++', '.', etc.
+    const validPattern = /^\d+$/;
+    if (!validPattern.test(value)) {
+      return; // Reject invalid input
+    }
+
     const numValue = parseInt(value);
     // NEET All India Rank must be >= 1
-    if (value === '' || numValue >= 1) {
-      onUpdate({ [field]: numValue || undefined });
+    if (numValue >= 1) {
+      onUpdate({ [field]: numValue });
     }
   };
 
   const handleRollNumberChange = (value: string) => {
+    // Allow empty string
+    if (value === '') {
+      onUpdate({ neetRollNumber: undefined });
+      return;
+    }
+
+    // Validate input: only digits, no decimal points or special characters
+    // Reject 'e', '--', '++', '.', etc.
+    const validPattern = /^\d+$/;
+    if (!validPattern.test(value)) {
+      return; // Reject invalid input
+    }
+
     const numValue = parseInt(value);
     // NEET Roll Number must be 10 digits (1000000000 to 9999999999)
-    if (value === '' || (numValue >= 1000000000 && numValue <= 9999999999)) {
-      onUpdate({ neetRollNumber: numValue || undefined });
+    if (numValue >= 1000000000 && numValue <= 9999999999) {
+      onUpdate({ neetRollNumber: numValue });
     }
   };
 
