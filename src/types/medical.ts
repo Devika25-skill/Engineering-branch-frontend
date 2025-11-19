@@ -156,19 +156,25 @@ export interface GenerateMedicalRecommendationsRequest {
   medical_configuration_request: StoreMedicalConfigRequest;
 }
 
-// Medical College Recommendation
-export interface MedicalCollegeRecommendation {
+// Medical College Data
+export interface MedicalCollegeData {
   college_name: string;
   college_code: number;
-  city: string;
-  program: MedicalProgram;
   college_type: string;
-  round: Round;
+  course_type: string;
+  city: string;
+}
+
+// Medical College Recommendation
+export interface MedicalCollegeRecommendation {
+  college: MedicalCollegeData;
+  category: string;
+  program: MedicalProgram;
   gender: Gender;
-  quota: string[];
+  neet_rank: number;
   closing_rank: number;
-  admission_chance: string;
-  recommendation_date: string;
+  admission_probability: number;
+  probability_message: string;
 }
 
 // Generate Medical Recommendations Response
@@ -177,19 +183,12 @@ export interface GenerateMedicalRecommendationsResponse {
   success: boolean;
   data: {
     username: string;
-    round: Round;
-    generated_at: string;
-    recommendations: {
-      [key: string]: MedicalCollegeRecommendation[];
-    };
-    criteria_used: {
-      preferred_round: Round;
-      neet_rank: number;
-      category: string;
-      gender: Gender;
-      preferred_programs: MedicalProgram[];
-      preferred_cities: string[];
-    };
-    is_paid: boolean;
+    Dream: MedicalCollegeRecommendation[];
+    Reach: MedicalCollegeRecommendation[];
+    Match: MedicalCollegeRecommendation[];
+    Safety: MedicalCollegeRecommendation[];
+    Round: Round;
+    is_payment: boolean;
+    accept_payment: boolean;
   };
 }

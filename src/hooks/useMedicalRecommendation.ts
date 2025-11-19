@@ -147,36 +147,31 @@ export const useMedicalRecommendation = () => {
           throw new Error('No access token available');
         }
 
-        // Transform the API response to match the expected format
-        const transformedRecommendations = Object.entries(response.data.recommendations).flatMap(
-          ([roundKey, colleges]) => 
-            colleges.map(college => ({
-              college_name: college.college_name,
-              college_code: college.college_code,
-              city: college.city,
-              program: college.program,
-              college_type: college.college_type,
-              round: college.round,
-              gender: college.gender,
-              quota: college.quota,
-              closing_rank: college.closing_rank,
-              admission_chance: college.admission_chance,
-              recommendation_date: college.recommendation_date
-            }))
-        );
+        // Transform the API response to categorized format
+        const categorizedRecommendations = {
+          Dream: response.data.Dream || [],
+          Reach: response.data.Reach || [],
+          Match: response.data.Match || [],
+          Safety: response.data.Safety || []
+        };
 
-      // Store in session storage for quick access
-      recommendationStorage.setMedicalRecommendations(transformedRecommendations, formData, response.data.is_paid || false);
+        // Store in session storage for quick access
+        recommendationStorage.setMedicalRecommendations(categorizedRecommendations as any, formData, response.data.is_payment || false);
+
+      const totalCount = (categorizedRecommendations.Dream?.length || 0) +
+                          (categorizedRecommendations.Reach?.length || 0) +
+                          (categorizedRecommendations.Match?.length || 0) +
+                          (categorizedRecommendations.Safety?.length || 0);
 
       toast({
         title: "Recommendations Generated!",
-        description: `Found ${transformedRecommendations.length} medical colleges matching your profile.`,
+        description: `Found ${totalCount} medical colleges matching your profile.`,
       });
 
       return {
-        recommendations: transformedRecommendations,
+        recommendations: categorizedRecommendations,
         formData,
-        isPaid: response.data.is_paid
+        isPaid: response.data.is_payment
       };
       } else {
         throw new Error(response.message || 'Failed to generate recommendations');
