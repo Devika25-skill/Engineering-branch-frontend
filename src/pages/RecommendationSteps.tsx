@@ -54,7 +54,7 @@ interface FormData {
   gender?: string;
   neetPercentile?: number;
   neetAllIndiaRank?: number;
-  neetRollNumber?: string;
+  neetRollNumber?: number;
 }
 
 const RecommendationSteps = () => {
@@ -227,7 +227,7 @@ const RecommendationSteps = () => {
         if (!formData.gender) errors.push('Gender');
         if (!formData.neetPercentile || formData.neetPercentile <= 0) errors.push('NEET Percentile');
         if (!formData.neetAllIndiaRank || formData.neetAllIndiaRank <= 0) errors.push('All India Rank');
-        if (!formData.neetRollNumber || formData.neetRollNumber.trim() === '') errors.push('NEET Roll Number');
+        if (!formData.neetRollNumber || formData.neetRollNumber < 1000000000 || formData.neetRollNumber > 9999999999) errors.push('NEET Roll Number');
       } else {
         if (!formData.cetPercentile || formData.cetPercentile <= 0) errors.push('CET Percentile');
       }
