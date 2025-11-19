@@ -64,18 +64,28 @@ const MedicalRecommendationResults = () => {
     );
   }
 
+  const handleBackToForm = () => {
+    // Clear cached recommendations
+    sessionStorage.removeItem('cachedMedicalRecommendations');
+    recommendationStorage.clearMedicalRecommendations();
+    // Navigate to recommendations page
+    navigate('/recommendations');
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
       <Navigation />
       
       <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8">
         <div className="mb-1 sm:mb-1">
-          <Link to="/recommendations">
-            <Button variant="outline" className="rounded-lg hover:shadow-md transition-all duration-200 w-full sm:w-auto">
-              <ArrowLeft size={16} className="mr-2" />
-              Back to Form
-            </Button>
-          </Link>
+          <Button 
+            variant="outline" 
+            className="rounded-lg hover:shadow-md transition-all duration-200 w-full sm:w-auto"
+            onClick={handleBackToForm}
+          >
+            <ArrowLeft size={16} className="mr-2" />
+            Back to Form
+          </Button>
         </div>
 
         <ResultsComponent 
