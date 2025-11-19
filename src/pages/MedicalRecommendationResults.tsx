@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import Navigation from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Download, Lock, Unlock, Sparkles } from "lucide-react";
+import { ArrowLeft, Lock, Unlock, Sparkles } from "lucide-react";
 import { useMedicalRecommendation } from "@/hooks/useMedicalRecommendation";
 import { recommendationStorage } from "@/services/recommendationStorage";
 import StepLoadingMessages from '@/components/recommendations/StepLoadingMessages';
@@ -10,13 +10,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { FeedbackSection } from "@/components/feedback/FeedbackSection";
 import { useAuth } from "@/contexts/AuthContext";
-import { NoResultsState } from "@/components/recommendations/NoResultsState";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { config } from '@/config/env';
 
 interface FormData {
   name: string;
@@ -94,21 +92,6 @@ const MedicalRecommendationResults = () => {
     }
   }, []);
 
-  const handleDownloadPDF = () => {
-    if (!isPaid) {
-      toast({
-        title: "Download Locked",
-        description: "Please upgrade to download the PDF report.",
-        variant: "destructive"
-      });
-      return;
-    }
-    toast({
-      title: "PDF Download",
-      description: "PDF download functionality coming soon!",
-    });
-  };
-
   const getCategoryStats = () => {
     return {
       Dream: recommendations.Dream?.length || 0,
@@ -171,11 +154,8 @@ const MedicalRecommendationResults = () => {
   const handlePayment = () => {
     if (!validateForm()) return;
     
-    // Simulate successful payment
     setIsPaid(true);
     recommendationStorage.setMedicalPaidStatus(true);
-    
-    // Save user data to localStorage
     localStorage.setItem('userData', JSON.stringify(paymentFormData));
     
     setIsDialogOpen(false);
@@ -190,21 +170,15 @@ const MedicalRecommendationResults = () => {
   const filteredRecommendations = getFilteredRecommendations();
   const displayedRecommendations = isPaid ? filteredRecommendations : filteredRecommendations.slice(0, 5);
   const hiddenCount = isPaid ? 0 : Math.max(0, filteredRecommendations.length - 5);
+  const discountedPrice = getDiscountedPrice();
 
   if (isLoading || isGenerating) {
     return (
       <div className="min-h-screen bg-background">
         <Navigation />
-        <StepLoadingMessages 
-          isGenerating={isGenerating}
-          currentStep={3}
-          stepMessages={[
-            "Analyzing your NEET score and preferences...",
-            "Matching with medical colleges...",
-            "Calculating admission probabilities...",
-            "Finalizing your personalized recommendations..."
-          ]}
-        />
+        <div className="container mx-auto px-4 py-8">
+          <StepLoadingMessages />
+        </div>
       </div>
     );
   }
@@ -214,262 +188,210 @@ const MedicalRecommendationResults = () => {
       <div className="min-h-screen bg-background">
         <Navigation />
         <div className="container mx-auto px-4 py-8">
-          <NoResultsState 
-            onReset={() => navigate('/recommendations')}
-          />
+          <div className="text-center py-12">
+            <h2 className="text-2xl font-bold mb-4">No Recommendations Found</h2>
+            <p className="text-muted-foreground mb-6">
+              We couldn't find any medical college recommendations based on your criteria.
+            </p>
+            <Button onClick={() => navigate('/recommendations')}>
+              Try Again
+            </Button>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-background">
       <Navigation />
-      
-      <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8">
-        <div className="mb-1 sm:mb-1">
-          <Link to="/recommendations/steps">
-            <Button variant="outline" className="rounded-lg hover:shadow-md transition-all duration-200 w-full sm:w-auto">
-              <ArrowLeft size={16} className="mr-2" />
-              Back to Form
+      <div className="container mx-auto px-4 py-8">
+        <div className="mb-6">
+          <Link to="/recommendations">
+            <Button variant="ghost" size="sm">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Recommendations
             </Button>
           </Link>
         </div>
 
-        {/* Header */}
-        <div className="text-center mb-6">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full mb-4">
-            <Sparkles className="text-white" size={28} />
-          </div>
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent mb-3">
-            Your Medical College Recommendations
-          </h1>
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold mb-2">Your Medical College Recommendations</h1>
+          <p className="text-muted-foreground">
+            Personalized suggestions based on your NEET score and preferences
+          </p>
         </div>
 
-        <Tabs value={activeRound} onValueChange={setActiveRound} className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-6">
+        <Tabs value={activeRound} onValueChange={setActiveRound} className="mb-8">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="round1">Round 1</TabsTrigger>
             <TabsTrigger value="round2" disabled>Round 2</TabsTrigger>
             <TabsTrigger value="round3" disabled>Round 3</TabsTrigger>
           </TabsList>
 
           <TabsContent value="round1" className="space-y-6">
-            {/* Summary Card */}
-            <Card className="bg-white/80 backdrop-blur-sm border-2">
-              <CardContent className="p-4 sm:p-6">
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-                  <div className="space-y-1">
-                    <p className="text-xs sm:text-sm text-muted-foreground">Total Matches</p>
-                    <p className="text-xl sm:text-2xl font-bold text-primary">{recommendations.length}</p>
+            <Card className="mb-6">
+              <CardContent className="pt-6">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Total Matches</p>
+                    <p className="text-2xl font-bold">{totalRecommendations}</p>
                   </div>
-                  <div className="space-y-1">
-                    <p className="text-xs sm:text-sm text-muted-foreground">NEET Rank</p>
-                    <p className="text-xl sm:text-2xl font-bold">{formData?.neetAllIndiaRank}</p>
+                  <div>
+                    <p className="text-sm text-muted-foreground">NEET Rank</p>
+                    <p className="text-2xl font-bold">{formData?.neetAllIndiaRank?.toLocaleString() || 'N/A'}</p>
                   </div>
-                  <div className="space-y-1">
-                    <p className="text-xs sm:text-sm text-muted-foreground">Category</p>
-                    <p className="text-base sm:text-lg font-semibold">{formData?.reservationCategory}</p>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Category</p>
+                    <p className="text-2xl font-bold">{formData?.reservationCategory || 'N/A'}</p>
                   </div>
-                  <div className="space-y-1">
-                    <p className="text-xs sm:text-sm text-muted-foreground">Status</p>
-                    <Badge variant={isPaid ? "default" : "secondary"} className="text-xs">
-                      {isPaid ? "Premium" : "Free"}
+                  <div>
+                    <p className="text-sm text-muted-foreground">Status</p>
+                    <Badge variant={isPaid ? "default" : "secondary"}>
+                      {isPaid ? <><Unlock className="w-3 h-3 mr-1" /> Full Access</> : <><Lock className="w-3 h-3 mr-1" /> Limited</>}
                     </Badge>
                   </div>
                 </div>
-
-                <div className="mt-4 flex gap-2">
-                  <Button 
-                    onClick={handleDownloadPDF} 
-                    variant="outline" 
-                    size="sm"
-                    className="flex-1 sm:flex-initial"
-                  >
-                    <Download className="h-4 w-4 mr-2" />
-                    Download PDF
-                  </Button>
-                </div>
-
-                {!isPaid && recommendations.length > 5 && (
-                  <div className="mt-4 p-3 sm:p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200">
-                    <p className="text-xs sm:text-sm text-yellow-800 dark:text-yellow-200">
-                      <strong>Free Preview:</strong> Showing 5 of {recommendations.length} recommendations. 
-                      Unlock all to see complete list with detailed insights.
-                    </p>
-                  </div>
-                )}
               </CardContent>
             </Card>
 
-            {/* Chance Filter */}
-            <div className="flex justify-center">
-              <div className="flex gap-2 p-1 bg-white/80 backdrop-blur-sm rounded-lg border">
-                {['All', 'High', 'Medium', 'Low'].map((filter) => (
-                  <button
-                    key={filter}
-                    onClick={() => setActiveChanceFilter(filter)}
-                    className={`px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition-colors ${
-                      activeChanceFilter === filter
-                        ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-sm'
-                        : 'text-gray-600 hover:text-gray-900'
-                    }`}
-                  >
-                    {filter}
-                    {filter !== 'All' && (
-                      <span className="ml-2 text-xs bg-gray-200 px-2 py-1 rounded-full">
-                        {chanceStats[filter as keyof typeof chanceStats]}
-                      </span>
-                    )}
-                  </button>
-                ))}
-              </div>
+            <div className="flex flex-wrap gap-2 mb-6">
+              {(['All', 'Dream', 'Reach', 'Match', 'Safety'] as const).map((category) => (
+                <Button
+                  key={category}
+                  variant={activeCategory === category ? "default" : "outline"}
+                  onClick={() => setActiveCategory(category)}
+                  size="sm"
+                >
+                  {category}
+                  {category !== 'All' && (
+                    <Badge variant="secondary" className="ml-2">
+                      {categoryStats[category]}
+                    </Badge>
+                  )}
+                </Button>
+              ))}
             </div>
 
-            {/* Recommendations */}
-            {displayedRecommendations.length > 0 ? (
-              <div className="space-y-3 sm:space-y-4">
-                {displayedRecommendations.map((college, index) => (
-                  <Card key={index} className="hover:shadow-lg transition-all duration-300 border border-gray-200 bg-white">
-                    <CardContent className="p-4 sm:p-6">
-                      <div className="flex items-start gap-3">
-                        {/* Index */}
-                        <div className="flex-shrink-0 w-7 h-7 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-full flex items-center justify-center font-bold text-xs">
-                          {index + 1}
-                        </div>
-
-                        {/* Content */}
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between gap-2 mb-3">
-                            <div className="flex-1 min-w-0">
-                              <h3 className="text-sm sm:text-base font-semibold text-gray-900 leading-tight mb-2">
-                                {college.college_name}
-                              </h3>
-                              <div className="flex flex-wrap gap-2">
-                                <Badge className={getCollegeTypeColor(college.college_type)}>
-                                  {college.college_type}
-                                </Badge>
-                                <Badge className={getProbabilityBadgeColor(college.admission_chance)}>
-                                  {college.admission_chance} Chance
-                                </Badge>
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 text-xs sm:text-sm">
-                            <div>
-                              <p className="text-gray-500 mb-1">Program</p>
-                              <p className="font-semibold">{college.program}</p>
-                            </div>
-                            <div>
-                              <p className="text-gray-500 mb-1">City</p>
-                              <p className="font-semibold">{college.city}</p>
-                            </div>
-                            <div>
-                              <p className="text-gray-500 mb-1">Closing Rank</p>
-                              <p className="font-semibold">{college.closing_rank.toLocaleString()}</p>
-                            </div>
-                            <div>
-                              <p className="text-gray-500 mb-1">Quota</p>
-                              <div className="flex flex-wrap gap-1">
-                                {college.quota.map((q: string, i: number) => (
-                                  <Badge key={i} variant="secondary" className="text-xs">
-                                    {q}
-                                  </Badge>
-                                ))}
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="mt-3 text-xs text-gray-500">
-                            Code: {college.college_code}
-                          </div>
-                        </div>
+            <div className="space-y-4">
+              {displayedRecommendations.map((rec: any, index: number) => (
+                <Card key={index} className="hover:shadow-lg transition-shadow">
+                  <CardHeader>
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <CardTitle className="text-lg">{rec.college.college_name}</CardTitle>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          {rec.college.college_type} • {rec.college.city}
+                        </p>
                       </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                      <Badge 
+                        variant={
+                          rec.admission_probability >= 70
+                            ? 'default' 
+                            : rec.admission_probability >= 40
+                            ? 'secondary'
+                            : 'destructive'
+                        }
+                      >
+                        {rec.admission_probability}% Chance
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="mb-3 p-3 bg-muted rounded-md">
+                      <p className="text-sm">{rec.probability_message}</p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-sm text-muted-foreground">Program</p>
+                        <p className="font-medium">{rec.program}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Category</p>
+                        <p className="font-medium">{rec.category}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Your NEET Rank</p>
+                        <p className="font-medium">{rec.neet_rank?.toLocaleString() || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Closing Rank</p>
+                        <p className="font-medium">{rec.closing_rank?.toLocaleString() || 'N/A'}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
 
-                {/* Unlock Section */}
-                {shouldShowUnlock() && (
-                  <div className="relative mt-4">
-                    {/* Unlock Banner */}
-                    <div className="text-center bg-white/90 backdrop-blur-sm rounded-xl p-6 shadow-lg mb-4 border-2 border-green-200">
-                      <Lock className="mx-auto mb-3 text-green-600" size={32} />
-                      <h3 className="text-xl font-bold text-gray-800 mb-2">
-                        🔒 Unlock All Recommendations
-                      </h3>
-                      <p className="text-gray-600 text-sm mb-4">
-                        {filteredRecommendations.length - 5} more medical college recommendations waiting
-                      </p>
-
-                      {/* Unlock Dialog */}
+              {shouldShowUnlock() && (
+                <Card className="bg-gradient-to-r from-primary/10 to-primary/5 border-primary/20">
+                  <CardContent className="pt-6">
+                    <div className="flex flex-col items-center text-center space-y-4">
+                      <div className="p-3 bg-primary/10 rounded-full">
+                        <Lock className="h-8 w-8 text-primary" />
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-bold mb-2">
+                          Unlock {hiddenCount} More Recommendations
+                        </h3>
+                        <p className="text-muted-foreground mb-4">
+                          Get access to all medical college recommendations and detailed insights
+                        </p>
+                      </div>
+                      
                       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                         <DialogTrigger asChild>
-                          <Button
-                            onClick={() => setIsDialogOpen(true)}
-                            className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 flex items-center gap-2 mx-auto"
-                          >
-                            <Unlock size={16} />
-                            Unlock Now
+                          <Button size="lg" className="gap-2">
+                            <Sparkles className="h-5 w-5" />
+                            Unlock Now - ₹{discountedPrice.final}
                           </Button>
                         </DialogTrigger>
-
-                        <DialogContent className="sm:max-w-md z-[9999]">
+                        <DialogContent className="sm:max-w-md">
                           <DialogHeader>
-                            <DialogTitle className="text-center">Unlock Medical Recommendations</DialogTitle>
+                            <DialogTitle>Unlock Full Access</DialogTitle>
                           </DialogHeader>
-
                           <div className="space-y-4">
-                            {/* Pricing Section */}
-                            <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
-                              <div className="flex items-center justify-center gap-3 mb-2">
-                                <span className="text-lg text-gray-500 line-through">₹{originalPrice}</span>
-                                <span className="text-2xl font-bold text-green-600">₹{finalPrice}</span>
+                            <div className="bg-primary/5 p-4 rounded-lg">
+                              <div className="flex justify-between items-center mb-2">
+                                <span className="text-sm text-muted-foreground line-through">₹{discountedPrice.original}</span>
+                                <Badge>Save ₹{discountedPrice.discount}</Badge>
                               </div>
-                              <p className="text-sm text-green-700">
-                                Save ₹{discount} with Launch Offer!
-                              </p>
+                              <div className="text-2xl font-bold text-primary">₹{discountedPrice.final}</div>
                             </div>
 
-                            {/* Form Fields */}
                             <div className="space-y-3">
                               <div>
-                                <Label htmlFor="name">Full Name *</Label>
+                                <Label htmlFor="name">Full Name</Label>
                                 <Input
                                   id="name"
                                   value={paymentFormData.name}
                                   onChange={(e) => handleInputChange('name', e.target.value)}
                                   placeholder="Enter your full name"
-                                  required
                                 />
                               </div>
-
                               <div>
-                                <Label htmlFor="email">Email *</Label>
+                                <Label htmlFor="email">Email</Label>
                                 <Input
                                   id="email"
                                   type="email"
                                   value={paymentFormData.email}
                                   onChange={(e) => handleInputChange('email', e.target.value)}
                                   placeholder="Enter your email"
-                                  required
                                 />
                               </div>
-
                               <div>
-                                <Label htmlFor="mobile">Mobile Number *</Label>
+                                <Label htmlFor="mobile">Mobile Number</Label>
                                 <Input
                                   id="mobile"
+                                  type="tel"
                                   value={paymentFormData.mobile}
                                   onChange={(e) => handleInputChange('mobile', e.target.value)}
-                                  placeholder="Enter your mobile number"
+                                  placeholder="Enter 10-digit mobile number"
                                   maxLength={10}
-                                  required
                                 />
                               </div>
-
                               <div>
-                                <Label htmlFor="coupon">Coupon Code</Label>
+                                <Label htmlFor="coupon">Coupon Code (Optional)</Label>
                                 <Input
                                   id="coupon"
                                   value={paymentFormData.couponCode}
@@ -479,61 +401,37 @@ const MedicalRecommendationResults = () => {
                               </div>
                             </div>
 
-                            {/* Payment Button */}
-                            <Button
-                              onClick={handlePayment}
-                              className="w-full bg-green-600 hover:bg-green-700 text-white py-3 text-lg"
-                            >
-                              Pay ₹{finalPrice} & Unlock
+                            <Button onClick={handlePayment} className="w-full" size="lg">
+                              Pay & Unlock ₹{discountedPrice.final}
                             </Button>
-
-                            <p className="text-xs text-gray-500 text-center">
-                              Secure payment powered by Razorpay
-                            </p>
                           </div>
                         </DialogContent>
                       </Dialog>
                     </div>
-
-                    {/* Blurred cards */}
-                    <div className="blur-sm pointer-events-none space-y-4">
-                      {filteredRecommendations.slice(5, 8).map((college, index) => (
-                        <Card key={index} className="border border-gray-200">
-                          <CardContent className="p-4 sm:p-6">
-                            <div className="h-32 bg-gray-100 rounded animate-pulse" />
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <NoResultsState />
-            )}
+                  </CardContent>
+                </Card>
+              )}
+            </div>
           </TabsContent>
 
           <TabsContent value="round2">
-            <Card className="p-8 text-center">
-              <Lock className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-              <h3 className="text-xl font-semibold mb-2">Round 2 Coming Soon</h3>
-              <p className="text-gray-600">Round 2 recommendations will be available after the counseling process.</p>
+            <Card>
+              <CardContent className="pt-6 text-center">
+                <p className="text-muted-foreground">Round 2 recommendations will be available soon</p>
+              </CardContent>
             </Card>
           </TabsContent>
 
           <TabsContent value="round3">
-            <Card className="p-8 text-center">
-              <Lock className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-              <h3 className="text-xl font-semibold mb-2">Round 3 Coming Soon</h3>
-              <p className="text-gray-600">Round 3 recommendations will be available after the counseling process.</p>
+            <Card>
+              <CardContent className="pt-6 text-center">
+                <p className="text-muted-foreground">Round 3 recommendations will be available soon</p>
+              </CardContent>
             </Card>
           </TabsContent>
         </Tabs>
 
-        {/* Feedback Section */}
-        <div className="mt-8">
-          <FeedbackSection />
-        </div>
+        <FeedbackSection />
       </div>
     </div>
   );
