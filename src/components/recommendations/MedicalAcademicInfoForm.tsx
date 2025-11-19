@@ -93,8 +93,9 @@ export const MedicalAcademicInfoForm = ({ data, onUpdate, validationErrors = [] 
     }
 
     const numValue = parseInt(value);
-    // NEET Roll Number must be 10 digits (1000000000 to 9999999999)
-    if (numValue >= 1000000000 && numValue <= 9999999999) {
+    // Allow any valid number while typing, but the field should be 10 digits when complete
+    // The final validation will happen on form submission
+    if (numValue >= 0) {
       onUpdate({ neetRollNumber: numValue });
     }
   };
