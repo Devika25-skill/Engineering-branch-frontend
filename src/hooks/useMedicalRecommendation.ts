@@ -35,6 +35,7 @@ export const useMedicalRecommendation = () => {
       throw new Error(`Missing required fields: ${missingFields.join(', ')}`);
     }
 
+    // Validate NEET Percentile (0-100, max 2 decimal places)
     if (formData.neetPercentile < 0 || formData.neetPercentile > 100) {
       toast({
         title: "Invalid NEET Percentile",
@@ -42,6 +43,36 @@ export const useMedicalRecommendation = () => {
         variant: "destructive"
       });
       throw new Error('Invalid NEET percentile range');
+    }
+
+    // Validate NEET All India Rank (>= 1)
+    if (formData.neetAllIndiaRank < 1) {
+      toast({
+        title: "Invalid NEET Rank",
+        description: "NEET All India Rank must be at least 1.",
+        variant: "destructive"
+      });
+      throw new Error('Invalid NEET rank');
+    }
+
+    // Validate NEET Roll Number (10 digits)
+    if (formData.neetRollNumber < 1000000000 || formData.neetRollNumber > 9999999999) {
+      toast({
+        title: "Invalid NEET Roll Number",
+        description: "NEET Roll Number must be a 10-digit number.",
+        variant: "destructive"
+      });
+      throw new Error('Invalid NEET roll number');
+    }
+
+    // Validate Annual Budget (>= 0)
+    if (formData.maxBudget < 0) {
+      toast({
+        title: "Invalid Budget",
+        description: "Annual Budget must be a positive number.",
+        variant: "destructive"
+      });
+      throw new Error('Invalid annual budget');
     }
 
     setIsGenerating(true);
@@ -60,12 +91,12 @@ export const useMedicalRecommendation = () => {
             stream: formData.grouping
           },
           academicMarks: {
-            _10thGradeMarksPercent: formData.tenthMarks,
-            _12thGradeMarksPercent: formData.twelfthMarks,
-            groupingMarksPercent: formData.groupingMarks
+            _10thGradeMarksPercent: Number(formData.tenthMarks.toFixed(2)),
+            _12thGradeMarksPercent: Number(formData.twelfthMarks.toFixed(2)),
+            groupingMarksPercent: Number(formData.groupingMarks.toFixed(2))
           },
           examPercentiles: {
-            NEETPercentile: formData.neetPercentile,
+            NEETPercentile: Number(formData.neetPercentile.toFixed(2)),
             NEETAllIndiaRank: formData.neetAllIndiaRank,
             NEETRollNumber: formData.neetRollNumber,
             otherEntranceExam: formData.otherExamName && formData.otherExamPercentile ? [{
@@ -90,8 +121,8 @@ export const useMedicalRecommendation = () => {
             transportFacility: formData.transportFacility
           },
           annualBudget: formData.maxBudget,
-          collegeTypePreferences: formData.collegeTypes || [],
-          priorityFactors: formData.priorities || []
+          collegeTypePreferences: formData.collegeTypes || ["ALL"],
+          priorityFactors: formData.priorities || ["ALL"]
         }
       };
 

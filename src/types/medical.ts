@@ -85,14 +85,14 @@ export interface MedicalAcademicCredentials {
     stream: string;
   };
   academicMarks: {
-    _10thGradeMarksPercent: number;
-    _12thGradeMarksPercent: number;
-    groupingMarksPercent: number;
+    _10thGradeMarksPercent: number; // 0-100, max 2 decimal places
+    _12thGradeMarksPercent: number; // 0-100, max 2 decimal places
+    groupingMarksPercent: number; // 0-100, max 2 decimal places
   };
   examPercentiles: {
-    NEETPercentile: number;
-    NEETAllIndiaRank: number;
-    NEETRollNumber: string;
+    NEETPercentile: number; // 0-100, max 2 decimal places
+    NEETAllIndiaRank: number; // >= 1
+    NEETRollNumber: number; // 10-digit number (1000000000 to 9999999999)
     otherEntranceExam?: Array<{
       examName: string;
       percentileOrScore: number;
@@ -114,7 +114,7 @@ export interface MedicalAcademicCredentials {
     campusSetting?: string;
     transportFacility?: string;
   };
-  annualBudget: number;
+  annualBudget: number; // >= 0
   collegeTypePreferences: CollegeTypePreference[];
   priorityFactors: PriorityFactor[];
 }

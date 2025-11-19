@@ -34,15 +34,29 @@ export const MedicalAcademicInfoForm = ({ data, onUpdate, validationErrors = [] 
 
   const handlePercentageChange = (field: string, value: string) => {
     const numValue = parseFloat(value);
+    // Validate 0-100 range with max 2 decimal places
     if (value === '' || (numValue >= 0 && numValue <= 100)) {
-      onUpdate({ [field]: numValue || undefined });
+      // Check for max 2 decimal places
+      const decimalParts = value.split('.');
+      if (decimalParts.length === 1 || (decimalParts[1] && decimalParts[1].length <= 2)) {
+        onUpdate({ [field]: numValue || undefined });
+      }
     }
   };
 
   const handleRankChange = (field: string, value: string) => {
     const numValue = parseInt(value);
-    if (value === '' || numValue > 0) {
+    // NEET All India Rank must be >= 1
+    if (value === '' || numValue >= 1) {
       onUpdate({ [field]: numValue || undefined });
+    }
+  };
+
+  const handleRollNumberChange = (value: string) => {
+    const numValue = parseInt(value);
+    // NEET Roll Number must be 10 digits (1000000000 to 9999999999)
+    if (value === '' || (numValue >= 1000000000 && numValue <= 9999999999)) {
+      onUpdate({ neetRollNumber: numValue || undefined });
     }
   };
 
@@ -286,10 +300,13 @@ export const MedicalAcademicInfoForm = ({ data, onUpdate, validationErrors = [] 
                   {isFieldError('NEET Roll Number') && <AlertCircle size={14} className="text-red-500" />}
                 </Label>
                 <Input
-                  placeholder="Enter your NEET roll number"
+                  type="number"
+                  placeholder="10-digit NEET Roll Number"
                   value={data.neetRollNumber || ''}
-                  onChange={(e) => handleChange('neetRollNumber', e.target.value)}
-                  className={getFieldClassName('NEET Roll Number', "h-10 rounded-xl border-2 bg-white")}
+                  onChange={(e) => handleRollNumberChange(e.target.value)}
+                  className={getFieldClassName('NEET Roll Number', "h-10 rounded-xl border-2 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none")}
+                  min="1000000000"
+                  max="9999999999"
                 />
               </div>
 
