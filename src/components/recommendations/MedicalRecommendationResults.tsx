@@ -112,7 +112,7 @@ export const MedicalRecommendationResults = ({
   
   // Load user data from localStorage
   useEffect(() => {
-    const isUnlocked: any = localStorage.getItem('recommendationUnlocked')
+    const isUnlocked: any = localStorage.getItem('medicalRecommendationUnlocked')
     setIsUnlocked(isUnlocked === "true")
     const userData = localStorage.getItem('userData');
     if (userData) {
