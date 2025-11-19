@@ -125,6 +125,24 @@ export const MedicalAcademicInfoForm = ({ data, onUpdate, validationErrors = [] 
     }
   };
 
+  // Prevent invalid paste for percentage fields
+  const preventInvalidPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    const pastedText = e.clipboardData.getData('text');
+    const validPattern = /^\d*\.?\d*$/;
+    if (!validPattern.test(pastedText)) {
+      e.preventDefault();
+    }
+  };
+
+  // Prevent invalid paste for integer fields
+  const preventInvalidPasteInteger = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    const pastedText = e.clipboardData.getData('text');
+    const validPattern = /^\d+$/;
+    if (!validPattern.test(pastedText)) {
+      e.preventDefault();
+    }
+  };
+
   // Reservation categories from medical.ts enum
   const reservationCategories: ReservationCategory[] = [
     "HEWS", "EMNTDW", "OPEN", "EMNTD", "ORPHANC-SE", "PH", "VJ", "HOPEN",
@@ -269,6 +287,7 @@ export const MedicalAcademicInfoForm = ({ data, onUpdate, validationErrors = [] 
                 value={data.tenthMarks || ''}
                 onChange={(e) => handlePercentageChange('tenthMarks', e.target.value)}
                 onKeyDown={preventInvalidChars}
+                onPaste={preventInvalidPaste}
                 className={getFieldClassName('10th Grade Marks', "h-10 rounded-xl border-2 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none")}
                 min="0"
                 max="100"
@@ -287,6 +306,7 @@ export const MedicalAcademicInfoForm = ({ data, onUpdate, validationErrors = [] 
                 value={data.twelfthMarks || ''}
                 onChange={(e) => handlePercentageChange('twelfthMarks', e.target.value)}
                 onKeyDown={preventInvalidChars}
+                onPaste={preventInvalidPaste}
                 className={getFieldClassName('12th Grade Marks', "h-10 rounded-xl border-2 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none")}
                 min="0"
                 max="100"
@@ -305,6 +325,7 @@ export const MedicalAcademicInfoForm = ({ data, onUpdate, validationErrors = [] 
                 value={data.groupingMarks || ''}
                 onChange={(e) => handlePercentageChange('groupingMarks', e.target.value)}
                 onKeyDown={preventInvalidChars}
+                onPaste={preventInvalidPaste}
                 className={getFieldClassName('Grouping Marks', "h-10 rounded-xl border-2 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none")}
                 min="0"
                 max="100"
@@ -330,6 +351,7 @@ export const MedicalAcademicInfoForm = ({ data, onUpdate, validationErrors = [] 
                   value={data.neetPercentile || ''}
                   onChange={(e) => handlePercentageChange('neetPercentile', e.target.value)}
                   onKeyDown={preventInvalidChars}
+                  onPaste={preventInvalidPaste}
                   className={getFieldClassName('NEET Percentile', "h-10 rounded-xl border-2 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none")}
                   min="0"
                   max="100"
@@ -348,6 +370,7 @@ export const MedicalAcademicInfoForm = ({ data, onUpdate, validationErrors = [] 
                   value={data.neetAllIndiaRank || ''}
                   onChange={(e) => handleRankChange('neetAllIndiaRank', e.target.value)}
                   onKeyDown={preventInvalidCharsInteger}
+                  onPaste={preventInvalidPasteInteger}
                   className={getFieldClassName('All India Rank', "h-10 rounded-xl border-2 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none")}
                   min="1"
                 />
@@ -365,6 +388,7 @@ export const MedicalAcademicInfoForm = ({ data, onUpdate, validationErrors = [] 
                   value={data.neetRollNumber || ''}
                   onChange={(e) => handleRollNumberChange(e.target.value)}
                   onKeyDown={preventInvalidCharsInteger}
+                  onPaste={preventInvalidPasteInteger}
                   className={getFieldClassName('NEET Roll Number', "h-10 rounded-xl border-2 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none")}
                   min="1000000000"
                   max="9999999999"
