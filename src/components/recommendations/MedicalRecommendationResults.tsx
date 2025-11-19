@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { MedicalCollegeRecommendation } from "@/types/medical";
-import { Lock, Unlock, Calendar, Clock } from "lucide-react";
+import { Lock, Unlock, Calendar, Clock, MapPin, Users, DollarSign, TrendingUp, ExternalLink } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -532,73 +533,171 @@ export const MedicalRecommendationResults = ({
         </TabsList>
 
         <TabsContent value="round1" className="space-y-6">
+          <CAPFormInstructions />
           <RecommendationDisclaimer />
+
+          {/* Results Summary */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
+            <div className="text-center sm:text-left">
+              <p className="text-lg text-gray-600">
+                Found <span className="font-semibold text-blue-600">{filteredRecommendations.length}</span> college recommendations
+              </p>
+            </div>
+
+            <Button
+              onClick={handleDownloadPDF}
+              disabled={(!isUnlocked && paymentData?.is_payment !== true) || isGenerating}
+              className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg min-h-[44px] touch-manipulation"
+              aria-label="Download recommendations as PDF"
+            >
+              <span className="text-sm font-medium">
+                {isGenerating ? 'Generating...' : 'Download PDF'}
+              </span>
+            </Button>
+          </div>
 
           {filteredRecommendations.length === 0 ? (
             <NoResultsState />
           ) : (
             <>
               <div className="space-y-4">
-                {visibleRecommendations.map((rec, index) => (
-                  <Card key={index} className="overflow-hidden hover:shadow-lg transition-shadow">
-                    <CardHeader className="pb-3">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <CardTitle className="text-lg mb-2">{rec.college.college_name}</CardTitle>
-                          <div className="flex flex-wrap gap-2">
-                            <Badge variant="outline">{rec.college.college_type}</Badge>
-                            <Badge variant="secondary">{rec.program}</Badge>
-                            <Badge variant="secondary">{rec.college.city}</Badge>
-                            <Badge 
-                              className={
-                                rec.category === 'Dream' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300' :
-                                rec.category === 'Reach' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300' :
-                                rec.category === 'Match' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' :
-                                'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300'
-                              }
-                            >
-                              {rec.category}
-                            </Badge>
+                {visibleRecommendations.map((rec, index) => {
+                  const getCategoryColor = (category: string) => {
+                    switch (category) {
+                      case "Dream": return "bg-purple-100 text-purple-800 border-purple-200";
+                      case "Reach": return "bg-blue-100 text-blue-800 border-blue-200";
+                      case "Match": return "bg-green-100 text-green-800 border-green-200";
+                      case "Safety": return "bg-orange-100 text-orange-800 border-orange-200";
+                      default: return "bg-gray-100 text-gray-800 border-gray-200";
+                    }
+                  };
+
+                  const getProbabilityColor = (probability: number) => {
+                    if (probability >= 80) return "text-green-600";
+                    if (probability >= 60) return "text-yellow-600";
+                    return "text-red-600";
+                  };
+
+                  const truncateText = (text: string, maxLength: number) => {
+                    if (!text) return "";
+                    return text.length > maxLength ? `${text.substring(0, maxLength)}...` : text;
+                  };
+
+                  return (
+                    <Card key={index} className="hover:shadow-lg transition-all duration-300 border border-gray-200 bg-white relative w-full overflow-hidden">
+                      <CardHeader className="pb-2">
+                        <div className="flex items-start gap-3 pr-16 sm:pr-20 min-w-0">
+                          {/* Index Number */}
+                          <div className="flex-shrink-0 w-7 h-7 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-full flex items-center justify-center font-bold text-xs">
+                            {index + 1}
+                          </div>
+
+                          {/* College Logo */}
+                          <div className="flex-shrink-0">
+                            <div className="w-10 h-10 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg flex items-center justify-center border border-gray-100">
+                              <span className="text-gray-600 text-xs font-bold">
+                                {rec.college.college_name.charAt(0)}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Main Content */}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between gap-2 mb-1">
+                              <div className="flex-1 min-w-0">
+                                <h3 className="text-sm font-semibold text-gray-900 leading-tight">
+                                  {truncateText(rec.college.college_name, 40)}
+                                </h3>
+                                <div className="flex items-center gap-1 mt-1 text-xs text-gray-500">
+                                  <MapPin size={12} className="flex-shrink-0" />
+                                  <span className="truncate">{rec.college.city}</span>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Course Name */}
+                            <div className="mt-2">
+                              <p className="text-xs font-medium text-gray-700 leading-snug">
+                                {truncateText(rec.program, 60)}
+                              </p>
+                            </div>
+
+                            {/* Category Badge */}
+                            <div className="mt-2">
+                              <Badge className={`${getCategoryColor(rec.category)} text-xs font-semibold border`}>
+                                {rec.category}
+                              </Badge>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                        <div>
-                          <p className="text-muted-foreground">Your Rank</p>
-                          <p className="font-semibold">{rec.neet_rank.toLocaleString()}</p>
-                        </div>
-                        <div>
-                          <p className="text-muted-foreground">Closing Rank</p>
-                          <p className="font-semibold">{rec.closing_rank.toLocaleString()}</p>
-                        </div>
-                        <div>
-                          <p className="text-muted-foreground">Reservation</p>
-                          <p className="font-semibold">{rec.category}</p>
-                        </div>
-                        <div>
-                          <p className="text-muted-foreground">Admission Probability</p>
-                          <div className="flex items-center gap-2">
-                            <Badge
-                              className={
-                                rec.admission_probability >= 75 ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' :
-                                rec.admission_probability >= 50 ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300' :
-                                rec.admission_probability >= 25 ? 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300' :
-                                'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
-                              }
-                            >
-                              {rec.admission_probability}%
-                            </Badge>
+                      </CardHeader>
+
+                      <CardContent className="pt-2 pb-3">
+                        {/* Stats Grid */}
+                        <div className="grid grid-cols-2 gap-2 sm:gap-3 mb-3">
+                          <div className="bg-gray-50 rounded-lg p-2">
+                            <div className="flex items-start gap-1">
+                              <TrendingUp size={14} className="text-blue-600 mt-0.5 flex-shrink-0" />
+                              <div className="min-w-0">
+                                <p className="text-xs text-gray-600 leading-tight">Closing Rank</p>
+                                <p className="text-sm font-bold text-gray-900 truncate">
+                                  {rec.closing_rank ? rec.closing_rank.toLocaleString() : 'N/A'}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="bg-gray-50 rounded-lg p-2">
+                            <div className="flex items-start gap-1">
+                              <Users size={14} className="text-green-600 mt-0.5 flex-shrink-0" />
+                              <div className="min-w-0">
+                                <p className="text-xs text-gray-600 leading-tight">Admission Chance</p>
+                                <p className={`text-sm font-bold truncate ${getProbabilityColor(rec.admission_probability)}`}>
+                                  {rec.admission_probability}%
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="bg-gray-50 rounded-lg p-2">
+                            <div className="flex items-start gap-1">
+                              <Users size={14} className="text-purple-600 mt-0.5 flex-shrink-0" />
+                              <div className="min-w-0">
+                                <p className="text-xs text-gray-600 leading-tight">Your Rank</p>
+                                <p className="text-sm font-bold text-gray-900 truncate">
+                                  {rec.neet_rank ? rec.neet_rank.toLocaleString() : 'N/A'}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="bg-gray-50 rounded-lg p-2">
+                            <div className="flex items-start gap-1">
+                              <Users size={14} className="text-orange-600 mt-0.5 flex-shrink-0" />
+                              <div className="min-w-0">
+                                <p className="text-xs text-gray-600 leading-tight">College Type</p>
+                                <p className="text-sm font-bold text-gray-900 truncate">
+                                  {rec.college.college_type || 'N/A'}
+                                </p>
+                              </div>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                      <div className="mt-4 p-3 bg-muted rounded-lg">
-                        <p className="text-sm text-muted-foreground">{rec.probability_message}</p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+
+                        {/* College Info */}
+                        <div className="mt-2 p-2 bg-blue-50 rounded-lg border border-blue-100">
+                          <div className="flex items-center gap-1 text-xs text-blue-700">
+                            <Badge variant="outline" className="text-xs">
+                              {rec.college.course_type}
+                            </Badge>
+                            <span className="text-gray-400">•</span>
+                            <span className="font-medium">Code: {rec.college.college_code}</span>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
               </div>
 
               {hiddenCount > 0 && shouldBlurResults && (
