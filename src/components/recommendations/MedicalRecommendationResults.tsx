@@ -14,6 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { RecommendationHeader } from "./RecommendationHeader";
 import { RecommendationDisclaimer } from "./RecommendationDisclaimer";
+import { CAPFormInstructions } from "./CAPFormInstructions";
 import { NoResultsState } from "./NoResultsState";
 
 interface MedicalRecommendationResultsProps {
@@ -530,6 +531,7 @@ export const MedicalRecommendationResults = ({
         </TabsList>
 
         <TabsContent value="round1" className="space-y-6">
+          <CAPFormInstructions />
           <RecommendationDisclaimer />
 
           {/* Results Summary */}
