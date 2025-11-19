@@ -85,6 +85,11 @@ export const MedicalAcademicInfoForm = ({ data, onUpdate, validationErrors = [] 
       return;
     }
 
+    // Restrict to maximum 10 digits
+    if (value.length > 10) {
+      return; // Reject input longer than 10 digits
+    }
+
     // Validate input: only digits, no decimal points or special characters
     // Reject 'e', '--', '++', '.', etc.
     const validPattern = /^\d+$/;
@@ -93,8 +98,7 @@ export const MedicalAcademicInfoForm = ({ data, onUpdate, validationErrors = [] 
     }
 
     const numValue = parseInt(value);
-    // Allow any valid number while typing, but the field should be 10 digits when complete
-    // The final validation will happen on form submission
+    // Allow any valid number while typing (up to 10 digits)
     if (numValue >= 0) {
       onUpdate({ neetRollNumber: numValue });
     }
