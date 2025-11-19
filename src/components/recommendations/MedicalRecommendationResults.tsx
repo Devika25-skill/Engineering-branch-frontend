@@ -338,7 +338,9 @@ export const MedicalRecommendationResults = ({
   };
 
   const getCategorizedRecommendations = () => {
-    const allRecs = Object.values(recommendations).flat();
+    const allRecs = Object.entries(recommendations).flatMap(([category, recs]) =>
+      recs.map(rec => ({ ...rec, category }))
+    );
     return sortRecommendationsByCategory(allRecs);
   };
 
