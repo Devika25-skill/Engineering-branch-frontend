@@ -82,6 +82,10 @@ const MedicalRecommendationResults = () => {
           recommendations={recommendations}
           formData={formData}
           recommendationId={recommendationId}
+          paymentData={{
+            is_payment: false,
+            accept_payment: true
+          }}
         />
         
         <div className="mt-12 mb-8">
