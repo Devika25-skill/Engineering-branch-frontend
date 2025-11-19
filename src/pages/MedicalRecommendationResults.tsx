@@ -30,10 +30,15 @@ const MedicalRecommendationResults = () => {
   const { isLoggedIn } = useAuth();
   const { isGenerating } = useMedicalRecommendation();
   const [formData, setFormData] = useState<any>(null);
-  const [recommendations, setRecommendations] = useState<any[]>([]);
+  const [recommendations, setRecommendations] = useState<any>({
+    Dream: [],
+    Reach: [],
+    Match: [],
+    Safety: []
+  });
   const [isLoading, setIsLoading] = useState(true);
   const [isPaid, setIsPaid] = useState(false);
-  const [activeChanceFilter, setActiveChanceFilter] = useState<string>('All');
+  const [activeCategory, setActiveCategory] = useState<string>('All');
   const [activeRound, setActiveRound] = useState<string>('round1');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { toast } = useToast();
@@ -104,32 +109,35 @@ const MedicalRecommendationResults = () => {
     });
   };
 
-  const getChanceFilterStats = () => {
-    if (!recommendations.length) return { High: 0, Medium: 0, Low: 0 };
-    
-    return recommendations.reduce((acc, rec) => {
-      const chance = parseInt(rec.admission_chance);
-      if (chance >= 70) acc.High++;
-      else if (chance >= 40) acc.Medium++;
-      else acc.Low++;
-      return acc;
-    }, { High: 0, Medium: 0, Low: 0 });
+  const getCategoryStats = () => {
+    return {
+      Dream: recommendations.Dream?.length || 0,
+      Reach: recommendations.Reach?.length || 0,
+      Match: recommendations.Match?.length || 0,
+      Safety: recommendations.Safety?.length || 0
+    };
+  };
+
+  const getTotalRecommendations = () => {
+    const stats = getCategoryStats();
+    return stats.Dream + stats.Reach + stats.Match + stats.Safety;
   };
 
   const getFilteredRecommendations = () => {
-    if (activeChanceFilter === 'All') return recommendations;
-    
-    return recommendations.filter(rec => {
-      const chance = parseInt(rec.admission_chance);
-      if (activeChanceFilter === 'High') return chance >= 70;
-      if (activeChanceFilter === 'Medium') return chance >= 40 && chance < 70;
-      if (activeChanceFilter === 'Low') return chance < 40;
-      return true;
-    });
+    if (activeCategory === 'All') {
+      return [
+        ...(recommendations.Dream || []),
+        ...(recommendations.Reach || []),
+        ...(recommendations.Match || []),
+        ...(recommendations.Safety || [])
+      ];
+    }
+    return recommendations[activeCategory] || [];
   };
 
   const shouldShowUnlock = () => {
-    return !isPaid && filteredRecommendations.length > 5;
+    const totalRecs = getTotalRecommendations();
+    return !isPaid && totalRecs > 5;
   };
 
   const handleInputChange = (field: keyof FormData, value: string) => {
@@ -160,60 +168,59 @@ const MedicalRecommendationResults = () => {
     return { original: originalPrice, final: originalPrice, discount: 0 };
   };
 
-  const handlePayment = async () => {
+  const handlePayment = () => {
     if (!validateForm()) return;
-
-    setIsDialogOpen(false);
     
+    // Simulate successful payment
+    setIsPaid(true);
+    recommendationStorage.setMedicalPaidStatus(true);
+    
+    // Save user data to localStorage
+    localStorage.setItem('userData', JSON.stringify(paymentFormData));
+    
+    setIsDialogOpen(false);
     toast({
       title: "Payment Successful!",
-      description: "All medical recommendations have been unlocked.",
+      description: "You now have access to all recommendations and features.",
     });
-
-    localStorage.setItem('medicalRecommendationUnlocked', 'true');
-    localStorage.setItem('userData', JSON.stringify(paymentFormData));
-    setIsPaid(true);
   };
+
+  const categoryStats = getCategoryStats();
+  const totalRecommendations = getTotalRecommendations();
+  const filteredRecommendations = getFilteredRecommendations();
+  const displayedRecommendations = isPaid ? filteredRecommendations : filteredRecommendations.slice(0, 5);
+  const hiddenCount = isPaid ? 0 : Math.max(0, filteredRecommendations.length - 5);
 
   if (isLoading || isGenerating) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+      <div className="min-h-screen bg-background">
         <Navigation />
-        <div className="container mx-auto px-4 py-8 flex items-center justify-center min-h-[60vh]">
-          <StepLoadingMessages />
-        </div>
+        <StepLoadingMessages 
+          isGenerating={isGenerating}
+          currentStep={3}
+          stepMessages={[
+            "Analyzing your NEET score and preferences...",
+            "Matching with medical colleges...",
+            "Calculating admission probabilities...",
+            "Finalizing your personalized recommendations..."
+          ]}
+        />
       </div>
     );
   }
 
-  const getProbabilityColor = (chance: string) => {
-    const probability = parseInt(chance);
-    if (probability >= 70) return "text-green-600";
-    if (probability >= 40) return "text-yellow-600";
-    return "text-red-600";
-  };
-
-  const getProbabilityBadgeColor = (chance: string) => {
-    const probability = parseInt(chance);
-    if (probability >= 70) return "bg-green-100 text-green-800 border-green-200";
-    if (probability >= 40) return "bg-yellow-100 text-yellow-800 border-yellow-200";
-    return "bg-red-100 text-red-800 border-red-200";
-  };
-
-  const getCollegeTypeColor = (type: string) => {
-    if (type.toLowerCase().includes('govt') || type.toLowerCase().includes('aided')) {
-      return "bg-blue-100 text-blue-800 border-blue-200";
-    }
-    if (type.toLowerCase().includes('private')) {
-      return "bg-purple-100 text-purple-800 border-purple-200";
-    }
-    return "bg-gray-100 text-gray-800 border-gray-200";
-  };
-
-  const chanceStats = getChanceFilterStats();
-  const filteredRecommendations = getFilteredRecommendations();
-  const displayedRecommendations = isPaid ? filteredRecommendations : filteredRecommendations.slice(0, 5);
-  const { original: originalPrice, final: finalPrice, discount } = getDiscountedPrice();
+  if (!recommendations || totalRecommendations === 0) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        <div className="container mx-auto px-4 py-8">
+          <NoResultsState 
+            onReset={() => navigate('/recommendations')}
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">

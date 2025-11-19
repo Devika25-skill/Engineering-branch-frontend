@@ -138,6 +138,14 @@ class RecommendationStorageService {
     }
   }
 
+  setMedicalPaidStatus(isPaid: boolean): void {
+    try {
+      sessionStorage.setItem('medicalRecommendationPaidStatus', JSON.stringify(isPaid));
+    } catch (error) {
+      console.error('Failed to set medical paid status:', error);
+    }
+  }
+
   clearMedicalRecommendations(): void {
     try {
       sessionStorage.removeItem('cachedMedicalRecommendations');
