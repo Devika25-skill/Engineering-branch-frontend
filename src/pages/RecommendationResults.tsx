@@ -55,7 +55,9 @@ const RecommendationResults = () => {
             const result = await generateRecommendation(formDataFromStorage);
 
             if (result && 'recommendations' in result) {
-              setRecommendations(result.recommendations || []);
+              // Handle both array and object recommendations
+              const recs = result.recommendations || [];
+              setRecommendations(Array.isArray(recs) ? recs : []);
               if ('recommendation_id' in result) {
                 setRecommendationId(result.recommendation_id);
               }
