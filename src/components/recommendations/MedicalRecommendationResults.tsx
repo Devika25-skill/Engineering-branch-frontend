@@ -540,7 +540,7 @@ export const MedicalRecommendationResults = ({
 
   return (
     <div className="space-y-6">
-      <RecommendationHeader />
+      <RecommendationHeader formData={formData} />
 
       <Tabs value={activeRound} onValueChange={setActiveRound} className="w-full">
         <TabsList className="grid w-full grid-cols-3 mb-6">
