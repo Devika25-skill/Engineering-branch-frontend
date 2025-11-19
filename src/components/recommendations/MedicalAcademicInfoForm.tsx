@@ -109,6 +109,22 @@ export const MedicalAcademicInfoForm = ({ data, onUpdate, validationErrors = [] 
       : baseClass;
   };
 
+  // Prevent invalid characters for percentage fields (allows digits and decimal point)
+  const preventInvalidChars = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    const invalidChars = ['e', 'E', '+', '-'];
+    if (invalidChars.includes(e.key)) {
+      e.preventDefault();
+    }
+  };
+
+  // Prevent invalid characters for integer fields (only digits allowed)
+  const preventInvalidCharsInteger = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    const invalidChars = ['e', 'E', '+', '-', '.'];
+    if (invalidChars.includes(e.key)) {
+      e.preventDefault();
+    }
+  };
+
   // Reservation categories from medical.ts enum
   const reservationCategories: ReservationCategory[] = [
     "HEWS", "EMNTDW", "OPEN", "EMNTD", "ORPHANC-SE", "PH", "VJ", "HOPEN",
@@ -252,6 +268,7 @@ export const MedicalAcademicInfoForm = ({ data, onUpdate, validationErrors = [] 
                 placeholder="Enter your 10th percentage"
                 value={data.tenthMarks || ''}
                 onChange={(e) => handlePercentageChange('tenthMarks', e.target.value)}
+                onKeyDown={preventInvalidChars}
                 className={getFieldClassName('10th Grade Marks', "h-10 rounded-xl border-2 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none")}
                 min="0"
                 max="100"
@@ -269,6 +286,7 @@ export const MedicalAcademicInfoForm = ({ data, onUpdate, validationErrors = [] 
                 placeholder="Enter your 12th percentage"
                 value={data.twelfthMarks || ''}
                 onChange={(e) => handlePercentageChange('twelfthMarks', e.target.value)}
+                onKeyDown={preventInvalidChars}
                 className={getFieldClassName('12th Grade Marks', "h-10 rounded-xl border-2 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none")}
                 min="0"
                 max="100"
@@ -286,6 +304,7 @@ export const MedicalAcademicInfoForm = ({ data, onUpdate, validationErrors = [] 
                 placeholder="Enter PCB marks"
                 value={data.groupingMarks || ''}
                 onChange={(e) => handlePercentageChange('groupingMarks', e.target.value)}
+                onKeyDown={preventInvalidChars}
                 className={getFieldClassName('Grouping Marks', "h-10 rounded-xl border-2 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none")}
                 min="0"
                 max="100"
@@ -310,6 +329,7 @@ export const MedicalAcademicInfoForm = ({ data, onUpdate, validationErrors = [] 
                   placeholder="Your NEET percentile (0-100)"
                   value={data.neetPercentile || ''}
                   onChange={(e) => handlePercentageChange('neetPercentile', e.target.value)}
+                  onKeyDown={preventInvalidChars}
                   className={getFieldClassName('NEET Percentile', "h-10 rounded-xl border-2 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none")}
                   min="0"
                   max="100"
@@ -327,6 +347,7 @@ export const MedicalAcademicInfoForm = ({ data, onUpdate, validationErrors = [] 
                   placeholder="Your NEET AIR"
                   value={data.neetAllIndiaRank || ''}
                   onChange={(e) => handleRankChange('neetAllIndiaRank', e.target.value)}
+                  onKeyDown={preventInvalidCharsInteger}
                   className={getFieldClassName('All India Rank', "h-10 rounded-xl border-2 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none")}
                   min="1"
                 />
@@ -343,6 +364,7 @@ export const MedicalAcademicInfoForm = ({ data, onUpdate, validationErrors = [] 
                   placeholder="10-digit NEET Roll Number"
                   value={data.neetRollNumber || ''}
                   onChange={(e) => handleRollNumberChange(e.target.value)}
+                  onKeyDown={preventInvalidCharsInteger}
                   className={getFieldClassName('NEET Roll Number', "h-10 rounded-xl border-2 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none")}
                   min="1000000000"
                   max="9999999999"
