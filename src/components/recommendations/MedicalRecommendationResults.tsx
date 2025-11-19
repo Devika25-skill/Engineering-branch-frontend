@@ -14,7 +14,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { RecommendationHeader } from "./RecommendationHeader";
 import { RecommendationDisclaimer } from "./RecommendationDisclaimer";
-import { CAPFormInstructions } from "./CAPFormInstructions";
 import { NoResultsState } from "./NoResultsState";
 
 interface MedicalRecommendationResultsProps {
@@ -515,8 +514,6 @@ export const MedicalRecommendationResults = ({
             </div>
           </CardContent>
         </Card>
-
-        <CAPFormInstructions />
       </div>
     );
   };
@@ -533,7 +530,6 @@ export const MedicalRecommendationResults = ({
         </TabsList>
 
         <TabsContent value="round1" className="space-y-6">
-          <CAPFormInstructions />
           <RecommendationDisclaimer />
 
           {/* Results Summary */}
@@ -603,7 +599,7 @@ export const MedicalRecommendationResults = ({
 
                           {/* Main Content */}
                           <div className="flex-1 min-w-0">
-                            <div className="flex items-start justify-between gap-2 mb-1">
+                          <div className="flex items-start justify-between gap-2 mb-1">
                               <div className="flex-1 min-w-0">
                                 <h3 className="text-sm font-semibold text-gray-900 leading-tight">
                                   {truncateText(rec.college.college_name, 40)}
@@ -613,6 +609,9 @@ export const MedicalRecommendationResults = ({
                                   <span className="truncate">{rec.college.city}</span>
                                 </div>
                               </div>
+                              <Badge className={`${getCategoryColor(rec.category)} px-2 py-0.5 text-xs font-medium flex-shrink-0`}>
+                                {rec.category}
+                              </Badge>
                             </div>
 
                             {/* Course Name */}
@@ -620,13 +619,6 @@ export const MedicalRecommendationResults = ({
                               <p className="text-xs font-medium text-gray-700 leading-snug">
                                 {truncateText(rec.program, 60)}
                               </p>
-                            </div>
-
-                            {/* Category Badge */}
-                            <div className="mt-2">
-                              <Badge className={`${getCategoryColor(rec.category)} text-xs font-semibold border`}>
-                                {rec.category}
-                              </Badge>
                             </div>
                           </div>
                         </div>
@@ -843,8 +835,6 @@ export const MedicalRecommendationResults = ({
               )}
             </>
           )}
-          
-          <CAPFormInstructions />
         </TabsContent>
 
         <TabsContent value="round2">
