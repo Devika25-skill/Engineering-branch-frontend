@@ -33,13 +33,26 @@ export const MedicalAcademicInfoForm = ({ data, onUpdate, validationErrors = [] 
   };
 
   const handlePercentageChange = (field: string, value: string) => {
+    // Allow empty string
+    if (value === '') {
+      onUpdate({ [field]: undefined });
+      return;
+    }
+
+    // Validate input: only digits and one optional decimal point
+    // Reject multiple dots, special characters like --, ++, etc.
+    const validPattern = /^\d*\.?\d*$/;
+    if (!validPattern.test(value)) {
+      return; // Reject invalid input
+    }
+
     const numValue = parseFloat(value);
-    // Validate 0-100 range with max 2 decimal places
-    if (value === '' || (numValue >= 0 && numValue <= 100)) {
+    // Validate 0-100 range
+    if (numValue >= 0 && numValue <= 100) {
       // Check for max 2 decimal places
       const decimalParts = value.split('.');
       if (decimalParts.length === 1 || (decimalParts[1] && decimalParts[1].length <= 2)) {
-        onUpdate({ [field]: numValue || undefined });
+        onUpdate({ [field]: numValue });
       }
     }
   };
