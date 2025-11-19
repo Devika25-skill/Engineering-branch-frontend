@@ -15,7 +15,6 @@ import { RecommendationHeader } from "./RecommendationHeader";
 import { RecommendationDisclaimer } from "./RecommendationDisclaimer";
 import { CAPFormInstructions } from "./CAPFormInstructions";
 import { NoResultsState } from "./NoResultsState";
-import { CategoryFilter } from "./CategoryFilter";
 
 interface MedicalRecommendationResultsProps {
   recommendations: {
@@ -73,7 +72,7 @@ export const MedicalRecommendationResults = ({
   recommendationId,
   paymentData
 }: MedicalRecommendationResultsProps) => {
-  const [activeCategory, setActiveCategory] = useState<string>('All');
+  
   
   // Initialize with Round 2 as default and persist selection
   const [activeRound, setActiveRound] = useState<string>(() => {
@@ -327,16 +326,6 @@ export const MedicalRecommendationResults = ({
     }
   };
 
-  const getCategoryStats = () => {
-    return {
-      All: Object.values(recommendations).flat().length,
-      Dream: recommendations.Dream?.length || 0,
-      Reach: recommendations.Reach?.length || 0,
-      Match: recommendations.Match?.length || 0,
-      Safety: recommendations.Safety?.length || 0,
-    };
-  };
-
   const sortRecommendationsByCategory = (recs: MedicalCollegeRecommendation[]) => {
     const categoryOrder = { Dream: 1, Reach: 2, Match: 3, Safety: 4 };
     return [...recs].sort((a, b) => {
@@ -349,17 +338,10 @@ export const MedicalRecommendationResults = ({
 
   const getCategorizedRecommendations = () => {
     const allRecs = Object.values(recommendations).flat();
-    
-    if (activeCategory === 'All') {
-      return sortRecommendationsByCategory(allRecs);
-    }
-    
-    const filtered = allRecs.filter(rec => rec.category === activeCategory);
-    return sortRecommendationsByCategory(filtered);
+    return sortRecommendationsByCategory(allRecs);
   };
 
   const filteredRecommendations = getCategorizedRecommendations();
-  const categoryStats = getCategoryStats();
 
   const shouldBlurResults = shouldShowUnlock();
   const visibleRecommendations = shouldBlurResults && !isUnlocked
@@ -551,28 +533,9 @@ export const MedicalRecommendationResults = ({
 
         <TabsContent value="round1" className="space-y-6">
           <RecommendationDisclaimer />
-          
-          <div className="flex flex-wrap gap-2">
-            {(['All', 'Dream', 'Reach', 'Match', 'Safety'] as const).map((category) => (
-              <Button
-                key={category}
-                variant={activeCategory === category ? "default" : "outline"}
-                size="sm"
-                onClick={() => setActiveCategory(category)}
-                className="rounded-full"
-              >
-                {category} ({categoryStats[category]})
-              </Button>
-            ))}
-          </div>
 
           {filteredRecommendations.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-muted-foreground">No recommendations found for this category.</p>
-              <Button onClick={() => setActiveCategory('All')} variant="outline" className="mt-4">
-                View All Categories
-              </Button>
-            </div>
+            <NoResultsState />
           ) : (
             <>
               <div className="space-y-4">
