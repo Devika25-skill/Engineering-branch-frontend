@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { config } from '@/config/env';
-import { usePdfDownloadDSY } from "@/hooks/usePdfDownloadDSY";
+import { usePdfDownloadMedical } from "@/hooks/usePdfDownloadMedical";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -84,7 +84,7 @@ export const MedicalRecommendationResults = ({
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const userFromStorage = JSON.parse(localStorage.getItem('user') || '{}');
-  const { generatePDF, isGenerating } = usePdfDownloadDSY();
+  const { generatePDF, isGenerating } = usePdfDownloadMedical();
 
   const [paymentFormData, setPaymentFormData] = useState<FormData>({
     name: userFromStorage.name || '',
