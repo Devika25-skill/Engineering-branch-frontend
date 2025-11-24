@@ -105,8 +105,13 @@ export const MedicalRecommendationResults = ({
       return;
     }
 
-    // Convert to flat array for PDF generation
-    const flatRecommendations = Object.values(recommendations).flat();
+    // Convert to flat array with category information for PDF generation
+    const flatRecommendations = [
+      ...recommendations.Dream.map((rec: any) => ({ ...rec, category: 'Dream' })),
+      ...recommendations.Reach.map((rec: any) => ({ ...rec, category: 'Reach' })),
+      ...recommendations.Match.map((rec: any) => ({ ...rec, category: 'Match' })),
+      ...recommendations.Safety.map((rec: any) => ({ ...rec, category: 'Safety' }))
+    ];
     generatePDF(flatRecommendations as any, formData);
   };
   
