@@ -156,7 +156,12 @@ export const useMedicalRecommendation = () => {
         };
 
         // Store in session storage for quick access
-        recommendationStorage.setMedicalRecommendations(categorizedRecommendations as any, formData, response.data.is_payment || false);
+        recommendationStorage.setMedicalRecommendations(
+          categorizedRecommendations as any, 
+          formData, 
+          response.data.is_payment || false,
+          response.data.accept_payment !== undefined ? response.data.accept_payment : true
+        );
 
       const totalCount = (categorizedRecommendations.Dream?.length || 0) +
                           (categorizedRecommendations.Reach?.length || 0) +

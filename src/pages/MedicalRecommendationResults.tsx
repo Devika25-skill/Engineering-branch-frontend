@@ -22,6 +22,10 @@ const MedicalRecommendationResults = () => {
     Safety: []
   });
   const [recommendationId, setRecommendationId] = useState<string | null>(null);
+  const [paymentData, setPaymentData] = useState<{ is_payment: boolean; accept_payment: boolean }>({
+    is_payment: false,
+    accept_payment: true
+  });
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -33,10 +37,12 @@ const MedicalRecommendationResults = () => {
       try {
         const cached = recommendationStorage.getMedicalRecommendations();
         const savedFormData = recommendationStorage.getFormData();
+        const savedPaymentData = recommendationStorage.getMedicalPaymentData();
 
         if (cached && savedFormData) {
           setRecommendations(cached);
           setFormData(savedFormData);
+          setPaymentData(savedPaymentData);
           setIsLoading(false);
         } else if (isLoggedIn) {
           navigate('/recommendations');
@@ -92,10 +98,7 @@ const MedicalRecommendationResults = () => {
           recommendations={recommendations}
           formData={formData}
           recommendationId={recommendationId}
-          paymentData={{
-            is_payment: false,
-            accept_payment: true
-          }}
+          paymentData={paymentData}
         />
         
         <div className="mt-12 mb-8">
