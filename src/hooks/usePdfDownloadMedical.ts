@@ -76,18 +76,24 @@ export const usePdfDownloadMedical = () => {
       const userData = JSON.parse(localStorage.getItem('user') || '{}');
       const userName = userData.name || 'Student Name';
       
-      // Comprehensive field mapping with multiple fallback options
-      const category = formData.category || formData.reservationCategory || formData.reservation_category || 'Not specified';
-      const neetRank = formData.neet_air || formData.neetRank || formData.neet_rank || formData.rank || 'Not specified';
-      const program = formData.program_type || formData.program || formData.programType || 'Not specified';
-      const gender = formData.gender || formData.Gender || 'Not specified';
+      // Map medical form fields correctly
+      const category = formData.reservationCategory || 'Not specified';
+      const neetRank = formData.neetAllIndiaRank || 'Not specified';
       
-      // Handle cities - check multiple possible field names
-      const citiesArray = formData.cities || formData.selectedCities || formData.selected_cities || formData.city || [];
+      // Handle programs - get first program or "All" if multiple selected
+      const programsArray = formData.preferredMedicalPrograms || [];
+      const program = Array.isArray(programsArray) && programsArray.length > 0
+        ? (programsArray.includes('ALL') ? 'All Programs' : programsArray[0])
+        : 'Not specified';
+      
+      const gender = formData.gender || 'Not specified';
+      
+      // Handle cities - get first 3 cities
+      const citiesArray = formData.preferredCities || [];
       const preferredCities = Array.isArray(citiesArray) 
-        ? citiesArray.slice(0, 3).join(', ') 
-        : (citiesArray ? String(citiesArray) : 'Not specified');
-      const citiesCount = Array.isArray(citiesArray) ? citiesArray.length : (citiesArray ? 1 : 0);
+        ? (citiesArray.includes('ALL') ? 'All Cities' : citiesArray.slice(0, 3).join(', '))
+        : 'Not specified';
+      const citiesCount = Array.isArray(citiesArray) ? citiesArray.length : 0;
       
       // Display user details with proper spacing
       pdf.text(`Name: ${userName}`, margin + 5, yPosition + 7);
@@ -219,10 +225,10 @@ export const usePdfDownloadMedical = () => {
         const programText = `${rec.program} • ${rec.college.college_type}`;
         pdf.text(programText, margin + 15, yPosition + 14);
         
-      // City only
-      pdf.setFontSize(9);
-      pdf.setTextColor(107, 114, 128);
-      pdf.text(rec.college.city, margin + 15, yPosition + 20);
+        // City on third line
+        pdf.setFontSize(9);
+        pdf.setTextColor(107, 114, 128);
+        pdf.text(rec.college.city, margin + 15, yPosition + 20);
         
         // Closing Rank
         pdf.setFontSize(8);
