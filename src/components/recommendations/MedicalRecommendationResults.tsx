@@ -16,6 +16,7 @@ import { RecommendationHeader } from "./RecommendationHeader";
 import { RecommendationDisclaimer } from "./RecommendationDisclaimer";
 import { CAPFormInstructions } from "./CAPFormInstructions";
 import { NoResultsState } from "./NoResultsState";
+import { MedicalRound2Tab } from "./MedicalRound2Tab";
 
 interface MedicalRecommendationResultsProps {
   recommendations: {
@@ -937,7 +938,7 @@ export const MedicalRecommendationResults = ({
         </TabsContent>
 
         <TabsContent value="round2">
-          {renderUpcomingRound(2)}
+          <MedicalRound2Tab />
         </TabsContent>
 
         <TabsContent value="round3">
