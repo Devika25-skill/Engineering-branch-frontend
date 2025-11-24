@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { MedicalCollegeRecommendation } from "@/types/medical";
-import { Lock, Unlock, Calendar, Clock, MapPin, Users, DollarSign, TrendingUp, ExternalLink } from "lucide-react";
+import { Lock, Unlock, Calendar, Clock, MapPin, Users, DollarSign, TrendingUp, ExternalLink, Loader2, Download } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -104,6 +104,12 @@ export const MedicalRecommendationResults = ({
       });
       return;
     }
+
+    // Show loading toast
+    toast({
+      title: "Generating PDF",
+      description: "Please wait while we prepare your recommendations report...",
+    });
 
     // Convert to flat array with category information for PDF generation
     const flatRecommendations = [
@@ -555,9 +561,17 @@ export const MedicalRecommendationResults = ({
               className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg min-h-[44px] touch-manipulation"
               aria-label="Download recommendations as PDF"
             >
-              <span className="text-sm font-medium">
-                {isGenerating ? 'Generating...' : 'Download PDF'}
-              </span>
+              {isGenerating ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <span className="text-sm font-medium">Generating PDF...</span>
+                </>
+              ) : (
+                <>
+                  <Download className="mr-2 h-4 w-4" />
+                  <span className="text-sm font-medium">Download PDF</span>
+                </>
+              )}
             </Button>
           </div>
 
