@@ -108,10 +108,13 @@ class RecommendationStorageService {
   }
 
   // Medical recommendation storage methods
-  setMedicalRecommendations(recommendations: any[], formData: any, isPaid: boolean = false): void {
+  setMedicalRecommendations(recommendations: any[], formData: any, isPaid: boolean = false, acceptPayment: boolean = true): void {
     try {
       sessionStorage.setItem('cachedMedicalRecommendations', JSON.stringify(recommendations));
-      sessionStorage.setItem('medicalRecommendationPaidStatus', JSON.stringify(isPaid));
+      sessionStorage.setItem('medicalRecommendationPaymentData', JSON.stringify({
+        is_payment: isPaid,
+        accept_payment: acceptPayment
+      }));
       this.saveFormData(formData);
     } catch (error) {
       console.error('Failed to save medical recommendations:', error);
@@ -128,19 +131,28 @@ class RecommendationStorageService {
     }
   }
 
-  getMedicalPaidStatus(): boolean {
+  getMedicalPaymentData(): { is_payment: boolean; accept_payment: boolean } {
     try {
-      const status = sessionStorage.getItem('medicalRecommendationPaidStatus');
-      return status ? JSON.parse(status) : false;
+      const data = sessionStorage.getItem('medicalRecommendationPaymentData');
+      return data ? JSON.parse(data) : { is_payment: false, accept_payment: true };
     } catch (error) {
-      console.error('Failed to get medical paid status:', error);
-      return false;
+      console.error('Failed to get medical payment data:', error);
+      return { is_payment: false, accept_payment: true };
     }
+  }
+
+  getMedicalPaidStatus(): boolean {
+    const paymentData = this.getMedicalPaymentData();
+    return paymentData.is_payment;
   }
 
   setMedicalPaidStatus(isPaid: boolean): void {
     try {
-      sessionStorage.setItem('medicalRecommendationPaidStatus', JSON.stringify(isPaid));
+      const currentData = this.getMedicalPaymentData();
+      sessionStorage.setItem('medicalRecommendationPaymentData', JSON.stringify({
+        ...currentData,
+        is_payment: isPaid
+      }));
     } catch (error) {
       console.error('Failed to set medical paid status:', error);
     }
@@ -149,7 +161,7 @@ class RecommendationStorageService {
   clearMedicalRecommendations(): void {
     try {
       sessionStorage.removeItem('cachedMedicalRecommendations');
-      sessionStorage.removeItem('medicalRecommendationPaidStatus');
+      sessionStorage.removeItem('medicalRecommendationPaymentData');
     } catch (error) {
       console.error('Failed to clear medical recommendations:', error);
     }
