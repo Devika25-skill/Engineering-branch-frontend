@@ -31,20 +31,22 @@ export const MedicalRound2Tab = () => {
     ['Dream', 'Reach', 'Match', 'Safety'].forEach(category => {
       if (apiData[category] && Array.isArray(apiData[category])) {
         apiData[category].forEach((item: any) => {
-          recommendations.push({
-            category: category,
-            college: {
-              college_name: item.college.College_Name,
-              college_code: item.college.College_Code,
-              city: item.college.City,
-              college_type: item.college.College_Type,
-              course_type: item.college.Course_Type,
-            },
-            program: item.college.Program,
-            closing_rank: item.college.Closing_Rank,
-            neet_rank: item.college.NEET_Rank,
-            admission_probability: item.college.Admission_Probability,
-          });
+          if (item?.college) {
+            recommendations.push({
+              category: category,
+              college: {
+                college_name: item.college.College_Name || 'Unknown College',
+                college_code: item.college.College_Code || '',
+                city: item.college.City || 'Unknown',
+                college_type: item.college.College_Type || '',
+                course_type: item.college.Course_Type || '',
+              },
+              program: item.college.Program || 'N/A',
+              closing_rank: item.college.Closing_Rank || 0,
+              neet_rank: item.college.NEET_Rank || 0,
+              admission_probability: item.college.Admission_Probability || 0,
+            });
+          }
         });
       }
     });
@@ -388,7 +390,7 @@ export const MedicalRound2Tab = () => {
                         <div className="flex-shrink-0">
                           <div className="w-10 h-10 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg flex items-center justify-center border border-gray-100">
                             <span className="text-gray-600 text-xs font-bold">
-                              {rec.college.college_name.charAt(0)}
+                              {rec.college?.college_name?.charAt(0) || 'C'}
                             </span>
                           </div>
                         </div>
