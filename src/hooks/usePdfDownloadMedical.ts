@@ -95,14 +95,25 @@ export const usePdfDownloadMedical = () => {
         : 'Not specified';
       const citiesCount = Array.isArray(citiesArray) ? citiesArray.length : 0;
       
-      // Display user details with proper spacing
-      pdf.text(`Name: ${userName}`, margin + 5, yPosition + 7);
-      pdf.text(`Category: ${category}`, margin + 5, yPosition + 13);
-      pdf.text(`Program: ${program}`, margin + 5, yPosition + 19);
-      pdf.text(`Gender: ${gender}`, margin + 5, yPosition + 25);
-      pdf.text(`NEET Rank: ${neetRank}`, margin + 5, yPosition + 31);
+      // Display user details with dynamic line height spacing
+      const lineHeight = 6;
+      let lineY = yPosition + 10;
       
-      yPosition += userDetailsHeight + 2;
+      pdf.text(`Name: ${userName}`, margin + 5, lineY);
+      lineY += lineHeight;
+      
+      pdf.text(`Category: ${category}`, margin + 5, lineY);
+      lineY += lineHeight;
+      
+      pdf.text(`Program: ${program}`, margin + 5, lineY);
+      lineY += lineHeight;
+      
+      pdf.text(`Gender: ${gender}`, margin + 5, lineY);
+      lineY += lineHeight;
+      
+      pdf.text(`NEET Rank: ${neetRank}`, margin + 5, lineY);
+      
+      yPosition += userDetailsHeight + 8;
       
       // Preferred Cities in separate box for better layout
       const citiesBoxHeight = 10;
