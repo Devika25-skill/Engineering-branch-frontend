@@ -60,7 +60,7 @@ export const usePdfDownloadMedical = () => {
       yPosition += 8;
       
       // User details box
-      const userDetailsHeight = 42;
+      const userDetailsHeight = 36;
       pdf.setFillColor(249, 250, 251);
       pdf.setDrawColor(229, 231, 235);
       pdf.rect(margin, yPosition, contentWidth, userDetailsHeight, 'FD');
@@ -74,23 +74,22 @@ export const usePdfDownloadMedical = () => {
       // Extract user details from localStorage and formData
       const userData = JSON.parse(localStorage.getItem('user') || '{}');
       const userName = userData.name || 'Student Name';
-      const category = formData.reservationCategory || 'Not specified';
-      const neetScore = formData.neetScore || 'Not specified';
-      const neetRank = formData.neetRank || 'Not specified';
-      const program = formData.program || 'Not specified';
+      const category = formData.category || formData.reservationCategory || 'Not specified';
+      const neetRank = formData.neet_air || formData.neetRank || 'Not specified';
+      const program = formData.program_type || formData.program || 'Not specified';
       const gender = formData.gender || 'Not specified';
-      const preferredCities = formData.selectedCities?.slice(0, 3)?.join(', ') || 'Not specified';
+      const preferredCities = formData.cities?.slice(0, 3)?.join(', ') || formData.selectedCities?.slice(0, 3)?.join(', ') || 'Not specified';
+      const citiesCount = formData.cities?.length || formData.selectedCities?.length || 0;
       
       // Display user details
       pdf.text(`Name: ${userName}`, margin + 5, yPosition);
       pdf.text(`Category: ${category}`, margin + 5, yPosition + 6);
       pdf.text(`Program: ${program}`, margin + 5, yPosition + 12);
       pdf.text(`Gender: ${gender}`, margin + 5, yPosition + 18);
-      pdf.text(`NEET Score: ${neetScore}`, margin + 5, yPosition + 24);
-      pdf.text(`NEET Rank: ${neetRank}`, margin + 5, yPosition + 30);
-      pdf.text(`Preferred Cities: ${preferredCities}${formData.selectedCities?.length > 3 ? ` (+${formData.selectedCities.length - 3} more)` : ''}`, margin + 5, yPosition + 36);
+      pdf.text(`NEET Rank: ${neetRank}`, margin + 5, yPosition + 24);
+      pdf.text(`Preferred Cities: ${preferredCities}${citiesCount > 3 ? ` (+${citiesCount - 3} more)` : ''}`, margin + 5, yPosition + 30);
       
-      yPosition += 42;
+      yPosition += 36;
       
       // Category Breakdown Section
       pdf.setFontSize(14);
@@ -203,11 +202,10 @@ export const usePdfDownloadMedical = () => {
         const programText = `${rec.program} • ${rec.college.college_type}`;
         pdf.text(programText, margin + 15, yPosition + 14);
         
-        // City and Course Type
-        pdf.setFontSize(9);
-        pdf.setTextColor(107, 114, 128);
-        const locationText = `${rec.college.city} • ${rec.college.course_type}`;
-        pdf.text(locationText, margin + 15, yPosition + 20);
+      // City only
+      pdf.setFontSize(9);
+      pdf.setTextColor(107, 114, 128);
+      pdf.text(rec.college.city, margin + 15, yPosition + 20);
         
         // Closing Rank
         pdf.setFontSize(8);
