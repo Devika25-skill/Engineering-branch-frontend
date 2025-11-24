@@ -60,7 +60,7 @@ export const usePdfDownloadMedical = () => {
       yPosition += 8;
       
       // User details box with proper height
-      const userDetailsHeight = 38;
+      const userDetailsHeight = 44;
       pdf.setFillColor(249, 250, 251);
       pdf.setDrawColor(229, 231, 235);
       pdf.setLineWidth(0.5);
