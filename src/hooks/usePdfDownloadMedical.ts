@@ -59,19 +59,6 @@ export const usePdfDownloadMedical = () => {
       
       yPosition += 8;
       
-      // User details box with proper height
-      const userDetailsHeight = 44;
-      pdf.setFillColor(249, 250, 251);
-      pdf.setDrawColor(229, 231, 235);
-      pdf.setLineWidth(0.5);
-      pdf.rect(margin, yPosition, contentWidth, userDetailsHeight, 'FD');
-      
-      pdf.setFontSize(10);
-      pdf.setFont('helvetica', 'normal');
-      pdf.setTextColor(55, 65, 81);
-      
-      yPosition += 8;
-      
       // Extract user details from localStorage and formData
       const userData = JSON.parse(localStorage.getItem('user') || '{}');
       const userName = userData.name || 'Student Name';
@@ -95,9 +82,20 @@ export const usePdfDownloadMedical = () => {
         : 'Not specified';
       const citiesCount = Array.isArray(citiesArray) ? citiesArray.length : 0;
       
+      // User details box with all fields including preferred cities
+      const userDetailsHeight = 50;
+      pdf.setFillColor(249, 250, 251);
+      pdf.setDrawColor(229, 231, 235);
+      pdf.setLineWidth(0.5);
+      pdf.rect(margin, yPosition, contentWidth, userDetailsHeight, 'FD');
+      
+      pdf.setFontSize(10);
+      pdf.setFont('helvetica', 'normal');
+      pdf.setTextColor(55, 65, 81);
+      
       // Display user details with dynamic line height spacing
       const lineHeight = 6;
-      let lineY = yPosition + 10;
+      let lineY = yPosition + 6;
       
       pdf.text(`Name: ${userName}`, margin + 5, lineY);
       lineY += lineHeight;
@@ -112,18 +110,11 @@ export const usePdfDownloadMedical = () => {
       lineY += lineHeight;
       
       pdf.text(`NEET Rank: ${neetRank}`, margin + 5, lineY);
+      lineY += lineHeight;
+      
+      pdf.text(`Preferred Cities: ${preferredCities}${citiesCount > 3 ? ` (+${citiesCount - 3} more)` : ''}`, margin + 5, lineY);
       
       yPosition += userDetailsHeight + 8;
-      
-      // Preferred Cities in separate box for better layout
-      const citiesBoxHeight = 10;
-      pdf.setFillColor(249, 250, 251);
-      pdf.setDrawColor(229, 231, 235);
-      pdf.setLineWidth(0.5);
-      pdf.rect(margin, yPosition, contentWidth, citiesBoxHeight, 'FD');
-      pdf.text(`Preferred Cities: ${preferredCities}${citiesCount > 3 ? ` (+${citiesCount - 3} more)` : ''}`, margin + 5, yPosition + 7);
-      
-      yPosition += citiesBoxHeight + 4;
       
       // Category Breakdown Section
       pdf.setFontSize(14);
