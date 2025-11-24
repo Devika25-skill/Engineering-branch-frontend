@@ -59,10 +59,11 @@ export const usePdfDownloadMedical = () => {
       
       yPosition += 8;
       
-      // User details box
-      const userDetailsHeight = 36;
+      // User details box with proper height
+      const userDetailsHeight = 38;
       pdf.setFillColor(249, 250, 251);
       pdf.setDrawColor(229, 231, 235);
+      pdf.setLineWidth(0.5);
       pdf.rect(margin, yPosition, contentWidth, userDetailsHeight, 'FD');
       
       pdf.setFontSize(10);
@@ -74,22 +75,38 @@ export const usePdfDownloadMedical = () => {
       // Extract user details from localStorage and formData
       const userData = JSON.parse(localStorage.getItem('user') || '{}');
       const userName = userData.name || 'Student Name';
-      const category = formData.category || formData.reservationCategory || 'Not specified';
-      const neetRank = formData.neet_air || formData.neetRank || 'Not specified';
-      const program = formData.program_type || formData.program || 'Not specified';
-      const gender = formData.gender || 'Not specified';
-      const preferredCities = formData.cities?.slice(0, 3)?.join(', ') || formData.selectedCities?.slice(0, 3)?.join(', ') || 'Not specified';
-      const citiesCount = formData.cities?.length || formData.selectedCities?.length || 0;
       
-      // Display user details
-      pdf.text(`Name: ${userName}`, margin + 5, yPosition);
-      pdf.text(`Category: ${category}`, margin + 5, yPosition + 6);
-      pdf.text(`Program: ${program}`, margin + 5, yPosition + 12);
-      pdf.text(`Gender: ${gender}`, margin + 5, yPosition + 18);
-      pdf.text(`NEET Rank: ${neetRank}`, margin + 5, yPosition + 24);
-      pdf.text(`Preferred Cities: ${preferredCities}${citiesCount > 3 ? ` (+${citiesCount - 3} more)` : ''}`, margin + 5, yPosition + 30);
+      // Comprehensive field mapping with multiple fallback options
+      const category = formData.category || formData.reservationCategory || formData.reservation_category || 'Not specified';
+      const neetRank = formData.neet_air || formData.neetRank || formData.neet_rank || formData.rank || 'Not specified';
+      const program = formData.program_type || formData.program || formData.programType || 'Not specified';
+      const gender = formData.gender || formData.Gender || 'Not specified';
       
-      yPosition += 36;
+      // Handle cities - check multiple possible field names
+      const citiesArray = formData.cities || formData.selectedCities || formData.selected_cities || formData.city || [];
+      const preferredCities = Array.isArray(citiesArray) 
+        ? citiesArray.slice(0, 3).join(', ') 
+        : (citiesArray ? String(citiesArray) : 'Not specified');
+      const citiesCount = Array.isArray(citiesArray) ? citiesArray.length : (citiesArray ? 1 : 0);
+      
+      // Display user details with proper spacing
+      pdf.text(`Name: ${userName}`, margin + 5, yPosition + 7);
+      pdf.text(`Category: ${category}`, margin + 5, yPosition + 13);
+      pdf.text(`Program: ${program}`, margin + 5, yPosition + 19);
+      pdf.text(`Gender: ${gender}`, margin + 5, yPosition + 25);
+      pdf.text(`NEET Rank: ${neetRank}`, margin + 5, yPosition + 31);
+      
+      yPosition += userDetailsHeight + 2;
+      
+      // Preferred Cities in separate box for better layout
+      const citiesBoxHeight = 10;
+      pdf.setFillColor(249, 250, 251);
+      pdf.setDrawColor(229, 231, 235);
+      pdf.setLineWidth(0.5);
+      pdf.rect(margin, yPosition, contentWidth, citiesBoxHeight, 'FD');
+      pdf.text(`Preferred Cities: ${preferredCities}${citiesCount > 3 ? ` (+${citiesCount - 3} more)` : ''}`, margin + 5, yPosition + 7);
+      
+      yPosition += citiesBoxHeight + 4;
       
       // Category Breakdown Section
       pdf.setFontSize(14);
