@@ -10,6 +10,9 @@ export const usePdfDownloadMedical = () => {
   const generatePDF = async (recommendations: MedicalCollegeRecommendation[], formData: any) => {
     setIsGenerating(true);
     
+    // Small delay to ensure UI updates before PDF generation starts
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
     try {
       const pdf = new jsPDF();
       const pageWidth = pdf.internal.pageSize.getWidth();
