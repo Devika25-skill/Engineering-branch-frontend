@@ -83,7 +83,7 @@ export const usePdfDownloadMedical = () => {
       const citiesCount = Array.isArray(citiesArray) ? citiesArray.length : 0;
       
       // User details box with all fields including preferred cities
-      const userDetailsHeight = 50;
+      const userDetailsHeight = 44;
       pdf.setFillColor(249, 250, 251);
       pdf.setDrawColor(229, 231, 235);
       pdf.setLineWidth(0.5);
