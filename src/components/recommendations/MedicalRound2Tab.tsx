@@ -139,23 +139,50 @@ export const MedicalRound2Tab = () => {
     setIsGeneratingRecommendations(true);
 
     try {
-      // Prepare payload with round 2
+      // Transform form data to API format (same as Round 1)
       const payload = {
         round: 2 as 2,
         medical_configuration_request: {
           username: user.email,
-          gender: savedFormData.gender,
+          gender: savedFormData.gender || 'M',
           academic_credentials: {
-            educationBackground: savedFormData.educationBackground,
-            academicMarks: savedFormData.academicMarks,
-            examPercentiles: savedFormData.examPercentiles,
+            educationBackground: {
+              educationType: '12th',
+              stream: savedFormData.grouping
+            },
+            academicMarks: {
+              _10thGradeMarksPercent: Number(savedFormData.tenthMarks?.toFixed(2) || 0),
+              _12thGradeMarksPercent: Number(savedFormData.twelfthMarks?.toFixed(2) || 0),
+              groupingMarksPercent: Number(savedFormData.groupingMarks?.toFixed(2) || 0)
+            },
+            examPercentiles: {
+              NEETPercentile: Number(savedFormData.neetPercentile?.toFixed(2) || 0),
+              NEETAllIndiaRank: savedFormData.neetAllIndiaRank,
+              NEETRollNumber: savedFormData.neetRollNumber,
+              otherEntranceExam: savedFormData.otherExamName && savedFormData.otherExamPercentile ? [{
+                examName: savedFormData.otherExamName,
+                percentileOrScore: Number(savedFormData.otherExamPercentile)
+              }] : []
+            },
             reservationCategory: savedFormData.reservationCategory,
-            achievementsExperience: savedFormData.achievementsExperience,
-            preferences: savedFormData.preferences,
-            campusFacilitiesEnvironment: savedFormData.campusFacilitiesEnvironment,
-            annualBudget: savedFormData.annualBudget,
-            collegeTypePreferences: savedFormData.collegeTypePreferences,
-            priorityFactors: savedFormData.priorityFactors
+            achievementsExperience: {
+              sportsAchievements: savedFormData.sportsAchievements,
+              certifications: savedFormData.certifications,
+              internshipsWorkExperience: savedFormData.internships,
+              otherAchievements: savedFormData.otherAchievements
+            },
+            preferences: {
+              medicalPrograms: savedFormData.preferredMedicalPrograms || [],
+              preferredCities: savedFormData.preferredCities || []
+            },
+            campusFacilitiesEnvironment: {
+              hostelFacility: savedFormData.hostelPreference,
+              campusSetting: savedFormData.campusSetting,
+              transportFacility: savedFormData.transportFacility
+            },
+            annualBudget: savedFormData.maxBudget || 0,
+            collegeTypePreferences: savedFormData.collegeTypes || ["ALL"],
+            priorityFactors: savedFormData.priorities || ["ALL"]
           }
         }
       };
