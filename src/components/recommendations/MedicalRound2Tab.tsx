@@ -35,16 +35,17 @@ export const MedicalRound2Tab = () => {
             recommendations.push({
               category: category,
               college: {
-                college_name: item.college.College_Name || 'Unknown College',
-                college_code: item.college.College_Code || '',
-                city: item.college.City || 'Unknown',
-                college_type: item.college.College_Type || '',
-                course_type: item.college.Course_Type || '',
+                college_name: item.college.college_name || 'Unknown College',
+                college_code: item.college.college_code || '',
+                city: item.college.city || 'Unknown',
+                college_type: item.college.college_type || '',
+                course_type: item.college.course_type || '',
               },
-              program: item.college.Program || 'N/A',
-              closing_rank: item.college.Closing_Rank || 0,
-              neet_rank: item.college.NEET_Rank || 0,
-              admission_probability: item.college.Admission_Probability || 0,
+              program: item.program || 'N/A',
+              closing_rank: item.closing_rank || 0,
+              neet_rank: item.neet_rank || 0,
+              admission_probability: item.admission_probability || 0,
+              probability_message: item.probability_message || '',
             });
           }
         });
