@@ -286,6 +286,15 @@ export const MedicalRound2Tab = () => {
         formData.preferredMedicalPrograms = selectedPrograms;
         formData.preferredCities = selectedCities;
         recommendationStorage.saveFormData(formData);
+        setFormData(formData);
+      }
+
+      // Clear existing Round 2 recommendations so new ones will be generated
+      if (hasGeneratedRecommendations) {
+        setRound2Recommendations([]);
+        localStorage.removeItem('medicalRound2Recommendations');
+        sessionStorage.removeItem('cachedMedicalRound2Recommendations');
+        setHasGeneratedRecommendations(false);
       }
 
       setEditingPreferences(false);
@@ -293,7 +302,7 @@ export const MedicalRound2Tab = () => {
       
       toast({
         title: "Preferences Updated",
-        description: "Your Round 2 preferences have been successfully updated.",
+        description: "Your Round 2 preferences have been updated. Please generate new recommendations.",
       });
     } catch (error) {
       console.error('Error updating preferences:', error);
@@ -442,7 +451,6 @@ export const MedicalRound2Tab = () => {
                         setIsPreferencesCardCollapsed(false);
                       }
                     }}
-                    disabled={hasGeneratedRecommendations && round2Recommendations.length > 0}
                     className="text-blue-600 border-blue-300 hover:bg-blue-100"
                   >
                     Edit Preferences

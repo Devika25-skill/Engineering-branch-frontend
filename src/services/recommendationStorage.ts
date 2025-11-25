@@ -162,6 +162,8 @@ class RecommendationStorageService {
     try {
       sessionStorage.removeItem('cachedMedicalRecommendations');
       sessionStorage.removeItem('medicalRecommendationPaymentData');
+      sessionStorage.removeItem('cachedMedicalRound2Recommendations');
+      localStorage.removeItem('medicalRound2Recommendations');
     } catch (error) {
       console.error('Failed to clear medical recommendations:', error);
     }
