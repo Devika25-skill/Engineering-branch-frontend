@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { MedicalCollegeRecommendation } from "@/types/medical";
-import { Lock, Unlock, Calendar, Clock, MapPin, Users, DollarSign, TrendingUp, ExternalLink, Loader2, Download } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Lock, Unlock, Calendar, Clock, MapPin, Users, TrendingUp, Loader2, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -26,7 +25,6 @@ interface MedicalRecommendationResultsProps {
     Safety: MedicalCollegeRecommendation[];
   };
   formData: any;
-  recommendationId?: string | null;
   paymentData?: {
     is_payment?: boolean;
     accept_payment?: boolean;
@@ -71,11 +69,8 @@ declare global {
 export const MedicalRecommendationResults = ({
   recommendations,
   formData,
-  recommendationId,
   paymentData
 }: MedicalRecommendationResultsProps) => {
-  
-  
   // Initialize with Round 2 as default and persist selection
   const [activeRound, setActiveRound] = useState<string>(() => {
     const savedRound = localStorage.getItem('activeRoundTab');

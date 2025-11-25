@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import Navigation from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
@@ -21,7 +21,6 @@ const MedicalRecommendationResults = () => {
     Match: [],
     Safety: []
   });
-  const [recommendationId, setRecommendationId] = useState<string | null>(null);
   const [paymentData, setPaymentData] = useState<{ is_payment: boolean; accept_payment: boolean }>({
     is_payment: false,
     accept_payment: true
@@ -97,7 +96,6 @@ const MedicalRecommendationResults = () => {
         <ResultsComponent 
           recommendations={recommendations}
           formData={formData}
-          recommendationId={recommendationId}
           paymentData={paymentData}
         />
         

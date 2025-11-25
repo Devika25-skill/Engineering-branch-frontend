@@ -8,11 +8,10 @@ import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { SearchableSelect } from '@/components/ui/searchable-select';
 import { useToast } from '@/hooks/use-toast';
-import { Lock, RefreshCw, ChevronDown, ChevronUp, MapPin, Users, TrendingUp, Loader2, Download, Sparkles, BookOpen, X, GripVertical } from 'lucide-react';
+import { Lock, ChevronDown, ChevronUp, MapPin, Users, TrendingUp, Loader2, Download, Sparkles, BookOpen, X, GripVertical } from 'lucide-react';
 import { Round2Disclaimer } from './Round2Disclaimer';
 import { usePdfDownloadMedical } from "@/hooks/usePdfDownloadMedical";
 import { NoResultsState } from './NoResultsState';
-import { MedicalCollegeRecommendation } from "@/types/medical";
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 
 export const MedicalRound2Tab = () => {
@@ -706,7 +705,7 @@ export const MedicalRound2Tab = () => {
           <CardContent className="pt-6">
             <div className="text-center space-y-4">
               <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 mb-4">
-                <RefreshCw className="w-8 h-8 text-white" />
+                <Sparkles className="w-8 h-8 text-white" />
               </div>
               
               <div>
@@ -731,7 +730,7 @@ export const MedicalRound2Tab = () => {
                   </>
                 ) : (
                   <>
-                    <RefreshCw className="mr-2 h-5 w-5" />
+                    <Sparkles className="mr-2 h-5 w-5" />
                     Generate Round 2 List
                   </>
                 )}
