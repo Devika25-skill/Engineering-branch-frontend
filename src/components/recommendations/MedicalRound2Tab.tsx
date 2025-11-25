@@ -13,6 +13,7 @@ import { Round2Disclaimer } from './Round2Disclaimer';
 import { usePdfDownloadMedical } from "@/hooks/usePdfDownloadMedical";
 import { NoResultsState } from './NoResultsState';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+import type { MedicalProgram, StoreMedicalConfigRequest, Gender, CollegeTypePreference, PriorityFactor } from '@/types/medical';
 
 export const MedicalRound2Tab = () => {
   const { user, isLoggedIn } = useAuth();
@@ -192,7 +193,9 @@ export const MedicalRound2Tab = () => {
             },
             preferences: {
               medicalPrograms: savedFormData.preferredMedicalPrograms || [],
-              preferredCities: savedFormData.preferredCities || []
+              preferredCities: savedFormData.preferredCities && savedFormData.preferredCities.length > 0 
+                ? savedFormData.preferredCities 
+                : ["ALL"]
             },
             campusFacilitiesEnvironment: {
               hostelFacility: savedFormData.hostelPreference,
@@ -287,12 +290,68 @@ export const MedicalRound2Tab = () => {
     try {
       // Update form data in storage
       const formData = recommendationStorage.getFormData();
-      if (formData) {
-        formData.preferredMedicalPrograms = selectedPrograms;
-        formData.preferredCities = selectedCities;
-        recommendationStorage.saveFormData(formData);
-        setFormData(formData);
+      if (!formData) {
+        throw new Error('Form data not found');
       }
+
+      // Update preferences with default "ALL" for empty cities
+      const updatedPreferences = {
+        preferredMedicalPrograms: selectedPrograms as MedicalProgram[],
+        preferredCities: selectedCities.length > 0 ? selectedCities : ["ALL"]
+      };
+
+      formData.preferredMedicalPrograms = updatedPreferences.preferredMedicalPrograms;
+      formData.preferredCities = updatedPreferences.preferredCities;
+      recommendationStorage.saveFormData(formData);
+      setFormData(formData);
+
+      // Call API to update student configuration
+      const configPayload: StoreMedicalConfigRequest = {
+        username: user.email,
+        gender: (formData.gender || 'M') as Gender,
+        academic_credentials: {
+          educationBackground: {
+            educationType: '12th',
+            stream: formData.grouping
+          },
+          academicMarks: {
+            _10thGradeMarksPercent: Number(formData.tenthMarks?.toFixed(2) || 0),
+            _12thGradeMarksPercent: Number(formData.twelfthMarks?.toFixed(2) || 0),
+            groupingMarksPercent: Number(formData.groupingMarks?.toFixed(2) || 0)
+          },
+          examPercentiles: {
+            NEETPercentile: Number(formData.neetPercentile?.toFixed(2) || 0),
+            NEETAllIndiaRank: formData.neetAllIndiaRank,
+            NEETRollNumber: formData.neetRollNumber,
+            otherEntranceExam: formData.otherExamName && formData.otherExamPercentile ? [{
+              examName: formData.otherExamName,
+              percentileOrScore: Number(formData.otherExamPercentile)
+            }] : []
+          },
+          reservationCategory: formData.reservationCategory,
+          achievementsExperience: {
+            sportsAchievements: formData.sportsAchievements,
+            certifications: formData.certifications,
+            internshipsWorkExperience: formData.internships,
+            otherAchievements: formData.otherAchievements
+          },
+          preferences: {
+            medicalPrograms: updatedPreferences.preferredMedicalPrograms,
+            preferredCities: updatedPreferences.preferredCities
+          },
+          campusFacilitiesEnvironment: {
+            hostelFacility: formData.hostelPreference,
+            campusSetting: formData.campusSetting,
+            transportFacility: formData.transportFacility
+          },
+          annualBudget: formData.maxBudget || 0,
+          collegeTypePreferences: (formData.collegeTypes || ["ALL"]) as CollegeTypePreference[],
+          priorityFactors: (formData.priorities || ["ALL"]) as PriorityFactor[]
+        }
+      };
+
+      // Update configuration via API
+      await apiService.storeMedicalConfiguration(configPayload);
 
       // Clear existing Round 2 recommendations so new ones will be generated
       if (hasGeneratedRecommendations) {
@@ -307,7 +366,7 @@ export const MedicalRound2Tab = () => {
       
       toast({
         title: "Preferences Updated",
-        description: "Your Round 2 preferences have been updated. Please generate new recommendations.",
+        description: "Your Round 2 preferences have been updated successfully.",
       });
     } catch (error) {
       console.error('Error updating preferences:', error);
