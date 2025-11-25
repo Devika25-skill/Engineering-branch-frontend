@@ -784,15 +784,6 @@ export const MedicalRound2Tab = () => {
                   </>
                 )}
               </Button>
-              
-              <Button
-                onClick={handleResetRecommendations}
-                variant="outline"
-                className="flex-1 sm:flex-none"
-              >
-                <RefreshCw className="mr-2 h-4 w-4" />
-                <span className="text-sm">Regenerate</span>
-              </Button>
             </div>
           </div>
 
