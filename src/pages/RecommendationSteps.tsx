@@ -51,9 +51,10 @@ interface FormData {
   collegeTypes?: string[];
   priorities?: string[];
   // Medical-specific fields
+  gender?: string;
   neetPercentile?: number;
   neetAllIndiaRank?: number;
-  neetRollNumber?: string;
+  neetRollNumber?: number;
 }
 
 const RecommendationSteps = () => {
@@ -77,7 +78,7 @@ const RecommendationSteps = () => {
 
   const totalSteps = 3;
 
-  // Map API response to form data structure
+  // Map API response to form data structure for Engineering
   const mapApiResponseToFormData = (apiData: any) => {
     // Extract other exam details if available
     const otherExam = apiData.examPercentiles?.otherEntranceExam?.[0];
@@ -114,6 +115,50 @@ const RecommendationSteps = () => {
     };
   };
 
+  // Map API response to form data structure for Medical
+  const mapMedicalApiResponseToFormData = (apiData: any) => {
+    // Extract other exam details if available
+    const credentials = apiData.academic_credentials || apiData;
+    const otherExam = credentials.examPercentiles?.otherEntranceExam?.[0];
+    
+    return {
+      // Academic Info - gender is at top level
+      gender: apiData.gender || undefined,
+      reservationCategory: credentials.reservationCategory || 'OPEN',
+      grouping: credentials.educationBackground?.stream || 'PCB (Physics, Chemistry, Biology)',
+      tenthMarks: credentials.academicMarks?.tenthGradeMarksPercent || undefined,
+      twelfthMarks: credentials.academicMarks?.twelfthGradeMarksPercent || undefined,
+      groupingMarks: credentials.academicMarks?.groupingMarksPercent || undefined,
+      
+      // Medical Exam Info
+      neetPercentile: credentials.examPercentiles?.NEETPercentile || undefined,
+      neetAllIndiaRank: credentials.examPercentiles?.NEETAllIndiaRank || undefined,
+      neetRollNumber: credentials.examPercentiles?.NEETRollNumber || undefined,
+      otherExamName: otherExam?.examName || undefined,
+      otherExamPercentile: otherExam?.percentileOrScore || undefined,
+      
+      // Achievements
+      sportsAchievements: credentials.achievementsExperience?.sportsAchievements || undefined,
+      certifications: credentials.achievementsExperience?.certifications || undefined,
+      internships: credentials.achievementsExperience?.internshipsWorkExperience || undefined,
+      otherAchievements: credentials.achievementsExperience?.otherAchievements || undefined,
+      
+      // Preferences
+      preferredMedicalPrograms: credentials.preferences?.medicalPrograms || [],
+      preferredCities: credentials.preferences?.preferredCities || [],
+      
+      // Campus Facilities
+      hostelPreference: credentials.campusFacilitiesEnvironment?.hostelFacility || undefined,
+      campusSetting: credentials.campusFacilitiesEnvironment?.campusSetting || undefined,
+      transportFacility: credentials.campusFacilitiesEnvironment?.transportFacility || undefined,
+      
+      // Budget and Priorities
+      maxBudget: credentials.annualBudget || undefined,
+      collegeTypes: credentials.collegeTypePreferences || [],
+      priorities: credentials.priorityFactors || [],
+    };
+  };
+
   // Load saved form data on mount and fetch existing details if user is logged in
   useEffect(() => {
     const loadFormData = async () => {
@@ -125,9 +170,16 @@ const RecommendationSteps = () => {
       // Fetch existing user details if logged in
       if (isLoggedIn && user?.accessToken) {
         try {
-          const response = await apiService.fetchAICapDetails(user.accessToken);
+          // Call appropriate API based on program type
+          const response = isMedical 
+            ? await apiService.fetchMedicalStudentDetails(user.accessToken)
+            : await apiService.fetchAICapDetails(user.accessToken);
+            
           if (response.success && response.data?.academic_credentials) {
-            const mappedData = mapApiResponseToFormData(response.data.academic_credentials);
+            // Use appropriate mapping function based on program type
+            const mappedData = isMedical 
+              ? mapMedicalApiResponseToFormData(response.data)
+              : mapApiResponseToFormData(response.data.academic_credentials);
             setFormData(prev => ({ ...prev, ...mappedData }));
             toast.success("Loaded your previous details");
           }
@@ -138,7 +190,7 @@ const RecommendationSteps = () => {
     };
 
     loadFormData();
-  }, [isLoggedIn, user]);
+  }, [isLoggedIn, user, isMedical]);
 
   // Save form data whenever it changes
   useEffect(() => {
@@ -172,9 +224,10 @@ const RecommendationSteps = () => {
       
       // Different validation for medical vs engineering
       if (isMedical) {
+        if (!formData.gender) errors.push('Gender');
         if (!formData.neetPercentile || formData.neetPercentile <= 0) errors.push('NEET Percentile');
         if (!formData.neetAllIndiaRank || formData.neetAllIndiaRank <= 0) errors.push('All India Rank');
-        if (!formData.neetRollNumber || formData.neetRollNumber.trim() === '') errors.push('NEET Roll Number');
+        if (!formData.neetRollNumber || formData.neetRollNumber < 1000000000 || formData.neetRollNumber > 9999999999) errors.push('NEET Roll Number');
       } else {
         if (!formData.cetPercentile || formData.cetPercentile <= 0) errors.push('CET Percentile');
       }
@@ -265,30 +318,62 @@ const RecommendationSteps = () => {
       return;
     }
 
-    // Directly navigate to results without confirmation
+    const recommendationType = localStorage.getItem('recommendation_type');
+    
+    // Check login status
+    if (!user) {
+      setLoginOpen(true);
+      return;
+    }
+
+    // Clear cached recommendations
     sessionStorage.removeItem('cachedRecommendations');
-    navigate('/recommendations/results');
+    sessionStorage.removeItem('cachedMedicalRecommendations');
+    
+    // Show loading state
+    setIsLoading(true);
+    
+    try {
+      // Call the recommendation generation
+      await generateRecommendation(formData);
+      
+      // Navigate to results page after successful generation
+      if (recommendationType === 'First_Year_Medical') {
+        navigate('/medical-recommendations/results');
+      } else {
+        navigate('/recommendations/results');
+      }
+    } catch (error) {
+      console.error('Error generating recommendations:', error);
+      toastHook({
+        title: "Error",
+        description: "Failed to generate recommendations. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleConfirmPreferences = async () => {
     setShowPreferencesConfirmation(false);
     sessionStorage.removeItem('cachedRecommendations');
-    navigate('/recommendations/results');
+    sessionStorage.removeItem('cachedMedicalRecommendations');
+    
+    const recommendationType = localStorage.getItem('recommendation_type');
+    
+    if (recommendationType === 'First_Year_Medical') {
+      navigate('/medical-recommendations/results');
+    } else {
+      navigate('/recommendations/results');
+    }
     
     // Start generation in background
     try {
       window.scrollTo(0, 0);
       setIsLoading(true);
-      
-      // const result = await generateRecommendation(formData);
-      // if (result && result.success) {
-      //   navigate('/recommendations/results');
-      // } else {
-      //   console.error('❌ Failed to generate recommendations');
-      // }
     } catch (error) {
       console.error('Error generating recommendations:', error);
-      // If there's an error, we could navigate back or handle it on the results page
     } finally {
       setIsLoading(false);
     }
@@ -296,15 +381,30 @@ const RecommendationSteps = () => {
 
   const handleLoginSuccess = async () => {
     setLoginOpen(false);
+    const recommendationType = localStorage.getItem('recommendation_type');
     
-    // Navigate immediately to results page after login
-    navigate('/recommendations/results');
+    // Show loading state
+    setIsLoading(true);
     
-    // Start generation in background
     try {
-      // await generateRecommendation(formData);
+      // Generate recommendations after successful login
+      await generateRecommendation(formData);
+      
+      // Navigate to results page after successful generation
+      if (recommendationType === 'First_Year_Medical') {
+        navigate('/medical-recommendations/results');
+      } else {
+        navigate('/recommendations/results');
+      }
     } catch (error) {
       console.error('Error generating recommendations after login:', error);
+      toastHook({
+        title: "Error",
+        description: "Failed to generate recommendations. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 

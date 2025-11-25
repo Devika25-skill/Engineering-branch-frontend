@@ -4,7 +4,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BookOpen, MapPin, X, Plus, GripVertical, Home, Building2, Car, AlertCircle, ChevronDown } from "lucide-react";
+import { BookOpen, MapPin, X, Plus, GripVertical, Home, Building2, Car, ChevronDown } from "lucide-react";
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 
 interface MedicalPreferencesFormProps {
@@ -17,10 +17,6 @@ export const MedicalPreferencesForm = ({ data, onUpdate, validationErrors = [] }
   const [selectedPrograms, setSelectedPrograms] = useState<string[]>(data.preferredMedicalPrograms || []);
   const [selectedCities, setSelectedCities] = useState<string[]>(data.preferredCities || []);
 
-  const isFieldError = (fieldName: string) => {
-    return validationErrors.some(error => error.toLowerCase().includes(fieldName.toLowerCase()));
-  };
-
   const availablePrograms = [
     "ALL",
     "MBBS",
@@ -29,8 +25,8 @@ export const MedicalPreferencesForm = ({ data, onUpdate, validationErrors = [] }
     "BHMS",
     "BUMS",
     "BNYS",
-    "BPTh",
-    "BOTh",
+    "BPTH",
+    "BOTH",
     "BASLP",
     "BP&O"
   ];
@@ -82,11 +78,9 @@ export const MedicalPreferencesForm = ({ data, onUpdate, validationErrors = [] }
       preferredCities: selectedCities,
       hostelPreference: data.hostelPreference,
       campusSetting: data.campusSetting,
-      transportFacility: data.transportFacility,
-      wifiTechInfrastructure: data.wifiTechInfrastructure,
-      coCurricularActivities: data.coCurricularActivities
+      transportFacility: data.transportFacility
     });
-  }, [selectedPrograms, selectedCities, data.hostelPreference, data.campusSetting, data.transportFacility, data.wifiTechInfrastructure, data.coCurricularActivities]);
+  }, [selectedPrograms, selectedCities, data.hostelPreference, data.campusSetting, data.transportFacility]);
 
   const addProgram = (program: string) => {
     if (selectedPrograms.length < 3 && !selectedPrograms.includes(program)) {
@@ -132,7 +126,7 @@ export const MedicalPreferencesForm = ({ data, onUpdate, validationErrors = [] }
     <div className="space-y-8">
       {/* Core Preferences */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <Card className={`border-0 shadow-lg bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl ${isFieldError('Medical Programs') ? 'ring-2 ring-red-300' : ''}`}>
+        <Card className="border-0 shadow-lg bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl">
           <CardHeader className="pb-6">
             <CardTitle className="text-xl font-bold text-slate-800 flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center">
@@ -140,7 +134,6 @@ export const MedicalPreferencesForm = ({ data, onUpdate, validationErrors = [] }
               </div>
               Medical Programs
               <span className="text-red-500">*</span>
-              {isFieldError('Medical Programs') && <AlertCircle size={16} className="text-red-500" />}
             </CardTitle>
             <p className="text-sm text-slate-600 mt-2">Select up to 3 programs</p>
           </CardHeader>

@@ -106,6 +106,68 @@ class RecommendationStorageService {
       console.error('Failed to clear form data:', error);
     }
   }
+
+  // Medical recommendation storage methods
+  setMedicalRecommendations(recommendations: any[], formData: any, isPaid: boolean = false, acceptPayment: boolean = true): void {
+    try {
+      sessionStorage.setItem('cachedMedicalRecommendations', JSON.stringify(recommendations));
+      sessionStorage.setItem('medicalRecommendationPaymentData', JSON.stringify({
+        is_payment: isPaid,
+        accept_payment: acceptPayment
+      }));
+      this.saveFormData(formData);
+    } catch (error) {
+      console.error('Failed to save medical recommendations:', error);
+    }
+  }
+
+  getMedicalRecommendations(): any[] | null {
+    try {
+      const cached = sessionStorage.getItem('cachedMedicalRecommendations');
+      return cached ? JSON.parse(cached) : null;
+    } catch (error) {
+      console.error('Failed to get medical recommendations:', error);
+      return null;
+    }
+  }
+
+  getMedicalPaymentData(): { is_payment: boolean; accept_payment: boolean } {
+    try {
+      const data = sessionStorage.getItem('medicalRecommendationPaymentData');
+      return data ? JSON.parse(data) : { is_payment: false, accept_payment: true };
+    } catch (error) {
+      console.error('Failed to get medical payment data:', error);
+      return { is_payment: false, accept_payment: true };
+    }
+  }
+
+  getMedicalPaidStatus(): boolean {
+    const paymentData = this.getMedicalPaymentData();
+    return paymentData.is_payment;
+  }
+
+  setMedicalPaidStatus(isPaid: boolean): void {
+    try {
+      const currentData = this.getMedicalPaymentData();
+      sessionStorage.setItem('medicalRecommendationPaymentData', JSON.stringify({
+        ...currentData,
+        is_payment: isPaid
+      }));
+    } catch (error) {
+      console.error('Failed to set medical paid status:', error);
+    }
+  }
+
+  clearMedicalRecommendations(): void {
+    try {
+      sessionStorage.removeItem('cachedMedicalRecommendations');
+      sessionStorage.removeItem('medicalRecommendationPaymentData');
+      sessionStorage.removeItem('cachedMedicalRound2Recommendations');
+      localStorage.removeItem('medicalRound2Recommendations');
+    } catch (error) {
+      console.error('Failed to clear medical recommendations:', error);
+    }
+  }
 }
 
 export const recommendationStorage = new RecommendationStorageService();

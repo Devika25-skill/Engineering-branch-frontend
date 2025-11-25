@@ -1,6 +1,13 @@
 
 import { config } from '@/config/env';
 import type { College } from '@/types/college';
+import type { 
+  StoreMedicalConfigRequest, 
+  StoreMedicalConfigResponse, 
+  FetchMedicalDetailsResponse,
+  GenerateMedicalRecommendationsRequest,
+  GenerateMedicalRecommendationsResponse 
+} from '@/types/medical';
 
 const API_BASE_URL = config.apiBaseUrl;
 
@@ -1019,6 +1026,39 @@ class ApiService {
         'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
         'Content-Type': 'application/json',
       },
+    });
+  }
+
+  // Medical recommendation methods
+  async storeMedicalConfiguration(payload: StoreMedicalConfigRequest): Promise<StoreMedicalConfigResponse> {
+    return this.request<StoreMedicalConfigResponse>('/api/v1/medical/student/configuration', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async fetchMedicalStudentDetails(token: string): Promise<FetchMedicalDetailsResponse> {
+    return this.request<FetchMedicalDetailsResponse>('/api/v1/medical/student/details', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+  }
+
+  async generateMedicalRecommendations(payload: GenerateMedicalRecommendationsRequest): Promise<GenerateMedicalRecommendationsResponse> {
+    return this.request<GenerateMedicalRecommendationsResponse>('/api/v1/medical/medical/recommendations', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
     });
   }
 }

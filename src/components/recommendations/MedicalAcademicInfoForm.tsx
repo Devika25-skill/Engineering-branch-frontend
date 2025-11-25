@@ -3,8 +3,10 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import { GraduationCap, User, Award, AlertCircle, ChevronDown } from "lucide-react";
 import { useEffect } from "react";
+import type { ReservationCategory, Gender, Stream } from "@/types/medical";
 
 interface MedicalAcademicInfoFormProps {
   data: any;
@@ -16,7 +18,7 @@ export const MedicalAcademicInfoForm = ({ data, onUpdate, validationErrors = [] 
   // Set default values when component mounts
   useEffect(() => {
     const defaultData = {
-      reservationCategory: data.reservationCategory || "GOPENS",
+      reservationCategory: data.reservationCategory || "OPEN",
       grouping: data.grouping || "PCB (Physics, Chemistry, Biology)"
     };
     
@@ -31,16 +33,74 @@ export const MedicalAcademicInfoForm = ({ data, onUpdate, validationErrors = [] 
   };
 
   const handlePercentageChange = (field: string, value: string) => {
+    // Allow empty string
+    if (value === '') {
+      onUpdate({ [field]: undefined });
+      return;
+    }
+
+    // Validate input: only digits and one optional decimal point
+    // Reject multiple dots, special characters like --, ++, etc.
+    const validPattern = /^\d*\.?\d*$/;
+    if (!validPattern.test(value)) {
+      return; // Reject invalid input
+    }
+
     const numValue = parseFloat(value);
-    if (value === '' || (numValue >= 0 && numValue <= 100)) {
-      onUpdate({ [field]: numValue || undefined });
+    // Validate 0-100 range
+    if (numValue >= 0 && numValue <= 100) {
+      // Check for max 2 decimal places
+      const decimalParts = value.split('.');
+      if (decimalParts.length === 1 || (decimalParts[1] && decimalParts[1].length <= 2)) {
+        onUpdate({ [field]: numValue });
+      }
     }
   };
 
   const handleRankChange = (field: string, value: string) => {
+    // Allow empty string
+    if (value === '') {
+      onUpdate({ [field]: undefined });
+      return;
+    }
+
+    // Validate input: only digits, no decimal points or special characters
+    // Reject 'e', '--', '++', '.', etc.
+    const validPattern = /^\d+$/;
+    if (!validPattern.test(value)) {
+      return; // Reject invalid input
+    }
+
     const numValue = parseInt(value);
-    if (value === '' || numValue > 0) {
-      onUpdate({ [field]: numValue || undefined });
+    // NEET All India Rank must be >= 1
+    if (numValue >= 1) {
+      onUpdate({ [field]: numValue });
+    }
+  };
+
+  const handleRollNumberChange = (value: string) => {
+    // Allow empty string
+    if (value === '') {
+      onUpdate({ neetRollNumber: undefined });
+      return;
+    }
+
+    // Restrict to maximum 10 digits
+    if (value.length > 10) {
+      return; // Reject input longer than 10 digits
+    }
+
+    // Validate input: only digits, no decimal points or special characters
+    // Reject 'e', '--', '++', '.', etc.
+    const validPattern = /^\d+$/;
+    if (!validPattern.test(value)) {
+      return; // Reject invalid input
+    }
+
+    const numValue = parseInt(value);
+    // Allow any valid number while typing (up to 10 digits)
+    if (numValue >= 0) {
+      onUpdate({ neetRollNumber: numValue });
     }
   };
 
@@ -54,43 +114,76 @@ export const MedicalAcademicInfoForm = ({ data, onUpdate, validationErrors = [] 
       : baseClass;
   };
 
-  const reservationCategories = [
-    { "code": "GOPENS", "label": "General – Open" },
-    { "code": "GSCS", "label": "General – Scheduled Caste (SC)" },
-    { "code": "GSTS", "label": "General – Scheduled Tribe (ST)" },
-    { "code": "GVJS", "label": "General – Vimukta Jati/De-notified Tribes (VJ/DT)" },
-    { "code": "GNT1S", "label": "General – Nomadic Tribe 1 (NT1)" },
-    { "code": "GNT2S", "label": "General – Nomadic Tribe 2 (NT2)" },
-    { "code": "GNT3S", "label": "General – Nomadic Tribe 3 (NT3)" },
-    { "code": "GOBCS", "label": "General – Other Backward Class (OBC)" },
-    { "code": "GSEBCS", "label": "General – Socially and Educationally Backward Class (SEBC)" },
-    { "code": "LOPENS", "label": "Ladies – Open" },
-    { "code": "LSCS", "label": "Ladies – Scheduled Caste (SC)" },
-    { "code": "LSTS", "label": "Ladies – Scheduled Tribe (ST)" },
-    { "code": "LVJS", "label": "Ladies – Vimukta Jati/De-notified Tribes (VJ/DT)" },
-    { "code": "LNT1S", "label": "Ladies – Nomadic Tribe 1 (NT1)" },
-    { "code": "LNT2S", "label": "Ladies – Nomadic Tribe 2 (NT2)" },
-    { "code": "LOBCS", "label": "Ladies – Other Backward Class (OBC)" },
-    { "code": "LSEBCS", "label": "Ladies – Socially and Educationally Backward Class (SEBC)" },
-    { "code": "PWDOPENS", "label": "Persons with Disabilities – Open" },
-    { "code": "PWDOBCS", "label": "Persons with Disabilities – Other Backward Class (OBC)" },
-    { "code": "DEFOPENS", "label": "Defence – Open" },
-    { "code": "DEFSCS", "label": "Defence – Scheduled Caste (SC)" },
-    { "code": "DEFOBCS", "label": "Defence – Other Backward Class (OBC)" },
-    { "code": "DEFSEBCS", "label": "Defence – Socially and Educationally Backward Class (SEBC)" },
-    { "code": "TFWS", "label": "Tuition Fee Waiver Scheme" },
-    { "code": "PWDRNT3S", "label": "Persons with Disabilities – Nomadic Tribe 3 (NT3)" },
-    { "code": "DEFRNT3S", "label": "Defence – Nomadic Tribe 3 (NT3)" },
-    { "code": "PWDROBC", "label": "Persons with Disabilities – Reserved OBC" },
-    { "code": "DEFRSEBCS", "label": "Defence – Reserved SEBC" },
-    { "code": "ORPHAN", "label": "Orphan Category" },
-    { "code": "EWS", "label": "Economically Weaker Sections" }
+  // Prevent invalid characters for percentage fields (allows digits and decimal point)
+  const preventInvalidChars = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    const invalidChars = ['e', 'E', '+', '-'];
+    if (invalidChars.includes(e.key)) {
+      e.preventDefault();
+    }
+  };
+
+  // Prevent invalid characters for integer fields (only digits allowed)
+  const preventInvalidCharsInteger = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    const invalidChars = ['e', 'E', '+', '-', '.'];
+    if (invalidChars.includes(e.key)) {
+      e.preventDefault();
+    }
+  };
+
+  // Prevent invalid paste for percentage fields
+  const preventInvalidPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    const pastedText = e.clipboardData.getData('text');
+    const validPattern = /^\d*\.?\d*$/;
+    if (!validPattern.test(pastedText)) {
+      e.preventDefault();
+    }
+  };
+
+  // Prevent invalid paste for integer fields
+  const preventInvalidPasteInteger = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    const pastedText = e.clipboardData.getData('text');
+    const validPattern = /^\d+$/;
+    if (!validPattern.test(pastedText)) {
+      e.preventDefault();
+    }
+  };
+
+  // Reservation categories from medical.ts enum
+  const reservationCategories: ReservationCategory[] = [
+    "HEWS", "EMNTDW", "OPEN", "EMNTD", "ORPHANC-SE", "PH", "VJ", "HOPEN",
+    "PWD-VJA", "PHVJ", "PWD-OPEN", "ORPHANC-VJ", "ORP-A", "PWD-NTC",
+    "HVJA", "PHNT3", "D1HA", "PHEWS", "EMVJA", "EWS(W)", "PHOBC", "D3",
+    "NRI", "ORPHAN", "NTC", "EMSEBC", "MINO", "ORPHANC-OB", "NTB(W)",
+    "EWS", "HNTD", "SIDDIQUI", "EMST", "HOPENW", "PWD-ST", "OBCW",
+    "HAORP-ORPHANC", "HAORP-C", "DEF2", "EMSCW", "SEB", "ORPHAN-OBC",
+    "ORPHAN-NTC", "NTC(W)", "NTD(W)", "OBC(W)", "EMSC", "WMINO", "EMOBC",
+    "ORPHANC-ST", "PHSEBC", "ORPHAN-C", "PWD-NTB", "(EMD)", "ORPHANC-EW",
+    "PEM", "I.Q.", "EMSEBCW", "HSCW", "PHNT2", "PWD-SEB", "ORP-C", "NT2",
+    "NTD", "PHNT1", "ORPHANC-SC", "PWD-OBC", "OBC", "ORPHAN-A", "(W)",
+    "PWD", "HA", "VJA", "EMNTBW", "D1PWD", "ORPHANC-NT", "HEM", "HST",
+    "SC", "PWD-SEBC", "PWD-NTD", "(W", "NTB", "HNTC", "HOBC", "DEF3",
+    "EMNTCW", "PWD-SC", "D1", "HAORP-", "MKB", "EMVJAW", "D2", "DEF1",
+    "EMNTB", "W", "PWD-EWS", "(EMR)", "HSC", "EMSTW", "HSEBC", "HNTB",
+    "EMNTC", "HSTW", "ORPHANC", "NT1", "SEBC", "ST", "HVJAW", "SEBC(W)",
+    "EMOBCW"
   ];
 
-  const groupingOptions = [
+  const reservationCategoryOptions = reservationCategories.map(category => ({
+    value: category,
+    label: category
+  }));
+
+  // Stream options from medical.ts Stream type
+  const streamOptions: Stream[] = [
     "PCB (Physics, Chemistry, Biology)",
-    "PCMB (Physics, Chemistry, Mathematics, Biology)",
-    "PCM (Physics, Chemistry, Mathematics)"
+    "PCMB (Physics, Chemistry, Mathematics, Biology)"
+  ];
+
+  // Gender options
+  const genderOptions: Array<{ value: Gender; label: string }> = [
+    { value: "M", label: "Male" },
+    { value: "F", label: "Female" },
+    { value: "O", label: "Other" }
   ];
 
   return (
@@ -106,7 +199,31 @@ export const MedicalAcademicInfoForm = ({ data, onUpdate, validationErrors = [] 
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2 text-slate-700 font-semibold text-sm">
+                <User size={14} />
+                Gender
+                <span className="text-red-500">*</span>
+                {isFieldError('Gender') && <AlertCircle size={14} className="text-red-500" />}
+              </Label>
+              <Select 
+                onValueChange={(value) => handleChange('gender', value)} 
+                value={data.gender ?? ""}
+              >
+                <SelectTrigger className={getFieldClassName('Gender', "h-10 rounded-xl border-2 bg-white")}>
+                  <SelectValue placeholder="Select your gender" />
+                </SelectTrigger>
+                <SelectContent>
+                  {genderOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
             <div className="space-y-2">
               <Label className="flex items-center gap-2 text-slate-700 font-semibold text-sm">
                 <GraduationCap size={14} />
@@ -114,21 +231,14 @@ export const MedicalAcademicInfoForm = ({ data, onUpdate, validationErrors = [] 
                 <span className="text-red-500">*</span>
                 {isFieldError('Reservation Category') && <AlertCircle size={14} className="text-red-500" />}
               </Label>
-              <Select 
-                onValueChange={(value) => handleChange('reservationCategory', value)} 
-                value={data.reservationCategory || "GOPENS"}
-              >
-                <SelectTrigger className={getFieldClassName('Reservation Category', "h-10 rounded-xl border-2 bg-white")}>
-                  <SelectValue placeholder="Select your category" />
-                </SelectTrigger>
-                <SelectContent className="max-h-80">
-                  {reservationCategories.map((category) => (
-                    <SelectItem key={category.code} value={category.code}>
-                      {category.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <SearchableSelect
+                options={reservationCategoryOptions}
+                value={data.reservationCategory || "OPEN"}
+                onValueChange={(value) => handleChange('reservationCategory', value)}
+                placeholder="Select your category"
+                searchPlaceholder="Search category..."
+                className={getFieldClassName('Reservation Category', "h-10 rounded-xl border-2 bg-white")}
+              />
             </div>
 
             <div className="space-y-2">
@@ -146,9 +256,9 @@ export const MedicalAcademicInfoForm = ({ data, onUpdate, validationErrors = [] 
                   <SelectValue placeholder="What did you study in 12th?" />
                 </SelectTrigger>
                 <SelectContent>
-                  {groupingOptions.map((grouping) => (
-                    <SelectItem key={grouping} value={grouping}>
-                      {grouping}
+                  {streamOptions.map((stream) => (
+                    <SelectItem key={stream} value={stream}>
+                      {stream}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -181,6 +291,8 @@ export const MedicalAcademicInfoForm = ({ data, onUpdate, validationErrors = [] 
                 placeholder="Enter your 10th percentage"
                 value={data.tenthMarks || ''}
                 onChange={(e) => handlePercentageChange('tenthMarks', e.target.value)}
+                onKeyDown={preventInvalidChars}
+                onPaste={preventInvalidPaste}
                 className={getFieldClassName('10th Grade Marks', "h-10 rounded-xl border-2 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none")}
                 min="0"
                 max="100"
@@ -198,6 +310,8 @@ export const MedicalAcademicInfoForm = ({ data, onUpdate, validationErrors = [] 
                 placeholder="Enter your 12th percentage"
                 value={data.twelfthMarks || ''}
                 onChange={(e) => handlePercentageChange('twelfthMarks', e.target.value)}
+                onKeyDown={preventInvalidChars}
+                onPaste={preventInvalidPaste}
                 className={getFieldClassName('12th Grade Marks', "h-10 rounded-xl border-2 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none")}
                 min="0"
                 max="100"
@@ -215,6 +329,8 @@ export const MedicalAcademicInfoForm = ({ data, onUpdate, validationErrors = [] 
                 placeholder="Enter PCB marks"
                 value={data.groupingMarks || ''}
                 onChange={(e) => handlePercentageChange('groupingMarks', e.target.value)}
+                onKeyDown={preventInvalidChars}
+                onPaste={preventInvalidPaste}
                 className={getFieldClassName('Grouping Marks', "h-10 rounded-xl border-2 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none")}
                 min="0"
                 max="100"
@@ -239,6 +355,8 @@ export const MedicalAcademicInfoForm = ({ data, onUpdate, validationErrors = [] 
                   placeholder="Your NEET percentile (0-100)"
                   value={data.neetPercentile || ''}
                   onChange={(e) => handlePercentageChange('neetPercentile', e.target.value)}
+                  onKeyDown={preventInvalidChars}
+                  onPaste={preventInvalidPaste}
                   className={getFieldClassName('NEET Percentile', "h-10 rounded-xl border-2 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none")}
                   min="0"
                   max="100"
@@ -256,6 +374,8 @@ export const MedicalAcademicInfoForm = ({ data, onUpdate, validationErrors = [] 
                   placeholder="Your NEET AIR"
                   value={data.neetAllIndiaRank || ''}
                   onChange={(e) => handleRankChange('neetAllIndiaRank', e.target.value)}
+                  onKeyDown={preventInvalidCharsInteger}
+                  onPaste={preventInvalidPasteInteger}
                   className={getFieldClassName('All India Rank', "h-10 rounded-xl border-2 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none")}
                   min="1"
                 />
@@ -268,10 +388,15 @@ export const MedicalAcademicInfoForm = ({ data, onUpdate, validationErrors = [] 
                   {isFieldError('NEET Roll Number') && <AlertCircle size={14} className="text-red-500" />}
                 </Label>
                 <Input
-                  placeholder="Enter your NEET roll number"
+                  type="number"
+                  placeholder="10-digit NEET Roll Number"
                   value={data.neetRollNumber || ''}
-                  onChange={(e) => handleChange('neetRollNumber', e.target.value)}
-                  className={getFieldClassName('NEET Roll Number', "h-10 rounded-xl border-2 bg-white")}
+                  onChange={(e) => handleRollNumberChange(e.target.value)}
+                  onKeyDown={preventInvalidCharsInteger}
+                  onPaste={preventInvalidPasteInteger}
+                  className={getFieldClassName('NEET Roll Number', "h-10 rounded-xl border-2 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none")}
+                  min="1000000000"
+                  max="9999999999"
                 />
               </div>
 
