@@ -113,7 +113,7 @@ export const useMedicalRecommendation = () => {
           },
           preferences: {
             medicalPrograms: formData.preferredMedicalPrograms || [],
-            preferredCities: formData.preferredCities || []
+            preferredCities: formData.preferredCities && formData.preferredCities.length > 0 ? formData.preferredCities : ["ALL"]
           },
           campusFacilitiesEnvironment: {
             hostelFacility: formData.hostelPreference,
