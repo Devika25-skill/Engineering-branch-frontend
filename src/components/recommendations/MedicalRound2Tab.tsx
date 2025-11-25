@@ -112,6 +112,12 @@ export const MedicalRound2Tab = () => {
         setSelectedPrograms(savedFormData.preferredMedicalPrograms || []);
         setSelectedCities(savedFormData.preferredCities || []);
         setShowPreferences(true);
+        
+        // Auto-expand and enable editing if no recommendations generated yet
+        if (!cachedRound2 && (!savedFormData.preferredMedicalPrograms || savedFormData.preferredMedicalPrograms.length === 0 || (savedFormData.preferredMedicalPrograms.length === 1 && savedFormData.preferredMedicalPrograms[0] === 'ALL'))) {
+          setIsPreferencesCardCollapsed(false);
+          setEditingPreferences(true);
+        }
       }
     };
 
@@ -465,7 +471,7 @@ export const MedicalRound2Tab = () => {
             </CardTitle>
           </CardHeader>
           {!isPreferencesCardCollapsed && (
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4" onClick={(e) => e.stopPropagation()}>
               {editingPreferences ? (
                 <div className="space-y-6">
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
