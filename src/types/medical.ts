@@ -21,8 +21,7 @@ export type Gender = "M" | "F" | "O";
 // Academic Stream
 export type Stream = 
   | "PCB (Physics, Chemistry, Biology)"
-  | "PCMB (Physics, Chemistry, Mathematics, Biology)"
-  | "PCM (Physics, Chemistry, Mathematics)";
+  | "PCMB (Physics, Chemistry, Mathematics, Biology)";
 
 // Maharashtra Reservation Categories
 export type ReservationCategory = 

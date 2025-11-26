@@ -176,8 +176,7 @@ export const MedicalAcademicInfoForm = ({ data, onUpdate, validationErrors = [] 
   // Stream options from medical.ts Stream type
   const streamOptions: Stream[] = [
     "PCB (Physics, Chemistry, Biology)",
-    "PCMB (Physics, Chemistry, Mathematics, Biology)",
-    "PCM (Physics, Chemistry, Mathematics)"
+    "PCMB (Physics, Chemistry, Mathematics, Biology)"
   ];
 
   // Gender options
