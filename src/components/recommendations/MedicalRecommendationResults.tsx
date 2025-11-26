@@ -71,10 +71,10 @@ export const MedicalRecommendationResults = ({
   formData,
   paymentData
 }: MedicalRecommendationResultsProps) => {
-  // Initialize with Round 2 as default and persist selection
+  // Initialize with Round 1 as default and persist selection
   const [activeRound, setActiveRound] = useState<string>(() => {
     const savedRound = localStorage.getItem('activeRoundTab');
-    return savedRound || 'round2'; // Default to Round 2
+    return savedRound || 'round1'; // Default to Round 1
   });
   
   const [isUnlocked, setIsUnlocked] = useState(false);
