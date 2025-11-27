@@ -13,23 +13,144 @@ interface RecommendationHistory {
 
 class RecommendationStorageService {
   private static STORAGE_KEY = 'recommendation_data';
-  private static FORM_KEY = 'recommendation_form_data';
   private static MAX_HISTORY = 10;
+  
+  // Separate storage keys for each step
+  private static MEDICAL_ACADEMIC_KEY = 'medical_academic_details';
+  private static MEDICAL_PREFERENCES_KEY = 'medical_preferences';
+  private static MEDICAL_PRIORITIES_KEY = 'medical_priorities';
+  private static ENGINEERING_ACADEMIC_KEY = 'engineering_academic_details';
+  private static ENGINEERING_PREFERENCES_KEY = 'engineering_preferences';
+  private static ENGINEERING_PRIORITIES_KEY = 'engineering_priorities';
 
-  // Save current form data
+  // Determine if current recommendation is medical
+  private isMedicalRecommendation(): boolean {
+    return localStorage.getItem('recommendation_type') === 'First_Year_Medical';
+  }
+
+  // Save academic details
+  saveAcademicDetails(data: any): void {
+    try {
+      const key = this.isMedicalRecommendation() 
+        ? RecommendationStorageService.MEDICAL_ACADEMIC_KEY
+        : RecommendationStorageService.ENGINEERING_ACADEMIC_KEY;
+      sessionStorage.setItem(key, JSON.stringify(data));
+    } catch (error) {
+      console.error('Failed to save academic details:', error);
+    }
+  }
+
+  // Get academic details
+  getAcademicDetails(): any | null {
+    try {
+      const key = this.isMedicalRecommendation()
+        ? RecommendationStorageService.MEDICAL_ACADEMIC_KEY
+        : RecommendationStorageService.ENGINEERING_ACADEMIC_KEY;
+      const stored = sessionStorage.getItem(key);
+      return stored ? JSON.parse(stored) : null;
+    } catch (error) {
+      console.error('Failed to get academic details:', error);
+      return null;
+    }
+  }
+
+  // Save preferences
+  savePreferences(data: any): void {
+    try {
+      const key = this.isMedicalRecommendation()
+        ? RecommendationStorageService.MEDICAL_PREFERENCES_KEY
+        : RecommendationStorageService.ENGINEERING_PREFERENCES_KEY;
+      sessionStorage.setItem(key, JSON.stringify(data));
+    } catch (error) {
+      console.error('Failed to save preferences:', error);
+    }
+  }
+
+  // Get preferences
+  getPreferences(): any | null {
+    try {
+      const key = this.isMedicalRecommendation()
+        ? RecommendationStorageService.MEDICAL_PREFERENCES_KEY
+        : RecommendationStorageService.ENGINEERING_PREFERENCES_KEY;
+      const stored = sessionStorage.getItem(key);
+      return stored ? JSON.parse(stored) : null;
+    } catch (error) {
+      console.error('Failed to get preferences:', error);
+      return null;
+    }
+  }
+
+  // Save priorities
+  savePriorities(data: any): void {
+    try {
+      const key = this.isMedicalRecommendation()
+        ? RecommendationStorageService.MEDICAL_PRIORITIES_KEY
+        : RecommendationStorageService.ENGINEERING_PRIORITIES_KEY;
+      sessionStorage.setItem(key, JSON.stringify(data));
+    } catch (error) {
+      console.error('Failed to save priorities:', error);
+    }
+  }
+
+  // Get priorities
+  getPriorities(): any | null {
+    try {
+      const key = this.isMedicalRecommendation()
+        ? RecommendationStorageService.MEDICAL_PRIORITIES_KEY
+        : RecommendationStorageService.ENGINEERING_PRIORITIES_KEY;
+      const stored = sessionStorage.getItem(key);
+      return stored ? JSON.parse(stored) : null;
+    } catch (error) {
+      console.error('Failed to get priorities:', error);
+      return null;
+    }
+  }
+
+  // Save complete form data (combines all steps)
   saveFormData(formData: any): void {
     try {
-      sessionStorage.setItem(RecommendationStorageService.FORM_KEY, JSON.stringify(formData));
+      const academicFields = ['tenthMarks', 'twelfthMarks', 'groupingMarks', 'reservationCategory', 
+        'grouping', 'cetPercentile', 'jeePercentile', 'neetPercentile', 'neetAllIndiaRank', 
+        'neetRollNumber', 'gender', 'otherExamName', 'otherExamPercentile', 'sportsAchievements',
+        'certifications', 'internships', 'otherAchievements'];
+      
+      const preferencesFields = ['preferredStreams', 'preferredMedicalPrograms', 'preferredCities',
+        'hostelPreference', 'campusSetting', 'transportFacility'];
+      
+      const prioritiesFields = ['maxBudget', 'collegeTypes', 'priorities', 'wifiTechInfrastructure',
+        'coCurricularActivities'];
+
+      // Extract and save each section separately
+      const academicData: any = {};
+      const preferencesData: any = {};
+      const prioritiesData: any = {};
+
+      Object.keys(formData).forEach(key => {
+        if (academicFields.includes(key)) {
+          academicData[key] = formData[key];
+        } else if (preferencesFields.includes(key)) {
+          preferencesData[key] = formData[key];
+        } else if (prioritiesFields.includes(key)) {
+          prioritiesData[key] = formData[key];
+        }
+      });
+
+      this.saveAcademicDetails(academicData);
+      this.savePreferences(preferencesData);
+      this.savePriorities(prioritiesData);
     } catch (error) {
       console.error('Failed to save form data:', error);
     }
   }
 
-  // Get current form data
+  // Get complete form data (combines all steps)
   getFormData(): any | null {
     try {
-      const stored = sessionStorage.getItem(RecommendationStorageService.FORM_KEY);
-      return stored ? JSON.parse(stored) : null;
+      const academic = this.getAcademicDetails() || {};
+      const preferences = this.getPreferences() || {};
+      const priorities = this.getPriorities() || {};
+      
+      return { ...academic, ...preferences, ...priorities };
     } catch (error) {
       console.error('Failed to get form data:', error);
       return null;
@@ -101,7 +222,12 @@ class RecommendationStorageService {
   // Clear form data
   clearFormData(): void {
     try {
-      sessionStorage.removeItem(RecommendationStorageService.FORM_KEY);
+      sessionStorage.removeItem(RecommendationStorageService.MEDICAL_ACADEMIC_KEY);
+      sessionStorage.removeItem(RecommendationStorageService.MEDICAL_PREFERENCES_KEY);
+      sessionStorage.removeItem(RecommendationStorageService.MEDICAL_PRIORITIES_KEY);
+      sessionStorage.removeItem(RecommendationStorageService.ENGINEERING_ACADEMIC_KEY);
+      sessionStorage.removeItem(RecommendationStorageService.ENGINEERING_PREFERENCES_KEY);
+      sessionStorage.removeItem(RecommendationStorageService.ENGINEERING_PRIORITIES_KEY);
     } catch (error) {
       console.error('Failed to clear form data:', error);
     }
