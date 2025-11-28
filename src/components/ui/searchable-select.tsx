@@ -53,7 +53,7 @@ export function SearchableSelect({
           variant="outline"
           role="combobox"
           onClick={() => setOpen(true)}
-          className={cn("justify-between h-12 rounded-xl border-2 bg-background w-full text-left", className)}
+          className={cn("justify-between h-12 rounded-xl border-2 bg-white hover:bg-accent hover:text-accent-foreground transition-colors w-full text-left", className)}
         >
           <span className="truncate">{selectedOption?.label || placeholder}</span>
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -113,7 +113,7 @@ export function SearchableSelect({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className={cn("justify-between h-12 rounded-xl border-2 bg-background w-full text-left", className)}
+          className={cn("justify-between h-12 rounded-xl border-2 bg-white hover:bg-accent hover:text-accent-foreground transition-colors w-full text-left", className)}
         >
           <span className="truncate">{selectedOption?.label || placeholder}</span>
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
