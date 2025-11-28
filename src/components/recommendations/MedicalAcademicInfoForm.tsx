@@ -418,14 +418,10 @@ export const MedicalAcademicInfoForm = ({ data, onUpdate, validationErrors = [] 
                 </Label>
                 <Input
                   type="number"
-                  placeholder="Your score in another exam"
-                  value={data.otherExamScore || ''}
-                  onChange={(e) => handlePercentageChange('otherExamScore', e.target.value)}
-                  onKeyDown={preventInvalidChars}
-                  onPaste={preventInvalidPaste}
+                  placeholder="Your score/percentile"
+                  value={data.otherExamPercentile || ''}
+                  onChange={(e) => handleChange('otherExamPercentile', parseFloat(e.target.value) || undefined)}
                   className="h-10 rounded-xl border-2 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                  min="0"
-                  max="100"
                 />
               </div>
             </div>
