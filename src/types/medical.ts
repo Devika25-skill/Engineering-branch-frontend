@@ -153,7 +153,23 @@ export interface FetchMedicalDetailsResponse {
 // Generate Medical Recommendations Request
 export interface GenerateMedicalRecommendationsRequest {
   round: Round;
+  last_round_college_choice_code?: number;
   medical_configuration_request: StoreMedicalConfigRequest;
+}
+
+// Medical College Search Types
+export interface MedicalCollegeSearchByNameRequest {
+  college_name: string;
+}
+
+export interface MedicalCollegeSearchByCodeRequest {
+  college_code: number;
+}
+
+export interface MedicalCollegeSearchResponse {
+  message: string;
+  success: boolean;
+  data: MedicalCollegeData | MedicalCollegeData[];
 }
 
 // Medical College Data

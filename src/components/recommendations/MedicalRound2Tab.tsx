@@ -13,6 +13,7 @@ import { Round2Disclaimer } from './Round2Disclaimer';
 import { usePdfDownloadMedical } from "@/hooks/usePdfDownloadMedical";
 import { NoResultsState } from './NoResultsState';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+import { MedicalCollegeSelectionCard } from './MedicalCollegeSelectionCard';
 import type { MedicalProgram, StoreMedicalConfigRequest, Gender, CollegeTypePreference, PriorityFactor } from '@/types/medical';
 
 export const MedicalRound2Tab = () => {
@@ -31,6 +32,29 @@ export const MedicalRound2Tab = () => {
   const [isUpdatingPreferences, setIsUpdatingPreferences] = useState(false);
   const [showPreferences, setShowPreferences] = useState(false);
   const [formData, setFormData] = useState<any>(null);
+  const [showCollegeSelection, setShowCollegeSelection] = useState(false);
+  const [selectedCollege, setSelectedCollege] = useState<any>(null);
+
+  const handleCollegeSelect = (college: any) => {
+    setSelectedCollege(college);
+    setShowCollegeSelection(false);
+    
+    // Save selected college to localStorage
+    localStorage.setItem('medicalRound2SelectedCollege', JSON.stringify(college));
+    
+    toast({
+      title: "College Selected",
+      description: `Selected ${college.college_name} for Round 2 recommendations`,
+    });
+  };
+
+  const handleSkipSelection = () => {
+    setShowCollegeSelection(false);
+  };
+
+  const handleChangeCollege = () => {
+    setShowCollegeSelection(true);
+  };
 
   // Convert API response to recommendation format
   const convertApiResponseToRecommendations = (apiData: any) => {
@@ -105,6 +129,18 @@ export const MedicalRound2Tab = () => {
         }
       }
 
+      // Load selected college
+      const storedCollege = localStorage.getItem('medicalRound2SelectedCollege');
+      if (storedCollege) {
+        try {
+          const parsedCollege = JSON.parse(storedCollege);
+          setSelectedCollege(parsedCollege);
+        } catch (error) {
+          console.error('Error loading selected college:', error);
+          localStorage.removeItem('medicalRound2SelectedCollege');
+        }
+      }
+
       // Load form data and preferences
       const savedFormData = recommendationStorage.getFormData();
       if (savedFormData) {
@@ -146,6 +182,17 @@ export const MedicalRound2Tab = () => {
       return;
     }
 
+    // Check if college is selected for Round 2
+    if (!selectedCollege) {
+      toast({
+        title: "College Selection Required",
+        description: "Please select your Round 1 allotted college to proceed",
+        variant: "destructive"
+      });
+      setShowCollegeSelection(true);
+      return;
+    }
+
     const savedFormData = recommendationStorage.getFormData();
     if (!savedFormData) {
       toast({
@@ -159,9 +206,10 @@ export const MedicalRound2Tab = () => {
     setIsGeneratingRecommendations(true);
 
     try {
-      // Transform form data to API format (same as Round 1)
+      // Transform form data to API format with college choice code
       const payload = {
         round: 2 as 2,
+        last_round_college_choice_code: selectedCollege.college_code,
         medical_configuration_request: {
           username: user.email,
           gender: savedFormData.gender || 'M',
@@ -252,6 +300,8 @@ export const MedicalRound2Tab = () => {
     sessionStorage.removeItem('cachedMedicalRound2Recommendations');
     setHasGeneratedRecommendations(false);
     setEditingPreferences(false);
+    setSelectedCollege(null);
+    localStorage.removeItem('medicalRound2SelectedCollege');
     toast({
       title: "Recommendations Reset",
       description: "You can now generate new Round 2 recommendations.",
@@ -493,6 +543,39 @@ export const MedicalRound2Tab = () => {
   return (
     <div className="space-y-6">
       <Round2Disclaimer />
+
+      {/* College Selection Card */}
+      {showCollegeSelection ? (
+        <MedicalCollegeSelectionCard
+          onCollegeSelect={handleCollegeSelect}
+          onSkip={handleSkipSelection}
+          token={user?.accessToken || ''}
+        />
+      ) : selectedCollege ? (
+        <Card className="border-2 border-green-300 bg-gradient-to-br from-green-50 to-emerald-50">
+          <CardHeader>
+            <CardTitle className="text-lg text-green-800 flex items-center justify-between">
+              <span>Selected Round 1 College</span>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={handleChangeCollege}
+                className="text-blue-600 border-blue-300 hover:bg-blue-100"
+              >
+                Change College
+              </Button>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              <p className="font-semibold text-slate-800">{selectedCollege.college_name}</p>
+              <p className="text-sm text-slate-600">Code: {selectedCollege.college_code}</p>
+              <p className="text-sm text-slate-600">City: {selectedCollege.city}</p>
+              <p className="text-sm text-slate-600">Course: {selectedCollege.course_type}</p>
+            </div>
+          </CardContent>
+        </Card>
+      ) : null}
 
       {/* Round 2 Preferences */}
       {showPreferences && (

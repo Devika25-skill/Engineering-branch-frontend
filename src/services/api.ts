@@ -1061,6 +1061,27 @@ class ApiService {
       body: JSON.stringify(payload),
     });
   }
+
+  // Medical College Search Methods
+  async searchMedicalCollegeByName(collegeName: string, token: string): Promise<any> {
+    return this.request<any>(`/api/v1/medical/college/search/name?college_name=${encodeURIComponent(collegeName)}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/json',
+      },
+    });
+  }
+
+  async searchMedicalCollegeByCode(collegeCode: number, token: string): Promise<any> {
+    return this.request<any>(`/api/v1/medical/college/search/code?college_code=${collegeCode}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/json',
+      },
+    });
+  }
 }
 
 export const apiService = new ApiService();
