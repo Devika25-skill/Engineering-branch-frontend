@@ -99,9 +99,9 @@ export const useMedicalRecommendation = () => {
             NEETPercentile: Number(formData.neetPercentile.toFixed(2)),
             NEETAllIndiaRank: formData.neetAllIndiaRank,
             NEETRollNumber: formData.neetRollNumber,
-            otherEntranceExam: formData.otherExamName && formData.otherExamPercentile ? [{
+            otherEntranceExam: formData.otherExamName && formData.percentileOrScore ? [{
               examName: formData.otherExamName,
-              percentileOrScore: Number(formData.otherExamPercentile)
+              percentileOrScore: Number(formData.percentileOrScore)
             }] : undefined
           },
           reservationCategory: formData.reservationCategory,
