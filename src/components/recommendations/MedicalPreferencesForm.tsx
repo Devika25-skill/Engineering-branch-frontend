@@ -170,7 +170,7 @@ export const MedicalPreferencesForm = ({ data, onUpdate, validationErrors = [] }
               </SelectTrigger>
               <SelectContent className="max-h-80">
                 {availablePrograms.filter(program => !selectedPrograms.includes(program)).map((program) => (
-                  <SelectItem key={program} value={program} className="hover:bg-purple-50 focus:bg-purple-50">
+                  <SelectItem key={program} value={program}>
                     {program}
                   </SelectItem>
                 ))}
@@ -269,7 +269,7 @@ export const MedicalPreferencesForm = ({ data, onUpdate, validationErrors = [] }
                 </SelectTrigger>
                 <SelectContent className="max-h-80">
                   {availableCities.filter(city => !selectedCities.includes(city)).map((city) => (
-                    <SelectItem key={city} value={city} className="hover:bg-purple-50 focus:bg-purple-50">
+                    <SelectItem key={city} value={city}>
                       {city}
                     </SelectItem>
                   ))}
