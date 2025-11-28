@@ -193,7 +193,7 @@ export const MedicalPreferencesForm = ({ data, onUpdate, validationErrors = [] }
                                 <div
                                   ref={provided.innerRef}
                                   {...provided.draggableProps}
-                                  className="flex items-center gap-3 p-3 bg-gradient-to-r from-purple-100 to-pink-100 rounded-xl border shadow-sm hover:shadow-md hover:scale-[1.02] transition-all cursor-move"
+                                  className="flex items-center gap-3 p-3 bg-gradient-to-r from-purple-100 to-pink-100 rounded-xl border shadow-sm hover:shadow-md transition-all"
                                 >
                                   <div {...provided.dragHandleProps}>
                                     <GripVertical size={16} className="text-slate-400 hover:text-slate-600" />
@@ -293,7 +293,7 @@ export const MedicalPreferencesForm = ({ data, onUpdate, validationErrors = [] }
                                 <div
                                   ref={provided.innerRef}
                                   {...provided.draggableProps}
-                                  className="flex items-center gap-3 p-3 bg-gradient-to-r from-green-100 to-emerald-100 rounded-xl border shadow-sm hover:shadow-md hover:scale-[1.02] transition-all cursor-move"
+                                  className="flex items-center gap-3 p-3 bg-gradient-to-r from-green-100 to-emerald-100 rounded-xl border shadow-sm hover:shadow-md transition-all"
                                 >
                                   <div {...provided.dragHandleProps}>
                                     <GripVertical size={16} className="text-slate-400 hover:text-slate-600" />
