@@ -245,16 +245,19 @@ export const MedicalPreferencesForm = ({ data, onUpdate, validationErrors = [] }
           <CardContent className="space-y-6">
             {availableCities.length > 10 ? (
               <div className={selectedCities.length >= 3 || selectedCities.includes("ALL") ? 'opacity-50 pointer-events-none' : ''}>
-                <SearchableSelect
-                  options={availableCities
-                    .filter(city => !selectedCities.includes(city))
-                    .map(city => ({ value: city, label: city }))}
-                  value=""
-                  onValueChange={addCity}
-                  placeholder={selectedCities.includes("ALL") ? "ALL cities selected" : selectedCities.length >= 3 ? "Maximum 3 cities selected" : "Add cities you'd love to study in"}
-                  searchPlaceholder="Search cities..."
-                  className="w-full"
-                />
+                <div className="relative">
+                  <Plus size={16} className="text-green-600 absolute left-4 top-1/2 -translate-y-1/2 z-10 pointer-events-none" />
+                  <SearchableSelect
+                    options={availableCities
+                      .filter(city => !selectedCities.includes(city))
+                      .map(city => ({ value: city, label: city }))}
+                    value=""
+                    onValueChange={addCity}
+                    placeholder={selectedCities.includes("ALL") ? "ALL cities selected" : selectedCities.length >= 3 ? "Maximum 3 cities selected" : "Add cities you'd love to study in"}
+                    searchPlaceholder="Search cities..."
+                    className="pl-10 hover:bg-accent hover:text-accent-foreground transition-colors"
+                  />
+                </div>
               </div>
             ) : (
               <Select 
