@@ -83,8 +83,18 @@ export const MedicalPreferencesForm = ({ data, onUpdate, validationErrors = [] }
   }, [selectedPrograms, selectedCities, data.hostelPreference, data.campusSetting, data.transportFacility]);
 
   const addProgram = (program: string) => {
-    if (selectedPrograms.length < 3 && !selectedPrograms.includes(program)) {
-      setSelectedPrograms([...selectedPrograms, program]);
+    if (program === "ALL") {
+      // If ALL is selected, clear other selections and set only ALL
+      setSelectedPrograms(["ALL"]);
+    } else {
+      // If adding a non-ALL program
+      if (selectedPrograms.includes("ALL")) {
+        // If ALL is already selected, remove it and add the new program
+        setSelectedPrograms([program]);
+      } else if (selectedPrograms.length < 3 && !selectedPrograms.includes(program)) {
+        // Normal add logic
+        setSelectedPrograms([...selectedPrograms, program]);
+      }
     }
   };
 
@@ -93,8 +103,18 @@ export const MedicalPreferencesForm = ({ data, onUpdate, validationErrors = [] }
   };
 
   const addCity = (city: string) => {
-    if (selectedCities.length < 3 && !selectedCities.includes(city)) {
-      setSelectedCities([...selectedCities, city]);
+    if (city === "ALL") {
+      // If ALL is selected, clear other selections and set only ALL
+      setSelectedCities(["ALL"]);
+    } else {
+      // If adding a non-ALL city
+      if (selectedCities.includes("ALL")) {
+        // If ALL is already selected, remove it and add the new city
+        setSelectedCities([city]);
+      } else if (selectedCities.length < 3 && !selectedCities.includes(city)) {
+        // Normal add logic
+        setSelectedCities([...selectedCities, city]);
+      }
     }
   };
 
@@ -140,12 +160,12 @@ export const MedicalPreferencesForm = ({ data, onUpdate, validationErrors = [] }
           <CardContent className="space-y-6">
             <Select 
               onValueChange={addProgram}
-              disabled={selectedPrograms.length >= 3}
+              disabled={selectedPrograms.length >= 3 || selectedPrograms.includes("ALL")}
             >
               <SelectTrigger className="h-12 rounded-xl border-2 bg-white">
                 <div className="flex items-center gap-2">
                   <Plus size={16} className="text-purple-600" />
-                  <SelectValue placeholder={selectedPrograms.length >= 3 ? "Maximum 3 programs selected" : "Add your preferred medical programs"} />
+                  <SelectValue placeholder={selectedPrograms.includes("ALL") ? "ALL programs selected" : selectedPrograms.length >= 3 ? "Maximum 3 programs selected" : "Add your preferred medical programs"} />
                 </div>
               </SelectTrigger>
               <SelectContent className="max-h-80">
@@ -224,27 +244,29 @@ export const MedicalPreferencesForm = ({ data, onUpdate, validationErrors = [] }
           </CardHeader>
           <CardContent className="space-y-6">
             {availableCities.length > 10 ? (
-              <div className={selectedCities.length >= 3 ? 'opacity-50 pointer-events-none' : ''}>
+              <div className="relative">
+                <Plus size={16} className="text-green-600 absolute left-4 top-1/2 -translate-y-1/2 z-10 pointer-events-none" />
                 <SearchableSelect
                   options={availableCities
                     .filter(city => !selectedCities.includes(city))
                     .map(city => ({ value: city, label: city }))}
                   value=""
                   onValueChange={addCity}
-                  placeholder={selectedCities.length >= 3 ? "Maximum 3 cities selected" : "Add cities you'd love to study in"}
+                  placeholder={selectedCities.includes("ALL") ? "ALL cities selected" : selectedCities.length >= 3 ? "Maximum 3 cities selected" : "Add cities you'd love to study in"}
                   searchPlaceholder="Search cities..."
-                  className="w-full"
+                  className="pl-10"
+                  disabled={selectedCities.length >= 3 || selectedCities.includes("ALL")}
                 />
               </div>
             ) : (
               <Select 
                 onValueChange={addCity}
-                disabled={selectedCities.length >= 3}
+                disabled={selectedCities.length >= 3 || selectedCities.includes("ALL")}
               >
                 <SelectTrigger className="h-12 rounded-xl border-2 bg-white">
                   <div className="flex items-center gap-2">
                     <Plus size={16} className="text-green-600" />
-                    <SelectValue placeholder={selectedCities.length >= 3 ? "Maximum 3 cities selected" : "Add cities you'd love to study in"} />
+                    <SelectValue placeholder={selectedCities.includes("ALL") ? "ALL cities selected" : selectedCities.length >= 3 ? "Maximum 3 cities selected" : "Add cities you'd love to study in"} />
                   </div>
                 </SelectTrigger>
                 <SelectContent className="max-h-80">

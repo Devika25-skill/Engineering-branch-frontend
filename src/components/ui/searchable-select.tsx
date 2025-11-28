@@ -1,5 +1,5 @@
 import * as React from "react"
-import { Check, ChevronsUpDown, Search } from "lucide-react"
+import { Check, ChevronsUpDown, Search, Ban } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import {
@@ -30,6 +30,7 @@ interface SearchableSelectProps {
   placeholder?: string
   searchPlaceholder?: string
   className?: string
+  disabled?: boolean
 }
 
 export function SearchableSelect({
@@ -38,7 +39,8 @@ export function SearchableSelect({
   onValueChange,
   placeholder = "Select option...",
   searchPlaceholder = "Search...",
-  className
+  className,
+  disabled = false
 }: SearchableSelectProps) {
   const [open, setOpen] = React.useState(false)
   const isMobile = useIsMobile()
@@ -52,11 +54,16 @@ export function SearchableSelect({
           type="button"
           variant="outline"
           role="combobox"
-          onClick={() => setOpen(true)}
-          className={cn("justify-between h-12 rounded-xl border-2 bg-background w-full text-left", className)}
+          onClick={() => !disabled && setOpen(true)}
+          disabled={disabled}
+          className={cn("justify-between h-12 rounded-xl border-2 bg-white hover:bg-accent hover:text-accent-foreground transition-colors w-full text-left", className)}
         >
           <span className="truncate">{selectedOption?.label || placeholder}</span>
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          {disabled ? (
+            <Ban className="ml-2 h-4 w-4 shrink-0 text-red-500" />
+          ) : (
+            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          )}
         </Button>
         
         <Dialog open={open} onOpenChange={setOpen}>
@@ -83,7 +90,7 @@ export function SearchableSelect({
                           onValueChange(currentValue === value ? "" : currentValue)
                           setOpen(false)
                         }}
-                        className="cursor-pointer py-3 px-2 rounded-lg mx-1 my-0.5"
+                        className="cursor-pointer py-3 px-2 rounded-lg mx-1 my-0.5 hover:bg-accent hover:text-accent-foreground transition-colors"
                       >
                         <Check
                           className={cn(
@@ -113,10 +120,15 @@ export function SearchableSelect({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className={cn("justify-between h-12 rounded-xl border-2 bg-background w-full text-left", className)}
+          disabled={disabled}
+          className={cn("justify-between h-12 rounded-xl border-2 bg-white hover:bg-accent hover:text-accent-foreground transition-colors w-full text-left", className)}
         >
           <span className="truncate">{selectedOption?.label || placeholder}</span>
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          {disabled ? (
+            <Ban className="ml-2 h-4 w-4 shrink-0 text-red-500" />
+          ) : (
+            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          )}
         </Button>
       </PopoverTrigger>
       <PopoverContent 
@@ -138,7 +150,7 @@ export function SearchableSelect({
                     onValueChange(currentValue === value ? "" : currentValue)
                     setOpen(false)
                   }}
-                  className="cursor-pointer"
+                  className="cursor-pointer hover:bg-accent hover:text-accent-foreground transition-colors"
                 >
                   <Check
                     className={cn(
