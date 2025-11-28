@@ -401,7 +401,9 @@ export const MedicalAcademicInfoForm = ({ data, onUpdate, validationErrors = [] 
               </div>
 
               <div className="space-y-2">
-                <Label className="text-slate-600 font-medium text-sm">Another Exam Name <span className="text-xs text-slate-500">(Optional)</span></Label>
+                <Label className="flex items-center gap-2 text-slate-700 font-semibold text-sm">
+                  Another Exam Name <span className="text-xs text-slate-500 font-normal">(Optional)</span>
+                </Label>
                 <Input
                   placeholder="e.g., AIIMS, JIPMER"
                   value={data.otherExamName || ''}
@@ -411,7 +413,9 @@ export const MedicalAcademicInfoForm = ({ data, onUpdate, validationErrors = [] 
               </div>
 
               <div className="space-y-2">
-                <Label className="text-slate-600 font-medium text-sm">Another Exam Score <span className="text-xs text-slate-500">(Optional)</span></Label>
+                <Label className="flex items-center gap-2 text-slate-700 font-semibold text-sm">
+                  Another Exam Score <span className="text-xs text-slate-500 font-normal">(Optional)</span>
+                </Label>
                 <Input
                   type="number"
                   placeholder="Your score in another exam"
