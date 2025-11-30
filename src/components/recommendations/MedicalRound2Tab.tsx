@@ -488,8 +488,18 @@ export const MedicalRound2Tab = () => {
 
   // Helper functions for PreferencesForm layout
   const addProgram = (program: string) => {
-    if (!selectedPrograms.includes(program)) {
-      setSelectedPrograms([...selectedPrograms, program]);
+    if (program === "ALL") {
+      // If ALL is selected, clear other selections and set only ALL
+      setSelectedPrograms(["ALL"]);
+    } else {
+      // If adding a non-ALL program
+      if (selectedPrograms.includes("ALL")) {
+        // If ALL is already selected, remove it and add the new program
+        setSelectedPrograms([program]);
+      } else if (selectedPrograms.length < 3 && !selectedPrograms.includes(program)) {
+        // Normal add logic
+        setSelectedPrograms([...selectedPrograms, program]);
+      }
     }
   };
 
@@ -498,8 +508,18 @@ export const MedicalRound2Tab = () => {
   };
 
   const addCity = (city: string) => {
-    if (!selectedCities.includes(city)) {
-      setSelectedCities([...selectedCities, city]);
+    if (city === "ALL") {
+      // If ALL is selected, clear other selections and set only ALL
+      setSelectedCities(["ALL"]);
+    } else {
+      // If adding a non-ALL city
+      if (selectedCities.includes("ALL")) {
+        // If ALL is already selected, remove it and add the new city
+        setSelectedCities([city]);
+      } else if (selectedCities.length < 3 && !selectedCities.includes(city)) {
+        // Normal add logic
+        setSelectedCities([...selectedCities, city]);
+      }
     }
   };
 
@@ -863,9 +883,10 @@ export const MedicalRound2Tab = () => {
                             .map(program => ({ value: program, label: program }))}
                           value=""
                           onValueChange={addProgram}
-                          placeholder="Add your preferred medical programs"
+                          placeholder={selectedPrograms.includes("ALL") ? "ALL programs selected" : selectedPrograms.length >= 3 ? "Maximum 3 programs selected" : "Add your preferred medical programs"}
                           searchPlaceholder="Search programs..."
                           className="w-full"
+                          disabled={selectedPrograms.length >= 3 || selectedPrograms.includes("ALL")}
                         />
 
                         {selectedPrograms.length > 0 ? (
@@ -939,9 +960,10 @@ export const MedicalRound2Tab = () => {
                             .map(city => ({ value: city, label: city }))}
                           value=""
                           onValueChange={addCity}
-                          placeholder="Add cities you'd love to study in"
+                          placeholder={selectedCities.includes("ALL") ? "ALL cities selected" : selectedCities.length >= 3 ? "Maximum 3 cities selected" : "Add cities you'd love to study in"}
                           searchPlaceholder="Search cities..."
                           className="w-full"
+                          disabled={selectedCities.length >= 3 || selectedCities.includes("ALL")}
                         />
 
                         {selectedCities.length > 0 ? (
