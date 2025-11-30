@@ -3,17 +3,18 @@ import { useAuth } from '@/contexts/AuthContext';
 import { apiService } from '@/services/api';
 import { recommendationStorage } from '@/services/recommendationStorage';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { SearchableSelect } from '@/components/ui/searchable-select';
 import { useToast } from '@/hooks/use-toast';
-import { Lock, ChevronDown, ChevronUp, MapPin, Users, TrendingUp, Loader2, Download, Sparkles, BookOpen, X, GripVertical } from 'lucide-react';
+import { Search, Plus, ChevronDown, ChevronUp, MapPin, Users, TrendingUp, Loader2, Download, Sparkles, BookOpen, X, GripVertical } from 'lucide-react';
 import { Round2Disclaimer } from './Round2Disclaimer';
 import { usePdfDownloadMedical } from "@/hooks/usePdfDownloadMedical";
 import { NoResultsState } from './NoResultsState';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
-import { MedicalCollegeSelectionCard } from './MedicalCollegeSelectionCard';
 import { PremiumGate } from './PremiumGate';
 import type { MedicalProgram, StoreMedicalConfigRequest, Gender, CollegeTypePreference, PriorityFactor } from '@/types/medical';
 
@@ -22,10 +23,19 @@ export const MedicalRound2Tab = () => {
   const { toast } = useToast();
   const { generatePDF, isGenerating: isPdfGenerating } = usePdfDownloadMedical();
   
+  // Search-related state
+  const [searchType, setSearchType] = useState<'college_name' | 'college_code'>('college_name');
+  const [searchValue, setSearchValue] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  
+  // Recommendation state
   const [isGeneratingRecommendations, setIsGeneratingRecommendations] = useState(false);
   const [round2Recommendations, setRound2Recommendations] = useState<any[]>([]);
   const [hasGeneratedRecommendations, setHasGeneratedRecommendations] = useState(false);
   const [isUnlocked, setIsUnlocked] = useState(false);
+  
+  // Preferences state
   const [isPreferencesCardCollapsed, setIsPreferencesCardCollapsed] = useState(true);
   const [editingPreferences, setEditingPreferences] = useState(false);
   const [selectedPrograms, setSelectedPrograms] = useState<string[]>([]);
@@ -33,15 +43,94 @@ export const MedicalRound2Tab = () => {
   const [isUpdatingPreferences, setIsUpdatingPreferences] = useState(false);
   const [showPreferences, setShowPreferences] = useState(false);
   const [formData, setFormData] = useState<any>(null);
-  const [showCollegeSelection, setShowCollegeSelection] = useState(false);
+  
+  // College selection state
   const [selectedCollege, setSelectedCollege] = useState<any>(null);
+  const [isConfirmed, setIsConfirmed] = useState(false);
+  const [skipRound1Selection, setSkipRound1Selection] = useState(false);
+
+  const handleSearch = async () => {
+    if (!searchValue.trim()) {
+      toast({
+        title: "Search Required",
+        description: "Please enter a search value",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!isLoggedIn || !user?.accessToken) {
+      toast({
+        title: "Login Required",
+        description: "Please login to search colleges",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsSearching(true);
+    setSearchResults([]);
+
+    try {
+      let response;
+      
+      if (searchType === 'college_name') {
+        response = await apiService.searchMedicalCollegeByName(searchValue, user.accessToken);
+      } else {
+        // college_code - parse to number
+        const collegeCode = parseInt(searchValue);
+        if (isNaN(collegeCode)) {
+          toast({
+            title: "Invalid College Code",
+            description: "College code must be a number",
+            variant: "destructive"
+          });
+          setIsSearching(false);
+          return;
+        }
+        response = await apiService.searchMedicalCollegeByCode(collegeCode, user.accessToken);
+      }
+
+      if (response.success && response.data) {
+        const results = Array.isArray(response.data) ? response.data : [response.data];
+        setSearchResults(results);
+        
+        toast({
+          title: "Search Complete",
+          description: `Found ${results.length} college(s)`,
+        });
+      } else {
+        setSearchResults([]);
+        toast({
+          title: "No Results",
+          description: "No colleges found matching your search",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error('Search failed:', error);
+      setSearchResults([]);
+      toast({
+        title: "Search Failed",
+        description: "Failed to search colleges. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSearching(false);
+    }
+  };
 
   const handleCollegeSelect = (college: any) => {
     setSelectedCollege(college);
-    setShowCollegeSelection(false);
+    setIsConfirmed(true);
+    setShowPreferences(true);
+    setSearchResults([]);
     
     // Save selected college to localStorage
     localStorage.setItem('medicalRound2SelectedCollege', JSON.stringify(college));
+    
+    loadPreferencesFromFormData();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
     
     toast({
       title: "College Selected",
@@ -49,12 +138,48 @@ export const MedicalRound2Tab = () => {
     });
   };
 
-  const handleSkipSelection = () => {
-    setShowCollegeSelection(false);
+  const handleCreateNewList = () => {
+    setSkipRound1Selection(true);
+    setShowPreferences(true);
+    loadPreferencesFromFormData();
+    
+    toast({
+      title: "Creating New List",
+      description: "Set your preferences below to generate Round 2 recommendations without Round 1 selection.",
+    });
   };
 
-  const handleChangeCollege = () => {
-    setShowCollegeSelection(true);
+  const handleEditSelection = () => {
+    setRound2Recommendations([]);
+    localStorage.removeItem('medicalRound2Recommendations');
+    sessionStorage.removeItem('cachedMedicalRound2Recommendations');
+    setHasGeneratedRecommendations(false);
+    setSelectedCollege(null);
+    setIsConfirmed(false);
+    setShowPreferences(false);
+    setEditingPreferences(false);
+    setSelectedPrograms([]);
+    setSelectedCities([]);
+    setSkipRound1Selection(false);
+    setSearchValue('');
+    setSearchResults([]);
+    
+    toast({
+      title: "Selection Reset",
+      description: "You can now make a new selection for Round 2 recommendations.",
+    });
+  };
+
+  const handleResetRecommendations = () => {
+    setRound2Recommendations([]);
+    localStorage.removeItem('medicalRound2Recommendations');
+    sessionStorage.removeItem('cachedMedicalRound2Recommendations');
+    setHasGeneratedRecommendations(false);
+    
+    toast({
+      title: "Recommendations Reset",
+      description: "You can now generate new Round 2 recommendations.",
+    });
   };
 
   // Convert API response to recommendation format
@@ -288,19 +413,6 @@ export const MedicalRound2Tab = () => {
     }
   };
 
-  const handleResetRecommendations = () => {
-    setRound2Recommendations([]);
-    localStorage.removeItem('medicalRound2Recommendations');
-    sessionStorage.removeItem('cachedMedicalRound2Recommendations');
-    setHasGeneratedRecommendations(false);
-    setEditingPreferences(false);
-    setSelectedCollege(null);
-    localStorage.removeItem('medicalRound2SelectedCollege');
-    toast({
-      title: "Recommendations Reset",
-      description: "You can now generate new Round 2 recommendations.",
-    });
-  };
 
   const loadPreferencesFromFormData = () => {
     const savedFormData = recommendationStorage.getFormData();
@@ -523,15 +635,164 @@ export const MedicalRound2Tab = () => {
     <div className="space-y-6">
       <Round2Disclaimer />
 
-      {/* College Selection Card - Optional */}
-      {showCollegeSelection && !selectedCollege ? (
-        <MedicalCollegeSelectionCard
-          onCollegeSelect={handleCollegeSelect}
-          onSkip={handleSkipSelection}
-          token={user?.accessToken || ''}
-          selectedCollege={selectedCollege}
-        />
-      ) : selectedCollege ? (
+      {/* Header - Only show if not confirmed */}
+      {!isConfirmed && (
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-foreground mb-2">Round 2 College Selection</h2>
+          <p className="text-muted-foreground">
+            Search and select the college you received in Round 1 for Round 2 counselling
+          </p>
+        </div>
+      )}
+
+      {/* Create New Round 2 List Section - Only show if not confirmed and not skipping */}
+      {!isConfirmed && !skipRound1Selection && (
+        <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
+          <CardContent className="p-6 text-center">
+            <div className="space-y-4">
+              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
+                <Plus className="w-6 h-6 text-blue-600" />
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-lg font-semibold text-gray-800">Create New Round 2 List</h3>
+                <p className="text-sm text-gray-600 max-w-md mx-auto">
+                  Don't have Round 1 details? Start fresh with a new Round 2 recommendation list based on your preferences.
+                </p>
+              </div>
+              <Button
+                onClick={handleCreateNewList}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Create New List
+              </Button>
+              
+              <div className="relative py-4">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-300"></div>
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-4 bg-gradient-to-br from-blue-50 to-indigo-50 text-gray-500">OR</span>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Search Section - Only show if not confirmed and not skipping */}
+      {!isConfirmed && !skipRound1Selection && (
+        <Card className="border-gray-200">
+          <CardHeader>
+            <CardTitle className="text-lg">Search Your Round 1 College</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="search-type" className="text-sm font-medium">
+                  Search Type
+                </Label>
+                <Select value={searchType} onValueChange={(value: any) => setSearchType(value)}>
+                  <SelectTrigger id="search-type">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="college_name">College Name</SelectItem>
+                    <SelectItem value="college_code">College Code</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-2 md:col-span-2">
+                <Label htmlFor="search-value" className="text-sm font-medium">
+                  {searchType === 'college_name' ? 'College Name' : 'College Code'}
+                </Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="search-value"
+                    value={searchValue}
+                    onChange={(e) => setSearchValue(e.target.value)}
+                    placeholder={searchType === 'college_name' ? 'Enter college name' : 'Enter college code'}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        handleSearch();
+                      }
+                    }}
+                  />
+                  <Button
+                    onClick={handleSearch}
+                    disabled={isSearching}
+                    className="bg-gray-900 hover:bg-gray-800 text-white px-6"
+                  >
+                    {isSearching ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <>
+                        <Search className="w-4 h-4 mr-2" />
+                        Search
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            {/* Tips for Searching */}
+            <div className="bg-blue-50 rounded-lg p-4 border border-blue-100">
+              <p className="text-sm font-medium text-blue-900 mb-2 flex items-center gap-2">
+                💡 Tips for searching:
+              </p>
+              <ul className="space-y-1 text-sm text-blue-800">
+                <li className="flex items-start gap-2">
+                  <span className="font-semibold min-w-[120px]">College Name:</span>
+                  <span>You can search with partial names</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="font-semibold min-w-[120px]">College Code:</span>
+                  <span>Use the official college code from your documents</span>
+                </li>
+              </ul>
+            </div>
+
+            {/* Search Results */}
+            {searchResults.length > 0 && (
+              <div className="space-y-3 mt-4">
+                <h4 className="font-semibold text-gray-900">Search Results</h4>
+                <div className="space-y-2 max-h-96 overflow-y-auto">
+                  {searchResults.map((result, index) => (
+                    <Card
+                      key={index}
+                      className="cursor-pointer hover:bg-gray-50 transition-colors border-gray-200"
+                      onClick={() => handleCollegeSelect(result)}
+                    >
+                      <CardContent className="p-4">
+                        <div className="space-y-2">
+                          <div className="flex items-start justify-between gap-2">
+                            <h5 className="font-semibold text-gray-900">{result.college_name}</h5>
+                            <Badge variant="secondary">{result.course_type}</Badge>
+                          </div>
+                          <div className="flex items-center gap-4 text-sm text-gray-600">
+                            <div className="flex items-center gap-1">
+                              <MapPin size={14} />
+                              <span>{result.city}</span>
+                            </div>
+                            <div>
+                              <span className="font-medium">Code:</span> {result.college_code}
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Selected College Display */}
+      {isConfirmed && selectedCollege && (
         <Card className="border-green-200 bg-green-50">
           <CardHeader>
             <CardTitle className="text-lg text-green-800 flex items-center justify-between">
@@ -539,7 +800,7 @@ export const MedicalRound2Tab = () => {
               <Button 
                 variant="outline" 
                 size="sm"
-                onClick={handleChangeCollege}
+                onClick={handleEditSelection}
                 disabled={hasGeneratedRecommendations && round2Recommendations.length > 0}
                 className="text-orange-600 border-orange-300 hover:bg-orange-50"
               >
@@ -567,26 +828,6 @@ export const MedicalRound2Tab = () => {
                   {selectedCollege.college_code}
                 </code>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-      ) : null}
-
-      {/* Add College Button - if no college selected and not showing selection */}
-      {!selectedCollege && !showCollegeSelection && (
-        <Card className="border-dashed border-2 border-gray-300 bg-gray-50">
-          <CardContent className="pt-6">
-            <div className="text-center space-y-3">
-              <p className="text-sm text-gray-600">
-                Optional: Select your Round 1 allotted college for more accurate recommendations
-              </p>
-              <Button
-                variant="outline"
-                onClick={() => setShowCollegeSelection(true)}
-                className="text-blue-600 border-blue-300 hover:bg-blue-50"
-              >
-                Add Round 1 College
-              </Button>
             </div>
           </CardContent>
         </Card>
