@@ -19,7 +19,7 @@ interface MedicalCollegeSelectionCardProps {
 
 export const MedicalCollegeSelectionCard = ({ onCollegeSelect, onSkip, token, selectedCollege }: MedicalCollegeSelectionCardProps) => {
   const { toast } = useToast();
-  const [searchType, setSearchType] = useState<'choice_code' | 'college_name' | 'college_code'>('choice_code');
+  const [searchType, setSearchType] = useState<'college_name' | 'college_code'>('college_name');
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -43,21 +43,6 @@ export const MedicalCollegeSelectionCard = ({ onCollegeSelect, onSkip, token, se
       let response;
       
       switch (searchType) {
-        case 'choice_code':
-          const choiceCode = parseInt(searchQuery);
-          if (isNaN(choiceCode)) {
-            toast({
-              title: "Invalid Choice Code",
-              description: "Choice code must be a number",
-              variant: "destructive"
-            });
-            setIsSearching(false);
-            return;
-          }
-          // For now, using college code API - will need specific choice code API
-          response = await apiService.searchMedicalCollegeByCode(choiceCode, token);
-          break;
-          
         case 'college_code':
           const numericCode = parseInt(searchQuery);
           if (isNaN(numericCode)) {
@@ -127,8 +112,6 @@ export const MedicalCollegeSelectionCard = ({ onCollegeSelect, onSkip, token, se
 
   const getPlaceholder = () => {
     switch (searchType) {
-      case 'choice_code':
-        return 'Enter choice code (e.g., 211626310)';
       case 'college_name':
         return 'Enter college name...';
       case 'college_code':
@@ -140,8 +123,6 @@ export const MedicalCollegeSelectionCard = ({ onCollegeSelect, onSkip, token, se
 
   const getInputLabel = () => {
     switch (searchType) {
-      case 'choice_code':
-        return 'Choice Code';
       case 'college_name':
         return 'College Name';
       case 'college_code':
@@ -194,7 +175,6 @@ export const MedicalCollegeSelectionCard = ({ onCollegeSelect, onSkip, token, se
                   <SelectValue placeholder="Select search method" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="choice_code">Choice Code</SelectItem>
                   <SelectItem value="college_name">College Name</SelectItem>
                   <SelectItem value="college_code">College Code</SelectItem>
                 </SelectContent>
@@ -248,14 +228,6 @@ export const MedicalCollegeSelectionCard = ({ onCollegeSelect, onSkip, token, se
               ))}
             </div>
           )}
-
-          <Button 
-            variant="outline" 
-            onClick={onSkip}
-            className="w-full"
-          >
-            Skip for Now
-          </Button>
         </CardContent>
       </Card>
 
