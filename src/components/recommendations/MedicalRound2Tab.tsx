@@ -14,7 +14,6 @@ import { usePdfDownloadMedical } from "@/hooks/usePdfDownloadMedical";
 import { NoResultsState } from './NoResultsState';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { MedicalCollegeSelectionCard } from './MedicalCollegeSelectionCard';
-import { CategoryFilter } from './CategoryFilter';
 import { PremiumGate } from './PremiumGate';
 import type { MedicalProgram, StoreMedicalConfigRequest, Gender, CollegeTypePreference, PriorityFactor } from '@/types/medical';
 
@@ -36,7 +35,6 @@ export const MedicalRound2Tab = () => {
   const [formData, setFormData] = useState<any>(null);
   const [showCollegeSelection, setShowCollegeSelection] = useState(false);
   const [selectedCollege, setSelectedCollege] = useState<any>(null);
-  const [activeCategory, setActiveCategory] = useState<string>('All');
 
   const handleCollegeSelect = (college: any) => {
     setSelectedCollege(college);
@@ -491,42 +489,7 @@ export const MedicalRound2Tab = () => {
     generatePDF(round2Recommendations as any, formData);
   };
 
-  const sortRecommendationsByCategory = (recs: any[]) => {
-    return recs.sort((a, b) => {
-      const categoryOrder = { 'Dream': 0, 'Reach': 1, 'Match': 2, 'Safety': 3 };
-      const categoryA = categoryOrder[a.category as keyof typeof categoryOrder] ?? 4;
-      const categoryB = categoryOrder[b.category as keyof typeof categoryOrder] ?? 4;
-
-      if (categoryA !== categoryB) {
-        return categoryA - categoryB;
-      }
-
-      return (b.closing_rank || 0) - (a.closing_rank || 0);
-    });
-  };
-
-  const getCategorizedRecommendations = () => {
-    if (!round2Recommendations || round2Recommendations.length === 0) {
-      return [];
-    }
-
-    let filtered = round2Recommendations;
-
-    if (activeCategory !== 'All') {
-      filtered = round2Recommendations.filter(rec => rec.category === activeCategory);
-    }
-
-    return sortRecommendationsByCategory(filtered);
-  };
-
-  const categoryStats = {
-    Dream: round2Recommendations?.filter(r => r.category === 'Dream').length || 0,
-    Reach: round2Recommendations?.filter(r => r.category === 'Reach').length || 0,
-    Match: round2Recommendations?.filter(r => r.category === 'Match').length || 0,
-    Safety: round2Recommendations?.filter(r => r.category === 'Safety').length || 0,
-  };
-
-  const categorizedRecommendations = getCategorizedRecommendations();
+  const categorizedRecommendations = round2Recommendations || [];
 
   const getCategoryColor = (category: string) => {
     switch (category) {
@@ -949,7 +912,6 @@ export const MedicalRound2Tab = () => {
             <div className="text-center sm:text-left">
               <p className="text-lg text-gray-600">
                 Found <span className="font-semibold text-blue-600">{categorizedRecommendations.length}</span> college recommendations
-                {activeCategory !== 'All' && ` in ${activeCategory} category`}
               </p>
             </div>
 
@@ -963,13 +925,6 @@ export const MedicalRound2Tab = () => {
               </span>
             </Button>
           </div>
-
-          {/* Category Filter */}
-          <CategoryFilter
-            activeCategory={activeCategory}
-            onCategoryChange={setActiveCategory}
-            categoryStats={categoryStats}
-          />
 
           {/* Recommendations List */}
           {isUnlocked ? (
