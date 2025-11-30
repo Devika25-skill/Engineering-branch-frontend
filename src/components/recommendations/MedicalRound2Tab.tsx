@@ -14,6 +14,8 @@ import { usePdfDownloadMedical } from "@/hooks/usePdfDownloadMedical";
 import { NoResultsState } from './NoResultsState';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { MedicalCollegeSelectionCard } from './MedicalCollegeSelectionCard';
+import { CategoryFilter } from './CategoryFilter';
+import { PremiumGate } from './PremiumGate';
 import type { MedicalProgram, StoreMedicalConfigRequest, Gender, CollegeTypePreference, PriorityFactor } from '@/types/medical';
 
 export const MedicalRound2Tab = () => {
@@ -34,6 +36,7 @@ export const MedicalRound2Tab = () => {
   const [formData, setFormData] = useState<any>(null);
   const [showCollegeSelection, setShowCollegeSelection] = useState(false);
   const [selectedCollege, setSelectedCollege] = useState<any>(null);
+  const [activeCategory, setActiveCategory] = useState<string>('All');
 
   const handleCollegeSelect = (college: any) => {
     setSelectedCollege(college);
@@ -474,7 +477,7 @@ export const MedicalRound2Tab = () => {
     if (!isUnlocked) {
       toast({
         title: "Download Locked",
-        description: "Please unlock recommendations to download the PDF report.",
+        description: "Please unlock recommendations to download the PDF report. Your Round 1 unlock also works for Round 2.",
         variant: "destructive"
       });
       return;
@@ -489,21 +492,41 @@ export const MedicalRound2Tab = () => {
   };
 
   const sortRecommendationsByCategory = (recs: any[]) => {
-    const categoryOrder = { Dream: 1, Reach: 2, Match: 3, Safety: 4 };
-    return [...recs].sort((a, b) => {
-      const categoryDiff = categoryOrder[a.category as keyof typeof categoryOrder] - 
-                          categoryOrder[b.category as keyof typeof categoryOrder];
-      if (categoryDiff !== 0) return categoryDiff;
-      return (a.closing_rank || 0) - (b.closing_rank || 0);
+    return recs.sort((a, b) => {
+      const categoryOrder = { 'Dream': 0, 'Reach': 1, 'Match': 2, 'Safety': 3 };
+      const categoryA = categoryOrder[a.category as keyof typeof categoryOrder] ?? 4;
+      const categoryB = categoryOrder[b.category as keyof typeof categoryOrder] ?? 4;
+
+      if (categoryA !== categoryB) {
+        return categoryA - categoryB;
+      }
+
+      return (b.closing_rank || 0) - (a.closing_rank || 0);
     });
   };
 
-  const filteredRecommendations = sortRecommendationsByCategory(round2Recommendations);
-  const shouldBlurResults = !isUnlocked && hasGeneratedRecommendations;
-  const visibleRecommendations = shouldBlurResults 
-    ? filteredRecommendations.slice(0, 5)
-    : filteredRecommendations;
-  const hiddenCount = shouldBlurResults ? filteredRecommendations.length - visibleRecommendations.length : 0;
+  const getCategorizedRecommendations = () => {
+    if (!round2Recommendations || round2Recommendations.length === 0) {
+      return [];
+    }
+
+    let filtered = round2Recommendations;
+
+    if (activeCategory !== 'All') {
+      filtered = round2Recommendations.filter(rec => rec.category === activeCategory);
+    }
+
+    return sortRecommendationsByCategory(filtered);
+  };
+
+  const categoryStats = {
+    Dream: round2Recommendations?.filter(r => r.category === 'Dream').length || 0,
+    Reach: round2Recommendations?.filter(r => r.category === 'Reach').length || 0,
+    Match: round2Recommendations?.filter(r => r.category === 'Match').length || 0,
+    Safety: round2Recommendations?.filter(r => r.category === 'Safety').length || 0,
+  };
+
+  const categorizedRecommendations = getCategorizedRecommendations();
 
   const getCategoryColor = (category: string) => {
     switch (category) {
@@ -545,14 +568,15 @@ export const MedicalRound2Tab = () => {
       <Round2Disclaimer />
 
       {/* College Selection Card */}
-      {showCollegeSelection ? (
+      {showCollegeSelection || !selectedCollege ? (
         <MedicalCollegeSelectionCard
           onCollegeSelect={handleCollegeSelect}
           onSkip={handleSkipSelection}
           token={user?.accessToken || ''}
+          selectedCollege={selectedCollege}
         />
-      ) : selectedCollege ? (
-        <Card className="border-2 border-green-300 bg-gradient-to-br from-green-50 to-emerald-50">
+      ) : (
+        <Card className="border-green-200 bg-green-50">
           <CardHeader>
             <CardTitle className="text-lg text-green-800 flex items-center justify-between">
               <span>Selected Round 1 College</span>
@@ -560,22 +584,37 @@ export const MedicalRound2Tab = () => {
                 variant="outline" 
                 size="sm"
                 onClick={handleChangeCollege}
-                className="text-blue-600 border-blue-300 hover:bg-blue-100"
+                disabled={hasGeneratedRecommendations && round2Recommendations.length > 0}
+                className="text-orange-600 border-orange-300 hover:bg-orange-50"
               >
-                Change College
+                Edit Selection
               </Button>
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-3">
             <div className="space-y-2">
-              <p className="font-semibold text-slate-800">{selectedCollege.college_name}</p>
-              <p className="text-sm text-slate-600">Code: {selectedCollege.college_code}</p>
-              <p className="text-sm text-slate-600">City: {selectedCollege.city}</p>
-              <p className="text-sm text-slate-600">Course: {selectedCollege.course_type}</p>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+                <span className="font-medium text-sm">College:</span>
+                <span className="text-sm text-green-700 sm:text-right">{selectedCollege.college_name}</span>
+              </div>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+                <span className="font-medium text-sm">City:</span>
+                <span className="text-sm text-green-700">{selectedCollege.city}</span>
+              </div>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+                <span className="font-medium text-sm">Course:</span>
+                <Badge variant="secondary" className="w-fit">{selectedCollege.course_type}</Badge>
+              </div>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+                <span className="font-medium text-sm">College Code:</span>
+                <code className="px-2 py-1 bg-green-100 rounded text-sm w-fit">
+                  {selectedCollege.college_code}
+                </code>
+              </div>
             </div>
           </CardContent>
         </Card>
-      ) : null}
+      )}
 
       {/* Round 2 Preferences */}
       {showPreferences && (
@@ -905,41 +944,40 @@ export const MedicalRound2Tab = () => {
             </p>
           </div>
 
-          {/* Results Summary */}
+          {/* Results Summary and Download */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
             <div className="text-center sm:text-left">
               <p className="text-lg text-gray-600">
-                Found <span className="font-semibold text-blue-600">{filteredRecommendations.length}</span> Round 2 recommendations
+                Found <span className="font-semibold text-blue-600">{categorizedRecommendations.length}</span> college recommendations
+                {activeCategory !== 'All' && ` in ${activeCategory} category`}
               </p>
             </div>
 
-            <div className="flex gap-2 w-full sm:w-auto">
-              <Button
-                onClick={handleDownloadPdf}
-                disabled={!isUnlocked || isPdfGenerating}
-                className="flex-1 sm:flex-none bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white"
-              >
-                {isPdfGenerating ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    <span className="text-sm">Generating...</span>
-                  </>
-                ) : (
-                  <>
-                    <Download className="mr-2 h-4 w-4" />
-                    <span className="text-sm">Download PDF</span>
-                  </>
-                )}
-              </Button>
-            </div>
+            <Button
+              onClick={handleDownloadPdf}
+              disabled={!isUnlocked || isPdfGenerating}
+              className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg min-h-[44px] touch-manipulation"
+            >
+              <span className="text-sm font-medium">
+                {isPdfGenerating ? 'Generating...' : isUnlocked ? 'Download PDF' : 'Unlock to Download'}
+              </span>
+            </Button>
           </div>
 
-          {filteredRecommendations.length === 0 ? (
-            <NoResultsState />
-          ) : (
-            <>
+          {/* Category Filter */}
+          <CategoryFilter
+            activeCategory={activeCategory}
+            onCategoryChange={setActiveCategory}
+            categoryStats={categoryStats}
+          />
+
+          {/* Recommendations List */}
+          {isUnlocked ? (
+            categorizedRecommendations.length === 0 ? (
+              <NoResultsState />
+            ) : (
               <div className="space-y-4">
-                {visibleRecommendations.map((rec, index) => (
+                {categorizedRecommendations.map((rec, index) => (
                   <Card key={index} className="hover:shadow-lg transition-all duration-300 border border-gray-200 bg-white">
                     <CardHeader className="pb-2">
                       <div className="flex items-start gap-3 pr-16 sm:pr-20 min-w-0">
@@ -1036,45 +1074,58 @@ export const MedicalRound2Tab = () => {
                   </Card>
                 ))}
               </div>
-
-              {hiddenCount > 0 && (
-                <Card className="mt-6 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 border-2 border-blue-200">
-                  <CardContent className="pt-6">
-                    <div className="text-center space-y-4">
-                      <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 mb-4">
-                        <Lock className="w-8 h-8 text-white" />
+            )
+          ) : (
+            <div className="relative">
+              {/* Blurred preview cards */}
+              <div className="space-y-4 opacity-30 blur-sm pointer-events-none">
+                {categorizedRecommendations.slice(0, 3).map((rec, index) => (
+                  <Card key={index} className="border border-gray-200 bg-white">
+                    <CardHeader className="pb-2">
+                      <div className="flex items-start gap-3 pr-16 sm:pr-20 min-w-0">
+                        <div className="flex-shrink-0 w-7 h-7 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-full flex items-center justify-center font-bold text-xs">
+                          {index + 1}
+                        </div>
+                        <div className="flex-shrink-0">
+                          <div className="w-10 h-10 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg flex items-center justify-center border border-gray-100">
+                            <span className="text-gray-600 text-xs font-bold">
+                              {rec.college?.college_name?.charAt(0) || 'C'}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between gap-2 mb-1">
+                            <div className="flex-1 min-w-0">
+                              <h3 className="text-sm font-semibold text-gray-900 leading-tight">
+                                {truncateText(rec.college.college_name, 40)}
+                              </h3>
+                              <div className="flex items-center gap-1 mt-1 text-xs text-gray-500">
+                                <MapPin size={12} className="flex-shrink-0" />
+                                <span className="truncate">{rec.college.city}</span>
+                              </div>
+                            </div>
+                            <Badge className={`${getCategoryColor(rec.category)} px-2 py-0.5 text-xs font-medium flex-shrink-0`}>
+                              {rec.category}
+                            </Badge>
+                          </div>
+                        </div>
                       </div>
-                      
-                      <div>
-                        <h3 className="text-2xl font-bold text-gray-900 mb-2">
-                          {hiddenCount} More Recommendations Locked
-                        </h3>
-                        <p className="text-gray-600 max-w-2xl mx-auto">
-                          Unlock all {filteredRecommendations.length} Round 2 medical college recommendations to maximize your admission chances!
-                        </p>
-                      </div>
-
-                      <div className="flex flex-col items-center gap-4 mt-6">
-                        <Button 
-                          size="lg"
-                          onClick={() => {
-                            toast({
-                              title: "Unlock Required",
-                              description: "Please unlock Round 1 recommendations first to access Round 2.",
-                              variant: "destructive"
-                            });
-                          }}
-                          className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold px-8 py-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
-                        >
-                          <Lock className="mr-2 h-5 w-5" />
-                          Unlock All Recommendations
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-            </>
+                    </CardHeader>
+                  </Card>
+                ))}
+              </div>
+              
+              {/* Premium Gate for Round 2 */}
+              <div className="absolute inset-0 flex items-center justify-center">
+                <PremiumGate 
+                  onUnlock={() => setIsUnlocked(true)}
+                  storageKey="medicalRecommendationUnlocked"
+                  productType="medical-recommendations"
+                  title="Medical Recommendations Unlock"
+                  description="Unlock complete medical college recommendations"
+                />
+              </div>
+            </div>
           )}
         </div>
       )}
