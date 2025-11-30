@@ -183,17 +183,6 @@ export const MedicalRound2Tab = () => {
       return;
     }
 
-    // Check if college is selected for Round 2
-    if (!selectedCollege) {
-      toast({
-        title: "College Selection Required",
-        description: "Please select your Round 1 allotted college to proceed",
-        variant: "destructive"
-      });
-      setShowCollegeSelection(true);
-      return;
-    }
-
     const savedFormData = recommendationStorage.getFormData();
     if (!savedFormData) {
       toast({
@@ -207,10 +196,9 @@ export const MedicalRound2Tab = () => {
     setIsGeneratingRecommendations(true);
 
     try {
-      // Transform form data to API format with college choice code
-      const payload = {
+      // Transform form data to API format with optional college choice code
+      const payload: any = {
         round: 2 as 2,
-        last_round_college_choice_code: selectedCollege.college_code,
         medical_configuration_request: {
           username: user.email,
           gender: savedFormData.gender || 'M',
@@ -257,6 +245,11 @@ export const MedicalRound2Tab = () => {
           }
         }
       };
+
+      // Add college choice code only if a college is selected
+      if (selectedCollege) {
+        payload.last_round_college_choice_code = selectedCollege.college_code;
+      }
 
       const response = await apiService.generateMedicalRecommendations(payload);
 
@@ -530,15 +523,15 @@ export const MedicalRound2Tab = () => {
     <div className="space-y-6">
       <Round2Disclaimer />
 
-      {/* College Selection Card */}
-      {showCollegeSelection || !selectedCollege ? (
+      {/* College Selection Card - Optional */}
+      {showCollegeSelection && !selectedCollege ? (
         <MedicalCollegeSelectionCard
           onCollegeSelect={handleCollegeSelect}
           onSkip={handleSkipSelection}
           token={user?.accessToken || ''}
           selectedCollege={selectedCollege}
         />
-      ) : (
+      ) : selectedCollege ? (
         <Card className="border-green-200 bg-green-50">
           <CardHeader>
             <CardTitle className="text-lg text-green-800 flex items-center justify-between">
@@ -574,6 +567,26 @@ export const MedicalRound2Tab = () => {
                   {selectedCollege.college_code}
                 </code>
               </div>
+            </div>
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {/* Add College Button - if no college selected and not showing selection */}
+      {!selectedCollege && !showCollegeSelection && (
+        <Card className="border-dashed border-2 border-gray-300 bg-gray-50">
+          <CardContent className="pt-6">
+            <div className="text-center space-y-3">
+              <p className="text-sm text-gray-600">
+                Optional: Select your Round 1 allotted college for more accurate recommendations
+              </p>
+              <Button
+                variant="outline"
+                onClick={() => setShowCollegeSelection(true)}
+                className="text-blue-600 border-blue-300 hover:bg-blue-50"
+              >
+                Add Round 1 College
+              </Button>
             </div>
           </CardContent>
         </Card>
