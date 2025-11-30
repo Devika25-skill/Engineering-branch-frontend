@@ -206,7 +206,7 @@ export const MedicalRound2Tab = () => {
         if (isNaN(collegeCode)) {
           toast({
             title: "Invalid College Code",
-            description: "College code must be a number",
+            description: "College code must be a 4-digit number",
             variant: "destructive"
           });
           return;
@@ -217,15 +217,34 @@ export const MedicalRound2Tab = () => {
       if (response.success && response.data) {
         // Handle different response structures
         if (Array.isArray(response.data)) {
+          // Check if array is empty
+          if (response.data.length === 0) {
+            setSearchResults([]);
+            toast({
+              title: "No Results",
+              description: "No matching colleges found. Please try a different search term.",
+              variant: "destructive"
+            });
+            return;
+          }
           setSearchResults(response.data);
-        } else {
+        } else if (response.data && Object.keys(response.data).length > 0) {
+          // Check if object is not empty
           setSearchResults([response.data]);
+        } else {
+          // Empty object or null
+          setSearchResults([]);
+          toast({
+            title: "No Results",
+            description: "No matching colleges found. Please try a different search term.",
+            variant: "destructive"
+          });
         }
       } else {
         setSearchResults([]);
         const errorMessage = searchType === 'college_name'
-          ? "No colleges found matching this name"
-          : "No college found for this college code";
+          ? "No matching colleges found. Please try a different search term."
+          : "No matching colleges found. Please try a different search term.";
         
         toast({
           title: "No Results",
@@ -1376,18 +1395,50 @@ export const MedicalRound2Tab = () => {
                 
                 <div className="space-y-2">
                   <Label htmlFor="search-value">
-                    {searchType === 'college_name' ? 'College Name' : 'College Code'}
+                    {searchType === 'college_name' ? 'College Name' : 'College Code (4 digits)'}
                   </Label>
                   <div className="flex gap-2">
                     <Input
                       id="search-value"
                       value={searchValue}
-                      onChange={(e) => setSearchValue(e.target.value)}
+                      onChange={(e) => {
+                        if (searchType === 'college_code') {
+                          // Only allow numeric input and limit to 4 digits
+                          const value = e.target.value.replace(/[^0-9]/g, '');
+                          if (value.length <= 4) {
+                            setSearchValue(value);
+                          }
+                        } else {
+                          setSearchValue(e.target.value);
+                        }
+                      }}
+                      onKeyDown={(e) => {
+                        if (searchType === 'college_code') {
+                          // Prevent -, +, e, E and other non-numeric keys
+                          if (e.key === '-' || e.key === '+' || e.key === 'e' || e.key === 'E' || e.key === '.') {
+                            e.preventDefault();
+                          }
+                        }
+                        if (e.key === 'Enter') {
+                          handleSearch();
+                        }
+                      }}
+                      onPaste={(e) => {
+                        if (searchType === 'college_code') {
+                          // Handle paste event for college code
+                          e.preventDefault();
+                          const pastedText = e.clipboardData.getData('text');
+                          const numericValue = pastedText.replace(/[^0-9]/g, '');
+                          if (numericValue.length <= 4) {
+                            setSearchValue(numericValue);
+                          }
+                        }
+                      }}
                       placeholder={
-                        searchType === 'college_name' ? 'Enter college name' : 'Enter college code'
+                        searchType === 'college_name' ? 'Enter college name' : 'Enter 4-digit college code'
                       }
-                      type={searchType === 'college_name' ? 'text' : 'number'}
-                      onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                      type={searchType === 'college_name' ? 'text' : 'text'}
+                      maxLength={searchType === 'college_code' ? 4 : undefined}
                     />
                     <Button onClick={handleSearch} disabled={isSearching}>
                       <Search className="w-4 h-4 mr-2" />
