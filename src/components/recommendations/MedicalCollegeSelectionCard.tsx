@@ -19,7 +19,7 @@ interface MedicalCollegeSelectionCardProps {
 
 export const MedicalCollegeSelectionCard = ({ onCollegeSelect, onSkip, token, selectedCollege }: MedicalCollegeSelectionCardProps) => {
   const { toast } = useToast();
-  const [searchType, setSearchType] = useState<'college_name' | 'college_code'>('college_name');
+  const [searchType, setSearchType] = useState<'choice_code' | 'college_name' | 'college_code'>('choice_code');
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -42,20 +42,39 @@ export const MedicalCollegeSelectionCard = ({ onCollegeSelect, onSkip, token, se
     try {
       let response;
       
-      if (searchType === 'college_code') {
-        const numericCode = parseInt(searchQuery);
-        if (isNaN(numericCode)) {
-          toast({
-            title: "Invalid College Code",
-            description: "College code must be a number",
-            variant: "destructive"
-          });
-          setIsSearching(false);
-          return;
-        }
-        response = await apiService.searchMedicalCollegeByCode(numericCode, token);
-      } else {
-        response = await apiService.searchMedicalCollegeByName(searchQuery, token);
+      switch (searchType) {
+        case 'choice_code':
+          const choiceCode = parseInt(searchQuery);
+          if (isNaN(choiceCode)) {
+            toast({
+              title: "Invalid Choice Code",
+              description: "Choice code must be a number",
+              variant: "destructive"
+            });
+            setIsSearching(false);
+            return;
+          }
+          // For now, using college code API - will need specific choice code API
+          response = await apiService.searchMedicalCollegeByCode(choiceCode, token);
+          break;
+          
+        case 'college_code':
+          const numericCode = parseInt(searchQuery);
+          if (isNaN(numericCode)) {
+            toast({
+              title: "Invalid College Code",
+              description: "College code must be a number",
+              variant: "destructive"
+            });
+            setIsSearching(false);
+            return;
+          }
+          response = await apiService.searchMedicalCollegeByCode(numericCode, token);
+          break;
+          
+        case 'college_name':
+          response = await apiService.searchMedicalCollegeByName(searchQuery, token);
+          break;
       }
 
       if (response.success && response.data) {
@@ -107,9 +126,29 @@ export const MedicalCollegeSelectionCard = ({ onCollegeSelect, onSkip, token, se
   };
 
   const getPlaceholder = () => {
-    return searchType === 'college_name' 
-      ? 'Enter college name...' 
-      : 'Enter college code...';
+    switch (searchType) {
+      case 'choice_code':
+        return 'Enter choice code (e.g., 211626310)';
+      case 'college_name':
+        return 'Enter college name...';
+      case 'college_code':
+        return 'Enter college code...';
+      default:
+        return 'Enter search value...';
+    }
+  };
+
+  const getInputLabel = () => {
+    switch (searchType) {
+      case 'choice_code':
+        return 'Choice Code';
+      case 'college_name':
+        return 'College Name';
+      case 'college_code':
+        return 'College Code';
+      default:
+        return 'Search';
+    }
   };
 
   if (selectedCollege) {
@@ -139,15 +178,14 @@ export const MedicalCollegeSelectionCard = ({ onCollegeSelect, onSkip, token, se
     <>
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Building2 className="w-5 h-5" />
-            Select Round 1 Allotted College
+          <CardTitle className="text-lg font-semibold">
+            Search Your Round 1 College
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="search-type">Search By</Label>
+              <Label htmlFor="search-type">Search Type</Label>
               <Select value={searchType} onValueChange={(value: any) => {
                 setSearchType(value);
                 clearResults();
@@ -156,26 +194,15 @@ export const MedicalCollegeSelectionCard = ({ onCollegeSelect, onSkip, token, se
                   <SelectValue placeholder="Select search method" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="college_name">
-                    <div className="flex items-center gap-2">
-                      <Search className="w-4 h-4" />
-                      College Name
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="college_code">
-                    <div className="flex items-center gap-2">
-                      <Hash className="w-4 h-4" />
-                      College Code
-                    </div>
-                  </SelectItem>
+                  <SelectItem value="choice_code">Choice Code</SelectItem>
+                  <SelectItem value="college_name">College Name</SelectItem>
+                  <SelectItem value="college_code">College Code</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div>
-              <Label htmlFor="search-input">
-                {searchType === 'college_name' ? 'College Name' : 'College Code'}
-              </Label>
+              <Label htmlFor="search-input">{getInputLabel()}</Label>
               <div className="flex gap-2 mt-2">
                 <Input
                   id="search-input"
@@ -187,40 +214,40 @@ export const MedicalCollegeSelectionCard = ({ onCollegeSelect, onSkip, token, se
                 <Button 
                   onClick={handleSearch} 
                   disabled={isSearching}
-                  size="icon"
+                  className="px-6"
                 >
-                  {isSearching ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
+                  {isSearching ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Search className="w-4 h-4" /> Search</>}
                 </Button>
               </div>
             </div>
-
-            {searchResults.length > 0 && (
-              <div className="space-y-3 max-h-96 overflow-y-auto">
-                <Label>Search Results ({searchResults.length} found):</Label>
-                {searchResults.map((college) => (
-                  <Card 
-                    key={college.college_code}
-                    className="border-l-4 border-l-primary cursor-pointer hover:shadow-md transition-all"
-                    onClick={() => handleCollegeSelect(college)}
-                  >
-                    <CardContent className="pt-4">
-                      <div className="space-y-2">
-                        <h4 className="font-medium text-primary">{college.college_name}</h4>
-                        <div className="text-sm text-muted-foreground space-y-1">
-                          <p>College Code: {college.college_code}</p>
-                          <p>City: {college.city}</p>
-                          <p>Course Type: {college.course_type}</p>
-                        </div>
-                        <div className="flex justify-end pt-2">
-                          <Button size="sm">Select</Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
           </div>
+
+          {searchResults.length > 0 && (
+            <div className="space-y-3 max-h-96 overflow-y-auto">
+              <Label>Search Results ({searchResults.length} found):</Label>
+              {searchResults.map((college) => (
+                <Card 
+                  key={college.college_code}
+                  className="border-l-4 border-l-primary cursor-pointer hover:shadow-md transition-all"
+                  onClick={() => handleCollegeSelect(college)}
+                >
+                  <CardContent className="pt-4">
+                    <div className="space-y-2">
+                      <h4 className="font-medium text-primary">{college.college_name}</h4>
+                      <div className="text-sm text-muted-foreground space-y-1">
+                        <p>College Code: {college.college_code}</p>
+                        <p>City: {college.city}</p>
+                        <p>Course Type: {college.course_type}</p>
+                      </div>
+                      <div className="flex justify-end pt-2">
+                        <Button size="sm">Select</Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
 
           <Button 
             variant="outline" 
