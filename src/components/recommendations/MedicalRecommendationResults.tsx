@@ -83,11 +83,8 @@ export const MedicalRecommendationResults = ({
     Safety: Array.isArray(rawRecommendations?.Safety) ? rawRecommendations.Safety : []
   };
 
-  // Initialize with Round 1 as default and persist selection
-  const [internalActiveRound, setInternalActiveRound] = useState<string>(() => {
-    const savedRound = localStorage.getItem('activeRoundTab');
-    return savedRound || 'round1'; // Default to Round 1
-  });
+  // Initialize with Round 1 as default
+  const [internalActiveRound, setInternalActiveRound] = useState<string>('round1');
 
   // Use external activeRound if provided, otherwise use internal state
   const activeRound = externalActiveRound || internalActiveRound;
@@ -111,7 +108,6 @@ export const MedicalRecommendationResults = ({
       onRoundChange(value as 'round1' | 'round2' | 'round3');
     } else {
       setInternalActiveRound(value);
-      localStorage.setItem('activeRoundTab', value);
     }
   };
 
@@ -168,10 +164,6 @@ export const MedicalRecommendationResults = ({
     return !isUnlocked;
   };
 
-  // Persist active round to localStorage whenever it changes
-  useEffect(() => {
-    localStorage.setItem('activeRoundTab', activeRound);
-  }, [activeRound]);
 
   const calculatePrice = () => {
     const originalPrice = 999;

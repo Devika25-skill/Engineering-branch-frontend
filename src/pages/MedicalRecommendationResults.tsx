@@ -76,6 +76,9 @@ const MedicalRecommendationResults = () => {
     if (!user?.accessToken) return;
     
     setActiveRound(round);
+    // Update sessionStorage to sync state
+    const roundNumber = round === 'round2' ? '2' : round === 'round3' ? '3' : '1';
+    sessionStorage.setItem('medicalActiveRound', roundNumber);
     setIsLoading(true);
 
     try {
