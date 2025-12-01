@@ -1132,6 +1132,35 @@ class ApiService {
       },
     });
   }
+
+  // Get Medical Recommendations by Round
+  async getMedicalRecommendationsByRound(round: number, token: string): Promise<ApiResponse<{
+    username: string;
+    Dream: any[];
+    Reach: any[];
+    Match: any[];
+    Safety: any[];
+    Round: number;
+    is_payment: boolean;
+    accept_payment: boolean;
+  }>> {
+    return this.request<ApiResponse<{
+      username: string;
+      Dream: any[];
+      Reach: any[];
+      Match: any[];
+      Safety: any[];
+      Round: number;
+      is_payment: boolean;
+      accept_payment: boolean;
+    }>>(`/api/v1/medical/medical/recommendations/college-list?round=${round}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/json',
+      },
+    });
+  }
 }
 
 export const apiService = new ApiService();
