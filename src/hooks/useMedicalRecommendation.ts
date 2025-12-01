@@ -133,9 +133,13 @@ export const useMedicalRecommendation = () => {
         throw new Error('Failed to store medical configuration');
       }
 
-      // Generate recommendations for Round 1
+      // Get the active round from sessionStorage, default to 1 if not set
+      const activeRound = sessionStorage.getItem('medicalActiveRound');
+      const roundNumber = (activeRound ? parseInt(activeRound.replace('round', ''), 10) : 1) as 1 | 2 | 3;
+      
+      // Generate recommendations for the active round
       const recommendationPayload: GenerateMedicalRecommendationsRequest = {
-        round: 1,
+        round: roundNumber,
         medical_configuration_request: configPayload
       };
 
