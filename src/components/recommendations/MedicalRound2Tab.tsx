@@ -147,7 +147,7 @@ export const MedicalRound2Tab = () => {
         }
       }
 
-      // Always load preferences immediately for faster access
+      // Load preferences for faster access (won't show until confirmed or create new list)
       await loadPreferencesFromFormData();
     };
 
@@ -378,7 +378,6 @@ export const MedicalRound2Tab = () => {
       
       setSelectedPrograms(programs);
       setSelectedCities(cities);
-      setShowPreferences(true);
       
       // Update localStorage with latest data
       localStorage.setItem('medicalRound2Preferences', JSON.stringify({
