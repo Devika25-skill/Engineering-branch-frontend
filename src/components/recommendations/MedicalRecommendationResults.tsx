@@ -29,6 +29,8 @@ interface MedicalRecommendationResultsProps {
     is_payment?: boolean;
     accept_payment?: boolean;
   };
+  activeRound?: string;
+  onRoundChange?: (round: string) => void;
 }
 
 interface FormData {
@@ -69,18 +71,21 @@ declare global {
 export const MedicalRecommendationResults = ({
   recommendations,
   formData,
-  paymentData
+  paymentData,
+  activeRound: externalActiveRound,
+  onRoundChange
 }: MedicalRecommendationResultsProps) => {
-  // Initialize with Round 1 as default and persist selection
-  // First check sessionStorage (set by Recommendations.tsx), then localStorage
-  const [activeRound, setActiveRound] = useState<string>(() => {
+  // Use external activeRound if provided, otherwise use local state
+  const [internalActiveRound, setInternalActiveRound] = useState<string>(() => {
     const sessionRound = sessionStorage.getItem('activeRound');
     if (sessionRound) {
       return sessionRound;
     }
     const savedRound = localStorage.getItem('activeRoundTab');
-    return savedRound || 'round1'; // Default to Round 1
+    return savedRound || 'round1';
   });
+  
+  const activeRound = externalActiveRound || internalActiveRound;
   
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -148,10 +153,16 @@ export const MedicalRecommendationResults = ({
     return !isUnlocked;
   };
 
-  // Persist active round to localStorage whenever it changes
-  useEffect(() => {
-    localStorage.setItem('activeRoundTab', activeRound);
-  }, [activeRound]);
+  // Handle tab change
+  const handleTabChange = (newRound: string) => {
+    if (onRoundChange) {
+      onRoundChange(newRound);
+    } else {
+      setInternalActiveRound(newRound);
+      localStorage.setItem('activeRoundTab', newRound);
+      sessionStorage.setItem('activeRound', newRound);
+    }
+  };
 
   const calculatePrice = () => {
     const originalPrice = 999;
@@ -537,7 +548,7 @@ export const MedicalRecommendationResults = ({
     <div className="space-y-6">
       <RecommendationHeader formData={formData} />
 
-      <Tabs value={activeRound} onValueChange={setActiveRound} className="w-full">
+      <Tabs value={activeRound} onValueChange={handleTabChange} className="w-full">
         <TabsList className="grid w-full grid-cols-3 mb-6">
           <TabsTrigger value="round1">Round 1</TabsTrigger>
           <TabsTrigger value="round2">Round 2</TabsTrigger>
