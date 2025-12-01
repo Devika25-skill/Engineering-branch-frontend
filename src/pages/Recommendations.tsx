@@ -1,16 +1,23 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { apiService } from "@/services/api";
 
 const Recommendations = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, isLoggedIn } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const checkExistingRecommendations = async () => {
       try {
+        // Skip auto-redirect if user explicitly clicked "Back to Form"
+        if (location.state?.skipAutoRedirect) {
+          setIsLoading(false);
+          return;
+        }
+
         const recommendationType = localStorage.getItem('recommendation_type');
         const isMedical = recommendationType === 'First_Year_Medical';
         

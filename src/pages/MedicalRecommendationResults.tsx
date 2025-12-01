@@ -170,8 +170,8 @@ const MedicalRecommendationResults = () => {
     sessionStorage.removeItem('cachedMedicalRound2Recommendations');
     sessionStorage.removeItem('activeRound');
     recommendationStorage.clearMedicalRecommendations();
-    // Navigate to recommendations page
-    navigate('/recommendations');
+    // Navigate to recommendations page with skipAutoRedirect flag
+    navigate('/recommendations', { state: { skipAutoRedirect: true } });
   };
 
   // Ensure recommendations always have valid structure before passing to component
