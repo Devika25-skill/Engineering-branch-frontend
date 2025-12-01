@@ -370,35 +370,35 @@ export const MedicalRound2Tab = () => {
   };
 
   const loadPreferencesFromFormData = async () => {
-    // First try to get preferences from localStorage
+    // First try to get preferences from form data (latest from Round 1)
+    const formData = recommendationStorage.getFormData();
+    if (formData && (formData.preferredMedicalPrograms || formData.preferredCities)) {
+      const programs = formData.preferredMedicalPrograms || [];
+      const cities = formData.preferredCities || [];
+      
+      setSelectedPrograms(programs);
+      setSelectedCities(cities);
+      setShowPreferences(true);
+      
+      // Update localStorage with latest data
+      localStorage.setItem('medicalRound2Preferences', JSON.stringify({
+        programs,
+        cities,
+        timestamp: Date.now()
+      }));
+      return;
+    }
+
+    // Fall back to localStorage only if form data is not available
     const storedPreferences = localStorage.getItem('medicalRound2Preferences');
     if (storedPreferences) {
       try {
         const parsed = JSON.parse(storedPreferences);
         setSelectedPrograms(parsed.programs || []);
         setSelectedCities(parsed.cities || []);
-        return;
       } catch (error) {
-        console.error('Error parsing stored preferences, continuing...');
+        console.error('Error parsing stored preferences:', error);
       }
-    }
-
-    // Fall back to form data from session storage if API returns empty or fails
-    const formData = recommendationStorage.getFormData();
-    if (formData) {
-      const programs = formData.preferredMedicalPrograms || [];
-      const cities = formData.preferredCities || [];
-      
-      setSelectedPrograms(programs);
-      setSelectedCities(cities);
-      setShowPreferences(true); // Show preferences when loaded from form data
-      
-      // Store in localStorage for consistency
-      localStorage.setItem('medicalRound2Preferences', JSON.stringify({
-        programs,
-        cities,
-        timestamp: Date.now()
-      }));
     }
   };
 
