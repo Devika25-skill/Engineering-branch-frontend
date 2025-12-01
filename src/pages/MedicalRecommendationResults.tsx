@@ -43,7 +43,14 @@ const MedicalRecommendationResults = () => {
         const savedActiveRound = sessionStorage.getItem('medicalActiveRound');
 
         if (cached && savedFormData) {
-          setRecommendations(cached);
+          // Ensure cached data has the correct structure
+          const safeCache: any = typeof cached === 'object' && cached !== null ? cached : {};
+          setRecommendations({
+            Dream: Array.isArray(safeCache.Dream) ? safeCache.Dream : [],
+            Reach: Array.isArray(safeCache.Reach) ? safeCache.Reach : [],
+            Match: Array.isArray(safeCache.Match) ? safeCache.Match : [],
+            Safety: Array.isArray(safeCache.Safety) ? safeCache.Safety : []
+          });
           setFormData(savedFormData);
           setPaymentData(savedPaymentData);
           if (savedActiveRound) {
@@ -81,10 +88,10 @@ const MedicalRecommendationResults = () => {
       if (cachedData) {
         const parsed = JSON.parse(cachedData);
         setRecommendations({
-          Dream: parsed.Dream || [],
-          Reach: parsed.Reach || [],
-          Match: parsed.Match || [],
-          Safety: parsed.Safety || []
+          Dream: Array.isArray(parsed.Dream) ? parsed.Dream : [],
+          Reach: Array.isArray(parsed.Reach) ? parsed.Reach : [],
+          Match: Array.isArray(parsed.Match) ? parsed.Match : [],
+          Safety: Array.isArray(parsed.Safety) ? parsed.Safety : []
         });
         setPaymentData({
           is_payment: parsed.is_payment || false,
@@ -96,10 +103,10 @@ const MedicalRecommendationResults = () => {
         
         if (response.success && response.data) {
           setRecommendations({
-            Dream: response.data.Dream || [],
-            Reach: response.data.Reach || [],
-            Match: response.data.Match || [],
-            Safety: response.data.Safety || []
+            Dream: Array.isArray(response.data.Dream) ? response.data.Dream : [],
+            Reach: Array.isArray(response.data.Reach) ? response.data.Reach : [],
+            Match: Array.isArray(response.data.Match) ? response.data.Match : [],
+            Safety: Array.isArray(response.data.Safety) ? response.data.Safety : []
           });
           setPaymentData({
             is_payment: response.data.is_payment || false,

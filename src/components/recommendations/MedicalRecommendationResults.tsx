@@ -69,12 +69,20 @@ declare global {
 }
 
 export const MedicalRecommendationResults = ({
-  recommendations,
+  recommendations: rawRecommendations,
   formData,
   paymentData,
   activeRound: externalActiveRound,
   onRoundChange
 }: MedicalRecommendationResultsProps) => {
+  // Ensure recommendations always have the required structure with empty arrays as defaults
+  const recommendations = {
+    Dream: Array.isArray(rawRecommendations?.Dream) ? rawRecommendations.Dream : [],
+    Reach: Array.isArray(rawRecommendations?.Reach) ? rawRecommendations.Reach : [],
+    Match: Array.isArray(rawRecommendations?.Match) ? rawRecommendations.Match : [],
+    Safety: Array.isArray(rawRecommendations?.Safety) ? rawRecommendations.Safety : []
+  };
+
   // Initialize with Round 1 as default and persist selection
   const [internalActiveRound, setInternalActiveRound] = useState<string>(() => {
     const savedRound = localStorage.getItem('activeRoundTab');
