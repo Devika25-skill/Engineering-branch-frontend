@@ -778,6 +778,10 @@ export const MedicalRound2Tab = () => {
       const response = await apiService.generateMedicalRecommendations(payload);
       
       if (response.success) {
+        // Clear old cached data for Round 2 before storing new data
+        sessionStorage.removeItem('cachedMedicalRound2Recommendations');
+        localStorage.removeItem('medicalRound2Recommendations');
+        
         // Store the raw API response in localStorage
         localStorage.setItem('medicalRound2Recommendations', JSON.stringify(response.data));
         

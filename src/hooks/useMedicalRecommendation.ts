@@ -151,26 +151,30 @@ export const useMedicalRecommendation = () => {
           throw new Error('No access token available');
         }
 
-        // Transform the API response to categorized format
-        const categorizedRecommendations = {
+        // Clear old cached data for this specific round
+        const roundCacheKey = `cachedMedicalRound${roundNumber}Recommendations`;
+        sessionStorage.removeItem(roundCacheKey);
+
+        // Store the full API response with round-specific key
+        const fullResponse = {
           Dream: response.data.Dream || [],
           Reach: response.data.Reach || [],
           Match: response.data.Match || [],
-          Safety: response.data.Safety || []
+          Safety: response.data.Safety || [],
+          is_payment: response.data.is_payment || false,
+          accept_payment: response.data.accept_payment !== undefined ? response.data.accept_payment : true
         };
 
-        // Store in session storage for quick access
-        recommendationStorage.setMedicalRecommendations(
-          categorizedRecommendations as any, 
-          formData, 
-          response.data.is_payment || false,
-          response.data.accept_payment !== undefined ? response.data.accept_payment : true
-        );
+        // Cache with round-specific key
+        sessionStorage.setItem(roundCacheKey, JSON.stringify(fullResponse));
+        
+        // Also save form data
+        recommendationStorage.saveFormData(formData);
 
-      const totalCount = (categorizedRecommendations.Dream?.length || 0) +
-                          (categorizedRecommendations.Reach?.length || 0) +
-                          (categorizedRecommendations.Match?.length || 0) +
-                          (categorizedRecommendations.Safety?.length || 0);
+      const totalCount = (fullResponse.Dream?.length || 0) +
+                          (fullResponse.Reach?.length || 0) +
+                          (fullResponse.Match?.length || 0) +
+                          (fullResponse.Safety?.length || 0);
 
       toast({
         title: "Recommendations Generated!",
@@ -178,7 +182,7 @@ export const useMedicalRecommendation = () => {
       });
 
       return {
-        recommendations: categorizedRecommendations,
+        recommendations: fullResponse,
         formData,
         isPaid: response.data.is_payment
       };
