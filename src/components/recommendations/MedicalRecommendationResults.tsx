@@ -16,8 +16,6 @@ import { RecommendationDisclaimer } from "./RecommendationDisclaimer";
 import { CAPFormInstructions } from "./CAPFormInstructions";
 import { NoResultsState } from "./NoResultsState";
 import { MedicalRound2Tab } from "./MedicalRound2Tab";
-import { apiService } from "@/services/api";
-import { recommendationStorage } from "@/services/recommendationStorage";
 
 interface MedicalRecommendationResultsProps {
   recommendations: {
@@ -69,7 +67,7 @@ declare global {
 }
 
 export const MedicalRecommendationResults = ({
-  recommendations: initialRecommendations,
+  recommendations,
   formData,
   paymentData
 }: MedicalRecommendationResultsProps) => {
@@ -84,18 +82,10 @@ export const MedicalRecommendationResults = ({
     return savedRound || 'round1'; // Default to Round 1
   });
   
-  const [recommendations, setRecommendations] = useState(() => ({
-    Dream: initialRecommendations?.Dream || [],
-    Reach: initialRecommendations?.Reach || [],
-    Match: initialRecommendations?.Match || [],
-    Safety: initialRecommendations?.Safety || []
-  }));
-  const [isLoadingRound, setIsLoadingRound] = useState(false);
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const userFromStorage = JSON.parse(localStorage.getItem('user') || '{}');
   const { generatePDF, isGenerating } = usePdfDownloadMedical();
-  const { toast } = useToast();
 
   const [paymentFormData, setPaymentFormData] = useState<FormData>({
     name: userFromStorage.name || '',
@@ -104,6 +94,7 @@ export const MedicalRecommendationResults = ({
     couponCode: 'LAUNCHOFFER'
   });
   const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
 
   const handleDownloadPDF = () => {
     if (!isUnlocked && paymentData?.is_payment !== true) {
@@ -160,70 +151,6 @@ export const MedicalRecommendationResults = ({
   // Persist active round to localStorage whenever it changes
   useEffect(() => {
     localStorage.setItem('activeRoundTab', activeRound);
-  }, [activeRound]);
-
-  // Fetch recommendations when round changes
-  useEffect(() => {
-    const fetchRoundData = async () => {
-      const roundNumber = activeRound === 'round1' ? 1 : activeRound === 'round2' ? 2 : 3;
-      
-      // Check if data is already cached for this round
-      const cacheKey = `cachedMedicalRound${roundNumber}Recommendations`;
-      const cachedData = sessionStorage.getItem(cacheKey);
-      
-      if (cachedData) {
-        try {
-          const parsed = JSON.parse(cachedData);
-          setRecommendations(parsed);
-          return;
-        } catch (error) {
-          console.error('Error parsing cached data:', error);
-        }
-      }
-
-      // Fetch from API if not cached
-      setIsLoadingRound(true);
-      try {
-        // Get token from localStorage
-        const user = JSON.parse(localStorage.getItem('user') || '{}');
-        if (!user.accessToken) {
-          console.error('No access token found');
-          setIsLoadingRound(false);
-          return;
-        }
-
-        const response = await apiService.getMedicalRecommendationsByRound(roundNumber, user.accessToken);
-        
-        if (response.success && response.data) {
-          const { Dream = [], Reach = [], Match = [], Safety = [] } = response.data;
-          
-          // Check if we have valid data
-          if (Dream.length > 0 || Reach.length > 0 || Match.length > 0 || Safety.length > 0) {
-            const roundData = { Dream, Reach, Match, Safety };
-            setRecommendations(roundData);
-            
-            // Cache the fetched data
-            sessionStorage.setItem(cacheKey, JSON.stringify(roundData));
-            
-            // Update payment data if present
-            if (response.data.is_payment !== undefined) {
-              recommendationStorage.setMedicalPaidStatus(response.data.is_payment);
-            }
-          }
-        }
-      } catch (error) {
-        console.error('Error fetching round data:', error);
-        toast({
-          title: "Error",
-          description: "Failed to load recommendations for this round.",
-          variant: "destructive"
-        });
-      } finally {
-        setIsLoadingRound(false);
-      }
-    };
-
-    fetchRoundData();
   }, [activeRound]);
 
   const calculatePrice = () => {
@@ -439,18 +366,6 @@ export const MedicalRecommendationResults = ({
   const hiddenCount = shouldBlurResults ? filteredRecommendations.length - visibleRecommendations.length : 0;
   
   const { originalPrice, finalPrice, discount } = calculatePrice();
-
-  // Show loading state when fetching round data
-  if (isLoadingRound) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center space-y-4">
-          <Loader2 className="w-8 h-8 animate-spin mx-auto text-primary" />
-          <p className="text-muted-foreground">Loading recommendations...</p>
-        </div>
-      </div>
-    );
-  }
 
   const renderUpcomingRound = (roundNumber: number) => {
     const isLocked = shouldShowUnlock();
