@@ -134,16 +134,53 @@ export const MedicalRound2Tab = () => {
         }
       }
 
-      // Load Round 2 selection data
-      const stored = localStorage.getItem('medicalRound2SelectedCollege');
-      if (stored) {
+      // Try to fetch saved Round 1 college details from API
+      if (user?.accessToken) {
         try {
-          const parsedData = JSON.parse(stored);
-          setSelectedCollege({ college: parsedData });
-          setIsConfirmed(true);
-          setShowPreferences(true);
+          const response = await apiService.getMedicalUserRoundDetails(1, user.accessToken);
+          if (response.success && response.data) {
+            // Construct college object from API response
+            const collegeData = {
+              college_name: response.data.collegeName,
+              college_code: response.data.collegeCode,
+              course_type: response.data.courseName,
+              city: response.data.city,
+            };
+            
+            setSelectedCollege({ college: collegeData });
+            setIsConfirmed(true);
+            setShowPreferences(true);
+            
+            // Also store in localStorage for offline access
+            localStorage.setItem('medicalRound2SelectedCollege', JSON.stringify(collegeData));
+          }
         } catch (error) {
-          console.error('Error loading stored selection data:', error);
+          console.error('Error fetching saved round details from API:', error);
+          // Fall back to localStorage if API fails
+          const stored = localStorage.getItem('medicalRound2SelectedCollege');
+          if (stored) {
+            try {
+              const parsedData = JSON.parse(stored);
+              setSelectedCollege({ college: parsedData });
+              setIsConfirmed(true);
+              setShowPreferences(true);
+            } catch (error) {
+              console.error('Error loading stored selection data:', error);
+            }
+          }
+        }
+      } else {
+        // If not logged in, just check localStorage
+        const stored = localStorage.getItem('medicalRound2SelectedCollege');
+        if (stored) {
+          try {
+            const parsedData = JSON.parse(stored);
+            setSelectedCollege({ college: parsedData });
+            setIsConfirmed(true);
+            setShowPreferences(true);
+          } catch (error) {
+            console.error('Error loading stored selection data:', error);
+          }
         }
       }
 
@@ -343,6 +380,27 @@ export const MedicalRound2Tab = () => {
       // Store to localStorage first
       const storageData = selectedCollege.college;
       localStorage.setItem('medicalRound2SelectedCollege', JSON.stringify(storageData));
+
+      // Get form data for additional fields
+      const formData = recommendationStorage.getFormData();
+      
+      // Call API to store medical college details
+      try {
+        const apiPayload = {
+          collegeName: selectedCollege.college.college_name,
+          collegeCode: selectedCollege.college.college_code,
+          courseName: selectedCollege.college.course_type || 'MBBS',
+          round: 1,
+          city: selectedCollege.college.city,
+          category: formData?.reservationCategory || 'OPEN',
+          NEETAllIndiaRank: formData?.neetAllIndiaRank || 0
+        };
+
+        await apiService.storeMedicalCollegeDetails(apiPayload, user.accessToken);
+      } catch (apiError) {
+        console.error('Error calling store API:', apiError);
+        // Continue even if API fails, as we have localStorage backup
+      }
 
       setIsConfirmed(true);
       setShowPreferences(true);
