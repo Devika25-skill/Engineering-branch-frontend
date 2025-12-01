@@ -1,23 +1,16 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { apiService } from "@/services/api";
 
 const Recommendations = () => {
   const navigate = useNavigate();
-  const location = useLocation();
   const { user, isLoggedIn } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const checkExistingRecommendations = async () => {
       try {
-        // Skip auto-redirect if user explicitly clicked "Back to Form"
-        if (location.state?.skipAutoRedirect) {
-          setIsLoading(false);
-          return;
-        }
-
         const recommendationType = localStorage.getItem('recommendation_type');
         const isMedical = recommendationType === 'First_Year_Medical';
         
@@ -39,74 +32,13 @@ const Recommendations = () => {
               : await apiService.fetchAICapDetails(user.accessToken);
             
             if (profileResponse.success && profileResponse.data) {
-            // For medical, check if recommendations exist for both rounds
-            if (isMedical) {
-              try {
-                // Check Round 2 first
-                const round2Response = await apiService.getMedicalRecommendationsByRound(2, user.accessToken);
-                
-                if (round2Response.success && round2Response.data) {
-                  const hasRound2Recommendations = 
-                    (round2Response.data.Dream && round2Response.data.Dream.length > 0) ||
-                    (round2Response.data.Reach && round2Response.data.Reach.length > 0) ||
-                    (round2Response.data.Match && round2Response.data.Match.length > 0) ||
-                    (round2Response.data.Safety && round2Response.data.Safety.length > 0);
-                  
-                  if (hasRound2Recommendations) {
-                    // Cache Round 2 recommendations and navigate to results with Round 2 active
-                    const recommendationsData = {
-                      Dream: round2Response.data.Dream || [],
-                      Reach: round2Response.data.Reach || [],
-                      Match: round2Response.data.Match || [],
-                      Safety: round2Response.data.Safety || []
-                    };
-                    sessionStorage.setItem("cachedMedicalRound2Recommendations", JSON.stringify(recommendationsData));
-                    sessionStorage.setItem("medicalRecommendationPaymentData", JSON.stringify({
-                      is_payment: round2Response.data.is_payment || false,
-                      accept_payment: round2Response.data.accept_payment || true
-                    }));
-                    sessionStorage.setItem("activeRound", "round2");
-                    navigate('/medical-recommendations/results', { replace: true });
-                    return;
-                  }
-                }
-                
-                // Check Round 1 if Round 2 has no data
-                const round1Response = await apiService.getMedicalRecommendationsByRound(1, user.accessToken);
-                
-                if (round1Response.success && round1Response.data) {
-                  const hasRound1Recommendations = 
-                    (round1Response.data.Dream && round1Response.data.Dream.length > 0) ||
-                    (round1Response.data.Reach && round1Response.data.Reach.length > 0) ||
-                    (round1Response.data.Match && round1Response.data.Match.length > 0) ||
-                    (round1Response.data.Safety && round1Response.data.Safety.length > 0);
-                  
-                  if (hasRound1Recommendations) {
-                    // Cache Round 1 recommendations and navigate to results with Round 1 active
-                    const recommendationsData = {
-                      Dream: round1Response.data.Dream || [],
-                      Reach: round1Response.data.Reach || [],
-                      Match: round1Response.data.Match || [],
-                      Safety: round1Response.data.Safety || []
-                    };
-                    sessionStorage.setItem("cachedMedicalRecommendations", JSON.stringify(recommendationsData));
-                    sessionStorage.setItem("medicalRecommendationPaymentData", JSON.stringify({
-                      is_payment: round1Response.data.is_payment || false,
-                      accept_payment: round1Response.data.accept_payment || true
-                    }));
-                    sessionStorage.setItem("activeRound", "round1");
-                    navigate('/medical-recommendations/results', { replace: true });
-                    return;
-                  }
-                }
-              } catch (error) {
-                console.error('Failed to fetch medical recommendations:', error);
+              // For medical, check if recommendations exist
+              if (isMedical) {
+                // For now, go directly to steps page
+                // In future, we can check for existing medical recommendations here
+                navigate('/recommendations/steps', { replace: true });
+                return;
               }
-              
-              // If no recommendations found, go to steps page
-              navigate('/recommendations/steps', { replace: true });
-              return;
-            }
               
               // For engineering, check for existing recommendations
               const response = await apiService.getExistingRecommendations(user.accessToken);

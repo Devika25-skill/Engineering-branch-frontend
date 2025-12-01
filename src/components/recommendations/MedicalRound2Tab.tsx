@@ -59,11 +59,6 @@ export const MedicalRound2Tab = () => {
   const convertApiResponseToRecommendations = (apiData: any) => {
     const recommendations: any[] = [];
     
-    if (!apiData || typeof apiData !== 'object') {
-      console.error('Invalid API data:', apiData);
-      return recommendations;
-    }
-    
     ['Dream', 'Reach', 'Match', 'Safety'].forEach(category => {
       if (apiData[category] && Array.isArray(apiData[category])) {
         apiData[category].forEach((item: any) => {
@@ -103,31 +98,11 @@ export const MedicalRound2Tab = () => {
       if (cachedRound2Recommendations) {
         try {
           const parsedRecs = JSON.parse(cachedRound2Recommendations);
-          
-          // Check if data is in categorized format and convert to array
-          if (parsedRecs && typeof parsedRecs === 'object' && !Array.isArray(parsedRecs)) {
-            // Data is in categorized format {Dream: [], Reach: [], Match: [], Safety: []}
-            const convertedArray = [
-              ...(Array.isArray(parsedRecs.Dream) ? parsedRecs.Dream.map((r: any) => ({ ...r, category: 'Dream' })) : []),
-              ...(Array.isArray(parsedRecs.Reach) ? parsedRecs.Reach.map((r: any) => ({ ...r, category: 'Reach' })) : []),
-              ...(Array.isArray(parsedRecs.Match) ? parsedRecs.Match.map((r: any) => ({ ...r, category: 'Match' })) : []),
-              ...(Array.isArray(parsedRecs.Safety) ? parsedRecs.Safety.map((r: any) => ({ ...r, category: 'Safety' })) : [])
-            ];
-            setRound2Recommendations(convertedArray);
-          } else if (Array.isArray(parsedRecs)) {
-            // Data is already in array format
-            setRound2Recommendations(parsedRecs);
-          } else {
-            // Invalid format
-            console.error('Invalid cached data format:', parsedRecs);
-            setRound2Recommendations([]);
-          }
-          
+          setRound2Recommendations(parsedRecs);
           setHasGeneratedRecommendations(true);
         } catch (error) {
           console.error('Error loading cached Round 2 recommendations:', error);
           sessionStorage.removeItem('cachedMedicalRound2Recommendations');
-          setRound2Recommendations([]);
         }
       }
 
@@ -139,36 +114,22 @@ export const MedicalRound2Tab = () => {
             const parsedRecs = JSON.parse(storedRecommendations);
             if (parsedRecs && Object.keys(parsedRecs).length > 0) {
               const convertedRecs = convertApiResponseToRecommendations(parsedRecs);
+              setRound2Recommendations(convertedRecs);
+              setHasGeneratedRecommendations(true);
               
-              // Ensure converted data is an array
-              if (Array.isArray(convertedRecs)) {
-                setRound2Recommendations(convertedRecs);
-                setHasGeneratedRecommendations(true);
-                
-                // Check if these recommendations were paid and should unlock
-                if (parsedRecs.is_payment === true) {
-                  localStorage.setItem('medicalRecommendationUnlocked', 'true');
-                  setIsUnlocked(true);
-                }
-                
-                // Cache in categorized format for consistency
-                const categorizedData = {
-                  Dream: convertedRecs.filter((r: any) => r.category === 'Dream'),
-                  Reach: convertedRecs.filter((r: any) => r.category === 'Reach'),
-                  Match: convertedRecs.filter((r: any) => r.category === 'Match'),
-                  Safety: convertedRecs.filter((r: any) => r.category === 'Safety')
-                };
-                sessionStorage.setItem('cachedMedicalRound2Recommendations', JSON.stringify(categorizedData));
-              } else {
-                console.error('convertApiResponseToRecommendations did not return an array:', convertedRecs);
-                setRound2Recommendations([]);
+              // Check if these recommendations were paid and should unlock
+              if (parsedRecs.is_payment === true) {
+                localStorage.setItem('medicalRecommendationUnlocked', 'true');
+                setIsUnlocked(true);
               }
+              
+              // Cache in session storage for faster future access
+              sessionStorage.setItem('cachedMedicalRound2Recommendations', JSON.stringify(convertedRecs));
             }
           } catch (error) {
             console.error('Error loading stored recommendations:', error);
             // Clear corrupted data
             localStorage.removeItem('medicalRound2Recommendations');
-            setRound2Recommendations([]);
           }
         }
       }
@@ -468,43 +429,7 @@ export const MedicalRound2Tab = () => {
   };
 
   const loadPreferencesFromFormData = async () => {
-    // First try to fetch preferences from API
-    if (user?.accessToken) {
-      try {
-        const response = await apiService.fetchMedicalStudentDetails(user.accessToken);
-        if (response.success && response.data?.academic_credentials?.preferences) {
-          const { medicalPrograms, preferredCities } = response.data.academic_credentials.preferences;
-          
-          if (medicalPrograms && medicalPrograms.length > 0) {
-            setSelectedPrograms(medicalPrograms);
-          }
-          
-          if (preferredCities && preferredCities.length > 0) {
-            setSelectedCities(preferredCities);
-          }
-          
-          // Update localStorage with API data
-          localStorage.setItem('medicalRound2Preferences', JSON.stringify({
-            programs: medicalPrograms || [],
-            cities: preferredCities || [],
-            timestamp: Date.now()
-          }));
-          
-          // Also update form data storage for consistency
-          const formData = recommendationStorage.getFormData() || {};
-          formData.preferredMedicalPrograms = medicalPrograms || [];
-          formData.preferredCities = preferredCities || [];
-          recommendationStorage.saveFormData(formData);
-          
-          return;
-        }
-      } catch (error) {
-        console.error('Error fetching preferences from API:', error);
-        // Continue to fallback options
-      }
-    }
-    
-    // Fall back to form data from storage
+    // First try to get preferences from form data (latest from Round 1)
     const formData = recommendationStorage.getFormData();
     if (formData && (formData.preferredMedicalPrograms || formData.preferredCities)) {
       const programs = formData.preferredMedicalPrograms || [];
@@ -522,7 +447,7 @@ export const MedicalRound2Tab = () => {
       return;
     }
 
-    // Final fallback to localStorage only if API and form data are not available
+    // Fall back to localStorage only if form data is not available
     const storedPreferences = localStorage.getItem('medicalRound2Preferences');
     if (storedPreferences) {
       try {
@@ -808,25 +733,13 @@ export const MedicalRound2Tab = () => {
         // Store the raw API response in localStorage
         localStorage.setItem('medicalRound2Recommendations', JSON.stringify(response.data));
         
-        // Convert API response to array format
+        // Convert and set recommendations for display
         const convertedRecs = convertApiResponseToRecommendations(response.data);
         setRound2Recommendations(convertedRecs);
         setHasGeneratedRecommendations(true);
         
-        // Also store in categorized format for consistency with auto-redirect
-        const categorizedData = {
-          Dream: response.data.Dream || [],
-          Reach: response.data.Reach || [],
-          Match: response.data.Match || [],
-          Safety: response.data.Safety || []
-        };
-        
-        // Cache both formats in session storage
-        sessionStorage.setItem('cachedMedicalRound2Recommendations', JSON.stringify(categorizedData));
-        sessionStorage.setItem('medicalRecommendationPaymentData', JSON.stringify({
-          is_payment: response.data.is_payment || false,
-          accept_payment: response.data.accept_payment || true
-        }));
+        // Cache the converted recommendations in session storage for faster access
+        sessionStorage.setItem('cachedMedicalRound2Recommendations', JSON.stringify(convertedRecs));
         
         // Check if payment is included and unlock recommendations automatically
         if (response.data.is_payment === true) {
@@ -875,13 +788,7 @@ export const MedicalRound2Tab = () => {
   };
 
   const sortRecommendationsByCategory = (recs: any[]) => {
-    // Ensure recs is an array
-    if (!Array.isArray(recs)) {
-      console.error('sortRecommendationsByCategory received non-array:', recs);
-      return [];
-    }
-    
-    return [...recs].sort((a, b) => {
+    return recs.sort((a, b) => {
       const categoryOrder = { 'Dream': 0, 'Reach': 1, 'Match': 2, 'Safety': 3 };
       const categoryA = categoryOrder[a.category as keyof typeof categoryOrder] ?? 4;
       const categoryB = categoryOrder[b.category as keyof typeof categoryOrder] ?? 4;
@@ -894,9 +801,7 @@ export const MedicalRound2Tab = () => {
     });
   };
 
-  const categorizedRecommendations = sortRecommendationsByCategory(
-    Array.isArray(round2Recommendations) ? round2Recommendations : []
-  );
+  const categorizedRecommendations = sortRecommendationsByCategory(round2Recommendations);
 
   const getCategoryColor = (category: string) => {
     switch (category) {
