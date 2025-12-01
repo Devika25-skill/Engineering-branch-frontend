@@ -1457,31 +1457,25 @@ export const MedicalRound2Tab = () => {
               {searchResults.map((college, index) => (
                 <Card key={`${college.college_code}-${index}`} className="hover:shadow-md transition-shadow">
                   <CardContent className="p-6">
-                    <div className="space-y-4">
+                    <div className="flex items-center justify-between gap-4">
                       {/* College Info */}
-                      <div className="space-y-2">
-                        <div className="flex items-start justify-between gap-4">
-                          <div className="flex-1">
-                            <h4 className="text-lg font-semibold text-foreground">{college.college_name}</h4>
-                            <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
-                              <div className="flex items-center gap-1">
-                                <MapPin className="w-4 h-4" />
-                                {college.city}
-                              </div>
-                              <div className="flex items-center gap-1">
-                                Code: {college.college_code}
-                              </div>
-                            </div>
+                      <div className="flex-1">
+                        <h4 className="text-lg font-semibold text-foreground">{college.college_name}</h4>
+                        <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
+                          <div className="flex items-center gap-1">
+                            <MapPin className="w-4 h-4" />
+                            {college.city}
+                          </div>
+                          <div className="flex items-center gap-1">
+                            Code: {college.college_code}
                           </div>
                         </div>
                       </div>
 
-                      <Separator />
-
                       {/* Select College Button */}
                       <Button
                         onClick={() => handleCollegeSelect(college)}
-                        className="w-full"
+                        className="shrink-0"
                       >
                         <Check className="w-4 h-4 mr-2" />
                         Select This College
