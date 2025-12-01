@@ -9,10 +9,11 @@ import StepLoadingMessages from '@/components/recommendations/StepLoadingMessage
 import { FeedbackSection } from "@/components/feedback/FeedbackSection";
 import { useAuth } from "@/contexts/AuthContext";
 import { MedicalRecommendationResults as ResultsComponent } from "@/components/recommendations/MedicalRecommendationResults";
+import { apiService } from "@/services/api";
 
 const MedicalRecommendationResults = () => {
   const navigate = useNavigate();
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn, user } = useAuth();
   const { isGenerating } = useMedicalRecommendation();
   const [formData, setFormData] = useState<any>(null);
   const [recommendations, setRecommendations] = useState<any>({
@@ -26,36 +27,130 @@ const MedicalRecommendationResults = () => {
     accept_payment: true
   });
   const [isLoading, setIsLoading] = useState(true);
+  const [activeRound, setActiveRound] = useState<string>(() => {
+    // Check which round was set during auto-redirect
+    const sessionRound = sessionStorage.getItem('activeRound');
+    if (sessionRound) {
+      return sessionRound;
+    }
+    const savedRound = localStorage.getItem('activeRoundTab');
+    return savedRound || 'round1';
+  });
 
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
 
+  // Load recommendations based on active round
   useEffect(() => {
-    const loadRecommendations = async () => {
+    const loadRecommendationsForRound = async (round: number) => {
       try {
-        const cached = recommendationStorage.getMedicalRecommendations();
-        const savedFormData = recommendationStorage.getFormData();
-        const savedPaymentData = recommendationStorage.getMedicalPaymentData();
-
-        if (cached && savedFormData) {
-          setRecommendations(cached);
-          setFormData(savedFormData);
-          setPaymentData(savedPaymentData);
-          setIsLoading(false);
-        } else if (isLoggedIn) {
-          navigate('/recommendations');
-        } else {
-          navigate('/');
+        setIsLoading(true);
+        
+        // Determine which storage key to use based on round
+        const storageKey = round === 1 ? 'cachedMedicalRecommendations' : 'cachedMedicalRound2Recommendations';
+        
+        // First check sessionStorage for cached data
+        const cachedData = sessionStorage.getItem(storageKey);
+        if (cachedData) {
+          try {
+            const parsedData = JSON.parse(cachedData);
+            
+            // For Round 2, data is already in array format from MedicalRound2Tab
+            // For Round 1, data is in categorized format
+            if (round === 2 && Array.isArray(parsedData)) {
+              // Convert array format to categorized format for Round 1 display
+              const categorized = {
+                Dream: parsedData.filter((r: any) => r.category === 'Dream'),
+                Reach: parsedData.filter((r: any) => r.category === 'Reach'),
+                Match: parsedData.filter((r: any) => r.category === 'Match'),
+                Safety: parsedData.filter((r: any) => r.category === 'Safety'),
+              };
+              setRecommendations(categorized);
+            } else {
+              setRecommendations(parsedData);
+            }
+            
+            setIsLoading(false);
+            return;
+          } catch (error) {
+            console.error('Error parsing cached data:', error);
+          }
         }
+
+        // If no cached data, fetch from API
+        if (user?.accessToken) {
+          const response = await apiService.getMedicalRecommendationsByRound(round, user.accessToken);
+          
+          if (response.success && response.data) {
+            const { Dream, Reach, Match, Safety, is_payment, accept_payment } = response.data;
+            
+            // Check if we have valid recommendation data
+            const hasData = [Dream, Reach, Match, Safety].some(arr => arr && arr.length > 0);
+            
+            if (hasData) {
+              const recommendationsData = { Dream: Dream || [], Reach: Reach || [], Match: Match || [], Safety: Safety || [] };
+              setRecommendations(recommendationsData);
+              setPaymentData({
+                is_payment: is_payment || false,
+                accept_payment: accept_payment !== false
+              });
+              
+              // Cache the data
+              sessionStorage.setItem(storageKey, JSON.stringify(recommendationsData));
+              if (is_payment !== undefined || accept_payment !== undefined) {
+                sessionStorage.setItem('medicalRecommendationPaymentData', JSON.stringify({ is_payment, accept_payment }));
+              }
+            } else {
+              // No data for this round, redirect back
+              navigate('/recommendations');
+            }
+          } else {
+            navigate('/recommendations');
+          }
+        } else {
+          navigate('/recommendations');
+        }
+        
+        setIsLoading(false);
       } catch (error) {
-        console.error('Error loading recommendations:', error);
+        console.error(`Error loading Round ${round} recommendations:`, error);
+        setIsLoading(false);
         navigate('/recommendations');
       }
     };
 
-    loadRecommendations();
-  }, [isLoggedIn, navigate]);
+    const loadInitialData = async () => {
+      try {
+        // Load form data
+        const savedFormData = recommendationStorage.getFormData();
+        if (savedFormData) {
+          setFormData(savedFormData);
+        }
+        
+        // Load payment data
+        const savedPaymentData = recommendationStorage.getMedicalPaymentData();
+        setPaymentData(savedPaymentData);
+        
+        // Load recommendations for the active round
+        const roundNumber = activeRound === 'round2' ? 2 : 1;
+        await loadRecommendationsForRound(roundNumber);
+        
+      } catch (error) {
+        console.error('Error loading initial data:', error);
+        navigate('/recommendations');
+      }
+    };
+
+    loadInitialData();
+  }, [activeRound, user?.accessToken, navigate, isLoggedIn]);
+
+  // Handle tab change
+  const handleRoundChange = (newRound: string) => {
+    setActiveRound(newRound);
+    localStorage.setItem('activeRoundTab', newRound);
+    sessionStorage.setItem('activeRound', newRound);
+  };
 
 
   if (isLoading || isGenerating) {
@@ -70,8 +165,10 @@ const MedicalRecommendationResults = () => {
   }
 
   const handleBackToForm = () => {
-    // Clear cached recommendations
+    // Clear cached recommendations for all rounds
     sessionStorage.removeItem('cachedMedicalRecommendations');
+    sessionStorage.removeItem('cachedMedicalRound2Recommendations');
+    sessionStorage.removeItem('activeRound');
     recommendationStorage.clearMedicalRecommendations();
     // Navigate to recommendations page
     navigate('/recommendations');
@@ -97,6 +194,8 @@ const MedicalRecommendationResults = () => {
           recommendations={recommendations}
           formData={formData}
           paymentData={paymentData}
+          activeRound={activeRound}
+          onRoundChange={handleRoundChange}
         />
         
         <div className="mt-12 mb-8">

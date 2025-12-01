@@ -53,7 +53,7 @@ const Recommendations = () => {
                       Match: round2Response.data.Match || [],
                       Safety: round2Response.data.Safety || []
                     };
-                    sessionStorage.setItem("cachedMedicalRecommendations", JSON.stringify(recommendationsData));
+                    sessionStorage.setItem("cachedMedicalRound2Recommendations", JSON.stringify(recommendationsData));
                     sessionStorage.setItem("medicalRecommendationPaymentData", JSON.stringify({
                       is_payment: round2Response.data.is_payment || false,
                       accept_payment: round2Response.data.accept_payment || true

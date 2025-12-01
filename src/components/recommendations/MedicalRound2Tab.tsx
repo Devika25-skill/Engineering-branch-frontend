@@ -429,7 +429,43 @@ export const MedicalRound2Tab = () => {
   };
 
   const loadPreferencesFromFormData = async () => {
-    // First try to get preferences from form data (latest from Round 1)
+    // First try to fetch preferences from API
+    if (user?.accessToken) {
+      try {
+        const response = await apiService.fetchMedicalStudentDetails(user.accessToken);
+        if (response.success && response.data?.academic_credentials?.preferences) {
+          const { medicalPrograms, preferredCities } = response.data.academic_credentials.preferences;
+          
+          if (medicalPrograms && medicalPrograms.length > 0) {
+            setSelectedPrograms(medicalPrograms);
+          }
+          
+          if (preferredCities && preferredCities.length > 0) {
+            setSelectedCities(preferredCities);
+          }
+          
+          // Update localStorage with API data
+          localStorage.setItem('medicalRound2Preferences', JSON.stringify({
+            programs: medicalPrograms || [],
+            cities: preferredCities || [],
+            timestamp: Date.now()
+          }));
+          
+          // Also update form data storage for consistency
+          const formData = recommendationStorage.getFormData() || {};
+          formData.preferredMedicalPrograms = medicalPrograms || [];
+          formData.preferredCities = preferredCities || [];
+          recommendationStorage.saveFormData(formData);
+          
+          return;
+        }
+      } catch (error) {
+        console.error('Error fetching preferences from API:', error);
+        // Continue to fallback options
+      }
+    }
+    
+    // Fall back to form data from storage
     const formData = recommendationStorage.getFormData();
     if (formData && (formData.preferredMedicalPrograms || formData.preferredCities)) {
       const programs = formData.preferredMedicalPrograms || [];
@@ -447,7 +483,7 @@ export const MedicalRound2Tab = () => {
       return;
     }
 
-    // Fall back to localStorage only if form data is not available
+    // Final fallback to localStorage only if API and form data are not available
     const storedPreferences = localStorage.getItem('medicalRound2Preferences');
     if (storedPreferences) {
       try {
