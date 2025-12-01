@@ -326,9 +326,10 @@ const RecommendationSteps = () => {
       return;
     }
 
-    // Clear cached recommendations
+    // Clear cached recommendations and round tab state
     sessionStorage.removeItem('cachedRecommendations');
     sessionStorage.removeItem('cachedMedicalRecommendations');
+    localStorage.removeItem('activeRoundTab');
     
     // Show loading state
     setIsLoading(true);
@@ -359,6 +360,7 @@ const RecommendationSteps = () => {
     setShowPreferencesConfirmation(false);
     sessionStorage.removeItem('cachedRecommendations');
     sessionStorage.removeItem('cachedMedicalRecommendations');
+    localStorage.removeItem('activeRoundTab');
     
     const recommendationType = localStorage.getItem('recommendation_type');
     
@@ -382,6 +384,9 @@ const RecommendationSteps = () => {
   const handleLoginSuccess = async () => {
     setLoginOpen(false);
     const recommendationType = localStorage.getItem('recommendation_type');
+    
+    // Clear round tab state for fresh recommendations
+    localStorage.removeItem('activeRoundTab');
     
     // Show loading state
     setIsLoading(true);
