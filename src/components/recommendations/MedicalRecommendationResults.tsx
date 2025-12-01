@@ -84,7 +84,12 @@ export const MedicalRecommendationResults = ({
     return savedRound || 'round1'; // Default to Round 1
   });
   
-  const [recommendations, setRecommendations] = useState(initialRecommendations);
+  const [recommendations, setRecommendations] = useState(() => ({
+    Dream: initialRecommendations?.Dream || [],
+    Reach: initialRecommendations?.Reach || [],
+    Match: initialRecommendations?.Match || [],
+    Safety: initialRecommendations?.Safety || []
+  }));
   const [isLoadingRound, setIsLoadingRound] = useState(false);
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
