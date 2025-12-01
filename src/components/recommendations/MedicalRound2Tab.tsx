@@ -13,7 +13,7 @@ import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
-import { Search, Check, Plus, ChevronDown, ChevronUp, MapPin, Users, TrendingUp, Loader2, Sparkles, BookOpen, X, GripVertical } from 'lucide-react';
+import { Search, Check, Plus, ChevronDown, ChevronUp, MapPin, Users, TrendingUp, Loader2, Sparkles, BookOpen, X, GripVertical, Hash, GraduationCap } from 'lucide-react';
 import { Round2Disclaimer } from './Round2Disclaimer';
 import { usePdfDownloadMedical } from "@/hooks/usePdfDownloadMedical";
 import { NoResultsState } from './NoResultsState';
@@ -1467,18 +1467,26 @@ export const MedicalRound2Tab = () => {
                             {college.city}
                           </div>
                           <div className="flex items-center gap-1">
-                            Code: {college.college_code}
+                            <Hash className="w-4 h-4" />
+                            {college.college_code}
                           </div>
+                          {college.course_type && (
+                            <div className="flex items-center gap-1">
+                              <GraduationCap className="w-4 h-4" />
+                              {college.course_type}
+                            </div>
+                          )}
                         </div>
                       </div>
 
                       {/* Select College Button */}
                       <Button
                         onClick={() => handleCollegeSelect(college)}
-                        className="shrink-0"
+                        variant="outline"
+                        className="shrink-0 bg-white hover:bg-accent"
                       >
                         <Check className="w-4 h-4 mr-2" />
-                        Select This College
+                        Select
                       </Button>
                     </div>
                   </CardContent>
