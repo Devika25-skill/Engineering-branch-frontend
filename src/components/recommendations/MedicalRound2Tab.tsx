@@ -107,6 +107,13 @@ export const MedicalRound2Tab = () => {
             const convertedRecs = convertApiResponseToRecommendations(parsedRecs);
             setRound2Recommendations(convertedRecs);
             setHasGeneratedRecommendations(true);
+            
+            // Check payment status from cached API response
+            if (parsedRecs.is_payment === true) {
+              localStorage.setItem('medicalRecommendationUnlocked', 'true');
+              setIsUnlocked(true);
+            }
+            
             // Update cache with converted format
             sessionStorage.setItem('cachedMedicalRound2Recommendations', JSON.stringify(convertedRecs));
           }
@@ -779,8 +786,8 @@ export const MedicalRound2Tab = () => {
         setRound2Recommendations(convertedRecs);
         setHasGeneratedRecommendations(true);
         
-        // Cache the converted recommendations in session storage for faster access
-        sessionStorage.setItem('cachedMedicalRound2Recommendations', JSON.stringify(convertedRecs));
+        // Cache the FULL API response (not converted) in session storage to preserve payment data
+        sessionStorage.setItem('cachedMedicalRound2Recommendations', JSON.stringify(response.data));
         
         // Check if payment is included and unlock recommendations automatically
         if (response.data.is_payment === true) {
