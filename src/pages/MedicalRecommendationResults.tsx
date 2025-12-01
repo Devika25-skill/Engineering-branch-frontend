@@ -56,21 +56,15 @@ const MedicalRecommendationResults = () => {
           try {
             const parsedData = JSON.parse(cachedData);
             
-            // For Round 2, data is already in array format from MedicalRound2Tab
-            // For Round 1, data is in categorized format
-            if (round === 2 && Array.isArray(parsedData)) {
-              // Convert array format to categorized format for Round 1 display
-              const categorized = {
-                Dream: parsedData.filter((r: any) => r.category === 'Dream'),
-                Reach: parsedData.filter((r: any) => r.category === 'Reach'),
-                Match: parsedData.filter((r: any) => r.category === 'Match'),
-                Safety: parsedData.filter((r: any) => r.category === 'Safety'),
-              };
-              setRecommendations(categorized);
-            } else {
-              setRecommendations(parsedData);
-            }
+            // Ensure all categories are arrays
+            const normalizedData = {
+              Dream: Array.isArray(parsedData?.Dream) ? parsedData.Dream : [],
+              Reach: Array.isArray(parsedData?.Reach) ? parsedData.Reach : [],
+              Match: Array.isArray(parsedData?.Match) ? parsedData.Match : [],
+              Safety: Array.isArray(parsedData?.Safety) ? parsedData.Safety : [],
+            };
             
+            setRecommendations(normalizedData);
             setIsLoading(false);
             return;
           } catch (error) {
@@ -89,7 +83,13 @@ const MedicalRecommendationResults = () => {
             const hasData = [Dream, Reach, Match, Safety].some(arr => arr && arr.length > 0);
             
             if (hasData) {
-              const recommendationsData = { Dream: Dream || [], Reach: Reach || [], Match: Match || [], Safety: Safety || [] };
+              // Normalize data structure to ensure all categories are arrays
+              const recommendationsData = { 
+                Dream: Array.isArray(Dream) ? Dream : [], 
+                Reach: Array.isArray(Reach) ? Reach : [], 
+                Match: Array.isArray(Match) ? Match : [], 
+                Safety: Array.isArray(Safety) ? Safety : [] 
+              };
               setRecommendations(recommendationsData);
               setPaymentData({
                 is_payment: is_payment || false,
@@ -174,6 +174,14 @@ const MedicalRecommendationResults = () => {
     navigate('/recommendations');
   };
 
+  // Ensure recommendations always have valid structure before passing to component
+  const safeRecommendations = {
+    Dream: Array.isArray(recommendations?.Dream) ? recommendations.Dream : [],
+    Reach: Array.isArray(recommendations?.Reach) ? recommendations.Reach : [],
+    Match: Array.isArray(recommendations?.Match) ? recommendations.Match : [],
+    Safety: Array.isArray(recommendations?.Safety) ? recommendations.Safety : [],
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
       <Navigation />
@@ -191,7 +199,7 @@ const MedicalRecommendationResults = () => {
         </div>
 
         <ResultsComponent 
-          recommendations={recommendations}
+          recommendations={safeRecommendations}
           formData={formData}
           paymentData={paymentData}
           activeRound={activeRound}

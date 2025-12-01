@@ -351,6 +351,10 @@ export const MedicalRecommendationResults = ({
   };
 
   const sortRecommendationsByCategory = (recs: MedicalCollegeRecommendation[]) => {
+    if (!Array.isArray(recs)) {
+      console.error('sortRecommendationsByCategory received non-array:', recs);
+      return [];
+    }
     const categoryOrder = { Dream: 1, Reach: 2, Match: 3, Safety: 4 };
     return [...recs].sort((a, b) => {
       const categoryDiff = categoryOrder[a.category as keyof typeof categoryOrder] - 
@@ -361,7 +365,15 @@ export const MedicalRecommendationResults = ({
   };
 
   const getCategorizedRecommendations = () => {
-    const allRecs = Object.entries(recommendations).flatMap(([category, recs]) =>
+    // Ensure recommendations has valid structure
+    const validRecommendations = {
+      Dream: Array.isArray(recommendations?.Dream) ? recommendations.Dream : [],
+      Reach: Array.isArray(recommendations?.Reach) ? recommendations.Reach : [],
+      Match: Array.isArray(recommendations?.Match) ? recommendations.Match : [],
+      Safety: Array.isArray(recommendations?.Safety) ? recommendations.Safety : [],
+    };
+    
+    const allRecs = Object.entries(validRecommendations).flatMap(([category, recs]) =>
       recs.map(rec => ({ ...rec, category }))
     );
     return sortRecommendationsByCategory(allRecs);
