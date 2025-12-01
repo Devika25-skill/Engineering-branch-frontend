@@ -98,8 +98,18 @@ export const MedicalRound2Tab = () => {
       if (cachedRound2Recommendations) {
         try {
           const parsedRecs = JSON.parse(cachedRound2Recommendations);
-          setRound2Recommendations(parsedRecs);
-          setHasGeneratedRecommendations(true);
+          // Ensure it's an array before setting
+          if (Array.isArray(parsedRecs)) {
+            setRound2Recommendations(parsedRecs);
+            setHasGeneratedRecommendations(true);
+          } else if (parsedRecs && typeof parsedRecs === 'object') {
+            // If it's the raw API response with Dream/Reach/Match/Safety structure
+            const convertedRecs = convertApiResponseToRecommendations(parsedRecs);
+            setRound2Recommendations(convertedRecs);
+            setHasGeneratedRecommendations(true);
+            // Update cache with converted format
+            sessionStorage.setItem('cachedMedicalRound2Recommendations', JSON.stringify(convertedRecs));
+          }
         } catch (error) {
           console.error('Error loading cached Round 2 recommendations:', error);
           sessionStorage.removeItem('cachedMedicalRound2Recommendations');
@@ -429,34 +439,65 @@ export const MedicalRound2Tab = () => {
   };
 
   const loadPreferencesFromFormData = async () => {
-    // First try to get preferences from form data (latest from Round 1)
-    const formData = recommendationStorage.getFormData();
-    if (formData && (formData.preferredMedicalPrograms || formData.preferredCities)) {
-      const programs = formData.preferredMedicalPrograms || [];
-      const cities = formData.preferredCities || [];
-      
-      setSelectedPrograms(programs);
-      setSelectedCities(cities);
-      
-      // Update localStorage with latest data
-      localStorage.setItem('medicalRound2Preferences', JSON.stringify({
-        programs,
-        cities,
-        timestamp: Date.now()
-      }));
-      return;
-    }
-
-    // Fall back to localStorage only if form data is not available
-    const storedPreferences = localStorage.getItem('medicalRound2Preferences');
-    if (storedPreferences) {
-      try {
-        const parsed = JSON.parse(storedPreferences);
-        setSelectedPrograms(parsed.programs || []);
-        setSelectedCities(parsed.cities || []);
-      } catch (error) {
-        console.error('Error parsing stored preferences:', error);
+    try {
+      // First try API to get latest student details if logged in
+      if (user?.accessToken) {
+        try {
+          const profileResponse = await apiService.fetchMedicalStudentDetails(user.accessToken);
+          if (profileResponse.success && profileResponse.data) {
+            const preferences = profileResponse.data.academic_credentials?.preferences;
+            if (preferences) {
+              const programs = preferences.medicalPrograms || [];
+              const cities = preferences.preferredCities || [];
+              
+              setSelectedPrograms(programs);
+              setSelectedCities(cities);
+              
+              // Update localStorage with latest data from API
+              localStorage.setItem('medicalRound2Preferences', JSON.stringify({
+                programs,
+                cities,
+                timestamp: Date.now()
+              }));
+              return;
+            }
+          }
+        } catch (apiError) {
+          console.log('API call failed, falling back to local storage:', apiError);
+        }
       }
+
+      // Fall back to form data from storage
+      const formData = recommendationStorage.getFormData();
+      if (formData && (formData.preferredMedicalPrograms || formData.preferredCities)) {
+        const programs = formData.preferredMedicalPrograms || [];
+        const cities = formData.preferredCities || [];
+        
+        setSelectedPrograms(programs);
+        setSelectedCities(cities);
+        
+        // Update localStorage with latest data
+        localStorage.setItem('medicalRound2Preferences', JSON.stringify({
+          programs,
+          cities,
+          timestamp: Date.now()
+        }));
+        return;
+      }
+
+      // Final fallback to localStorage only if form data is not available
+      const storedPreferences = localStorage.getItem('medicalRound2Preferences');
+      if (storedPreferences) {
+        try {
+          const parsed = JSON.parse(storedPreferences);
+          setSelectedPrograms(parsed.programs || []);
+          setSelectedCities(parsed.cities || []);
+        } catch (error) {
+          console.error('Error parsing stored preferences:', error);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading preferences:', error);
     }
   };
 

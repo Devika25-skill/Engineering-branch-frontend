@@ -132,11 +132,12 @@ export const MedicalRecommendationResults = ({
     });
 
     // Convert to flat array with category information for PDF generation
+    // Safety checks to ensure all arrays exist
     const flatRecommendations = [
-      ...recommendations.Dream.map((rec: any) => ({ ...rec, category: 'Dream' })),
-      ...recommendations.Reach.map((rec: any) => ({ ...rec, category: 'Reach' })),
-      ...recommendations.Match.map((rec: any) => ({ ...rec, category: 'Match' })),
-      ...recommendations.Safety.map((rec: any) => ({ ...rec, category: 'Safety' }))
+      ...(Array.isArray(recommendations.Dream) ? recommendations.Dream.map((rec: any) => ({ ...rec, category: 'Dream' })) : []),
+      ...(Array.isArray(recommendations.Reach) ? recommendations.Reach.map((rec: any) => ({ ...rec, category: 'Reach' })) : []),
+      ...(Array.isArray(recommendations.Match) ? recommendations.Match.map((rec: any) => ({ ...rec, category: 'Match' })) : []),
+      ...(Array.isArray(recommendations.Safety) ? recommendations.Safety.map((rec: any) => ({ ...rec, category: 'Safety' })) : [])
     ];
     generatePDF(flatRecommendations as any, formData);
   };
@@ -359,6 +360,12 @@ export const MedicalRecommendationResults = ({
   };
 
   const sortRecommendationsByCategory = (recs: MedicalCollegeRecommendation[]) => {
+    // Safety check: ensure recs is an array
+    if (!Array.isArray(recs)) {
+      console.error('sortRecommendationsByCategory received non-array:', recs);
+      return [];
+    }
+    
     const categoryOrder = { Dream: 1, Reach: 2, Match: 3, Safety: 4 };
     return [...recs].sort((a, b) => {
       const categoryDiff = categoryOrder[a.category as keyof typeof categoryOrder] - 
@@ -369,9 +376,14 @@ export const MedicalRecommendationResults = ({
   };
 
   const getCategorizedRecommendations = () => {
-    const allRecs = Object.entries(recommendations).flatMap(([category, recs]) =>
-      recs.map(rec => ({ ...rec, category }))
-    );
+    const allRecs = Object.entries(recommendations).flatMap(([category, recs]) => {
+      // Safety check: ensure recs is an array before mapping
+      if (!Array.isArray(recs)) {
+        console.error(`Category ${category} has non-array data:`, recs);
+        return [];
+      }
+      return recs.map(rec => ({ ...rec, category }));
+    });
     return sortRecommendationsByCategory(allRecs);
   };
 
