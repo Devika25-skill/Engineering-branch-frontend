@@ -72,7 +72,12 @@ export const MedicalRecommendationResults = ({
   paymentData
 }: MedicalRecommendationResultsProps) => {
   // Initialize with Round 1 as default and persist selection
+  // First check sessionStorage (set by Recommendations.tsx), then localStorage
   const [activeRound, setActiveRound] = useState<string>(() => {
+    const sessionRound = sessionStorage.getItem('activeRound');
+    if (sessionRound) {
+      return sessionRound;
+    }
     const savedRound = localStorage.getItem('activeRoundTab');
     return savedRound || 'round1'; // Default to Round 1
   });
