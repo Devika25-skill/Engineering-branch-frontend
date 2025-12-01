@@ -143,6 +143,21 @@ export const useMedicalRecommendation = () => {
         medical_configuration_request: configPayload
       };
 
+      // If Round 2, include the Round 1 college choice code
+      if (roundNumber === 2) {
+        try {
+          const storedCollege = localStorage.getItem('medicalRound2SelectedCollege');
+          if (storedCollege) {
+            const collegeData = JSON.parse(storedCollege);
+            if (collegeData?.college_code) {
+              recommendationPayload.last_round_college_choice_code = collegeData.college_code;
+            }
+          }
+        } catch (error) {
+          console.error('Error retrieving Round 1 college selection:', error);
+        }
+      }
+
       const response = await apiService.generateMedicalRecommendations(recommendationPayload);
 
       if (response.success) {
