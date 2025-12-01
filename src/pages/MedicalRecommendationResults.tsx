@@ -36,25 +36,50 @@ const MedicalRecommendationResults = () => {
   useEffect(() => {
     const loadRecommendations = async () => {
       try {
-        // Check for cached data first
-        const cached = recommendationStorage.getMedicalRecommendations();
         const savedFormData = recommendationStorage.getFormData();
-        const savedPaymentData = recommendationStorage.getMedicalPaymentData();
         const savedActiveRound = sessionStorage.getItem('medicalActiveRound');
+        const roundToLoad = savedActiveRound === '2' ? 'round2' : savedActiveRound === '3' ? 'round3' : 'round1';
 
-        if (cached && savedFormData) {
-          // Ensure cached data has the correct structure
-          const safeCache: any = typeof cached === 'object' && cached !== null ? cached : {};
-          setRecommendations({
-            Dream: Array.isArray(safeCache.Dream) ? safeCache.Dream : [],
-            Reach: Array.isArray(safeCache.Reach) ? safeCache.Reach : [],
-            Match: Array.isArray(safeCache.Match) ? safeCache.Match : [],
-            Safety: Array.isArray(safeCache.Safety) ? safeCache.Safety : []
-          });
+        if (savedFormData) {
           setFormData(savedFormData);
-          setPaymentData(savedPaymentData);
-          if (savedActiveRound) {
-            setActiveRound(savedActiveRound === '2' ? 'round2' : 'round1');
+          setActiveRound(roundToLoad);
+
+          // Load data for the specific round
+          const roundNumber = roundToLoad === 'round2' ? 2 : roundToLoad === 'round3' ? 3 : 1;
+          const cacheKey = `cachedMedicalRound${roundNumber}Recommendations`;
+          const cachedData = sessionStorage.getItem(cacheKey);
+
+          if (cachedData) {
+            const parsed = JSON.parse(cachedData);
+            setRecommendations({
+              Dream: Array.isArray(parsed.Dream) ? parsed.Dream : [],
+              Reach: Array.isArray(parsed.Reach) ? parsed.Reach : [],
+              Match: Array.isArray(parsed.Match) ? parsed.Match : [],
+              Safety: Array.isArray(parsed.Safety) ? parsed.Safety : []
+            });
+            setPaymentData({
+              is_payment: parsed.is_payment || false,
+              accept_payment: parsed.accept_payment || true
+            });
+          } else if (user?.accessToken) {
+            // Fetch from API
+            const response = await apiService.getMedicalRecommendationsByRound(roundNumber, user.accessToken);
+            
+            if (response.success && response.data) {
+              setRecommendations({
+                Dream: Array.isArray(response.data.Dream) ? response.data.Dream : [],
+                Reach: Array.isArray(response.data.Reach) ? response.data.Reach : [],
+                Match: Array.isArray(response.data.Match) ? response.data.Match : [],
+                Safety: Array.isArray(response.data.Safety) ? response.data.Safety : []
+              });
+              setPaymentData({
+                is_payment: response.data.is_payment || false,
+                accept_payment: response.data.accept_payment || true
+              });
+              
+              // Cache the data
+              sessionStorage.setItem(cacheKey, JSON.stringify(response.data));
+            }
           }
           setIsLoading(false);
         } else if (isLoggedIn) {
@@ -69,7 +94,7 @@ const MedicalRecommendationResults = () => {
     };
 
     loadRecommendations();
-  }, [isLoggedIn, navigate]);
+  }, [isLoggedIn, navigate, user?.accessToken]);
 
   // Handle tab switching to load correct round data
   const handleRoundChange = async (round: 'round1' | 'round2' | 'round3') => {
