@@ -34,8 +34,49 @@ const Recommendations = () => {
             if (profileResponse.success && profileResponse.data) {
               // For medical, check if recommendations exist
               if (isMedical) {
-                // For now, go directly to steps page
-                // In future, we can check for existing medical recommendations here
+                // Check Round 2 recommendations first
+                try {
+                  const round2Response = await apiService.getMedicalRecommendationsByRound(2, user.accessToken);
+                  if (round2Response.success && round2Response.data) {
+                    const hasRound2 = (round2Response.data.Dream && round2Response.data.Dream.length > 0) ||
+                                     (round2Response.data.Reach && round2Response.data.Reach.length > 0) ||
+                                     (round2Response.data.Match && round2Response.data.Match.length > 0) ||
+                                     (round2Response.data.Safety && round2Response.data.Safety.length > 0);
+                    
+                    if (hasRound2) {
+                      // Cache Round 2 recommendations and navigate to results with Round 2 active
+                      sessionStorage.setItem('cachedMedicalRecommendations', JSON.stringify(round2Response.data));
+                      sessionStorage.setItem('medicalActiveRound', '2');
+                      navigate('/medical-recommendations/results', { replace: true });
+                      return;
+                    }
+                  }
+                } catch (error) {
+                  console.error('Error checking Round 2 recommendations:', error);
+                }
+
+                // Check Round 1 recommendations if Round 2 doesn't exist
+                try {
+                  const round1Response = await apiService.getMedicalRecommendationsByRound(1, user.accessToken);
+                  if (round1Response.success && round1Response.data) {
+                    const hasRound1 = (round1Response.data.Dream && round1Response.data.Dream.length > 0) ||
+                                     (round1Response.data.Reach && round1Response.data.Reach.length > 0) ||
+                                     (round1Response.data.Match && round1Response.data.Match.length > 0) ||
+                                     (round1Response.data.Safety && round1Response.data.Safety.length > 0);
+                    
+                    if (hasRound1) {
+                      // Cache Round 1 recommendations and navigate to results with Round 1 active
+                      sessionStorage.setItem('cachedMedicalRecommendations', JSON.stringify(round1Response.data));
+                      sessionStorage.setItem('medicalActiveRound', '1');
+                      navigate('/medical-recommendations/results', { replace: true });
+                      return;
+                    }
+                  }
+                } catch (error) {
+                  console.error('Error checking Round 1 recommendations:', error);
+                }
+
+                // No recommendations exist, go to steps page
                 navigate('/recommendations/steps', { replace: true });
                 return;
               }

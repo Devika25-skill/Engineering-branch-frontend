@@ -17,7 +17,7 @@ import { CAPFormInstructions } from "./CAPFormInstructions";
 import { NoResultsState } from "./NoResultsState";
 import { MedicalRound2Tab } from "./MedicalRound2Tab";
 
-interface MedicalRecommendationResultsProps {
+export interface MedicalRecommendationResultsProps {
   recommendations: {
     Dream: MedicalCollegeRecommendation[];
     Reach: MedicalCollegeRecommendation[];
@@ -29,6 +29,8 @@ interface MedicalRecommendationResultsProps {
     is_payment?: boolean;
     accept_payment?: boolean;
   };
+  activeRound?: 'round1' | 'round2' | 'round3';
+  onRoundChange?: (round: 'round1' | 'round2' | 'round3') => void | Promise<void>;
 }
 
 interface FormData {
@@ -69,13 +71,18 @@ declare global {
 export const MedicalRecommendationResults = ({
   recommendations,
   formData,
-  paymentData
+  paymentData,
+  activeRound: externalActiveRound,
+  onRoundChange
 }: MedicalRecommendationResultsProps) => {
   // Initialize with Round 1 as default and persist selection
-  const [activeRound, setActiveRound] = useState<string>(() => {
+  const [internalActiveRound, setInternalActiveRound] = useState<string>(() => {
     const savedRound = localStorage.getItem('activeRoundTab');
     return savedRound || 'round1'; // Default to Round 1
   });
+
+  // Use external activeRound if provided, otherwise use internal state
+  const activeRound = externalActiveRound || internalActiveRound;
   
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -90,6 +97,15 @@ export const MedicalRecommendationResults = ({
   });
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+
+  const handleTabChange = (value: string) => {
+    if (onRoundChange) {
+      onRoundChange(value as 'round1' | 'round2' | 'round3');
+    } else {
+      setInternalActiveRound(value);
+      localStorage.setItem('activeRoundTab', value);
+    }
+  };
 
   const handleDownloadPDF = () => {
     if (!isUnlocked && paymentData?.is_payment !== true) {
@@ -532,7 +548,7 @@ export const MedicalRecommendationResults = ({
     <div className="space-y-6">
       <RecommendationHeader formData={formData} />
 
-      <Tabs value={activeRound} onValueChange={setActiveRound} className="w-full">
+      <Tabs value={activeRound} onValueChange={handleTabChange} className="w-full">
         <TabsList className="grid w-full grid-cols-3 mb-6">
           <TabsTrigger value="round1">Round 1</TabsTrigger>
           <TabsTrigger value="round2">Round 2</TabsTrigger>
