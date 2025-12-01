@@ -769,13 +769,25 @@ export const MedicalRound2Tab = () => {
         // Store the raw API response in localStorage
         localStorage.setItem('medicalRound2Recommendations', JSON.stringify(response.data));
         
-        // Convert and set recommendations for display
+        // Convert API response to array format
         const convertedRecs = convertApiResponseToRecommendations(response.data);
         setRound2Recommendations(convertedRecs);
         setHasGeneratedRecommendations(true);
         
-        // Cache the converted recommendations in session storage for faster access
-        sessionStorage.setItem('cachedMedicalRound2Recommendations', JSON.stringify(convertedRecs));
+        // Also store in categorized format for consistency with auto-redirect
+        const categorizedData = {
+          Dream: response.data.Dream || [],
+          Reach: response.data.Reach || [],
+          Match: response.data.Match || [],
+          Safety: response.data.Safety || []
+        };
+        
+        // Cache both formats in session storage
+        sessionStorage.setItem('cachedMedicalRound2Recommendations', JSON.stringify(categorizedData));
+        sessionStorage.setItem('medicalRecommendationPaymentData', JSON.stringify({
+          is_payment: response.data.is_payment || false,
+          accept_payment: response.data.accept_payment || true
+        }));
         
         // Check if payment is included and unlock recommendations automatically
         if (response.data.is_payment === true) {
