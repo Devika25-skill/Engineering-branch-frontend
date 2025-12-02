@@ -660,6 +660,11 @@ export const MedicalRound2Tab = ({
       // Update configuration via API
       await apiService.storeMedicalConfiguration(configPayload);
 
+      // After configuration API is called, only set invalidation flags
+      sessionStorage.setItem('round1Invalidated', 'true');
+      sessionStorage.setItem('round2Invalidated', 'true');
+      sessionStorage.setItem('round3Invalidated', 'true');
+
       // Update localStorage with new preferences
       localStorage.setItem('medicalRound2Preferences', JSON.stringify({
         programs: selectedPrograms,
