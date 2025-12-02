@@ -218,62 +218,61 @@ const MedicalRecommendationResults = () => {
     try {
       const roundNumber = activeRound === 'round2' ? 2 : activeRound === 'round3' ? 3 : 1;
       
-      let currentFormData = formData;
+      // Always fetch complete student details from API
+      console.log('Fetching complete student details from API...');
+      const studentDetailsResponse = await apiService.fetchMedicalStudentDetails(user.accessToken);
       
-      // If form data is missing or incomplete, fetch from API
-      if (!currentFormData || 
-          !currentFormData.neetPercentile || 
-          !currentFormData.neetAllIndiaRank || 
-          !currentFormData.tenthMarks || 
-          !currentFormData.twelfthMarks || 
-          !currentFormData.groupingMarks ||
-          !currentFormData.category ||
-          !currentFormData.medicalPrograms ||
-          currentFormData.medicalPrograms.length === 0) {
-        
-        console.log('Form data missing or incomplete, fetching from API...');
-        const studentDetailsResponse = await apiService.fetchMedicalStudentDetails(user.accessToken);
-        
-        if (studentDetailsResponse.success && studentDetailsResponse.data) {
-          const apiData = studentDetailsResponse.data.academic_credentials;
-          
-          // Transform API response to formData structure
-          currentFormData = {
-            neetPercentile: apiData.examPercentiles.NEETPercentile?.toString() || '0',
-            neetAllIndiaRank: apiData.examPercentiles.NEETAllIndiaRank?.toString() || '0',
-            neetRollNumber: apiData.examPercentiles.NEETRollNumber?.toString() || '',
-            category: apiData.reservationCategory || '',
-            groupingMarks: apiData.academicMarks.groupingMarksPercent?.toString() || '0',
-            tenthMarks: apiData.academicMarks._10thGradeMarksPercent?.toString() || 
-                        apiData.academicMarks.tenthGradeMarksPercent?.toString() || '0',
-            twelfthMarks: apiData.academicMarks._12thGradeMarksPercent?.toString() || 
-                          apiData.academicMarks.twelfthGradeMarksPercent?.toString() || '0',
-            medicalPrograms: apiData.preferences.medicalPrograms || [],
-            preferredCities: apiData.preferences.preferredCities || ["ALL"],
-            collegeTypePreferences: studentDetailsResponse.data.academic_credentials.collegeTypePreferences || [],
-            priorityFactors: studentDetailsResponse.data.academic_credentials.priorityFactors || []
-          };
-          
-          // Update formData state and storage
-          setFormData(currentFormData);
-          recommendationStorage.saveFormData(currentFormData);
-        }
+      if (!studentDetailsResponse.success || !studentDetailsResponse.data) {
+        console.error('Failed to fetch student details');
+        return;
       }
+
+      const apiData = studentDetailsResponse.data;
+      const credentials = apiData.academic_credentials;
       
-      // Build payload from form data
+      // Build payload with proper nested structure
       const payload: any = {
-        neetPercentile: parseFloat(currentFormData.neetPercentile) || 0,
-        neetAllIndiaRank: parseInt(currentFormData.neetAllIndiaRank) || 0,
-        neetRollNumber: currentFormData.neetRollNumber || "",
-        category: currentFormData.category || "",
-        groupingMarksPercent: parseFloat(currentFormData.groupingMarks) || 0,
-        _10thGradeMarksPercent: parseFloat(currentFormData.tenthMarks) || 0,
-        _12thGradeMarksPercent: parseFloat(currentFormData.twelfthMarks) || 0,
-        tenthGradeMarksPercent: parseFloat(currentFormData.tenthMarks) || 0,
-        twelfthGradeMarksPercent: parseFloat(currentFormData.twelfthMarks) || 0,
-        medicalPrograms: currentFormData.medicalPrograms || [],
-        preferredCities: currentFormData.preferredCities?.length > 0 ? currentFormData.preferredCities : ["ALL"],
         round: roundNumber,
+        medical_configuration_request: {
+          username: user.email || apiData.username || "",
+          gender: apiData.gender || "M",
+          academic_credentials: {
+            educationBackground: {
+              educationType: credentials.educationBackground?.educationType || "",
+              stream: credentials.educationBackground?.stream || ""
+            },
+            academicMarks: {
+              _10thGradeMarksPercent: credentials.academicMarks?._10thGradeMarksPercent || 0,
+              _12thGradeMarksPercent: credentials.academicMarks?._12thGradeMarksPercent || 0,
+              groupingMarksPercent: credentials.academicMarks?.groupingMarksPercent || 0
+            },
+            examPercentiles: {
+              NEETPercentile: credentials.examPercentiles?.NEETPercentile || 0,
+              NEETAllIndiaRank: credentials.examPercentiles?.NEETAllIndiaRank || 0,
+              NEETRollNumber: credentials.examPercentiles?.NEETRollNumber || 0,
+              otherEntranceExam: credentials.examPercentiles?.otherEntranceExam || []
+            },
+            reservationCategory: credentials.reservationCategory || "",
+            achievementsExperience: {
+              sportsAchievements: credentials.achievementsExperience?.sportsAchievements || "",
+              certifications: credentials.achievementsExperience?.certifications || "",
+              internshipsWorkExperience: credentials.achievementsExperience?.internshipsWorkExperience || "",
+              otherAchievements: credentials.achievementsExperience?.otherAchievements || ""
+            },
+            preferences: {
+              medicalPrograms: credentials.preferences?.medicalPrograms || ["ALL"],
+              preferredCities: credentials.preferences?.preferredCities || ["ALL"]
+            },
+            campusFacilitiesEnvironment: {
+              hostelFacility: credentials.campusFacilitiesEnvironment?.hostelFacility || "",
+              campusSetting: credentials.campusFacilitiesEnvironment?.campusSetting || "",
+              transportFacility: credentials.campusFacilitiesEnvironment?.transportFacility || ""
+            },
+            annualBudget: credentials.annualBudget || 0,
+            collegeTypePreferences: credentials.collegeTypePreferences || ["ALL"],
+            priorityFactors: credentials.priorityFactors || ["ALL"]
+          }
+        }
       };
 
       // Add college code for Round 2
