@@ -146,6 +146,20 @@ export const useMedicalRecommendation = () => {
       sessionStorage.removeItem('medicalRecommendationPaymentData');
       localStorage.removeItem('medicalRound2Recommendations'); // Old Round 2 localStorage key
       
+      // Set invalidation flags for other rounds
+      // When generating Round 1, invalidate Round 2 and Round 3 (form was updated)
+      // When generating Round 2, invalidate Round 1 and Round 3 (form was updated)
+      if (roundNumber === 1) {
+        sessionStorage.setItem('round2Invalidated', 'true');
+        sessionStorage.setItem('round3Invalidated', 'true');
+      } else if (roundNumber === 2) {
+        sessionStorage.setItem('round1Invalidated', 'true');
+        sessionStorage.setItem('round3Invalidated', 'true');
+      } else if (roundNumber === 3) {
+        sessionStorage.setItem('round1Invalidated', 'true');
+        sessionStorage.setItem('round2Invalidated', 'true');
+      }
+      
       // Generate recommendations for the active round
       const recommendationPayload: GenerateMedicalRecommendationsRequest = {
         round: roundNumber,
