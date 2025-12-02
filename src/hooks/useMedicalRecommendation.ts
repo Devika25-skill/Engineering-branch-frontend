@@ -91,6 +91,8 @@ export const useMedicalRecommendation = () => {
             stream: formData.grouping
           },
           academicMarks: {
+            tenthGradeMarksPercent: Number(formData.tenthMarks.toFixed(2)),
+            twelfthGradeMarksPercent: Number(formData.twelfthMarks.toFixed(2)),
             _10thGradeMarksPercent: Number(formData.tenthMarks.toFixed(2)),
             _12thGradeMarksPercent: Number(formData.twelfthMarks.toFixed(2)),
             groupingMarksPercent: Number(formData.groupingMarks.toFixed(2))
