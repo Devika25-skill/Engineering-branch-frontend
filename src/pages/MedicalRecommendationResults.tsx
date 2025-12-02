@@ -226,7 +226,10 @@ const MedicalRecommendationResults = () => {
           !currentFormData.neetAllIndiaRank || 
           !currentFormData.tenthMarks || 
           !currentFormData.twelfthMarks || 
-          !currentFormData.groupingMarks) {
+          !currentFormData.groupingMarks ||
+          !currentFormData.category ||
+          !currentFormData.medicalPrograms ||
+          currentFormData.medicalPrograms.length === 0) {
         
         console.log('Form data missing or incomplete, fetching from API...');
         const studentDetailsResponse = await apiService.fetchMedicalStudentDetails(user.accessToken);
