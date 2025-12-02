@@ -567,6 +567,18 @@ export const MedicalRound2Tab = () => {
             // Save the fetched and transformed data to storage
             recommendationStorage.saveFormData(formData);
             console.log('Successfully fetched, transformed, and saved form data from backend');
+            
+            // Validate that critical fields have valid values after fetching
+            if (!formData.tenthMarks || formData.tenthMarks === 0 || 
+                !formData.twelfthMarks || formData.twelfthMarks === 0) {
+              toast({
+                title: "Incomplete Data",
+                description: "Your 10th and 12th grade marks are missing from your profile. Please go back to the form and complete your academic details.",
+                variant: "destructive"
+              });
+              setIsUpdatingPreferences(false);
+              return;
+            }
           } else {
             throw new Error('Failed to fetch student details from backend');
           }
@@ -602,9 +614,9 @@ export const MedicalRound2Tab = () => {
             stream: formData.grouping
           },
           academicMarks: {
-            _10thGradeMarksPercent: Number(formData.tenthMarks?.toFixed(2) || 0),
-            _12thGradeMarksPercent: Number(formData.twelfthMarks?.toFixed(2) || 0),
-            groupingMarksPercent: Number(formData.groupingMarks?.toFixed(2) || 0)
+            _10thGradeMarksPercent: formData.tenthMarks ? Number(formData.tenthMarks.toFixed(2)) : 0,
+            _12thGradeMarksPercent: formData.twelfthMarks ? Number(formData.twelfthMarks.toFixed(2)) : 0,
+            groupingMarksPercent: formData.groupingMarks ? Number(formData.groupingMarks.toFixed(2)) : 0
           },
           examPercentiles: {
             NEETPercentile: Number(formData.neetPercentile?.toFixed(2) || 0),
@@ -823,6 +835,18 @@ export const MedicalRound2Tab = () => {
             // Save the fetched and transformed data to storage
             recommendationStorage.saveFormData(formData);
             console.log('Successfully fetched, transformed, and saved form data from backend');
+            
+            // Validate that critical fields have valid values after fetching
+            if (!formData.tenthMarks || formData.tenthMarks === 0 || 
+                !formData.twelfthMarks || formData.twelfthMarks === 0) {
+              toast({
+                title: "Incomplete Data",
+                description: "Your 10th and 12th grade marks are missing from your profile. Please go back to the form and complete your academic details.",
+                variant: "destructive"
+              });
+              setIsGeneratingRecommendations(false);
+              return;
+            }
           } else {
             throw new Error('Failed to fetch student details from backend');
           }
@@ -850,9 +874,9 @@ export const MedicalRound2Tab = () => {
               stream: formData.grouping
             },
             academicMarks: {
-              _10thGradeMarksPercent: Number(formData.tenthMarks?.toFixed(2) || 0),
-              _12thGradeMarksPercent: Number(formData.twelfthMarks?.toFixed(2) || 0),
-              groupingMarksPercent: Number(formData.groupingMarks?.toFixed(2) || 0)
+              _10thGradeMarksPercent: formData.tenthMarks ? Number(formData.tenthMarks.toFixed(2)) : 0,
+              _12thGradeMarksPercent: formData.twelfthMarks ? Number(formData.twelfthMarks.toFixed(2)) : 0,
+              groupingMarksPercent: formData.groupingMarks ? Number(formData.groupingMarks.toFixed(2)) : 0
             },
             examPercentiles: {
               NEETPercentile: Number(formData.neetPercentile?.toFixed(2) || 0),
