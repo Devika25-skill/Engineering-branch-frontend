@@ -660,11 +660,6 @@ export const MedicalRound2Tab = ({
       // Update configuration via API
       await apiService.storeMedicalConfiguration(configPayload);
 
-      // After configuration API is called, only set invalidation flags
-      sessionStorage.setItem('round1Invalidated', 'true');
-      sessionStorage.setItem('round2Invalidated', 'true');
-      sessionStorage.setItem('round3Invalidated', 'true');
-
       // Update localStorage with new preferences
       localStorage.setItem('medicalRound2Preferences', JSON.stringify({
         programs: selectedPrograms,
@@ -790,10 +785,6 @@ export const MedicalRound2Tab = ({
       sessionStorage.removeItem('cachedMedicalRecommendations');
       sessionStorage.removeItem('medicalRecommendationPaymentData');
       localStorage.removeItem('medicalRound2Recommendations');
-      
-      // Set invalidation flags - generating Round 2 invalidates Round 1
-      sessionStorage.setItem('round1Invalidated', 'true');
-      sessionStorage.setItem('round3Invalidated', 'true');
       
       // Update preferences first
       const preferencesPayload = {
