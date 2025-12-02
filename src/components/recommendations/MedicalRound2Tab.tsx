@@ -564,7 +564,9 @@ export const MedicalRound2Tab = () => {
               otherExamPercentile: credentials.examPercentiles.otherEntranceExam?.[0]?.percentileOrScore
             };
             
-            console.log('Successfully fetched and transformed form data from backend');
+            // Save the fetched and transformed data to storage
+            recommendationStorage.saveFormData(formData);
+            console.log('Successfully fetched, transformed, and saved form data from backend');
           } else {
             throw new Error('Failed to fetch student details from backend');
           }
@@ -818,7 +820,9 @@ export const MedicalRound2Tab = () => {
               otherExamPercentile: credentials.examPercentiles.otherEntranceExam?.[0]?.percentileOrScore
             };
             
-            console.log('Successfully fetched and transformed form data from backend');
+            // Save the fetched and transformed data to storage
+            recommendationStorage.saveFormData(formData);
+            console.log('Successfully fetched, transformed, and saved form data from backend');
           } else {
             throw new Error('Failed to fetch student details from backend');
           }
