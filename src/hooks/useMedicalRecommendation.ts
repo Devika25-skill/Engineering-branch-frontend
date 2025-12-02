@@ -133,6 +133,11 @@ export const useMedicalRecommendation = () => {
         throw new Error('Failed to store medical configuration');
       }
 
+      // After configuration is updated, set invalidation flags for all rounds
+      sessionStorage.setItem('round1Invalidated', 'true');
+      sessionStorage.setItem('round2Invalidated', 'true');
+      sessionStorage.setItem('round3Invalidated', 'true');
+
       // Get the active round from sessionStorage, default to 1 if not set
       const activeRound = sessionStorage.getItem('medicalActiveRound');
       const roundNumber = (activeRound ? parseInt(activeRound.replace('round', ''), 10) : 1) as 1 | 2 | 3;
