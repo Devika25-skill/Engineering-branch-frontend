@@ -61,24 +61,42 @@ const MedicalRecommendationResults = () => {
               is_payment: parsed.is_payment || false,
               accept_payment: parsed.accept_payment || true
             });
-          } else if (user?.accessToken) {
-            // Fetch from API
-            const response = await apiService.getMedicalRecommendationsByRound(roundNumber, user.accessToken);
+          } else {
+            // Check if this round was invalidated due to form update
+            const invalidationKey = `round${roundNumber}Invalidated`;
+            const isInvalidated = sessionStorage.getItem(invalidationKey) === 'true';
             
-            if (response.success && response.data) {
+            if (!isInvalidated && user?.accessToken) {
+              // Only fetch from API if not invalidated
+              const response = await apiService.getMedicalRecommendationsByRound(roundNumber, user.accessToken);
+              
+              if (response.success && response.data) {
+                setRecommendations({
+                  Dream: Array.isArray(response.data.Dream) ? response.data.Dream : [],
+                  Reach: Array.isArray(response.data.Reach) ? response.data.Reach : [],
+                  Match: Array.isArray(response.data.Match) ? response.data.Match : [],
+                  Safety: Array.isArray(response.data.Safety) ? response.data.Safety : []
+                });
+                setPaymentData({
+                  is_payment: response.data.is_payment || false,
+                  accept_payment: response.data.accept_payment || true
+                });
+                
+                // Cache the data
+                sessionStorage.setItem(cacheKey, JSON.stringify(response.data));
+              }
+            } else {
+              // Round was invalidated, show empty state
               setRecommendations({
-                Dream: Array.isArray(response.data.Dream) ? response.data.Dream : [],
-                Reach: Array.isArray(response.data.Reach) ? response.data.Reach : [],
-                Match: Array.isArray(response.data.Match) ? response.data.Match : [],
-                Safety: Array.isArray(response.data.Safety) ? response.data.Safety : []
+                Dream: [],
+                Reach: [],
+                Match: [],
+                Safety: []
               });
               setPaymentData({
-                is_payment: response.data.is_payment || false,
-                accept_payment: response.data.accept_payment || true
+                is_payment: false,
+                accept_payment: true
               });
-              
-              // Cache the data
-              sessionStorage.setItem(cacheKey, JSON.stringify(response.data));
             }
           }
           setIsLoading(false);
@@ -125,24 +143,45 @@ const MedicalRecommendationResults = () => {
           is_payment: parsed.is_payment || false,
           accept_payment: parsed.accept_payment || true
         });
-      } else {
-        // Fetch from API
-        const response = await apiService.getMedicalRecommendationsByRound(roundNumber, user.accessToken);
         
-        if (response.success && response.data) {
+        // Clear invalidation flag since we're now viewing this round
+        sessionStorage.removeItem(`round${roundNumber}Invalidated`);
+      } else {
+        // Check if this round was invalidated due to form update
+        const invalidationKey = `round${roundNumber}Invalidated`;
+        const isInvalidated = sessionStorage.getItem(invalidationKey) === 'true';
+        
+        if (!isInvalidated && user?.accessToken) {
+          // Only fetch from API if not invalidated
+          const response = await apiService.getMedicalRecommendationsByRound(roundNumber, user.accessToken);
+          
+          if (response.success && response.data) {
+            setRecommendations({
+              Dream: Array.isArray(response.data.Dream) ? response.data.Dream : [],
+              Reach: Array.isArray(response.data.Reach) ? response.data.Reach : [],
+              Match: Array.isArray(response.data.Match) ? response.data.Match : [],
+              Safety: Array.isArray(response.data.Safety) ? response.data.Safety : []
+            });
+            setPaymentData({
+              is_payment: response.data.is_payment || false,
+              accept_payment: response.data.accept_payment || true
+            });
+            
+            // Cache the data
+            sessionStorage.setItem(cacheKey, JSON.stringify(response.data));
+          }
+        } else {
+          // Round was invalidated, show empty state
           setRecommendations({
-            Dream: Array.isArray(response.data.Dream) ? response.data.Dream : [],
-            Reach: Array.isArray(response.data.Reach) ? response.data.Reach : [],
-            Match: Array.isArray(response.data.Match) ? response.data.Match : [],
-            Safety: Array.isArray(response.data.Safety) ? response.data.Safety : []
+            Dream: [],
+            Reach: [],
+            Match: [],
+            Safety: []
           });
           setPaymentData({
-            is_payment: response.data.is_payment || false,
-            accept_payment: response.data.accept_payment || true
+            is_payment: false,
+            accept_payment: true
           });
-          
-          // Cache the data
-          sessionStorage.setItem(cacheKey, JSON.stringify(response.data));
         }
       }
     } catch (error) {

@@ -529,6 +529,10 @@ export const MedicalRound2Tab = () => {
       sessionStorage.removeItem('medicalRecommendationPaymentData');
       localStorage.removeItem('medicalRound2Recommendations');
       
+      // Set invalidation flags - updating preferences from Round 2 invalidates Round 1
+      sessionStorage.setItem('round1Invalidated', 'true');
+      sessionStorage.setItem('round3Invalidated', 'true');
+      
       // Update form data in storage
       let formData = recommendationStorage.getFormData();
       
@@ -773,6 +777,10 @@ export const MedicalRound2Tab = () => {
       sessionStorage.removeItem('cachedMedicalRecommendations');
       sessionStorage.removeItem('medicalRecommendationPaymentData');
       localStorage.removeItem('medicalRound2Recommendations');
+      
+      // Set invalidation flags - generating Round 2 invalidates Round 1
+      sessionStorage.setItem('round1Invalidated', 'true');
+      sessionStorage.setItem('round3Invalidated', 'true');
       
       // Update preferences first
       const preferencesPayload = {
