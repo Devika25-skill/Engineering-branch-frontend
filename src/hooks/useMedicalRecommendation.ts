@@ -133,14 +133,23 @@ export const useMedicalRecommendation = () => {
         throw new Error('Failed to store medical configuration');
       }
 
-      // After configuration is updated, set invalidation flags for all rounds
-      sessionStorage.setItem('round1Invalidated', 'true');
-      sessionStorage.setItem('round2Invalidated', 'true');
-      sessionStorage.setItem('round3Invalidated', 'true');
-
       // Get the active round from sessionStorage, default to 1 if not set
       const activeRound = sessionStorage.getItem('medicalActiveRound');
       const roundNumber = (activeRound ? parseInt(activeRound.replace('round', ''), 10) : 1) as 1 | 2 | 3;
+      
+      // Set invalidation flags based on which round is being updated
+      // If Round 1 config is updated, invalidate Round 2
+      // If Round 2 config is updated, invalidate Round 1
+      if (roundNumber === 1) {
+        sessionStorage.setItem('round2Invalidated', 'true');
+        sessionStorage.setItem('round3Invalidated', 'true');
+      } else if (roundNumber === 2) {
+        sessionStorage.setItem('round1Invalidated', 'true');
+        sessionStorage.setItem('round3Invalidated', 'true');
+      } else if (roundNumber === 3) {
+        sessionStorage.setItem('round1Invalidated', 'true');
+        sessionStorage.setItem('round2Invalidated', 'true');
+      }
       
       // Clear ALL cached medical recommendation data before generating new ones
       sessionStorage.removeItem('cachedMedicalRound1Recommendations');
