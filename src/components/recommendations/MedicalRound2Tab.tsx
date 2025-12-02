@@ -567,18 +567,6 @@ export const MedicalRound2Tab = () => {
             // Save the fetched and transformed data to storage
             recommendationStorage.saveFormData(formData);
             console.log('Successfully fetched, transformed, and saved form data from backend');
-            
-            // Validate that critical fields have valid values after fetching
-            if (!formData.tenthMarks || formData.tenthMarks === 0 || 
-                !formData.twelfthMarks || formData.twelfthMarks === 0) {
-              toast({
-                title: "Incomplete Data",
-                description: "Your 10th and 12th grade marks are missing from your profile. Please go back to the form and complete your academic details.",
-                variant: "destructive"
-              });
-              setIsUpdatingPreferences(false);
-              return;
-            }
           } else {
             throw new Error('Failed to fetch student details from backend');
           }
@@ -835,18 +823,6 @@ export const MedicalRound2Tab = () => {
             // Save the fetched and transformed data to storage
             recommendationStorage.saveFormData(formData);
             console.log('Successfully fetched, transformed, and saved form data from backend');
-            
-            // Validate that critical fields have valid values after fetching
-            if (!formData.tenthMarks || formData.tenthMarks === 0 || 
-                !formData.twelfthMarks || formData.twelfthMarks === 0) {
-              toast({
-                title: "Incomplete Data",
-                description: "Your 10th and 12th grade marks are missing from your profile. Please go back to the form and complete your academic details.",
-                variant: "destructive"
-              });
-              setIsGeneratingRecommendations(false);
-              return;
-            }
           } else {
             throw new Error('Failed to fetch student details from backend');
           }
