@@ -137,18 +137,6 @@ export const useMedicalRecommendation = () => {
       const activeRound = sessionStorage.getItem('medicalActiveRound');
       const roundNumber = (activeRound ? parseInt(activeRound.replace('round', ''), 10) : 1) as 1 | 2 | 3;
       
-      // After configuration API is called, only set invalidation flags for other rounds
-      if (roundNumber === 1) {
-        sessionStorage.setItem('round2Invalidated', 'true');
-        sessionStorage.setItem('round3Invalidated', 'true');
-      } else if (roundNumber === 2) {
-        sessionStorage.setItem('round1Invalidated', 'true');
-        sessionStorage.setItem('round3Invalidated', 'true');
-      } else if (roundNumber === 3) {
-        sessionStorage.setItem('round1Invalidated', 'true');
-        sessionStorage.setItem('round2Invalidated', 'true');
-      }
-      
       // Clear ALL cached medical recommendation data before generating new ones
       sessionStorage.removeItem('cachedMedicalRound1Recommendations');
       sessionStorage.removeItem('cachedMedicalRound2Recommendations');
