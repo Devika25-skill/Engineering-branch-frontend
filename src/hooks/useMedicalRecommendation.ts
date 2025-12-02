@@ -137,6 +137,15 @@ export const useMedicalRecommendation = () => {
       const activeRound = sessionStorage.getItem('medicalActiveRound');
       const roundNumber = (activeRound ? parseInt(activeRound.replace('round', ''), 10) : 1) as 1 | 2 | 3;
       
+      // Clear ALL cached medical recommendation data before generating new ones
+      // This ensures updated recommendations completely replace existing data
+      sessionStorage.removeItem('cachedMedicalRound1Recommendations');
+      sessionStorage.removeItem('cachedMedicalRound2Recommendations');
+      sessionStorage.removeItem('cachedMedicalRound3Recommendations');
+      sessionStorage.removeItem('cachedMedicalRecommendations'); // Old non-round-specific key
+      sessionStorage.removeItem('medicalRecommendationPaymentData');
+      localStorage.removeItem('medicalRound2Recommendations'); // Old Round 2 localStorage key
+      
       // Generate recommendations for the active round
       const recommendationPayload: GenerateMedicalRecommendationsRequest = {
         round: roundNumber,
@@ -166,10 +175,6 @@ export const useMedicalRecommendation = () => {
           throw new Error('No access token available');
         }
 
-        // Clear old cached data for this specific round
-        const roundCacheKey = `cachedMedicalRound${roundNumber}Recommendations`;
-        sessionStorage.removeItem(roundCacheKey);
-
         // Store the full API response with round-specific key
         const fullResponse = {
           Dream: response.data.Dream || [],
@@ -181,6 +186,7 @@ export const useMedicalRecommendation = () => {
         };
 
         // Cache with round-specific key
+        const roundCacheKey = `cachedMedicalRound${roundNumber}Recommendations`;
         sessionStorage.setItem(roundCacheKey, JSON.stringify(fullResponse));
         
         // Also save form data
