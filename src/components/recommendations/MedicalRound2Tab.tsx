@@ -26,7 +26,15 @@ interface SelectedCollege {
   college: any;
 }
 
-export const MedicalRound2Tab = () => {
+interface MedicalRound2TabProps {
+  isRoundInvalidated?: boolean;
+  onRegenerateRecommendations?: () => void | Promise<void>;
+}
+
+export const MedicalRound2Tab = ({ 
+  isRoundInvalidated = false,
+  onRegenerateRecommendations 
+}: MedicalRound2TabProps) => {
   const { user, isLoggedIn } = useAuth();
   const { toast } = useToast();
   
@@ -1577,7 +1585,37 @@ export const MedicalRound2Tab = () => {
       {/* Round 2 Recommendations Display */}
       {hasGeneratedRecommendations && round2Recommendations.length <= 0 && (
         <>
-          <NoResultsState />
+          {isRoundInvalidated ? (
+            <Card className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-950/30 dark:via-indigo-950/30 dark:to-purple-950/30 border-2 border-blue-200 dark:border-blue-800">
+              <CardContent className="pt-6">
+                <div className="text-center space-y-4">
+                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 mb-4">
+                    <TrendingUp className="w-8 h-8 text-white" />
+                  </div>
+                  
+                  <div>
+                    <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+                      Form Updated - Regenerate Recommendations
+                    </h3>
+                    <p className="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+                      Your form data has been updated. Click the button below to generate new recommendations based on your updated information.
+                    </p>
+                  </div>
+
+                  <Button 
+                    size="lg"
+                    onClick={onRegenerateRecommendations}
+                    className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold px-8 py-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
+                  >
+                    <TrendingUp className="mr-2 h-5 w-5" />
+                    Generate New Recommendations
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <NoResultsState />
+          )}
         </>
       )}
 

@@ -31,6 +31,8 @@ export interface MedicalRecommendationResultsProps {
   };
   activeRound?: 'round1' | 'round2' | 'round3';
   onRoundChange?: (round: 'round1' | 'round2' | 'round3') => void | Promise<void>;
+  isRoundInvalidated?: boolean;
+  onRegenerateRecommendations?: () => void | Promise<void>;
 }
 
 interface FormData {
@@ -73,7 +75,9 @@ export const MedicalRecommendationResults = ({
   formData,
   paymentData,
   activeRound: externalActiveRound,
-  onRoundChange
+  onRoundChange,
+  isRoundInvalidated,
+  onRegenerateRecommendations
 }: MedicalRecommendationResultsProps) => {
   // Ensure recommendations always have the required structure with empty arrays as defaults
   const recommendations = {
@@ -599,7 +603,35 @@ export const MedicalRecommendationResults = ({
             </Button>
           </div>
 
-          {filteredRecommendations.length === 0 ? (
+          {isRoundInvalidated && filteredRecommendations.length === 0 ? (
+            <Card className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-950/30 dark:via-indigo-950/30 dark:to-purple-950/30 border-2 border-blue-200 dark:border-blue-800">
+              <CardContent className="pt-6">
+                <div className="text-center space-y-4">
+                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 mb-4">
+                    <TrendingUp className="w-8 h-8 text-white" />
+                  </div>
+                  
+                  <div>
+                    <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+                      Form Updated - Regenerate Recommendations
+                    </h3>
+                    <p className="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+                      Your form data has been updated. Click the button below to generate new recommendations based on your updated information.
+                    </p>
+                  </div>
+
+                  <Button 
+                    size="lg"
+                    onClick={onRegenerateRecommendations}
+                    className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold px-8 py-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
+                  >
+                    <TrendingUp className="mr-2 h-5 w-5" />
+                    Generate New Recommendations
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ) : filteredRecommendations.length === 0 ? (
             <NoResultsState />
           ) : (
             <>
@@ -961,7 +993,10 @@ export const MedicalRecommendationResults = ({
         </TabsContent>
 
         <TabsContent value="round2">
-          <MedicalRound2Tab />
+          <MedicalRound2Tab 
+            isRoundInvalidated={isRoundInvalidated}
+            onRegenerateRecommendations={onRegenerateRecommendations}
+          />
         </TabsContent>
 
         <TabsContent value="round3">
