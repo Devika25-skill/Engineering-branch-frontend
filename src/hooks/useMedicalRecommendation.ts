@@ -133,11 +133,52 @@ export const useMedicalRecommendation = () => {
         throw new Error('Failed to store medical configuration');
       }
 
-      // Generate recommendations for Round 1
+      // Get the active round from sessionStorage, default to 1 if not set
+      const activeRound = sessionStorage.getItem('medicalActiveRound');
+      const roundNumber = (activeRound ? parseInt(activeRound.replace('round', ''), 10) : 1) as 1 | 2 | 3;
+      
+      // Set invalidation flags based on which round is being updated
+      // If Round 1 config is updated, invalidate Round 2
+      // If Round 2 config is updated, invalidate Round 1
+      if (roundNumber === 1) {
+        sessionStorage.setItem('round2Invalidated', 'true');
+        sessionStorage.setItem('round3Invalidated', 'true');
+      } else if (roundNumber === 2) {
+        sessionStorage.setItem('round1Invalidated', 'true');
+        sessionStorage.setItem('round3Invalidated', 'true');
+      } else if (roundNumber === 3) {
+        sessionStorage.setItem('round1Invalidated', 'true');
+        sessionStorage.setItem('round2Invalidated', 'true');
+      }
+      
+      // Clear ALL cached medical recommendation data before generating new ones
+      sessionStorage.removeItem('cachedMedicalRound1Recommendations');
+      sessionStorage.removeItem('cachedMedicalRound2Recommendations');
+      sessionStorage.removeItem('cachedMedicalRound3Recommendations');
+      sessionStorage.removeItem('cachedMedicalRecommendations');
+      sessionStorage.removeItem('medicalRecommendationPaymentData');
+      localStorage.removeItem('medicalRound2Recommendations');
+      
+      // Generate recommendations for the active round
       const recommendationPayload: GenerateMedicalRecommendationsRequest = {
-        round: 1,
+        round: roundNumber,
         medical_configuration_request: configPayload
       };
+
+      // If Round 2, include the Round 1 college choice code
+      if (roundNumber === 2) {
+        try {
+          const storedCollege = localStorage.getItem('medicalRound2SelectedCollege');
+          if (storedCollege) {
+            const collegeData = JSON.parse(storedCollege);
+            if (collegeData?.college_code) {
+              recommendationPayload.last_round_college_choice_code = collegeData.college_code;
+            }
+          }
+        } catch (error) {
+          console.error('Error retrieving Round 1 college selection:', error);
+        }
+      }
 
       const response = await apiService.generateMedicalRecommendations(recommendationPayload);
 
@@ -147,26 +188,30 @@ export const useMedicalRecommendation = () => {
           throw new Error('No access token available');
         }
 
-        // Transform the API response to categorized format
-        const categorizedRecommendations = {
+        // Store the full API response with round-specific key
+        const fullResponse = {
           Dream: response.data.Dream || [],
           Reach: response.data.Reach || [],
           Match: response.data.Match || [],
-          Safety: response.data.Safety || []
+          Safety: response.data.Safety || [],
+          is_payment: response.data.is_payment || false,
+          accept_payment: response.data.accept_payment !== undefined ? response.data.accept_payment : true
         };
 
-        // Store in session storage for quick access
-        recommendationStorage.setMedicalRecommendations(
-          categorizedRecommendations as any, 
-          formData, 
-          response.data.is_payment || false,
-          response.data.accept_payment !== undefined ? response.data.accept_payment : true
-        );
+        // Cache with round-specific key
+        const roundCacheKey = `cachedMedicalRound${roundNumber}Recommendations`;
+        sessionStorage.setItem(roundCacheKey, JSON.stringify(fullResponse));
+        
+        // Clear invalidation flag for the current round since we just generated new recommendations
+        sessionStorage.removeItem(`round${roundNumber}Invalidated`);
+        
+        // Also save form data
+        recommendationStorage.saveFormData(formData);
 
-      const totalCount = (categorizedRecommendations.Dream?.length || 0) +
-                          (categorizedRecommendations.Reach?.length || 0) +
-                          (categorizedRecommendations.Match?.length || 0) +
-                          (categorizedRecommendations.Safety?.length || 0);
+      const totalCount = (fullResponse.Dream?.length || 0) +
+                          (fullResponse.Reach?.length || 0) +
+                          (fullResponse.Match?.length || 0) +
+                          (fullResponse.Safety?.length || 0);
 
       toast({
         title: "Recommendations Generated!",
@@ -174,7 +219,7 @@ export const useMedicalRecommendation = () => {
       });
 
       return {
-        recommendations: categorizedRecommendations,
+        recommendations: fullResponse,
         formData,
         isPaid: response.data.is_payment
       };

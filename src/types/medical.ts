@@ -85,9 +85,11 @@ export interface MedicalAcademicCredentials {
     stream: string;
   };
   academicMarks: {
-    _10thGradeMarksPercent: number; // 0-100, max 2 decimal places
-    _12thGradeMarksPercent: number; // 0-100, max 2 decimal places
+    tenthGradeMarksPercent?: number; // 0-100, max 2 decimal places (optional, use _10thGradeMarksPercent)
+    twelfthGradeMarksPercent?: number; // 0-100, max 2 decimal places (optional, use _12thGradeMarksPercent)
     groupingMarksPercent: number; // 0-100, max 2 decimal places
+    _10thGradeMarksPercent: number; // Required for API payloads
+    _12thGradeMarksPercent: number; // Required for API payloads
   };
   examPercentiles: {
     NEETPercentile: number; // 0-100, max 2 decimal places
@@ -153,7 +155,23 @@ export interface FetchMedicalDetailsResponse {
 // Generate Medical Recommendations Request
 export interface GenerateMedicalRecommendationsRequest {
   round: Round;
+  last_round_college_choice_code?: number;
   medical_configuration_request: StoreMedicalConfigRequest;
+}
+
+// Medical College Search Types
+export interface MedicalCollegeSearchByNameRequest {
+  college_name: string;
+}
+
+export interface MedicalCollegeSearchByCodeRequest {
+  college_code: number;
+}
+
+export interface MedicalCollegeSearchResponse {
+  message: string;
+  success: boolean;
+  data: MedicalCollegeData | MedicalCollegeData[];
 }
 
 // Medical College Data

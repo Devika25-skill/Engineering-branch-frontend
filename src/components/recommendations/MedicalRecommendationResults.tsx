@@ -17,7 +17,7 @@ import { CAPFormInstructions } from "./CAPFormInstructions";
 import { NoResultsState } from "./NoResultsState";
 import { MedicalRound2Tab } from "./MedicalRound2Tab";
 
-interface MedicalRecommendationResultsProps {
+export interface MedicalRecommendationResultsProps {
   recommendations: {
     Dream: MedicalCollegeRecommendation[];
     Reach: MedicalCollegeRecommendation[];
@@ -29,6 +29,10 @@ interface MedicalRecommendationResultsProps {
     is_payment?: boolean;
     accept_payment?: boolean;
   };
+  activeRound?: 'round1' | 'round2' | 'round3';
+  onRoundChange?: (round: 'round1' | 'round2' | 'round3') => void | Promise<void>;
+  isRoundInvalidated?: boolean;
+  onRegenerateRecommendations?: () => void | Promise<void>;
 }
 
 interface FormData {
@@ -67,15 +71,27 @@ declare global {
 }
 
 export const MedicalRecommendationResults = ({
-  recommendations,
+  recommendations: rawRecommendations,
   formData,
-  paymentData
+  paymentData,
+  activeRound: externalActiveRound,
+  onRoundChange,
+  isRoundInvalidated,
+  onRegenerateRecommendations
 }: MedicalRecommendationResultsProps) => {
-  // Initialize with Round 1 as default and persist selection
-  const [activeRound, setActiveRound] = useState<string>(() => {
-    const savedRound = localStorage.getItem('activeRoundTab');
-    return savedRound || 'round1'; // Default to Round 1
-  });
+  // Ensure recommendations always have the required structure with empty arrays as defaults
+  const recommendations = {
+    Dream: Array.isArray(rawRecommendations?.Dream) ? rawRecommendations.Dream : [],
+    Reach: Array.isArray(rawRecommendations?.Reach) ? rawRecommendations.Reach : [],
+    Match: Array.isArray(rawRecommendations?.Match) ? rawRecommendations.Match : [],
+    Safety: Array.isArray(rawRecommendations?.Safety) ? rawRecommendations.Safety : []
+  };
+
+  // Initialize with Round 1 as default
+  const [internalActiveRound, setInternalActiveRound] = useState<string>('round1');
+
+  // Use external activeRound if provided, otherwise use internal state
+  const activeRound = externalActiveRound || internalActiveRound;
   
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -90,6 +106,14 @@ export const MedicalRecommendationResults = ({
   });
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+
+  const handleTabChange = (value: string) => {
+    if (onRoundChange) {
+      onRoundChange(value as 'round1' | 'round2' | 'round3');
+    } else {
+      setInternalActiveRound(value);
+    }
+  };
 
   const handleDownloadPDF = () => {
     if (!isUnlocked && paymentData?.is_payment !== true) {
@@ -108,11 +132,12 @@ export const MedicalRecommendationResults = ({
     });
 
     // Convert to flat array with category information for PDF generation
+    // Safety checks to ensure all arrays exist
     const flatRecommendations = [
-      ...recommendations.Dream.map((rec: any) => ({ ...rec, category: 'Dream' })),
-      ...recommendations.Reach.map((rec: any) => ({ ...rec, category: 'Reach' })),
-      ...recommendations.Match.map((rec: any) => ({ ...rec, category: 'Match' })),
-      ...recommendations.Safety.map((rec: any) => ({ ...rec, category: 'Safety' }))
+      ...(Array.isArray(recommendations.Dream) ? recommendations.Dream.map((rec: any) => ({ ...rec, category: 'Dream' })) : []),
+      ...(Array.isArray(recommendations.Reach) ? recommendations.Reach.map((rec: any) => ({ ...rec, category: 'Reach' })) : []),
+      ...(Array.isArray(recommendations.Match) ? recommendations.Match.map((rec: any) => ({ ...rec, category: 'Match' })) : []),
+      ...(Array.isArray(recommendations.Safety) ? recommendations.Safety.map((rec: any) => ({ ...rec, category: 'Safety' })) : [])
     ];
     generatePDF(flatRecommendations as any, formData);
   };
@@ -143,10 +168,6 @@ export const MedicalRecommendationResults = ({
     return !isUnlocked;
   };
 
-  // Persist active round to localStorage whenever it changes
-  useEffect(() => {
-    localStorage.setItem('activeRoundTab', activeRound);
-  }, [activeRound]);
 
   const calculatePrice = () => {
     const originalPrice = 999;
@@ -335,6 +356,12 @@ export const MedicalRecommendationResults = ({
   };
 
   const sortRecommendationsByCategory = (recs: MedicalCollegeRecommendation[]) => {
+    // Safety check: ensure recs is an array
+    if (!Array.isArray(recs)) {
+      console.error('sortRecommendationsByCategory received non-array:', recs);
+      return [];
+    }
+    
     const categoryOrder = { Dream: 1, Reach: 2, Match: 3, Safety: 4 };
     return [...recs].sort((a, b) => {
       const categoryDiff = categoryOrder[a.category as keyof typeof categoryOrder] - 
@@ -345,9 +372,14 @@ export const MedicalRecommendationResults = ({
   };
 
   const getCategorizedRecommendations = () => {
-    const allRecs = Object.entries(recommendations).flatMap(([category, recs]) =>
-      recs.map(rec => ({ ...rec, category }))
-    );
+    const allRecs = Object.entries(recommendations).flatMap(([category, recs]) => {
+      // Safety check: ensure recs is an array before mapping
+      if (!Array.isArray(recs)) {
+        console.error(`Category ${category} has non-array data:`, recs);
+        return [];
+      }
+      return recs.map(rec => ({ ...rec, category }));
+    });
     return sortRecommendationsByCategory(allRecs);
   };
 
@@ -532,7 +564,7 @@ export const MedicalRecommendationResults = ({
     <div className="space-y-6">
       <RecommendationHeader formData={formData} />
 
-      <Tabs value={activeRound} onValueChange={setActiveRound} className="w-full">
+      <Tabs value={activeRound} onValueChange={handleTabChange} className="w-full">
         <TabsList className="grid w-full grid-cols-3 mb-6">
           <TabsTrigger value="round1">Round 1</TabsTrigger>
           <TabsTrigger value="round2">Round 2</TabsTrigger>
@@ -543,35 +575,66 @@ export const MedicalRecommendationResults = ({
           <CAPFormInstructions />
           <RecommendationDisclaimer />
 
-          {/* Results Summary */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
-            <div className="text-center sm:text-left">
-              <p className="text-lg text-gray-600">
-                Found <span className="font-semibold text-blue-600">{filteredRecommendations.length}</span> college recommendations
-              </p>
+
+          {/* Results Summary - Hide when round is invalidated and no recommendations */}
+          {!(isRoundInvalidated && filteredRecommendations.length === 0) && (
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
+              <div className="text-center sm:text-left">
+                <p className="text-lg text-gray-600">
+                  Found <span className="font-semibold text-blue-600">{filteredRecommendations.length}</span> college recommendations
+                </p>
+              </div>
+
+              <Button
+                onClick={handleDownloadPDF}
+                disabled={(!isUnlocked && paymentData?.is_payment !== true) || isGenerating}
+                className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg min-h-[44px] touch-manipulation"
+                aria-label="Download recommendations as PDF"
+              >
+                {isGenerating ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <span className="text-sm font-medium">Generating PDF...</span>
+                  </>
+                ) : (
+                  <>
+                    <Download className="mr-2 h-4 w-4" />
+                    <span className="text-sm font-medium">Download PDF</span>
+                  </>
+                )}
+              </Button>
             </div>
+          )}
 
-            <Button
-              onClick={handleDownloadPDF}
-              disabled={(!isUnlocked && paymentData?.is_payment !== true) || isGenerating}
-              className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg min-h-[44px] touch-manipulation"
-              aria-label="Download recommendations as PDF"
-            >
-              {isGenerating ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  <span className="text-sm font-medium">Generating PDF...</span>
-                </>
-              ) : (
-                <>
-                  <Download className="mr-2 h-4 w-4" />
-                  <span className="text-sm font-medium">Download PDF</span>
-                </>
-              )}
-            </Button>
-          </div>
+          {isRoundInvalidated && filteredRecommendations.length === 0 ? (
+            <Card className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-950/30 dark:via-indigo-950/30 dark:to-purple-950/30 border-2 border-blue-200 dark:border-blue-800">
+              <CardContent className="pt-6">
+                <div className="text-center space-y-4">
+                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 mb-4">
+                    <TrendingUp className="w-8 h-8 text-white" />
+                  </div>
+                  
+                  <div>
+                    <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+                      Form Updated - Regenerate Recommendations
+                    </h3>
+                    <p className="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+                      Your form data has been updated. Click the button below to generate new recommendations based on your updated information.
+                    </p>
+                  </div>
 
-          {filteredRecommendations.length === 0 ? (
+                  <Button 
+                    size="lg"
+                    onClick={onRegenerateRecommendations}
+                    className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold px-8 py-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
+                  >
+                    <TrendingUp className="mr-2 h-5 w-5" />
+                    Generate New Recommendations
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ) : filteredRecommendations.length === 0 ? (
             <NoResultsState />
           ) : (
             <>
@@ -933,7 +996,10 @@ export const MedicalRecommendationResults = ({
         </TabsContent>
 
         <TabsContent value="round2">
-          <MedicalRound2Tab />
+          <MedicalRound2Tab 
+            isRoundInvalidated={isRoundInvalidated}
+            onRegenerateRecommendations={onRegenerateRecommendations}
+          />
         </TabsContent>
 
         <TabsContent value="round3">

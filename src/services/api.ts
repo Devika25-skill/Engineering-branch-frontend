@@ -1061,6 +1061,106 @@ class ApiService {
       body: JSON.stringify(payload),
     });
   }
+
+  // Medical College Search Methods
+  async searchMedicalCollegeByName(collegeName: string, token: string): Promise<any> {
+    return this.request<any>(`/api/v1/medical/college/search/name?college_name=${encodeURIComponent(collegeName)}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/json',
+      },
+    });
+  }
+
+  async searchMedicalCollegeByCode(collegeCode: number, token: string): Promise<any> {
+    return this.request<any>(`/api/v1/medical/college/search/code?college_code=${collegeCode}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/json',
+      },
+    });
+  }
+
+  // Store Medical College Details for Round
+  async storeMedicalCollegeDetails(payload: {
+    collegeName: string;
+    collegeCode: number;
+    courseName: string;
+    round: number;
+    city: string;
+    category: string;
+    NEETAllIndiaRank: number;
+  }, token: string): Promise<ApiResponse<{ college_status: string }>> {
+    return this.request<ApiResponse<{ college_status: string }>>('/api/v1/medical/store_medical_college_details', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload),
+    });
+  }
+
+  // Get Saved Medical Round Details
+  async getMedicalUserRoundDetails(round: number, token: string): Promise<ApiResponse<{
+    userName: string;
+    round: number;
+    collegeName: string;
+    collegeCode: number;
+    courseName: string;
+    city: string;
+    category: string;
+    NEETAllIndiaRank: number;
+  }>> {
+    return this.request<ApiResponse<{
+      userName: string;
+      round: number;
+      collegeName: string;
+      collegeCode: number;
+      courseName: string;
+      city: string;
+      category: string;
+      NEETAllIndiaRank: number;
+    }>>(`/api/v1/medical/get_medical_user_round_details?round=${round}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/json',
+      },
+    });
+  }
+
+  // Get Medical Recommendations by Round
+  async getMedicalRecommendationsByRound(round: number, token: string): Promise<ApiResponse<{
+    username: string;
+    Dream: any[];
+    Reach: any[];
+    Match: any[];
+    Safety: any[];
+    Round: number;
+    is_payment: boolean;
+    accept_payment: boolean;
+  }>> {
+    return this.request<ApiResponse<{
+      username: string;
+      Dream: any[];
+      Reach: any[];
+      Match: any[];
+      Safety: any[];
+      Round: number;
+      is_payment: boolean;
+      accept_payment: boolean;
+    }>>(`/api/v1/medical/medical/recommendations/college-list?round=${round}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/json',
+      },
+    });
+  }
 }
 
 export const apiService = new ApiService();
