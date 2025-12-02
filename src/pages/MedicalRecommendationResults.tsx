@@ -212,23 +212,64 @@ const MedicalRecommendationResults = () => {
   };
 
   const handleRegenerateRecommendations = async () => {
-    if (!user?.accessToken || !formData) return;
+    if (!user?.accessToken) return;
     
     setIsLoading(true);
     try {
       const roundNumber = activeRound === 'round2' ? 2 : activeRound === 'round3' ? 3 : 1;
       
-      // Build payload from existing form data
+      let currentFormData = formData;
+      
+      // If form data is missing or incomplete, fetch from API
+      if (!currentFormData || 
+          !currentFormData.neetPercentile || 
+          !currentFormData.neetAllIndiaRank || 
+          !currentFormData.tenthMarks || 
+          !currentFormData.twelfthMarks || 
+          !currentFormData.groupingMarks) {
+        
+        console.log('Form data missing or incomplete, fetching from API...');
+        const studentDetailsResponse = await apiService.fetchMedicalStudentDetails(user.accessToken);
+        
+        if (studentDetailsResponse.success && studentDetailsResponse.data) {
+          const apiData = studentDetailsResponse.data.academic_credentials;
+          
+          // Transform API response to formData structure
+          currentFormData = {
+            neetPercentile: apiData.examPercentiles.NEETPercentile?.toString() || '0',
+            neetAllIndiaRank: apiData.examPercentiles.NEETAllIndiaRank?.toString() || '0',
+            neetRollNumber: apiData.examPercentiles.NEETRollNumber?.toString() || '',
+            category: apiData.reservationCategory || '',
+            groupingMarks: apiData.academicMarks.groupingMarksPercent?.toString() || '0',
+            tenthMarks: apiData.academicMarks._10thGradeMarksPercent?.toString() || 
+                        apiData.academicMarks.tenthGradeMarksPercent?.toString() || '0',
+            twelfthMarks: apiData.academicMarks._12thGradeMarksPercent?.toString() || 
+                          apiData.academicMarks.twelfthGradeMarksPercent?.toString() || '0',
+            medicalPrograms: apiData.preferences.medicalPrograms || [],
+            preferredCities: apiData.preferences.preferredCities || ["ALL"],
+            collegeTypePreferences: studentDetailsResponse.data.academic_credentials.collegeTypePreferences || [],
+            priorityFactors: studentDetailsResponse.data.academic_credentials.priorityFactors || []
+          };
+          
+          // Update formData state and storage
+          setFormData(currentFormData);
+          recommendationStorage.saveFormData(currentFormData);
+        }
+      }
+      
+      // Build payload from form data
       const payload: any = {
-        neetPercentile: parseFloat(formData.neetPercentile) || 0,
-        neetAllIndiaRank: parseInt(formData.neetAllIndiaRank) || 0,
-        neetRollNumber: formData.neetRollNumber || "",
-        category: formData.category || "",
-        groupingMarksPercent: parseFloat(formData.groupingMarks) || 0,
-        _10thGradeMarksPercent: parseFloat(formData.tenthMarks) || 0,
-        _12thGradeMarksPercent: parseFloat(formData.twelfthMarks) || 0,
-        medicalPrograms: formData.medicalPrograms || [],
-        preferredCities: formData.preferredCities?.length > 0 ? formData.preferredCities : ["ALL"],
+        neetPercentile: parseFloat(currentFormData.neetPercentile) || 0,
+        neetAllIndiaRank: parseInt(currentFormData.neetAllIndiaRank) || 0,
+        neetRollNumber: currentFormData.neetRollNumber || "",
+        category: currentFormData.category || "",
+        groupingMarksPercent: parseFloat(currentFormData.groupingMarks) || 0,
+        _10thGradeMarksPercent: parseFloat(currentFormData.tenthMarks) || 0,
+        _12thGradeMarksPercent: parseFloat(currentFormData.twelfthMarks) || 0,
+        tenthGradeMarksPercent: parseFloat(currentFormData.tenthMarks) || 0,
+        twelfthGradeMarksPercent: parseFloat(currentFormData.twelfthMarks) || 0,
+        medicalPrograms: currentFormData.medicalPrograms || [],
+        preferredCities: currentFormData.preferredCities?.length > 0 ? currentFormData.preferredCities : ["ALL"],
         round: roundNumber,
       };
 

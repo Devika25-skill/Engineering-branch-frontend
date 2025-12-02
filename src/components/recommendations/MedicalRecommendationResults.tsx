@@ -575,33 +575,36 @@ export const MedicalRecommendationResults = ({
           <CAPFormInstructions />
           <RecommendationDisclaimer />
 
-          {/* Results Summary */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
-            <div className="text-center sm:text-left">
-              <p className="text-lg text-gray-600">
-                Found <span className="font-semibold text-blue-600">{filteredRecommendations.length}</span> college recommendations
-              </p>
-            </div>
 
-            <Button
-              onClick={handleDownloadPDF}
-              disabled={(!isUnlocked && paymentData?.is_payment !== true) || isGenerating}
-              className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg min-h-[44px] touch-manipulation"
-              aria-label="Download recommendations as PDF"
-            >
-              {isGenerating ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  <span className="text-sm font-medium">Generating PDF...</span>
-                </>
-              ) : (
-                <>
-                  <Download className="mr-2 h-4 w-4" />
-                  <span className="text-sm font-medium">Download PDF</span>
-                </>
-              )}
-            </Button>
-          </div>
+          {/* Results Summary - Hide when round is invalidated and no recommendations */}
+          {!(isRoundInvalidated && filteredRecommendations.length === 0) && (
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
+              <div className="text-center sm:text-left">
+                <p className="text-lg text-gray-600">
+                  Found <span className="font-semibold text-blue-600">{filteredRecommendations.length}</span> college recommendations
+                </p>
+              </div>
+
+              <Button
+                onClick={handleDownloadPDF}
+                disabled={(!isUnlocked && paymentData?.is_payment !== true) || isGenerating}
+                className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg min-h-[44px] touch-manipulation"
+                aria-label="Download recommendations as PDF"
+              >
+                {isGenerating ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <span className="text-sm font-medium">Generating PDF...</span>
+                  </>
+                ) : (
+                  <>
+                    <Download className="mr-2 h-4 w-4" />
+                    <span className="text-sm font-medium">Download PDF</span>
+                  </>
+                )}
+              </Button>
+            </div>
+          )}
 
           {isRoundInvalidated && filteredRecommendations.length === 0 ? (
             <Card className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-950/30 dark:via-indigo-950/30 dark:to-purple-950/30 border-2 border-blue-200 dark:border-blue-800">
