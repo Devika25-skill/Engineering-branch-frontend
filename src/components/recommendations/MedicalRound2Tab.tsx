@@ -602,8 +602,6 @@ export const MedicalRound2Tab = () => {
             stream: formData.grouping
           },
           academicMarks: {
-            tenthGradeMarksPercent: formData.tenthMarks ? Number(formData.tenthMarks.toFixed(2)) : 0,
-            twelfthGradeMarksPercent: formData.twelfthMarks ? Number(formData.twelfthMarks.toFixed(2)) : 0,
             _10thGradeMarksPercent: formData.tenthMarks ? Number(formData.tenthMarks.toFixed(2)) : 0,
             _12thGradeMarksPercent: formData.twelfthMarks ? Number(formData.twelfthMarks.toFixed(2)) : 0,
             groupingMarksPercent: formData.groupingMarks ? Number(formData.groupingMarks.toFixed(2)) : 0
@@ -852,8 +850,6 @@ export const MedicalRound2Tab = () => {
               stream: formData.grouping
             },
             academicMarks: {
-              tenthGradeMarksPercent: formData.tenthMarks ? Number(formData.tenthMarks.toFixed(2)) : 0,
-              twelfthGradeMarksPercent: formData.twelfthMarks ? Number(formData.twelfthMarks.toFixed(2)) : 0,
               _10thGradeMarksPercent: formData.tenthMarks ? Number(formData.tenthMarks.toFixed(2)) : 0,
               _12thGradeMarksPercent: formData.twelfthMarks ? Number(formData.twelfthMarks.toFixed(2)) : 0,
               groupingMarksPercent: formData.groupingMarks ? Number(formData.groupingMarks.toFixed(2)) : 0
