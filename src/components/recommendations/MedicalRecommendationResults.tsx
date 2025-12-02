@@ -307,7 +307,7 @@ export const MedicalRecommendationResults = ({
             );
 
             // Store unlock status and user data
-            localStorage.setItem('recommendationUnlocked', 'true');
+            localStorage.setItem('medicalRecommendationUnlocked', 'true');
             localStorage.setItem('userData', JSON.stringify({
               name: paymentFormData.name,
               email: paymentFormData.email,
