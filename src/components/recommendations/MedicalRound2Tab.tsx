@@ -726,14 +726,59 @@ export const MedicalRound2Tab = () => {
           !formData.neetPercentile || formData.neetPercentile === 0 ||
           !formData.neetAllIndiaRank || formData.neetAllIndiaRank === 0) {
         
-        console.error('Form data is missing or incomplete:', formData);
-        toast({
-          title: "Missing Form Data",
-          description: "Please go back to the form and re-enter your academic details before generating Round 2 recommendations.",
-          variant: "destructive"
-        });
-        setIsGeneratingRecommendations(false);
-        return;
+        console.log('Form data is missing or incomplete, fetching from backend...');
+        
+        try {
+          // Fetch student details from backend
+          const token = localStorage.getItem('accessToken');
+          if (!token) {
+            throw new Error('Authentication token not found');
+          }
+          
+          const studentDetailsResponse = await apiService.fetchMedicalStudentDetails(token);
+          
+          if (studentDetailsResponse.success && studentDetailsResponse.data) {
+            const credentials = studentDetailsResponse.data.academic_credentials;
+            
+            // Transform backend data to formData structure
+            formData = {
+              gender: studentDetailsResponse.data.gender,
+              tenthMarks: credentials.academicMarks._10thGradeMarksPercent,
+              twelfthMarks: credentials.academicMarks._12thGradeMarksPercent,
+              grouping: credentials.educationBackground.stream,
+              groupingMarks: credentials.academicMarks.groupingMarksPercent,
+              neetPercentile: credentials.examPercentiles.NEETPercentile,
+              neetAllIndiaRank: credentials.examPercentiles.NEETAllIndiaRank,
+              neetRollNumber: credentials.examPercentiles.NEETRollNumber,
+              reservationCategory: credentials.reservationCategory,
+              sportsAchievements: credentials.achievementsExperience?.sportsAchievements,
+              certifications: credentials.achievementsExperience?.certifications,
+              internships: credentials.achievementsExperience?.internshipsWorkExperience,
+              otherAchievements: credentials.achievementsExperience?.otherAchievements,
+              hostelPreference: credentials.campusFacilitiesEnvironment?.hostelFacility,
+              campusSetting: credentials.campusFacilitiesEnvironment?.campusSetting,
+              transportFacility: credentials.campusFacilitiesEnvironment?.transportFacility,
+              maxBudget: credentials.annualBudget,
+              collegeTypes: credentials.collegeTypePreferences,
+              priorities: credentials.priorityFactors,
+              otherExamName: credentials.examPercentiles.otherEntranceExam?.[0]?.examName,
+              otherExamPercentile: credentials.examPercentiles.otherEntranceExam?.[0]?.percentileOrScore
+            };
+            
+            console.log('Successfully fetched and transformed form data from backend');
+          } else {
+            throw new Error('Failed to fetch student details from backend');
+          }
+        } catch (fetchError) {
+          console.error('Error fetching student details:', fetchError);
+          toast({
+            title: "Error Loading Data",
+            description: "Unable to load your profile data. Please try again or go back to the form.",
+            variant: "destructive"
+          });
+          setIsGeneratingRecommendations(false);
+          return;
+        }
       }
 
       // Transform form data to API format
