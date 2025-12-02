@@ -717,9 +717,23 @@ export const MedicalRound2Tab = () => {
       }));
 
       // Get form data for building payload
-      const formData = recommendationStorage.getFormData();
-      if (!formData) {
-        throw new Error('Form data not found');
+      let formData = recommendationStorage.getFormData();
+      
+      // Validate that form data exists and has required fields with non-zero values
+      if (!formData || 
+          !formData.tenthMarks || formData.tenthMarks === 0 ||
+          !formData.twelfthMarks || formData.twelfthMarks === 0 ||
+          !formData.neetPercentile || formData.neetPercentile === 0 ||
+          !formData.neetAllIndiaRank || formData.neetAllIndiaRank === 0) {
+        
+        console.error('Form data is missing or incomplete:', formData);
+        toast({
+          title: "Missing Form Data",
+          description: "Please go back to the form and re-enter your academic details before generating Round 2 recommendations.",
+          variant: "destructive"
+        });
+        setIsGeneratingRecommendations(false);
+        return;
       }
 
       // Transform form data to API format
