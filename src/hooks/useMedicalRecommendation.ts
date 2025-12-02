@@ -137,18 +137,7 @@ export const useMedicalRecommendation = () => {
       const activeRound = sessionStorage.getItem('medicalActiveRound');
       const roundNumber = (activeRound ? parseInt(activeRound.replace('round', ''), 10) : 1) as 1 | 2 | 3;
       
-      // Clear ALL cached medical recommendation data before generating new ones
-      // This ensures updated recommendations completely replace existing data
-      sessionStorage.removeItem('cachedMedicalRound1Recommendations');
-      sessionStorage.removeItem('cachedMedicalRound2Recommendations');
-      sessionStorage.removeItem('cachedMedicalRound3Recommendations');
-      sessionStorage.removeItem('cachedMedicalRecommendations'); // Old non-round-specific key
-      sessionStorage.removeItem('medicalRecommendationPaymentData');
-      localStorage.removeItem('medicalRound2Recommendations'); // Old Round 2 localStorage key
-      
-      // Set invalidation flags for other rounds
-      // When generating Round 1, invalidate Round 2 and Round 3 (form was updated)
-      // When generating Round 2, invalidate Round 1 and Round 3 (form was updated)
+      // After configuration API is called, only set invalidation flags for other rounds
       if (roundNumber === 1) {
         sessionStorage.setItem('round2Invalidated', 'true');
         sessionStorage.setItem('round3Invalidated', 'true');
@@ -159,6 +148,14 @@ export const useMedicalRecommendation = () => {
         sessionStorage.setItem('round1Invalidated', 'true');
         sessionStorage.setItem('round2Invalidated', 'true');
       }
+      
+      // Clear ALL cached medical recommendation data before generating new ones
+      sessionStorage.removeItem('cachedMedicalRound1Recommendations');
+      sessionStorage.removeItem('cachedMedicalRound2Recommendations');
+      sessionStorage.removeItem('cachedMedicalRound3Recommendations');
+      sessionStorage.removeItem('cachedMedicalRecommendations');
+      sessionStorage.removeItem('medicalRecommendationPaymentData');
+      localStorage.removeItem('medicalRound2Recommendations');
       
       // Generate recommendations for the active round
       const recommendationPayload: GenerateMedicalRecommendationsRequest = {
