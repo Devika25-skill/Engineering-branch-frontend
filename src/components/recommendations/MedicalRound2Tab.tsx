@@ -926,6 +926,9 @@ export const MedicalRound2Tab = ({
         sessionStorage.removeItem('cachedMedicalRound2Recommendations');
         localStorage.removeItem('medicalRound2Recommendations');
         
+        // Clear invalidation flag for Round 2 since we just generated new recommendations
+        sessionStorage.removeItem('round2Invalidated');
+        
         // Store the raw API response in localStorage
         localStorage.setItem('medicalRound2Recommendations', JSON.stringify(response.data));
         

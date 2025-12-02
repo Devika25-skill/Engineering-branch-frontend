@@ -202,6 +202,9 @@ export const useMedicalRecommendation = () => {
         const roundCacheKey = `cachedMedicalRound${roundNumber}Recommendations`;
         sessionStorage.setItem(roundCacheKey, JSON.stringify(fullResponse));
         
+        // Clear invalidation flag for the current round since we just generated new recommendations
+        sessionStorage.removeItem(`round${roundNumber}Invalidated`);
+        
         // Also save form data
         recommendationStorage.saveFormData(formData);
 
