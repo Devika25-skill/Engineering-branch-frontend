@@ -542,8 +542,8 @@ export const MedicalRound2Tab = () => {
             // Transform backend data to formData structure
             formData = {
               gender: studentDetailsResponse.data.gender,
-              tenthMarks: credentials.academicMarks._10thGradeMarksPercent,
-              twelfthMarks: credentials.academicMarks._12thGradeMarksPercent,
+              tenthMarks: credentials.academicMarks.tenthGradeMarksPercent,
+              twelfthMarks: credentials.academicMarks.twelfthGradeMarksPercent,
               grouping: credentials.educationBackground.stream,
               groupingMarks: credentials.academicMarks.groupingMarksPercent,
               neetPercentile: credentials.examPercentiles.NEETPercentile,
@@ -602,6 +602,8 @@ export const MedicalRound2Tab = () => {
             stream: formData.grouping
           },
           academicMarks: {
+            tenthGradeMarksPercent: formData.tenthMarks ? Number(formData.tenthMarks.toFixed(2)) : 0,
+            twelfthGradeMarksPercent: formData.twelfthMarks ? Number(formData.twelfthMarks.toFixed(2)) : 0,
             _10thGradeMarksPercent: formData.tenthMarks ? Number(formData.tenthMarks.toFixed(2)) : 0,
             _12thGradeMarksPercent: formData.twelfthMarks ? Number(formData.twelfthMarks.toFixed(2)) : 0,
             groupingMarksPercent: formData.groupingMarks ? Number(formData.groupingMarks.toFixed(2)) : 0
@@ -798,8 +800,8 @@ export const MedicalRound2Tab = () => {
             // Transform backend data to formData structure
             formData = {
               gender: studentDetailsResponse.data.gender,
-              tenthMarks: credentials.academicMarks._10thGradeMarksPercent,
-              twelfthMarks: credentials.academicMarks._12thGradeMarksPercent,
+              tenthMarks: credentials.academicMarks.tenthGradeMarksPercent,
+              twelfthMarks: credentials.academicMarks.twelfthGradeMarksPercent,
               grouping: credentials.educationBackground.stream,
               groupingMarks: credentials.academicMarks.groupingMarksPercent,
               neetPercentile: credentials.examPercentiles.NEETPercentile,
@@ -850,6 +852,8 @@ export const MedicalRound2Tab = () => {
               stream: formData.grouping
             },
             academicMarks: {
+              tenthGradeMarksPercent: formData.tenthMarks ? Number(formData.tenthMarks.toFixed(2)) : 0,
+              twelfthGradeMarksPercent: formData.twelfthMarks ? Number(formData.twelfthMarks.toFixed(2)) : 0,
               _10thGradeMarksPercent: formData.tenthMarks ? Number(formData.tenthMarks.toFixed(2)) : 0,
               _12thGradeMarksPercent: formData.twelfthMarks ? Number(formData.twelfthMarks.toFixed(2)) : 0,
               groupingMarksPercent: formData.groupingMarks ? Number(formData.groupingMarks.toFixed(2)) : 0

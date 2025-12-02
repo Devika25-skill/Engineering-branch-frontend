@@ -85,9 +85,11 @@ export interface MedicalAcademicCredentials {
     stream: string;
   };
   academicMarks: {
-    _10thGradeMarksPercent: number; // 0-100, max 2 decimal places
-    _12thGradeMarksPercent: number; // 0-100, max 2 decimal places
+    tenthGradeMarksPercent: number; // 0-100, max 2 decimal places
+    twelfthGradeMarksPercent: number; // 0-100, max 2 decimal places
     groupingMarksPercent: number; // 0-100, max 2 decimal places
+    _10thGradeMarksPercent?: number; // Deprecated: Use tenthGradeMarksPercent
+    _12thGradeMarksPercent?: number; // Deprecated: Use twelfthGradeMarksPercent
   };
   examPercentiles: {
     NEETPercentile: number; // 0-100, max 2 decimal places
