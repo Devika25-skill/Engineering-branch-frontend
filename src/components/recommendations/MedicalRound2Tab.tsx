@@ -521,6 +521,14 @@ export const MedicalRound2Tab = () => {
     setIsUpdatingPreferences(true);
 
     try {
+      // Clear all cached recommendation data before updating preferences
+      sessionStorage.removeItem('cachedMedicalRound1Recommendations');
+      sessionStorage.removeItem('cachedMedicalRound2Recommendations');
+      sessionStorage.removeItem('cachedMedicalRound3Recommendations');
+      sessionStorage.removeItem('cachedMedicalRecommendations');
+      sessionStorage.removeItem('medicalRecommendationPaymentData');
+      localStorage.removeItem('medicalRound2Recommendations');
+      
       // Update form data in storage
       let formData = recommendationStorage.getFormData();
       
@@ -758,6 +766,14 @@ export const MedicalRound2Tab = () => {
     setIsGeneratingRecommendations(true);
 
     try {
+      // Clear all cached recommendation data before generating new ones
+      sessionStorage.removeItem('cachedMedicalRound1Recommendations');
+      sessionStorage.removeItem('cachedMedicalRound2Recommendations');
+      sessionStorage.removeItem('cachedMedicalRound3Recommendations');
+      sessionStorage.removeItem('cachedMedicalRecommendations');
+      sessionStorage.removeItem('medicalRecommendationPaymentData');
+      localStorage.removeItem('medicalRound2Recommendations');
+      
       // Update preferences first
       const preferencesPayload = {
         programs: selectedPrograms,
