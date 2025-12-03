@@ -1028,13 +1028,19 @@ export const MedicalRound2Tab = ({
   ];
 
   const availableCities = [
-    "ALL", "Ahmednagar", "Akola", "Amravati", "Beed", "Bhandara", "Buldhana",
-    "Chandrapur", "Chh. Sambhaji Nagar (Aurangabad)", "Chikhli",
-    "Dharashiv (Osmanabad)", "Dhule", "Ichalkaranji", "Jalgaon", "Jalna",
-    "Kalyan", "Kolhapur", "Latur", "Mumbai", "Nagpur", "Nanded",
-    "Nandurbar", "Nashik", "Palghar", "Pandharpur", "Parbhani", "Pune",
-    "Raigad", "Ratnagiri", "Sangli", "Satara", "Sindhudurg", "Solapur",
-    "Thane", "Ulhasnagar", "Wardha", "Washim", "Yavatmal"
+    "ALL", "Nashik", "Ambajogai", "Ambernath", "Jalna", "Chandrapur", "Malegaon",
+    "Yavatmal", "Raigad", "Nandurbar", "Beed", "Amravati", "Nalasopara",
+    "Chandwad", "Sindhudurga", "Pandharpur", "Parbhani", "Panvel", "Alibaug",
+    "Ratnagiri", "Nagpur", "Latur", "Dombivali", "Vengurla", "Sakegaon",
+    "Chinchwad", "Wardha", "Sindhudurg", "Gadhinglaj", "Baramati", "Hingoli",
+    "Chalisgaon", "Sangi", "Bhiwandi", "Dharashiv", "Yeotmal", "Virar",
+    "Palghar", "Chhatrapati Sambhajinagar (Aurangabad)", "Solapur", "Sawantwadi",
+    "Thane", "Satara", "Satana", "Rohatur", "Dhule", "Buldhana", "Nasik",
+    "Bhandara", "Sangli", "Nanded", "Karjat", "Nandihills", "Sangamner",
+    "Gondia", "Miraj", "Akola", "Jaysingpur", "Pune", "Sinnar", "Washim",
+    "Alibag", "Jalgaon", "Kolhapur", "Kannad", "Kalyan", "Ahilyanagar",
+    "Gadchiroli", "Mumbai", "Khamgaon", "Jaisingpur", "Shevgaon", "Shrirampur",
+    "Kopargaon", "Rahuri"
   ];
 
   return (
