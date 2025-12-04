@@ -34,12 +34,52 @@ const MedicalRecommendationResults = () => {
     window.scrollTo(0, 0);
   }, []);
 
+  // Helper function to transform API student data to formData format
+  const transformStudentDataToFormData = (apiData: any) => {
+    const credentials = apiData.academic_credentials || {};
+    return {
+      reservationCategory: credentials.reservationCategory || '',
+      neetAllIndiaRank: credentials.examPercentiles?.NEETAllIndiaRank || 0,
+      neetPercentile: credentials.examPercentiles?.NEETPercentile || 0,
+      neetRollNumber: credentials.examPercentiles?.NEETRollNumber || 0,
+      tenthMarks: credentials.academicMarks?._10thGradeMarksPercent || 0,
+      twelfthMarks: credentials.academicMarks?._12thGradeMarksPercent || 0,
+      groupingMarks: credentials.academicMarks?.groupingMarksPercent || 0,
+      gender: apiData.gender || '',
+      preferredMedicalPrograms: credentials.preferences?.medicalPrograms || ['ALL'],
+      preferredCities: credentials.preferences?.preferredCities || ['ALL'],
+      annualBudget: credentials.annualBudget || 0,
+      collegeTypePreferences: credentials.collegeTypePreferences || ['ALL'],
+      priorityFactors: credentials.priorityFactors || ['ALL'],
+    };
+  };
+
   useEffect(() => {
     const loadRecommendations = async () => {
       try {
-        const savedFormData = recommendationStorage.getFormData();
+        let savedFormData = recommendationStorage.getFormData();
         const savedActiveRound = sessionStorage.getItem('medicalActiveRound');
         const roundToLoad = savedActiveRound === '2' ? 'round2' : savedActiveRound === '3' ? 'round3' : 'round1';
+
+        // If formData is missing or incomplete, fetch from API
+        const isFormDataIncomplete = !savedFormData || 
+          !savedFormData.reservationCategory || 
+          !savedFormData.neetAllIndiaRank;
+
+        if (isFormDataIncomplete && user?.accessToken) {
+          console.log('Form data missing/incomplete, fetching student details from API...');
+          try {
+            const studentDetailsResponse = await apiService.fetchMedicalStudentDetails(user.accessToken);
+            if (studentDetailsResponse.success && studentDetailsResponse.data) {
+              savedFormData = transformStudentDataToFormData(studentDetailsResponse.data);
+              // Save to storage for future use
+              recommendationStorage.saveFormData(savedFormData);
+              console.log('Student details fetched and saved:', savedFormData);
+            }
+          } catch (fetchError) {
+            console.error('Error fetching student details:', fetchError);
+          }
+        }
 
         if (savedFormData) {
           setFormData(savedFormData);
