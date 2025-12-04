@@ -70,23 +70,28 @@ export const usePdfDownloadMedical = () => {
       const category = formData.reservationCategory || 'Not specified';
       const neetRank = formData.neetAllIndiaRank || 'Not specified';
       
-      // Handle programs - get first program or "All" if multiple selected
+      // Handle programs - get ALL selected programs
       const programsArray = formData.preferredMedicalPrograms || [];
       const program = Array.isArray(programsArray) && programsArray.length > 0
-        ? (programsArray.includes('ALL') ? 'All Programs' : programsArray[0])
+        ? (programsArray.includes('ALL') ? 'All Programs' : programsArray.join(', '))
         : 'Not specified';
       
       const gender = formData.gender || 'Not specified';
       
-      // Handle cities - get first 3 cities
+      // Handle cities - get ALL selected cities
       const citiesArray = formData.preferredCities || [];
-      const preferredCities = Array.isArray(citiesArray) 
-        ? (citiesArray.includes('ALL') ? 'All Cities' : citiesArray.slice(0, 3).join(', '))
+      const preferredCities = Array.isArray(citiesArray) && citiesArray.length > 0
+        ? (citiesArray.includes('ALL') ? 'All Cities' : citiesArray.join(', '))
         : 'Not specified';
-      const citiesCount = Array.isArray(citiesArray) ? citiesArray.length : 0;
       
-      // User details box with all fields including preferred cities
-      const userDetailsHeight = 44;
+      // Calculate dynamic height based on content length
+      const programLines = pdf.splitTextToSize(`Programs: ${program}`, contentWidth - 10);
+      const citiesLines = pdf.splitTextToSize(`Preferred Cities: ${preferredCities}`, contentWidth - 10);
+      const baseHeight = 30; // For name, category, gender, neet rank
+      const programHeight = programLines.length * 5;
+      const citiesHeight = citiesLines.length * 5;
+      const userDetailsHeight = baseHeight + programHeight + citiesHeight;
+      
       pdf.setFillColor(249, 250, 251);
       pdf.setDrawColor(229, 231, 235);
       pdf.setLineWidth(0.5);
@@ -106,8 +111,9 @@ export const usePdfDownloadMedical = () => {
       pdf.text(`Category: ${category}`, margin + 5, lineY);
       lineY += lineHeight;
       
-      pdf.text(`Program: ${program}`, margin + 5, lineY);
-      lineY += lineHeight;
+      // Programs with word wrap
+      pdf.text(programLines, margin + 5, lineY);
+      lineY += programLines.length * 5;
       
       pdf.text(`Gender: ${gender}`, margin + 5, lineY);
       lineY += lineHeight;
@@ -115,7 +121,8 @@ export const usePdfDownloadMedical = () => {
       pdf.text(`NEET Rank: ${neetRank}`, margin + 5, lineY);
       lineY += lineHeight;
       
-      pdf.text(`Preferred Cities: ${preferredCities}${citiesCount > 3 ? ` (+${citiesCount - 3} more)` : ''}`, margin + 5, lineY);
+      // Preferred cities with word wrap
+      pdf.text(citiesLines, margin + 5, lineY);
       
       yPosition += userDetailsHeight + 8;
       
