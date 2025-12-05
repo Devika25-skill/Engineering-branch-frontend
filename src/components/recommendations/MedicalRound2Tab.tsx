@@ -335,7 +335,28 @@ export const MedicalRound2Tab = ({
     setShowEditConfirmationRecommendation(true);
   };
 
-  const handleCreateNewList = () => {
+  const handleCreateNewList = async () => {
+    // Call API to mark existing Round 1 college record as deleted
+    if (user?.accessToken) {
+      try {
+        const formData = recommendationStorage.getFormData();
+        const apiPayload = {
+          collegeName: '',
+          collegeCode: 0,
+          courseName: 'MBBS',
+          round: 1,
+          city: '',
+          category: formData?.reservationCategory || 'OPEN',
+          NEETAllIndiaRank: formData?.neetAllIndiaRank || 0,
+          isDeleted: true
+        };
+        await apiService.storeMedicalCollegeDetails(apiPayload, user.accessToken);
+      } catch (apiError) {
+        console.error('Error calling store API with isDeleted:', apiError);
+        // Continue even if API fails
+      }
+    }
+
     setSkipRound1Selection(true);
     setShowPreferences(true);
     loadPreferencesFromFormData();
@@ -419,7 +440,8 @@ export const MedicalRound2Tab = ({
           round: 1,
           city: selectedCollege.college.city,
           category: formData?.reservationCategory || 'OPEN',
-          NEETAllIndiaRank: formData?.neetAllIndiaRank || 0
+          NEETAllIndiaRank: formData?.neetAllIndiaRank || 0,
+          isDeleted: false
         };
 
         await apiService.storeMedicalCollegeDetails(apiPayload, user.accessToken);
