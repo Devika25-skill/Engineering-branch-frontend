@@ -30,7 +30,8 @@ export const useMedicalRecommendation = () => {
       toast({
         title: "Missing Required Information",
         description: "Please fill in all required fields before generating recommendations.",
-        variant: "destructive"
+        variant: "destructive",
+        duration: 3000
       });
       throw new Error(`Missing required fields: ${missingFields.join(', ')}`);
     }
@@ -40,7 +41,8 @@ export const useMedicalRecommendation = () => {
       toast({
         title: "Invalid NEET Percentile",
         description: "NEET percentile must be between 0 and 100.",
-        variant: "destructive"
+        variant: "destructive",
+        duration: 3000
       });
       throw new Error('Invalid NEET percentile range');
     }
@@ -50,7 +52,8 @@ export const useMedicalRecommendation = () => {
       toast({
         title: "Invalid NEET Rank",
         description: "NEET All India Rank must be at least 1.",
-        variant: "destructive"
+        variant: "destructive",
+        duration: 3000
       });
       throw new Error('Invalid NEET rank');
     }
@@ -60,7 +63,8 @@ export const useMedicalRecommendation = () => {
       toast({
         title: "Invalid NEET Roll Number",
         description: "NEET Roll Number must be a 10-digit number.",
-        variant: "destructive"
+        variant: "destructive",
+        duration: 3000
       });
       throw new Error('Invalid NEET roll number');
     }
@@ -70,7 +74,8 @@ export const useMedicalRecommendation = () => {
       toast({
         title: "Invalid Budget",
         description: "Annual Budget must be a positive number.",
-        variant: "destructive"
+        variant: "destructive",
+        duration: 3000
       });
       throw new Error('Invalid annual budget');
     }
@@ -216,6 +221,7 @@ export const useMedicalRecommendation = () => {
       toast({
         title: "Recommendations Generated!",
         description: `Found ${totalCount} medical colleges matching your profile.`,
+        duration: 3000
       });
 
       return {
@@ -231,7 +237,8 @@ export const useMedicalRecommendation = () => {
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to generate recommendations. Please try again.",
-        variant: "destructive"
+        variant: "destructive",
+        duration: 3000
       });
       throw error;
     } finally {

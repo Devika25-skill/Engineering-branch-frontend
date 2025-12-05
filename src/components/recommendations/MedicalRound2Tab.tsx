@@ -241,7 +241,8 @@ export const MedicalRound2Tab = ({
       toast({
         title: "Search Required",
         description: "Please enter a search value",
-        variant: "destructive"
+        variant: "destructive",
+        duration: 3000
       });
       return;
     }
@@ -250,7 +251,8 @@ export const MedicalRound2Tab = ({
       toast({
         title: "Login Required",
         description: "Please login to search colleges",
-        variant: "destructive"
+        variant: "destructive",
+        duration: 3000
       });
       return;
     }
@@ -270,7 +272,8 @@ export const MedicalRound2Tab = ({
           toast({
             title: "Invalid College Code",
             description: "College code must be a 4-digit number",
-            variant: "destructive"
+            variant: "destructive",
+            duration: 3000
           });
           return;
         }
@@ -286,7 +289,8 @@ export const MedicalRound2Tab = ({
             toast({
               title: "No Results",
               description: "No matching colleges found. Please try a different search term.",
-              variant: "destructive"
+              variant: "destructive",
+              duration: 3000
             });
             return;
           }
@@ -300,7 +304,8 @@ export const MedicalRound2Tab = ({
           toast({
             title: "No Results",
             description: "No matching colleges found. Please try a different search term.",
-            variant: "destructive"
+            variant: "destructive",
+            duration: 3000
           });
         }
       } else {
@@ -312,7 +317,8 @@ export const MedicalRound2Tab = ({
         toast({
           title: "No Results",
           description: errorMessage,
-          variant: "destructive"
+          variant: "destructive",
+          duration: 3000
         });
       }
     } catch (error) {
@@ -320,7 +326,8 @@ export const MedicalRound2Tab = ({
       toast({
         title: "Search Failed",
         description: "Failed to search colleges. Please try again.",
-        variant: "destructive"
+        variant: "destructive",
+        duration: 3000
       });
     } finally {
       setIsSearching(false);
@@ -388,6 +395,7 @@ export const MedicalRound2Tab = ({
     toast({
       title: "Creating New List",
       description: "Set your preferences below to generate Round 2 recommendations without Round 1 selection.",
+      duration: 3000
     });
   };
 
@@ -401,6 +409,7 @@ export const MedicalRound2Tab = ({
     toast({
       title: "Selection Reset",
       description: "You can now make a new selection for Round 2 recommendations.",
+      duration: 3000
     });
   };
 
@@ -422,6 +431,7 @@ export const MedicalRound2Tab = ({
     toast({
       title: "Selection Reset",
       description: "You can now make a new selection for Round 2 recommendations.",
+      duration: 3000
     });
   };
 
@@ -440,7 +450,8 @@ export const MedicalRound2Tab = ({
       toast({
         title: "Error",
         description: "Missing required information. Please try again.",
-        variant: "destructive"
+        variant: "destructive",
+        duration: 3000
       });
       return;
     }
@@ -482,6 +493,7 @@ export const MedicalRound2Tab = ({
       toast({
         title: "College Details Confirmed",
         description: "Your Round 1 college details have been confirmed and saved. Now please review and update your preferences for Round 2.",
+        duration: 3000
       });
     } catch (error) {
       console.error('Error storing college details:', error);
@@ -493,7 +505,8 @@ export const MedicalRound2Tab = ({
       toast({
         title: "Details Saved Locally",
         description: "Your college details were saved locally. Please review your preferences below.",
-        variant: "destructive"
+        variant: "destructive",
+        duration: 3000
       });
     } finally {
       setIsStoring(false);
@@ -568,7 +581,8 @@ export const MedicalRound2Tab = ({
       toast({
         title: "Authentication Required",
         description: "Please login to update preferences",
-        variant: "destructive"
+        variant: "destructive",
+        duration: 3000
       });
       return;
     }
@@ -642,7 +656,8 @@ export const MedicalRound2Tab = ({
           toast({
             title: "Error Loading Data",
             description: "Unable to load your profile data. Please try again or go back to the form.",
-            variant: "destructive"
+            variant: "destructive",
+            duration: 3000
           });
           setIsUpdatingPreferences(false);
           return;
@@ -720,13 +735,15 @@ export const MedicalRound2Tab = ({
       toast({
         title: "Preferences Updated",
         description: "Your Round 2 preferences have been successfully updated.",
+        duration: 3000
       });
     } catch (error) {
       console.error('Error updating preferences:', error);
       toast({
         title: "Update Failed",
         description: "Failed to update preferences. Please try again.",
-        variant: "destructive"
+        variant: "destructive",
+        duration: 3000
       });
     } finally {
       setIsUpdatingPreferences(false);
@@ -799,7 +816,8 @@ export const MedicalRound2Tab = ({
       toast({
         title: "Authentication Required",
         description: "Please login to generate recommendations",
-        variant: "destructive"
+        variant: "destructive",
+        duration: 3000
       });
       return;
     }
@@ -808,7 +826,8 @@ export const MedicalRound2Tab = ({
       toast({
         title: "Missing Preferences",
         description: "Please select at least one medical program to generate recommendations",
-        variant: "destructive"
+        variant: "destructive",
+        duration: 3000
       });
       return;
     }
@@ -817,7 +836,8 @@ export const MedicalRound2Tab = ({
       toast({
         title: "Missing College Selection",
         description: "Please select your Round 1 college before generating recommendations",
-        variant: "destructive"
+        variant: "destructive",
+        duration: 3000
       });
       return;
     }
@@ -906,7 +926,8 @@ export const MedicalRound2Tab = ({
           toast({
             title: "Error Loading Data",
             description: "Unable to load your profile data. Please try again or go back to the form.",
-            variant: "destructive"
+            variant: "destructive",
+            duration: 3000
           });
           setIsGeneratingRecommendations(false);
           return;
@@ -994,12 +1015,14 @@ export const MedicalRound2Tab = ({
           toast({
             title: "Recommendations Unlocked!",
             description: "Your Round 2 recommendations have been automatically unlocked.",
+            duration: 3000
           });
         }
         
         toast({
           title: "Round 2 Recommendations Generated",
           description: "Your Round 2 recommendation list has been generated successfully based on your preferences.",
+          duration: 3000
         });
       } else {
         throw new Error(response.message || 'Failed to generate recommendations');
@@ -1010,7 +1033,8 @@ export const MedicalRound2Tab = ({
       toast({
         title: "Generation Failed",
         description: "Failed to generate recommendations. Please try again.",
-        variant: "destructive"
+        variant: "destructive",
+        duration: 3000
       });
     } finally {
       setIsGeneratingRecommendations(false);
@@ -1024,7 +1048,8 @@ export const MedicalRound2Tab = ({
       toast({
         title: "Download Locked",
         description: "Please unlock recommendations to download the Round 2 PDF report. Your Round 1 unlock also works for Round 2.",
-        variant: "destructive"
+        variant: "destructive",
+        duration: 3000
       });
       return;
     }
