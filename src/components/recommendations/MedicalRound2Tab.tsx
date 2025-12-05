@@ -340,12 +340,24 @@ export const MedicalRound2Tab = ({
     if (user?.accessToken) {
       try {
         const formData = recommendationStorage.getFormData();
+        // Get existing selected college data from localStorage or state
+        const savedCollegeData = localStorage.getItem('medicalRound2SelectedCollege');
+        let collegeData = selectedCollege;
+        
+        if (savedCollegeData) {
+          try {
+            collegeData = JSON.parse(savedCollegeData);
+          } catch (e) {
+            console.error('Error parsing saved college data:', e);
+          }
+        }
+        
         const apiPayload = {
-          collegeName: '',
-          collegeCode: 0,
-          courseName: 'MBBS',
+          collegeName: collegeData?.college?.college_name || '',
+          collegeCode: collegeData?.college?.college_code || 0,
+          courseName: collegeData?.college?.course_type || 'MBBS',
           round: 1,
-          city: '',
+          city: collegeData?.college?.city || '',
           category: formData?.reservationCategory || 'OPEN',
           NEETAllIndiaRank: formData?.neetAllIndiaRank || 0,
           isDeleted: true
