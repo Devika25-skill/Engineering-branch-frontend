@@ -31,7 +31,8 @@ export const MedicalCollegeSelectionCard = ({ onCollegeSelect, onSkip, token, se
       toast({
         title: "Search Required",
         description: "Please enter a search value",
-        variant: "destructive"
+        variant: "destructive",
+        duration: 3000
       });
       return;
     }
@@ -49,7 +50,8 @@ export const MedicalCollegeSelectionCard = ({ onCollegeSelect, onSkip, token, se
             toast({
               title: "Invalid College Code",
               description: "College code must be a number",
-              variant: "destructive"
+              variant: "destructive",
+              duration: 3000
             });
             setIsSearching(false);
             return;
@@ -68,6 +70,7 @@ export const MedicalCollegeSelectionCard = ({ onCollegeSelect, onSkip, token, se
           toast({
             title: "No Results",
             description: "No colleges found matching your search.",
+            duration: 3000
           });
         }
       } else {
@@ -75,6 +78,7 @@ export const MedicalCollegeSelectionCard = ({ onCollegeSelect, onSkip, token, se
         toast({
           title: "No Results",
           description: "No colleges found matching your search.",
+          duration: 3000
         });
       }
     } catch (error) {
@@ -83,7 +87,8 @@ export const MedicalCollegeSelectionCard = ({ onCollegeSelect, onSkip, token, se
       toast({
         title: "Search Failed",
         description: "Failed to search colleges. Please try again.",
-        variant: "destructive"
+        variant: "destructive",
+        duration: 3000
       });
     } finally {
       setIsSearching(false);

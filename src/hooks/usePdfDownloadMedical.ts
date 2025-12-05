@@ -501,6 +501,7 @@ export const usePdfDownloadMedical = () => {
       toast({
         title: "Success!",
         description: "Your medical recommendations report has been downloaded.",
+        duration: 3000
       });
       
     } catch (error) {
@@ -508,7 +509,8 @@ export const usePdfDownloadMedical = () => {
       toast({
         title: "Error",
         description: "Failed to generate PDF. Please try again.",
-        variant: "destructive"
+        variant: "destructive",
+        duration: 3000
       });
     } finally {
       setIsGenerating(false);

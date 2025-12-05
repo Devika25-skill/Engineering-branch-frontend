@@ -72,7 +72,8 @@ export const MedicalRecommendationResults = ({
       toast({
         title: "Download Locked",
         description: "Please unlock recommendations to download the PDF report.",
-        variant: "destructive"
+        variant: "destructive",
+        duration: 3000
       });
       return;
     }
@@ -81,6 +82,7 @@ export const MedicalRecommendationResults = ({
     toast({
       title: "Generating PDF",
       description: "Please wait while we prepare your recommendations report...",
+      duration: 3000
     });
 
     // Convert to flat array with category information for PDF generation
