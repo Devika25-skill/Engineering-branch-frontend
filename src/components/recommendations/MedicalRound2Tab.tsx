@@ -336,61 +336,52 @@ export const MedicalRound2Tab = ({
   };
 
   const handleCreateNewList = async () => {
-    // Call API to mark existing Round 1 college record as deleted
+    // Call API to mark existing Round 1 college record as deleted (only if record exists)
     if (user?.accessToken) {
       try {
         const formData = recommendationStorage.getFormData();
         let collegeData: any = null;
         
-        // First try to get from localStorage
-        const savedCollegeData = localStorage.getItem('medicalRound2SelectedCollege');
-        if (savedCollegeData) {
-          try {
-            collegeData = JSON.parse(savedCollegeData);
-          } catch (e) {
-            console.error('Error parsing saved college data:', e);
+        // Fetch existing college data from API
+        try {
+          const response = await apiService.getMedicalUserRoundDetails(1, user.accessToken);
+          if (response.success && response.data && response.data.collegeName) {
+            collegeData = {
+              college_name: response.data.collegeName,
+              college_code: response.data.collegeCode,
+              course_type: response.data.courseName,
+              city: response.data.city,
+            };
           }
+        } catch (fetchError) {
+          console.error('Error fetching round details:', fetchError);
         }
         
-        // If no localStorage data, try from selectedCollege state
-        if (!collegeData && selectedCollege?.college) {
-          collegeData = selectedCollege.college;
+        // Only call store API if there's existing college data to mark as deleted
+        if (collegeData && collegeData.college_name) {
+          const apiPayload = {
+            collegeName: collegeData.college_name,
+            collegeCode: collegeData.college_code || 0,
+            courseName: collegeData.course_type || 'MBBS',
+            round: 1,
+            city: collegeData.city || '',
+            category: formData?.reservationCategory || 'OPEN',
+            NEETAllIndiaRank: formData?.neetAllIndiaRank || 0,
+            isDeleted: true
+          };
+          console.log('Creating new list - marking existing record as deleted:', apiPayload);
+          await apiService.storeMedicalCollegeDetails(apiPayload, user.accessToken);
+        } else {
+          console.log('No existing college record found, skipping delete API call');
         }
-        
-        // If still no data, fetch from API
-        if (!collegeData) {
-          try {
-            const response = await apiService.getMedicalUserRoundDetails(1, user.accessToken);
-            if (response.success && response.data && response.data.collegeName) {
-              collegeData = {
-                college_name: response.data.collegeName,
-                college_code: response.data.collegeCode,
-                course_type: response.data.courseName,
-                city: response.data.city,
-              };
-            }
-          } catch (fetchError) {
-            console.error('Error fetching round details:', fetchError);
-          }
-        }
-        
-        const apiPayload = {
-          collegeName: collegeData?.college_name || '',
-          collegeCode: collegeData?.college_code || 0,
-          courseName: collegeData?.course_type || 'MBBS',
-          round: 1,
-          city: collegeData?.city || '',
-          category: formData?.reservationCategory || 'OPEN',
-          NEETAllIndiaRank: formData?.neetAllIndiaRank || 0,
-          isDeleted: true
-        };
-        await apiService.storeMedicalCollegeDetails(apiPayload, user.accessToken);
       } catch (apiError) {
         console.error('Error calling store API with isDeleted:', apiError);
-        // Continue even if API fails
       }
     }
 
+    // Clear localStorage and reset state
+    localStorage.removeItem('medicalRound2SelectedCollege');
+    setSelectedCollege(null);
     setSkipRound1Selection(true);
     setShowPreferences(true);
     loadPreferencesFromFormData();
