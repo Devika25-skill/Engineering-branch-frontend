@@ -340,10 +340,10 @@ export const MedicalRound2Tab = ({
     if (user?.accessToken) {
       try {
         const formData = recommendationStorage.getFormData();
-        // Get existing selected college data from localStorage (stored as direct college object)
-        const savedCollegeData = localStorage.getItem('medicalRound2SelectedCollege');
         let collegeData: any = null;
         
+        // First try to get from localStorage
+        const savedCollegeData = localStorage.getItem('medicalRound2SelectedCollege');
         if (savedCollegeData) {
           try {
             collegeData = JSON.parse(savedCollegeData);
@@ -352,9 +352,26 @@ export const MedicalRound2Tab = ({
           }
         }
         
-        // If no localStorage data, try from selectedCollege state (which has .college wrapper)
+        // If no localStorage data, try from selectedCollege state
         if (!collegeData && selectedCollege?.college) {
           collegeData = selectedCollege.college;
+        }
+        
+        // If still no data, fetch from API
+        if (!collegeData) {
+          try {
+            const response = await apiService.getMedicalUserRoundDetails(1, user.accessToken);
+            if (response.success && response.data && response.data.collegeName) {
+              collegeData = {
+                college_name: response.data.collegeName,
+                college_code: response.data.collegeCode,
+                course_type: response.data.courseName,
+                city: response.data.city,
+              };
+            }
+          } catch (fetchError) {
+            console.error('Error fetching round details:', fetchError);
+          }
         }
         
         const apiPayload = {
