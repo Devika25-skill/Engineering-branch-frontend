@@ -181,7 +181,7 @@ const RecommendationSteps = () => {
               ? mapMedicalApiResponseToFormData(response.data)
               : mapApiResponseToFormData(response.data.academic_credentials);
             setFormData(prev => ({ ...prev, ...mappedData }));
-            toast.success("Loaded your previous details", { duration: 3000 });
+            toast.success("Loaded your previous details", { duration: 3000, dismissible: true });
           }
         } catch (error) {
           console.error('No existing data found or error fetching data:', error);
