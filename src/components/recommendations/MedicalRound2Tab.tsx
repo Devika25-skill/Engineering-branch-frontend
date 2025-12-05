@@ -340,9 +340,9 @@ export const MedicalRound2Tab = ({
     if (user?.accessToken) {
       try {
         const formData = recommendationStorage.getFormData();
-        // Get existing selected college data from localStorage or state
+        // Get existing selected college data from localStorage (stored as direct college object)
         const savedCollegeData = localStorage.getItem('medicalRound2SelectedCollege');
-        let collegeData = selectedCollege;
+        let collegeData: any = null;
         
         if (savedCollegeData) {
           try {
@@ -352,12 +352,17 @@ export const MedicalRound2Tab = ({
           }
         }
         
+        // If no localStorage data, try from selectedCollege state (which has .college wrapper)
+        if (!collegeData && selectedCollege?.college) {
+          collegeData = selectedCollege.college;
+        }
+        
         const apiPayload = {
-          collegeName: collegeData?.college?.college_name || '',
-          collegeCode: collegeData?.college?.college_code || 0,
-          courseName: collegeData?.college?.course_type || 'MBBS',
+          collegeName: collegeData?.college_name || '',
+          collegeCode: collegeData?.college_code || 0,
+          courseName: collegeData?.course_type || 'MBBS',
           round: 1,
-          city: collegeData?.college?.city || '',
+          city: collegeData?.city || '',
           category: formData?.reservationCategory || 'OPEN',
           NEETAllIndiaRank: formData?.neetAllIndiaRank || 0,
           isDeleted: true
