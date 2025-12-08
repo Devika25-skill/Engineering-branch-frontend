@@ -73,7 +73,7 @@ export type City =
   | "Chinchwad" | "Wardha" | "Sindhudurg" | "Gadhinglaj" | "Baramati" | "Hingoli"
   | "Chalisgaon" | "Sangi" | "Bhiwandi" | "Dharashiv" | "Yeotmal" | "Virar"
   | "Palghar" | "Chhatrapati Sambhajinagar (Aurangabad)" | "Solapur" | "Sawantwadi"
-  | "Thane" | "Satara" | "Satana" | "Rohatur" | "Dhule" | "Buldhana" | "Nasik"
+  | "Thane" | "Satara" | "Satana" | "Rohatur" | "Dhule" | "Buldhana"
   | "Bhandara" | "Sangli" | "Nanded" | "Karjat" | "Nandihills" | "Sangamner"
   | "Gondia" | "Miraj" | "Akola" | "Jaysingpur" | "Pune" | "Sinnar" | "Washim"
   | "Alibag" | "Jalgaon" | "Kolhapur" | "Kannad" | "Kalyan" | "Ahilyanagar"
