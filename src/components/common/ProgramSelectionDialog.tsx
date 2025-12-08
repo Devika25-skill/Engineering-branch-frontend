@@ -167,7 +167,7 @@ export function ProgramSelectionDialog({
           </label>
           <Select value={selectedState} onValueChange={setSelectedState}>
             <SelectTrigger className="w-full bg-background">
-              <SelectValue placeholder="Choose a state..." />
+              <SelectValue placeholder="Choose a state or union territory…" />
             </SelectTrigger>
             <SelectContent className="bg-background z-50 max-h-60">
               {indianStatesAndUTs.map((state) => (
@@ -177,6 +177,9 @@ export function ProgramSelectionDialog({
               ))}
             </SelectContent>
           </Select>
+          <p className="text-xs text-muted-foreground mt-2">
+            Please select your state or union territory to view available programs.
+          </p>
         </div>
         
         <div className="p-4 sm:p-6 space-y-3 sm:space-y-4">
