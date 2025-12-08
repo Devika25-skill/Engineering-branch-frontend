@@ -181,7 +181,7 @@ const RecommendationSteps = () => {
               ? mapMedicalApiResponseToFormData(response.data)
               : mapApiResponseToFormData(response.data.academic_credentials);
             setFormData(prev => ({ ...prev, ...mappedData }));
-            toast.success("Loaded your previous details");
+            toast.success("Loaded your previous details", { duration: 3000, dismissible: true });
           }
         } catch (error) {
           console.error('No existing data found or error fetching data:', error);
@@ -271,7 +271,8 @@ const RecommendationSteps = () => {
       toastHook({
         title: "Missing Information",
         description: "Please fill in all required fields to continue",
-        variant: "destructive"
+        variant: "destructive",
+        duration: 3000
       });
     }
   };
@@ -300,6 +301,7 @@ const RecommendationSteps = () => {
     toastHook({
       title: "Form Data Loaded",
       description: "Previous form data has been loaded successfully.",
+      duration: 3000
     });
   };
 
@@ -308,7 +310,8 @@ const RecommendationSteps = () => {
       toastHook({
         title: "Missing Information",
         description: "Please fill in all required fields to generate recommendations",
-        variant: "destructive"
+        variant: "destructive",
+        duration: 3000
       });
       return;
     }
@@ -348,7 +351,8 @@ const RecommendationSteps = () => {
       toastHook({
         title: "Error",
         description: "Failed to generate recommendations. Please try again.",
-        variant: "destructive"
+        variant: "destructive",
+        duration: 3000
       });
     } finally {
       setIsLoading(false);
@@ -401,7 +405,8 @@ const RecommendationSteps = () => {
       toastHook({
         title: "Error",
         description: "Failed to generate recommendations. Please try again.",
-        variant: "destructive"
+        variant: "destructive",
+        duration: 3000
       });
     } finally {
       setIsLoading(false);

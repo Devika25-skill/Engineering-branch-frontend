@@ -1092,6 +1092,7 @@ class ApiService {
     city: string;
     category: string;
     NEETAllIndiaRank: number;
+    isDeleted?: boolean;
   }, token: string): Promise<ApiResponse<{ college_status: string }>> {
     return this.request<ApiResponse<{ college_status: string }>>('/api/v1/medical/store_medical_college_details', {
       method: 'POST',
