@@ -24,7 +24,8 @@ interface ProgramSelectionDialogProps {
   onSelectProgram: (program: ProgramType, state?: string) => void;
 }
 
-const indianStates = [
+const indianStatesAndUTs = [
+  // States
   'Andhra Pradesh',
   'Arunachal Pradesh',
   'Assam',
@@ -52,7 +53,16 @@ const indianStates = [
   'Tripura',
   'Uttarakhand',
   'Uttar Pradesh',
-  'West Bengal'
+  'West Bengal',
+  // Union Territories
+  'Andaman and Nicobar Islands',
+  'Chandigarh',
+  'Dadra and Nagar Haveli and Daman and Diu',
+  'Delhi',
+  'Jammu and Kashmir',
+  'Ladakh',
+  'Lakshadweep',
+  'Puducherry'
 ];
 
 const allPrograms: ProgramOption[] = [
@@ -160,7 +170,7 @@ export function ProgramSelectionDialog({
               <SelectValue placeholder="Choose a state..." />
             </SelectTrigger>
             <SelectContent className="bg-background z-50 max-h-60">
-              {indianStates.map((state) => (
+              {indianStatesAndUTs.map((state) => (
                 <SelectItem key={state} value={state}>
                   {state}
                 </SelectItem>
