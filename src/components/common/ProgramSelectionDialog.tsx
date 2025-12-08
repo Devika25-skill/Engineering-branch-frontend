@@ -177,9 +177,6 @@ export function ProgramSelectionDialog({
               ))}
             </SelectContent>
           </Select>
-          <p className="text-xs text-muted-foreground mt-2">
-            Please select your state or union territory to view available programs.
-          </p>
         </div>
         
         <div className="p-4 sm:p-6 space-y-3 sm:space-y-4">
@@ -247,7 +244,7 @@ export function ProgramSelectionDialog({
           {/* Show placeholder when no state is selected */}
           {!hasSelectedState && (
             <div className="text-center py-6 text-muted-foreground">
-              <p className="text-sm">Please select your state to view available programs</p>
+              <p className="text-sm">Please select your state or union territory to view available programs.</p>
             </div>
           )}
           
