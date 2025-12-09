@@ -1063,8 +1063,8 @@ class ApiService {
   }
 
   // Medical College Search Methods
-  async searchMedicalCollegeByName(collegeName: string, token: string): Promise<any> {
-    return this.request<any>(`/api/v1/medical/college/search/name?college_name=${encodeURIComponent(collegeName)}`, {
+  async searchMedicalCollegeByName(collegeName: string, token: string, state: string): Promise<any> {
+    return this.request<any>(`/api/v1/medical/college/search/name?college_name=${encodeURIComponent(collegeName)}&state=${encodeURIComponent(state)}`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -1073,8 +1073,8 @@ class ApiService {
     });
   }
 
-  async searchMedicalCollegeByCode(collegeCode: number, token: string): Promise<any> {
-    return this.request<any>(`/api/v1/medical/college/search/code?college_code=${collegeCode}`, {
+  async searchMedicalCollegeByCode(collegeCode: number, token: string, state: string): Promise<any> {
+    return this.request<any>(`/api/v1/medical/college/search/code?college_code=${collegeCode}&state=${encodeURIComponent(state)}`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
