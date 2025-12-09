@@ -64,6 +64,28 @@ export const MedicalRound2Tab = ({
   const [skipRound1Selection, setSkipRound1Selection] = useState(false);
   const [showEditConfirmationRecommendation, setShowEditConfirmationRecommendation] = useState(false);
 
+  // Helper function to get state from cached recommendations first, fallback to localStorage
+  const getStateFromCacheOrStorage = (): string => {
+    // Try session storage cache first
+    const cachedData = sessionStorage.getItem('cachedMedicalRound2Recommendations');
+    if (cachedData) {
+      try {
+        const parsed = JSON.parse(cachedData);
+        if (parsed.state) return parsed.state;
+      } catch (e) {}
+    }
+    // Try raw localStorage cache
+    const rawCachedData = localStorage.getItem('medicalRound2Recommendations');
+    if (rawCachedData) {
+      try {
+        const parsed = JSON.parse(rawCachedData);
+        if (parsed.state) return parsed.state;
+      } catch (e) {}
+    }
+    // Fallback to localStorage selected_state
+    return localStorage.getItem('selected_state') || '';
+  };
+
   // Convert API response to recommendation format
   const convertApiResponseToRecommendations = (apiData: any) => {
     const recommendations: any[] = [];
@@ -163,7 +185,7 @@ export const MedicalRound2Tab = ({
       // Try to fetch saved Round 1 college details from API
       if (user?.accessToken) {
         try {
-          const selectedState = localStorage.getItem('selected_state') || '';
+          const selectedState = getStateFromCacheOrStorage();
           const response = await apiService.getMedicalUserRoundDetails(1, user.accessToken, selectedState);
           // Check if response has actual data (not an empty object)
           if (response.success && response.data && response.data.collegeName) {
@@ -266,7 +288,7 @@ export const MedicalRound2Tab = ({
     try {
       let response;
       
-      const selectedState = localStorage.getItem('selected_state') || '';
+      const selectedState = getStateFromCacheOrStorage();
       
       if (searchType === 'college_name') {
         response = await apiService.searchMedicalCollegeByName(searchValue, user.accessToken, selectedState);
@@ -355,7 +377,7 @@ export const MedicalRound2Tab = ({
         
         // Fetch existing college data from API
         try {
-          const selectedState = localStorage.getItem('selected_state') || '';
+          const selectedState = getStateFromCacheOrStorage();
           const response = await apiService.getMedicalUserRoundDetails(1, user.accessToken, selectedState);
           if (response.success && response.data && response.data.collegeName) {
             collegeData = {
@@ -371,7 +393,7 @@ export const MedicalRound2Tab = ({
         
         // Only call store API if there's existing college data to mark as deleted
         if (collegeData && collegeData.college_name) {
-          const selectedState = localStorage.getItem('selected_state') || '';
+          const selectedState = getStateFromCacheOrStorage();
           const apiPayload = {
             collegeName: collegeData.college_name,
             collegeCode: collegeData.college_code || 0,
@@ -476,7 +498,7 @@ export const MedicalRound2Tab = ({
       
       // Call API to store medical college details
       try {
-        const selectedState = localStorage.getItem('selected_state') || '';
+        const selectedState = getStateFromCacheOrStorage();
         const apiPayload = {
           collegeName: selectedCollege.college.college_name,
           collegeCode: selectedCollege.college.college_code,
@@ -846,8 +868,8 @@ export const MedicalRound2Tab = ({
       return;
     }
 
-    // Validate state is selected
-    const selectedState = localStorage.getItem('selected_state');
+    // Validate state is selected (check cached data first, then localStorage)
+    const selectedState = getStateFromCacheOrStorage();
     if (!selectedState) {
       toast({
         title: "State Required",
@@ -1005,7 +1027,7 @@ export const MedicalRound2Tab = ({
             preferences: {
               medicalPrograms: selectedPrograms,
               preferredCities: selectedCities.length > 0 ? selectedCities : ["ALL"],
-              state: localStorage.getItem('selected_state') as State
+              state: getStateFromCacheOrStorage() as State
             },
             campusFacilitiesEnvironment: {
               hostelFacility: formData.hostelPreference,
