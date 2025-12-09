@@ -1135,7 +1135,7 @@ class ApiService {
   }
 
   // Get Medical Recommendations by Round
-  async getMedicalRecommendationsByRound(round: number, token: string): Promise<ApiResponse<{
+  async getMedicalRecommendationsByRound(round: number, token: string, state: string): Promise<ApiResponse<{
     username: string;
     Dream: any[];
     Reach: any[];
@@ -1154,7 +1154,7 @@ class ApiService {
       Round: number;
       is_payment: boolean;
       accept_payment: boolean;
-    }>>(`/api/v1/medical/medical/recommendations/college-list?round=${round}`, {
+    }>>(`/api/v1/medical/medical/recommendations/college-list?round=${round}&state=${encodeURIComponent(state)}`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
