@@ -257,7 +257,7 @@ export const MedicalRecommendationResults = ({
                   </h3>
                   <div className="flex items-center gap-1 mt-1 text-xs text-gray-500">
                     <MapPin size={12} className="flex-shrink-0" />
-                    <span className="truncate">{rec.college.city}</span>
+                    <span className="truncate">{rec.college.city}{rec.college.state ? `, ${rec.college.state}` : ''}</span>
                   </div>
                 </div>
                 <Badge className={`${getCategoryColor(rec.category)} px-2 py-0.5 text-xs font-medium flex-shrink-0`}>
