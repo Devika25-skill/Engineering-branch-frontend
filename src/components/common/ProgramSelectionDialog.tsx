@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { GraduationCap, Users, MapPin, Building, Pill, Heart, LucideIcon, Clock } from 'lucide-react';
 import { IntegratedAdmissionType } from '@/types/integratedAdmission';
+import { State, getAllStates } from '@/types/state';
 
 type RecommendationType = 'first-year' | 'direct-second-year' | 'First_Year_Medical';
 export type ProgramType = RecommendationType | IntegratedAdmissionType;
@@ -24,46 +25,7 @@ interface ProgramSelectionDialogProps {
   onSelectProgram: (program: ProgramType, state?: string) => void;
 }
 
-const indianStatesAndUTs = [
-  // States
-  'Andhra Pradesh',
-  'Arunachal Pradesh',
-  'Assam',
-  'Bihar',
-  'Chhattisgarh',
-  'Goa',
-  'Gujarat',
-  'Haryana',
-  'Himachal Pradesh',
-  'Jharkhand',
-  'Karnataka',
-  'Kerala',
-  'Madhya Pradesh',
-  'Maharashtra',
-  'Manipur',
-  'Meghalaya',
-  'Mizoram',
-  'Nagaland',
-  'Odisha',
-  'Punjab',
-  'Rajasthan',
-  'Sikkim',
-  'Tamil Nadu',
-  'Telangana',
-  'Tripura',
-  'Uttarakhand',
-  'Uttar Pradesh',
-  'West Bengal',
-  // Union Territories
-  'Andaman and Nicobar Islands',
-  'Chandigarh',
-  'Dadra and Nagar Haveli and Daman and Diu',
-  'Delhi',
-  'Jammu and Kashmir',
-  'Ladakh',
-  'Lakshadweep',
-  'Puducherry'
-];
+const indianStatesAndUTs = getAllStates();
 
 const allPrograms: ProgramOption[] = [
   // Medical Program
