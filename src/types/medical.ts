@@ -42,12 +42,8 @@ export type ReservationCategory =
 
 // College Type Preferences
 export type CollegeTypePreference = 
-  | "ALL"
   | "Government"
-  | "Autonomous"
-  | "Private"
-  | "Deemed University"
-  | "University Department";
+  | "Private";
 
 // Student Priority Factors
 export type PriorityFactor = 
