@@ -163,7 +163,8 @@ export const MedicalRound2Tab = ({
       // Try to fetch saved Round 1 college details from API
       if (user?.accessToken) {
         try {
-          const response = await apiService.getMedicalUserRoundDetails(1, user.accessToken);
+          const selectedState = localStorage.getItem('selected_state') || '';
+          const response = await apiService.getMedicalUserRoundDetails(1, user.accessToken, selectedState);
           // Check if response has actual data (not an empty object)
           if (response.success && response.data && response.data.collegeName) {
             // Construct college object from API response
@@ -354,7 +355,8 @@ export const MedicalRound2Tab = ({
         
         // Fetch existing college data from API
         try {
-          const response = await apiService.getMedicalUserRoundDetails(1, user.accessToken);
+          const selectedState = localStorage.getItem('selected_state') || '';
+          const response = await apiService.getMedicalUserRoundDetails(1, user.accessToken, selectedState);
           if (response.success && response.data && response.data.collegeName) {
             collegeData = {
               college_name: response.data.collegeName,
