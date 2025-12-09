@@ -33,19 +33,6 @@ const MedicalRecommendationResults = () => {
   const [activeRound, setActiveRound] = useState<'round1' | 'round2' | 'round3'>('round1');
   const [isRoundInvalidated, setIsRoundInvalidated] = useState(false);
 
-  // Helper function to get state from cached recommendations first, fallback to localStorage
-  const getStateFromCacheOrStorage = (roundNumber: number): string => {
-    const cacheKey = `cachedMedicalRound${roundNumber}Recommendations`;
-    const cachedData = sessionStorage.getItem(cacheKey);
-    if (cachedData) {
-      try {
-        const parsed = JSON.parse(cachedData);
-        if (parsed.state) return parsed.state;
-      } catch (e) {}
-    }
-    return localStorage.getItem('selected_state') || '';
-  };
-
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
@@ -126,7 +113,7 @@ const MedicalRecommendationResults = () => {
             
             if (!isInvalidated && user?.accessToken) {
               // Only fetch from API if not invalidated
-              const selectedState = getStateFromCacheOrStorage(roundNumber);
+              const selectedState = localStorage.getItem('selected_state') || '';
               const response = await apiService.getMedicalRecommendationsByRound(roundNumber, user.accessToken, selectedState);
               
               if (response.success && response.data) {
@@ -213,7 +200,7 @@ const MedicalRecommendationResults = () => {
         
         if (!isInvalidated && user?.accessToken) {
           // Only fetch from API if not invalidated
-          const selectedState = getStateFromCacheOrStorage(roundNumber);
+          const selectedState = localStorage.getItem('selected_state') || '';
           const response = await apiService.getMedicalRecommendationsByRound(roundNumber, user.accessToken, selectedState);
           
           if (response.success && response.data) {
@@ -272,25 +259,8 @@ const MedicalRecommendationResults = () => {
   const handleRegenerateRecommendations = async () => {
     if (!user?.accessToken) return;
     
-    // First try to get state from cached recommendations, fallback to localStorage
-    const roundNumber = activeRound === 'round2' ? 2 : activeRound === 'round3' ? 3 : 1;
-    const cacheKey = `cachedMedicalRound${roundNumber}Recommendations`;
-    const cachedData = sessionStorage.getItem(cacheKey);
-    let selectedState = '';
-    
-    if (cachedData) {
-      try {
-        const parsed = JSON.parse(cachedData);
-        selectedState = parsed.state || '';
-      } catch (e) {
-        console.error('Error parsing cached data for state:', e);
-      }
-    }
-    
-    // Fallback to localStorage if state not in cache
-    if (!selectedState) {
-      selectedState = localStorage.getItem("selected_state") || '';
-    }
+    // Get state from localStorage
+    const selectedState = localStorage.getItem("selected_state");
     
     if (!selectedState) {
       toast({
