@@ -10,6 +10,8 @@ import { FeedbackSection } from "@/components/feedback/FeedbackSection";
 import { useAuth } from "@/contexts/AuthContext";
 import { apiService } from "@/services/api";
 import { MedicalRecommendationResults as ResultsComponent } from "@/components/recommendations/MedicalRecommendationResults";
+import { useToast } from "@/hooks/use-toast";
+import { State } from "@/types/state";
 
 const MedicalRecommendationResults = () => {
   const navigate = useNavigate();
@@ -251,8 +253,23 @@ const MedicalRecommendationResults = () => {
     navigate('/recommendations/steps');
   };
 
+  const { toast } = useToast();
+
   const handleRegenerateRecommendations = async () => {
     if (!user?.accessToken) return;
+    
+    // Get state from localStorage
+    const selectedState = localStorage.getItem("selected_state");
+    
+    if (!selectedState) {
+      toast({
+        title: "State Required",
+        description: "Please select your state or union territory before generating recommendations.",
+        variant: "destructive",
+        duration: 3000
+      });
+      return;
+    }
     
     setIsLoading(true);
     try {
@@ -301,7 +318,8 @@ const MedicalRecommendationResults = () => {
             },
             preferences: {
               medicalPrograms: credentials.preferences?.medicalPrograms || ["ALL"],
-              preferredCities: credentials.preferences?.preferredCities || ["ALL"]
+              preferredCities: credentials.preferences?.preferredCities || ["ALL"],
+              state: selectedState as State
             },
             campusFacilitiesEnvironment: {
               hostelFacility: credentials.campusFacilitiesEnvironment?.hostelFacility || "",
