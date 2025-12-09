@@ -35,7 +35,7 @@ export const PrioritiesForm = ({ data, onUpdate, validationErrors = [] }: Priori
   ];
 
   const availableCollegeTypes = [
-    "Government", "Autonomous", "Private", "Deemed University", "University Department"
+    "Government", "Private"
   ];
 
   useEffect(() => {
