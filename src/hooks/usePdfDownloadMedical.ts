@@ -84,10 +84,13 @@ export const usePdfDownloadMedical = () => {
         ? (citiesArray.includes('ALL') ? 'All Cities' : citiesArray.join(', '))
         : 'Not specified';
       
+      // Get selected state from localStorage
+      const selectedState = localStorage.getItem('selected_state') || 'Not specified';
+      
       // Calculate dynamic height based on content length
       const programLines = pdf.splitTextToSize(`Programs: ${program}`, contentWidth - 10);
       const citiesLines = pdf.splitTextToSize(`Preferred Cities: ${preferredCities}`, contentWidth - 10);
-      const baseHeight = 30; // For name, category, gender, neet rank
+      const baseHeight = 36; // For name, category, gender, neet rank, state
       const programHeight = programLines.length * 5;
       const citiesHeight = citiesLines.length * 5;
       const userDetailsHeight = baseHeight + programHeight + citiesHeight;
@@ -123,6 +126,9 @@ export const usePdfDownloadMedical = () => {
       
       // Preferred cities with word wrap
       pdf.text(citiesLines, margin + 5, lineY);
+      lineY += citiesLines.length * 5;
+      
+      pdf.text(`State: ${selectedState}`, margin + 5, lineY);
       
       yPosition += userDetailsHeight + 8;
       
@@ -253,10 +259,11 @@ export const usePdfDownloadMedical = () => {
         const programText = `${rec.program} • ${rec.college.college_type}`;
         pdf.text(programText, margin + 15, yPosition + 14);
         
-        // City on third line
+        // City and State on third line
         pdf.setFontSize(9);
         pdf.setTextColor(107, 114, 128);
-        pdf.text(rec.college.city, margin + 15, yPosition + 20);
+        const cityStateText = rec.college.state ? `${rec.college.city}, ${rec.college.state}` : rec.college.city;
+        pdf.text(cityStateText, margin + 15, yPosition + 20);
         
         // Closing Rank
         pdf.setFontSize(8);

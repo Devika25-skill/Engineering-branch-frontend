@@ -21,6 +21,7 @@ import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { PremiumGate } from './PremiumGate';
 import ScrollToTop from '../ScrollToTop';
 import type { MedicalProgram, StoreMedicalConfigRequest, Gender, CollegeTypePreference, PriorityFactor } from '@/types/medical';
+import { State } from '@/types/state';
 
 interface SelectedCollege {
   college: any;
@@ -77,6 +78,7 @@ export const MedicalRound2Tab = ({
                 college_name: item.college.college_name || 'Unknown College',
                 college_code: item.college.college_code || '',
                 city: item.college.city || 'Unknown',
+                state: item.college.state || '',
                 college_type: item.college.college_type || '',
                 course_type: item.college.course_type || '',
               },
@@ -162,7 +164,8 @@ export const MedicalRound2Tab = ({
       // Try to fetch saved Round 1 college details from API
       if (user?.accessToken) {
         try {
-          const response = await apiService.getMedicalUserRoundDetails(1, user.accessToken);
+          const selectedState = localStorage.getItem('selected_state') || '';
+          const response = await apiService.getMedicalUserRoundDetails(1, user.accessToken, selectedState);
           // Check if response has actual data (not an empty object)
           if (response.success && response.data && response.data.collegeName) {
             // Construct college object from API response
@@ -264,8 +267,10 @@ export const MedicalRound2Tab = ({
     try {
       let response;
       
+      const selectedState = localStorage.getItem('selected_state') || '';
+      
       if (searchType === 'college_name') {
-        response = await apiService.searchMedicalCollegeByName(searchValue, user.accessToken);
+        response = await apiService.searchMedicalCollegeByName(searchValue, user.accessToken, selectedState);
       } else {
         const collegeCode = parseInt(searchValue);
         if (isNaN(collegeCode)) {
@@ -277,7 +282,7 @@ export const MedicalRound2Tab = ({
           });
           return;
         }
-        response = await apiService.searchMedicalCollegeByCode(collegeCode, user.accessToken);
+        response = await apiService.searchMedicalCollegeByCode(collegeCode, user.accessToken, selectedState);
       }
 
       if (response.success && response.data) {
@@ -351,7 +356,8 @@ export const MedicalRound2Tab = ({
         
         // Fetch existing college data from API
         try {
-          const response = await apiService.getMedicalUserRoundDetails(1, user.accessToken);
+          const selectedState = localStorage.getItem('selected_state') || '';
+          const response = await apiService.getMedicalUserRoundDetails(1, user.accessToken, selectedState);
           if (response.success && response.data && response.data.collegeName) {
             collegeData = {
               college_name: response.data.collegeName,
@@ -366,12 +372,14 @@ export const MedicalRound2Tab = ({
         
         // Only call store API if there's existing college data to mark as deleted
         if (collegeData && collegeData.college_name) {
+          const selectedState = localStorage.getItem('selected_state') || '';
           const apiPayload = {
             collegeName: collegeData.college_name,
             collegeCode: collegeData.college_code || 0,
             courseName: collegeData.course_type || 'MBBS',
             round: 1,
             city: collegeData.city || '',
+            state: selectedState,
             category: formData?.reservationCategory || 'OPEN',
             NEETAllIndiaRank: formData?.neetAllIndiaRank || 0,
             isDeleted: true
@@ -469,12 +477,14 @@ export const MedicalRound2Tab = ({
       
       // Call API to store medical college details
       try {
+        const selectedState = localStorage.getItem('selected_state') || '';
         const apiPayload = {
           collegeName: selectedCollege.college.college_name,
           collegeCode: selectedCollege.college.college_code,
           courseName: selectedCollege.college.course_type || 'MBBS',
           round: 1,
           city: selectedCollege.college.city,
+          state: selectedState,
           category: formData?.reservationCategory || 'OPEN',
           NEETAllIndiaRank: formData?.neetAllIndiaRank || 0,
           isDeleted: false
@@ -602,6 +612,20 @@ export const MedicalRound2Tab = ({
       sessionStorage.setItem('round1Invalidated', 'true');
       sessionStorage.setItem('round3Invalidated', 'true');
       
+      // Get state from localStorage
+      const selectedStateFromStorage = localStorage.getItem("selected_state");
+      
+      if (!selectedStateFromStorage) {
+        toast({
+          title: "State Required",
+          description: "Please select your state or union territory before generating recommendations.",
+          variant: "destructive",
+          duration: 3000
+        });
+        setIsUpdatingPreferences(false);
+        return;
+      }
+
       // Update form data in storage
       let formData = recommendationStorage.getFormData();
       
@@ -614,7 +638,7 @@ export const MedicalRound2Tab = ({
         
         console.log('Form data is missing or incomplete, fetching from backend...');
         
-        try {
+    try {
           const studentDetailsResponse = await apiService.fetchMedicalStudentDetails(user.accessToken);
           
           if (studentDetailsResponse.success && studentDetailsResponse.data) {
@@ -706,7 +730,8 @@ export const MedicalRound2Tab = ({
           },
           preferences: {
             medicalPrograms: updatedPreferences.preferredMedicalPrograms,
-            preferredCities: updatedPreferences.preferredCities
+            preferredCities: updatedPreferences.preferredCities,
+            state: selectedStateFromStorage as State
           },
           campusFacilitiesEnvironment: {
             hostelFacility: formData.hostelPreference,
@@ -816,6 +841,18 @@ export const MedicalRound2Tab = ({
       toast({
         title: "Authentication Required",
         description: "Please login to generate recommendations",
+        variant: "destructive",
+        duration: 3000
+      });
+      return;
+    }
+
+    // Validate state is selected
+    const selectedState = localStorage.getItem('selected_state');
+    if (!selectedState) {
+      toast({
+        title: "State Required",
+        description: "Please select your state before generating recommendations",
         variant: "destructive",
         duration: 3000
       });
@@ -968,7 +1005,8 @@ export const MedicalRound2Tab = ({
             },
             preferences: {
               medicalPrograms: selectedPrograms,
-              preferredCities: selectedCities.length > 0 ? selectedCities : ["ALL"]
+              preferredCities: selectedCities.length > 0 ? selectedCities : ["ALL"],
+              state: localStorage.getItem('selected_state') as State
             },
             campusFacilitiesEnvironment: {
               hostelFacility: formData.hostelPreference,
@@ -1122,7 +1160,7 @@ export const MedicalRound2Tab = ({
     "Chinchwad", "Wardha", "Sindhudurg", "Gadhinglaj", "Baramati", "Hingoli",
     "Chalisgaon", "Sangi", "Bhiwandi", "Dharashiv", "Yeotmal", "Virar",
     "Palghar", "Chhatrapati Sambhajinagar (Aurangabad)", "Solapur", "Sawantwadi",
-    "Thane", "Satara", "Satana", "Rohatur", "Dhule", "Buldhana", "Nasik",
+    "Thane", "Satara", "Satana", "Rohatur", "Dhule", "Buldhana",
     "Bhandara", "Sangli", "Nanded", "Karjat", "Nandihills", "Sangamner",
     "Gondia", "Miraj", "Akola", "Jaysingpur", "Pune", "Sinnar", "Washim",
     "Alibag", "Jalgaon", "Kolhapur", "Kannad", "Kalyan", "Ahilyanagar",
@@ -1537,7 +1575,7 @@ export const MedicalRound2Tab = ({
                               </h3>
                               <div className="flex items-center gap-1 mt-1 text-xs text-gray-500">
                                 <MapPin size={12} className="flex-shrink-0" />
-                                <span className="truncate">{recommendation.college.city}</span>
+                                <span className="truncate">{recommendation.college.city}{recommendation.college.state ? `, ${recommendation.college.state}` : ''}</span>
                               </div>
                             </div>
                             <Badge className={`${getCategoryColor(recommendation.category)} px-2 py-0.5 text-xs font-medium flex-shrink-0`}>

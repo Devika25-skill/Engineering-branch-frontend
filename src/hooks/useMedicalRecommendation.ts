@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { recommendationStorage } from '@/services/recommendationStorage';
 import type { StoreMedicalConfigRequest, GenerateMedicalRecommendationsRequest } from '@/types/medical';
+import { State } from '@/types/state';
 
 export const useMedicalRecommendation = () => {
   const [isGenerating, setIsGenerating] = useState(false);
@@ -80,6 +81,19 @@ export const useMedicalRecommendation = () => {
       throw new Error('Invalid annual budget');
     }
 
+    // Get state from localStorage
+    const selectedState = localStorage.getItem("selected_state");
+    
+    if (!selectedState) {
+      toast({
+        title: "State Required",
+        description: "Please select your state or union territory before generating recommendations.",
+        variant: "destructive",
+        duration: 3000
+      });
+      throw new Error('State selection is required');
+    }
+
     setIsGenerating(true);
 
     try {
@@ -118,7 +132,8 @@ export const useMedicalRecommendation = () => {
           },
           preferences: {
             medicalPrograms: formData.preferredMedicalPrograms || [],
-            preferredCities: formData.preferredCities && formData.preferredCities.length > 0 ? formData.preferredCities : ["ALL"]
+            preferredCities: formData.preferredCities && formData.preferredCities.length > 0 ? formData.preferredCities : ["ALL"],
+            state: selectedState as State
           },
           campusFacilitiesEnvironment: {
             hostelFacility: formData.hostelPreference,

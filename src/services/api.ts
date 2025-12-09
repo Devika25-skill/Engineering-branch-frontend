@@ -1063,8 +1063,8 @@ class ApiService {
   }
 
   // Medical College Search Methods
-  async searchMedicalCollegeByName(collegeName: string, token: string): Promise<any> {
-    return this.request<any>(`/api/v1/medical/college/search/name?college_name=${encodeURIComponent(collegeName)}`, {
+  async searchMedicalCollegeByName(collegeName: string, token: string, state: string): Promise<any> {
+    return this.request<any>(`/api/v1/medical/college/search/name?college_name=${encodeURIComponent(collegeName)}&state=${encodeURIComponent(state)}`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -1073,8 +1073,8 @@ class ApiService {
     });
   }
 
-  async searchMedicalCollegeByCode(collegeCode: number, token: string): Promise<any> {
-    return this.request<any>(`/api/v1/medical/college/search/code?college_code=${collegeCode}`, {
+  async searchMedicalCollegeByCode(collegeCode: number, token: string, state: string): Promise<any> {
+    return this.request<any>(`/api/v1/medical/college/search/code?college_code=${collegeCode}&state=${encodeURIComponent(state)}`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -1090,6 +1090,7 @@ class ApiService {
     courseName: string;
     round: number;
     city: string;
+    state: string;
     category: string;
     NEETAllIndiaRank: number;
     isDeleted?: boolean;
@@ -1106,7 +1107,7 @@ class ApiService {
   }
 
   // Get Saved Medical Round Details
-  async getMedicalUserRoundDetails(round: number, token: string): Promise<ApiResponse<{
+  async getMedicalUserRoundDetails(round: number, token: string, state: string): Promise<ApiResponse<{
     userName: string;
     round: number;
     collegeName: string;
@@ -1125,7 +1126,7 @@ class ApiService {
       city: string;
       category: string;
       NEETAllIndiaRank: number;
-    }>>(`/api/v1/medical/get_medical_user_round_details?round=${round}`, {
+    }>>(`/api/v1/medical/get_medical_user_round_details?round=${round}&state=${encodeURIComponent(state)}`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -1135,7 +1136,7 @@ class ApiService {
   }
 
   // Get Medical Recommendations by Round
-  async getMedicalRecommendationsByRound(round: number, token: string): Promise<ApiResponse<{
+  async getMedicalRecommendationsByRound(round: number, token: string, state: string): Promise<ApiResponse<{
     username: string;
     Dream: any[];
     Reach: any[];
@@ -1154,7 +1155,7 @@ class ApiService {
       Round: number;
       is_payment: boolean;
       accept_payment: boolean;
-    }>>(`/api/v1/medical/medical/recommendations/college-list?round=${round}`, {
+    }>>(`/api/v1/medical/medical/recommendations/college-list?round=${round}&state=${encodeURIComponent(state)}`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,

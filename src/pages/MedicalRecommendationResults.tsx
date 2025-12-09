@@ -10,11 +10,14 @@ import { FeedbackSection } from "@/components/feedback/FeedbackSection";
 import { useAuth } from "@/contexts/AuthContext";
 import { apiService } from "@/services/api";
 import { MedicalRecommendationResults as ResultsComponent } from "@/components/recommendations/MedicalRecommendationResults";
+import { useToast } from "@/hooks/use-toast";
+import { State } from "@/types/state";
 
 const MedicalRecommendationResults = () => {
   const navigate = useNavigate();
   const { isLoggedIn, user } = useAuth();
   const { isGenerating } = useMedicalRecommendation();
+  const { toast } = useToast();
   const [formData, setFormData] = useState<any>(null);
   const [recommendations, setRecommendations] = useState<any>({
     Dream: [],
@@ -110,7 +113,8 @@ const MedicalRecommendationResults = () => {
             
             if (!isInvalidated && user?.accessToken) {
               // Only fetch from API if not invalidated
-              const response = await apiService.getMedicalRecommendationsByRound(roundNumber, user.accessToken);
+              const selectedState = localStorage.getItem('selected_state') || '';
+              const response = await apiService.getMedicalRecommendationsByRound(roundNumber, user.accessToken, selectedState);
               
               if (response.success && response.data) {
                 setRecommendations({
@@ -196,7 +200,8 @@ const MedicalRecommendationResults = () => {
         
         if (!isInvalidated && user?.accessToken) {
           // Only fetch from API if not invalidated
-          const response = await apiService.getMedicalRecommendationsByRound(roundNumber, user.accessToken);
+          const selectedState = localStorage.getItem('selected_state') || '';
+          const response = await apiService.getMedicalRecommendationsByRound(roundNumber, user.accessToken, selectedState);
           
           if (response.success && response.data) {
             setRecommendations({
@@ -254,6 +259,19 @@ const MedicalRecommendationResults = () => {
   const handleRegenerateRecommendations = async () => {
     if (!user?.accessToken) return;
     
+    // Get state from localStorage
+    const selectedState = localStorage.getItem("selected_state");
+    
+    if (!selectedState) {
+      toast({
+        title: "State Required",
+        description: "Please select your state or union territory before generating recommendations.",
+        variant: "destructive",
+        duration: 3000
+      });
+      return;
+    }
+    
     setIsLoading(true);
     try {
       const roundNumber = activeRound === 'round2' ? 2 : activeRound === 'round3' ? 3 : 1;
@@ -301,7 +319,8 @@ const MedicalRecommendationResults = () => {
             },
             preferences: {
               medicalPrograms: credentials.preferences?.medicalPrograms || ["ALL"],
-              preferredCities: credentials.preferences?.preferredCities || ["ALL"]
+              preferredCities: credentials.preferences?.preferredCities || ["ALL"],
+              state: selectedState as State
             },
             campusFacilitiesEnvironment: {
               hostelFacility: credentials.campusFacilitiesEnvironment?.hostelFacility || "",

@@ -79,7 +79,6 @@ export const MedicalPreferencesForm = ({ data, onUpdate, validationErrors = [] }
     "Rohatur",
     "Dhule",
     "Buldhana",
-    "Nasik",
     "Bhandara",
     "Sangli",
     "Nanded",

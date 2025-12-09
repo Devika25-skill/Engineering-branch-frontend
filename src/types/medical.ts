@@ -1,3 +1,5 @@
+import { State } from './state';
+
 // Medical Program Types
 export type MedicalProgram = 
   | "ALL"
@@ -73,7 +75,7 @@ export type City =
   | "Chinchwad" | "Wardha" | "Sindhudurg" | "Gadhinglaj" | "Baramati" | "Hingoli"
   | "Chalisgaon" | "Sangi" | "Bhiwandi" | "Dharashiv" | "Yeotmal" | "Virar"
   | "Palghar" | "Chhatrapati Sambhajinagar (Aurangabad)" | "Solapur" | "Sawantwadi"
-  | "Thane" | "Satara" | "Satana" | "Rohatur" | "Dhule" | "Buldhana" | "Nasik"
+  | "Thane" | "Satara" | "Satana" | "Rohatur" | "Dhule" | "Buldhana"
   | "Bhandara" | "Sangli" | "Nanded" | "Karjat" | "Nandihills" | "Sangamner"
   | "Gondia" | "Miraj" | "Akola" | "Jaysingpur" | "Pune" | "Sinnar" | "Washim"
   | "Alibag" | "Jalgaon" | "Kolhapur" | "Kannad" | "Kalyan" | "Ahilyanagar"
@@ -112,6 +114,7 @@ export interface MedicalAcademicCredentials {
   preferences: {
     medicalPrograms: MedicalProgram[];
     preferredCities: string[];
+    state: State;
   };
   campusFacilitiesEnvironment?: {
     hostelFacility?: string;
@@ -183,6 +186,7 @@ export interface MedicalCollegeData {
   college_type: string;
   course_type: string;
   city: string;
+  state?: string;
 }
 
 // Medical College Recommendation

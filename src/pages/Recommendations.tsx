@@ -36,7 +36,8 @@ const Recommendations = () => {
               if (isMedical) {
                 // Check Round 2 recommendations first
                 try {
-                  const round2Response = await apiService.getMedicalRecommendationsByRound(2, user.accessToken);
+                  const selectedState = localStorage.getItem('selected_state') || '';
+                  const round2Response = await apiService.getMedicalRecommendationsByRound(2, user.accessToken, selectedState);
                   if (round2Response.success && round2Response.data) {
                     const hasRound2 = (round2Response.data.Dream && round2Response.data.Dream.length > 0) ||
                                      (round2Response.data.Reach && round2Response.data.Reach.length > 0) ||
@@ -57,7 +58,8 @@ const Recommendations = () => {
 
                 // Check Round 1 recommendations if Round 2 doesn't exist
                 try {
-                  const round1Response = await apiService.getMedicalRecommendationsByRound(1, user.accessToken);
+                  const selectedState = localStorage.getItem('selected_state') || '';
+                  const round1Response = await apiService.getMedicalRecommendationsByRound(1, user.accessToken, selectedState);
                   if (round1Response.success && round1Response.data) {
                     const hasRound1 = (round1Response.data.Dream && round1Response.data.Dream.length > 0) ||
                                      (round1Response.data.Reach && round1Response.data.Reach.length > 0) ||
