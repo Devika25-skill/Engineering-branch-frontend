@@ -838,6 +838,18 @@ export const MedicalRound2Tab = ({
       return;
     }
 
+    // Validate state is selected
+    const selectedState = localStorage.getItem('selected_state');
+    if (!selectedState) {
+      toast({
+        title: "State Required",
+        description: "Please select your state before generating recommendations",
+        variant: "destructive",
+        duration: 3000
+      });
+      return;
+    }
+
     if (selectedPrograms.length === 0) {
       toast({
         title: "Missing Preferences",
@@ -984,7 +996,8 @@ export const MedicalRound2Tab = ({
             },
             preferences: {
               medicalPrograms: selectedPrograms,
-              preferredCities: selectedCities.length > 0 ? selectedCities : ["ALL"]
+              preferredCities: selectedCities.length > 0 ? selectedCities : ["ALL"],
+              state: localStorage.getItem('selected_state') as State
             },
             campusFacilitiesEnvironment: {
               hostelFacility: formData.hostelPreference,
