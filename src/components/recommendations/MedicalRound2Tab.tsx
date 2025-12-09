@@ -78,6 +78,7 @@ export const MedicalRound2Tab = ({
                 college_name: item.college.college_name || 'Unknown College',
                 college_code: item.college.college_code || '',
                 city: item.college.city || 'Unknown',
+                state: item.college.state || '',
                 college_type: item.college.college_type || '',
                 course_type: item.college.course_type || '',
               },
