@@ -186,6 +186,7 @@ export interface MedicalCollegeData {
   college_type: string;
   course_type: string;
   city: string;
+  state?: string;
 }
 
 // Medical College Recommendation
