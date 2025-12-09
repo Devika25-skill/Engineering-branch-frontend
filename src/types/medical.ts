@@ -1,3 +1,5 @@
+import { State } from './state';
+
 // Medical Program Types
 export type MedicalProgram = 
   | "ALL"
@@ -112,6 +114,7 @@ export interface MedicalAcademicCredentials {
   preferences: {
     medicalPrograms: MedicalProgram[];
     preferredCities: string[];
+    state: State;
   };
   campusFacilitiesEnvironment?: {
     hostelFacility?: string;

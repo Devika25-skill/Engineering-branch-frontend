@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { recommendationStorage } from '@/services/recommendationStorage';
 import type { StoreMedicalConfigRequest, GenerateMedicalRecommendationsRequest } from '@/types/medical';
+import { State } from '@/types/state';
 
 export const useMedicalRecommendation = () => {
   const [isGenerating, setIsGenerating] = useState(false);
@@ -118,7 +119,8 @@ export const useMedicalRecommendation = () => {
           },
           preferences: {
             medicalPrograms: formData.preferredMedicalPrograms || [],
-            preferredCities: formData.preferredCities && formData.preferredCities.length > 0 ? formData.preferredCities : ["ALL"]
+            preferredCities: formData.preferredCities && formData.preferredCities.length > 0 ? formData.preferredCities : ["ALL"],
+            state: (formData.selectedState || State.MAHARASHTRA) as State
           },
           campusFacilitiesEnvironment: {
             hostelFacility: formData.hostelPreference,
