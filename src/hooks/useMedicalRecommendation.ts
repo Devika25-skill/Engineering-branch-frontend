@@ -81,6 +81,19 @@ export const useMedicalRecommendation = () => {
       throw new Error('Invalid annual budget');
     }
 
+    // Get state from localStorage
+    const selectedState = localStorage.getItem("selected_state");
+    
+    if (!selectedState) {
+      toast({
+        title: "State Required",
+        description: "Please select your state or union territory before generating recommendations.",
+        variant: "destructive",
+        duration: 3000
+      });
+      throw new Error('State selection is required');
+    }
+
     setIsGenerating(true);
 
     try {
@@ -120,7 +133,7 @@ export const useMedicalRecommendation = () => {
           preferences: {
             medicalPrograms: formData.preferredMedicalPrograms || [],
             preferredCities: formData.preferredCities && formData.preferredCities.length > 0 ? formData.preferredCities : ["ALL"],
-            state: (formData.selectedState || State.MAHARASHTRA) as State
+            state: selectedState as State
           },
           campusFacilitiesEnvironment: {
             hostelFacility: formData.hostelPreference,
