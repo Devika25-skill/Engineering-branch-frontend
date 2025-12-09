@@ -369,12 +369,14 @@ export const MedicalRound2Tab = ({
         
         // Only call store API if there's existing college data to mark as deleted
         if (collegeData && collegeData.college_name) {
+          const selectedState = localStorage.getItem('selected_state') || '';
           const apiPayload = {
             collegeName: collegeData.college_name,
             collegeCode: collegeData.college_code || 0,
             courseName: collegeData.course_type || 'MBBS',
             round: 1,
             city: collegeData.city || '',
+            state: selectedState,
             category: formData?.reservationCategory || 'OPEN',
             NEETAllIndiaRank: formData?.neetAllIndiaRank || 0,
             isDeleted: true
@@ -472,12 +474,14 @@ export const MedicalRound2Tab = ({
       
       // Call API to store medical college details
       try {
+        const selectedState = localStorage.getItem('selected_state') || '';
         const apiPayload = {
           collegeName: selectedCollege.college.college_name,
           collegeCode: selectedCollege.college.college_code,
           courseName: selectedCollege.college.course_type || 'MBBS',
           round: 1,
           city: selectedCollege.college.city,
+          state: selectedState,
           category: formData?.reservationCategory || 'OPEN',
           NEETAllIndiaRank: formData?.neetAllIndiaRank || 0,
           isDeleted: false

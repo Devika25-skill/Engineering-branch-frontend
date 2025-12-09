@@ -1090,6 +1090,7 @@ class ApiService {
     courseName: string;
     round: number;
     city: string;
+    state: string;
     category: string;
     NEETAllIndiaRank: number;
     isDeleted?: boolean;
