@@ -458,6 +458,7 @@ const RecommendationSteps = () => {
               data={formData}
               onUpdate={handleFormUpdate}
               validationErrors={validationErrors}
+              {...(currentStep === 3 && isMedical ? { collegeTypeOptions: ["Government", "Private"] } : {})}
             />
           </StepFormCard>
         </div>
