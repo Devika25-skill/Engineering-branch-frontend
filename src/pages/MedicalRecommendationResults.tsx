@@ -113,7 +113,8 @@ const MedicalRecommendationResults = () => {
             
             if (!isInvalidated && user?.accessToken) {
               // Only fetch from API if not invalidated
-              const response = await apiService.getMedicalRecommendationsByRound(roundNumber, user.accessToken);
+              const selectedState = localStorage.getItem('selected_state') || '';
+              const response = await apiService.getMedicalRecommendationsByRound(roundNumber, user.accessToken, selectedState);
               
               if (response.success && response.data) {
                 setRecommendations({
@@ -199,7 +200,8 @@ const MedicalRecommendationResults = () => {
         
         if (!isInvalidated && user?.accessToken) {
           // Only fetch from API if not invalidated
-          const response = await apiService.getMedicalRecommendationsByRound(roundNumber, user.accessToken);
+          const selectedState = localStorage.getItem('selected_state') || '';
+          const response = await apiService.getMedicalRecommendationsByRound(roundNumber, user.accessToken, selectedState);
           
           if (response.success && response.data) {
             setRecommendations({
