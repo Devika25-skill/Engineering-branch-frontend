@@ -265,8 +265,10 @@ export const MedicalRound2Tab = ({
     try {
       let response;
       
+      const selectedState = localStorage.getItem('selected_state') || '';
+      
       if (searchType === 'college_name') {
-        response = await apiService.searchMedicalCollegeByName(searchValue, user.accessToken);
+        response = await apiService.searchMedicalCollegeByName(searchValue, user.accessToken, selectedState);
       } else {
         const collegeCode = parseInt(searchValue);
         if (isNaN(collegeCode)) {
@@ -278,7 +280,7 @@ export const MedicalRound2Tab = ({
           });
           return;
         }
-        response = await apiService.searchMedicalCollegeByCode(collegeCode, user.accessToken);
+        response = await apiService.searchMedicalCollegeByCode(collegeCode, user.accessToken, selectedState);
       }
 
       if (response.success && response.data) {

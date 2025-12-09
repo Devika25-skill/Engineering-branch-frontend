@@ -56,11 +56,13 @@ export const MedicalCollegeSelectionCard = ({ onCollegeSelect, onSkip, token, se
             setIsSearching(false);
             return;
           }
-          response = await apiService.searchMedicalCollegeByCode(numericCode, token);
+          const stateForCode = localStorage.getItem('selected_state') || '';
+          response = await apiService.searchMedicalCollegeByCode(numericCode, token, stateForCode);
           break;
           
         case 'college_name':
-          response = await apiService.searchMedicalCollegeByName(searchQuery, token);
+          const stateForName = localStorage.getItem('selected_state') || '';
+          response = await apiService.searchMedicalCollegeByName(searchQuery, token, stateForName);
           break;
       }
 
