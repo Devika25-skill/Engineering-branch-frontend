@@ -603,6 +603,20 @@ export const MedicalRound2Tab = ({
       sessionStorage.setItem('round1Invalidated', 'true');
       sessionStorage.setItem('round3Invalidated', 'true');
       
+      // Get state from localStorage
+      const selectedStateFromStorage = localStorage.getItem("selected_state");
+      
+      if (!selectedStateFromStorage) {
+        toast({
+          title: "State Required",
+          description: "Please select your state or union territory before generating recommendations.",
+          variant: "destructive",
+          duration: 3000
+        });
+        setIsUpdatingPreferences(false);
+        return;
+      }
+
       // Update form data in storage
       let formData = recommendationStorage.getFormData();
       
@@ -615,7 +629,7 @@ export const MedicalRound2Tab = ({
         
         console.log('Form data is missing or incomplete, fetching from backend...');
         
-        try {
+    try {
           const studentDetailsResponse = await apiService.fetchMedicalStudentDetails(user.accessToken);
           
           if (studentDetailsResponse.success && studentDetailsResponse.data) {
@@ -708,7 +722,7 @@ export const MedicalRound2Tab = ({
           preferences: {
             medicalPrograms: updatedPreferences.preferredMedicalPrograms,
             preferredCities: updatedPreferences.preferredCities,
-            state: (formData.selectedState || State.MAHARASHTRA) as State
+            state: selectedStateFromStorage as State
           },
           campusFacilitiesEnvironment: {
             hostelFacility: formData.hostelPreference,
