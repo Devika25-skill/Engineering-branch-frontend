@@ -17,6 +17,7 @@ const MedicalRecommendationResults = () => {
   const navigate = useNavigate();
   const { isLoggedIn, user } = useAuth();
   const { isGenerating } = useMedicalRecommendation();
+  const { toast } = useToast();
   const [formData, setFormData] = useState<any>(null);
   const [recommendations, setRecommendations] = useState<any>({
     Dream: [],
@@ -252,8 +253,6 @@ const MedicalRecommendationResults = () => {
     // Navigate to steps page - form data will be pre-filled from API
     navigate('/recommendations/steps');
   };
-
-  const { toast } = useToast();
 
   const handleRegenerateRecommendations = async () => {
     if (!user?.accessToken) return;
