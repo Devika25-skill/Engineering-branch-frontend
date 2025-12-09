@@ -124,11 +124,11 @@ export const usePdfDownloadMedical = () => {
       pdf.text(`NEET Rank: ${neetRank}`, margin + 5, lineY);
       lineY += lineHeight;
       
-      pdf.text(`State: ${selectedState}`, margin + 5, lineY);
-      lineY += lineHeight;
-      
       // Preferred cities with word wrap
       pdf.text(citiesLines, margin + 5, lineY);
+      lineY += citiesLines.length * 5;
+      
+      pdf.text(`State: ${selectedState}`, margin + 5, lineY);
       
       yPosition += userDetailsHeight + 8;
       
