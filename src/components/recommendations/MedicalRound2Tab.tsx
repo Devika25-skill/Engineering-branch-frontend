@@ -21,6 +21,7 @@ import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { PremiumGate } from './PremiumGate';
 import ScrollToTop from '../ScrollToTop';
 import type { MedicalProgram, StoreMedicalConfigRequest, Gender, CollegeTypePreference, PriorityFactor } from '@/types/medical';
+import { State } from '@/types/state';
 
 interface SelectedCollege {
   college: any;
@@ -706,7 +707,8 @@ export const MedicalRound2Tab = ({
           },
           preferences: {
             medicalPrograms: updatedPreferences.preferredMedicalPrograms,
-            preferredCities: updatedPreferences.preferredCities
+            preferredCities: updatedPreferences.preferredCities,
+            state: (formData.selectedState || State.MAHARASHTRA) as State
           },
           campusFacilitiesEnvironment: {
             hostelFacility: formData.hostelPreference,
