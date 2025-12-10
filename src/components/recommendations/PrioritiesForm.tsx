@@ -15,9 +15,10 @@ interface PrioritiesFormProps {
   data: any;
   onUpdate: (data: any) => void;
   validationErrors?: string[];
+  collegeTypeOptions?: string[];
 }
 
-export const PrioritiesForm = ({ data, onUpdate, validationErrors = [] }: PrioritiesFormProps) => {
+export const PrioritiesForm = ({ data, onUpdate, validationErrors = [], collegeTypeOptions }: PrioritiesFormProps) => {
   const [selectedPriorities, setSelectedPriorities] = useState<string[]>(data.priorities || []);
   const [selectedCollegeTypes, setSelectedCollegeTypes] = useState<string[]>(data.collegeTypes || []);
   const [budgetValue, setBudgetValue] = useState<number[]>([data.maxBudget || 250000]);
@@ -34,9 +35,11 @@ export const PrioritiesForm = ({ data, onUpdate, validationErrors = [] }: Priori
     "Campus Life", "Hostel Facilities", "Sports Facilities"
   ];
 
-  const availableCollegeTypes = [
+  const defaultCollegeTypes = [
     "Government", "Autonomous", "Private", "Deemed University", "University Department"
   ];
+  
+  const availableCollegeTypes = collegeTypeOptions || defaultCollegeTypes;
 
   useEffect(() => {
     onUpdate({
