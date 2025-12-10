@@ -1152,21 +1152,35 @@ export const MedicalRound2Tab = ({
     "ALL", "MBBS", "BDS", "BAMS", "BHMS", "BUMS", "BNYS", "BPTH", "BOTH", "BASLP", "BP&O"
   ];
 
-  const availableCities = [
-    "ALL", "Nashik", "Ambajogai", "Ambernath", "Jalna", "Chandrapur", "Malegaon",
-    "Yavatmal", "Raigad", "Nandurbar", "Beed", "Amravati", "Nalasopara",
-    "Chandwad", "Sindhudurga", "Pandharpur", "Parbhani", "Panvel", "Alibaug",
-    "Ratnagiri", "Nagpur", "Latur", "Dombivali", "Vengurla", "Sakegaon",
-    "Chinchwad", "Wardha", "Sindhudurg", "Gadhinglaj", "Baramati", "Hingoli",
-    "Chalisgaon", "Sangi", "Bhiwandi", "Dharashiv", "Yeotmal", "Virar",
-    "Palghar", "Chhatrapati Sambhajinagar (Aurangabad)", "Solapur", "Sawantwadi",
-    "Thane", "Satara", "Satana", "Rohatur", "Dhule", "Buldhana",
-    "Bhandara", "Sangli", "Nanded", "Karjat", "Nandihills", "Sangamner",
-    "Gondia", "Miraj", "Akola", "Jaysingpur", "Pune", "Sinnar", "Washim",
-    "Alibag", "Jalgaon", "Kolhapur", "Kannad", "Kalyan", "Ahilyanagar",
-    "Gadchiroli", "Mumbai", "Khamgaon", "Jaisingpur", "Shevgaon", "Shrirampur",
-    "Kopargaon", "Rahuri"
+  // Get selected state from localStorage
+  const selectedState = localStorage.getItem('selected_state') || 'Maharashtra';
+
+  // Maharashtra cities (sorted alphabetically)
+  const maharashtraCities = [
+    "ALL", "Ahilyanagar", "Akola", "Alibag", "Alibaug", "Ambajogai", "Ambernath",
+    "Amravati", "Baramati", "Beed", "Bhandara", "Bhiwandi", "Buldhana",
+    "Chalisgaon", "Chandrapur", "Chandwad", "Chhatrapati Sambhajinagar (Aurangabad)",
+    "Chinchwad", "Dharashiv", "Dhule", "Dombivali", "Gadchiroli", "Gadhinglaj",
+    "Gondia", "Hingoli", "Jaisingpur", "Jalgaon", "Jalna", "Jaysingpur",
+    "Kalyan", "Kannad", "Karjat", "Khamgaon", "Kolhapur", "Kopargaon",
+    "Latur", "Malegaon", "Miraj", "Mumbai", "Nagpur", "Nalasopara",
+    "Nanded", "Nandihills", "Nandurbar", "Nashik", "Palghar", "Pandharpur",
+    "Panvel", "Parbhani", "Pune", "Rahuri", "Raigad", "Ratnagiri",
+    "Rohatur", "Sakegaon", "Sangamner", "Sangi", "Sangli", "Satana",
+    "Satara", "Sawantwadi", "Shevgaon", "Shrirampur", "Sindhudurg", "Sindhudurga",
+    "Sinnar", "Solapur", "Thane", "Vengurla", "Virar", "Wardha",
+    "Washim", "Yavatmal", "Yeotmal"
   ];
+
+  // Karnataka cities
+  const karnatakaCities = [
+    "ALL", "Ballari", "Belagavi", "Bengaluru", "Davanagere", "Dharwad",
+    "Hassan", "Hubballi", "Kalaburagi", "Mandya", "Mangaluru", "Mysuru",
+    "Shivamogga", "Tumakuru", "Udupi", "Vijayapura"
+  ];
+
+  // Select cities based on state
+  const availableCities = selectedState === 'Karnataka' ? karnatakaCities : maharashtraCities;
 
   return (
     <div className="space-y-6">
