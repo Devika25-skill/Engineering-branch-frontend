@@ -108,7 +108,20 @@ export function ProgramSelectionDialog({
   };
 
   const isMaharashtra = selectedState === 'Maharashtra';
+  const isKarnataka = selectedState === 'Karnataka';
   const hasSelectedState = selectedState !== '';
+  
+  // Filter programs based on state selection
+  const getAvailablePrograms = () => {
+    if (isKarnataka) {
+      // Karnataka only shows First-Year Medical
+      return allPrograms.filter(p => p.id === 'First_Year_Medical');
+    }
+    // Maharashtra shows all programs
+    return allPrograms;
+  };
+  
+  const availableStatePrograms = getAvailablePrograms();
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -142,10 +155,10 @@ export function ProgramSelectionDialog({
         </div>
         
         <div className="p-4 sm:p-6 space-y-3 sm:space-y-4">
-          {/* Show programs only if Maharashtra is selected */}
-          {isMaharashtra && (
+          {/* Show programs for Maharashtra or Karnataka */}
+          {(isMaharashtra || isKarnataka) && (
             <>
-              {allPrograms.map((program) => {
+              {availableStatePrograms.map((program) => {
                 const Icon = program.icon;
                 return (
                   <Card 
@@ -184,7 +197,7 @@ export function ProgramSelectionDialog({
           )}
 
           {/* Show Coming Soon message for other states */}
-          {hasSelectedState && !isMaharashtra && (
+          {hasSelectedState && !isMaharashtra && !isKarnataka && (
             <Card className="border-2 border-dashed border-muted-foreground/30 bg-muted/20">
               <CardContent className="p-6 sm:p-8 text-center">
                 <div className="flex justify-center mb-4">
