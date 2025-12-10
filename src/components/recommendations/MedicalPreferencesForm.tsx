@@ -16,6 +16,9 @@ interface MedicalPreferencesFormProps {
 export const MedicalPreferencesForm = ({ data, onUpdate, validationErrors = [] }: MedicalPreferencesFormProps) => {
   const [selectedPrograms, setSelectedPrograms] = useState<string[]>(data.preferredMedicalPrograms || []);
   const [selectedCities, setSelectedCities] = useState<string[]>(data.preferredCities || []);
+  
+  // Get selected state from localStorage
+  const selectedState = localStorage.getItem('selected_state') || 'Maharashtra';
 
   const availablePrograms = [
     "ALL",
@@ -31,7 +34,8 @@ export const MedicalPreferencesForm = ({ data, onUpdate, validationErrors = [] }
     "BP&O"
   ];
 
-  const availableCities = [
+  // Maharashtra cities
+  const maharashtraCities = [
     "ALL",
     "Nashik",
     "Ambajogai",
@@ -107,6 +111,29 @@ export const MedicalPreferencesForm = ({ data, onUpdate, validationErrors = [] }
     "Kopargaon",
     "Rahuri"
   ];
+
+  // Karnataka cities
+  const karnatakaCities = [
+    "ALL",
+    "Ballari",
+    "Belagavi",
+    "Bengaluru",
+    "Davanagere",
+    "Dharwad",
+    "Hassan",
+    "Hubballi",
+    "Kalaburagi",
+    "Mandya",
+    "Mangaluru",
+    "Mysuru",
+    "Shivamogga",
+    "Tumakuru",
+    "Udupi",
+    "Vijayapura"
+  ];
+
+  // Select cities based on state
+  const availableCities = selectedState === 'Karnataka' ? karnatakaCities : maharashtraCities;
 
   useEffect(() => {
     onUpdate({
