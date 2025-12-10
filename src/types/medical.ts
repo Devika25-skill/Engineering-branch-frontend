@@ -61,22 +61,32 @@ export type PriorityFactor =
   | "Hostel Facilities"
   | "Sports Facilities";
 
-// Valid Cities (Maharashtra)
-export type City = 
+// Valid Cities (Maharashtra - sorted alphabetically)
+export type MaharashtraCity = 
   | "ALL"
-  | "Nashik" | "Ambajogai" | "Ambernath" | "Jalna" | "Chandrapur" | "Malegaon"
-  | "Yavatmal" | "Raigad" | "Nandurbar" | "Beed" | "Amravati" | "Nalasopara"
-  | "Chandwad" | "Sindhudurga" | "Pandharpur" | "Parbhani" | "Panvel" | "Alibaug"
-  | "Ratnagiri" | "Nagpur" | "Latur" | "Dombivali" | "Vengurla" | "Sakegaon"
-  | "Chinchwad" | "Wardha" | "Sindhudurg" | "Gadhinglaj" | "Baramati" | "Hingoli"
-  | "Chalisgaon" | "Sangi" | "Bhiwandi" | "Dharashiv" | "Yeotmal" | "Virar"
-  | "Palghar" | "Chhatrapati Sambhajinagar (Aurangabad)" | "Solapur" | "Sawantwadi"
-  | "Thane" | "Satara" | "Satana" | "Rohatur" | "Dhule" | "Buldhana"
-  | "Bhandara" | "Sangli" | "Nanded" | "Karjat" | "Nandihills" | "Sangamner"
-  | "Gondia" | "Miraj" | "Akola" | "Jaysingpur" | "Pune" | "Sinnar" | "Washim"
-  | "Alibag" | "Jalgaon" | "Kolhapur" | "Kannad" | "Kalyan" | "Ahilyanagar"
-  | "Gadchiroli" | "Mumbai" | "Khamgaon" | "Jaisingpur" | "Shevgaon" | "Shrirampur"
-  | "Kopargaon" | "Rahuri";
+  | "Ahilyanagar" | "Akola" | "Alibag" | "Alibaug" | "Ambajogai" | "Ambernath"
+  | "Amravati" | "Baramati" | "Beed" | "Bhandara" | "Bhiwandi" | "Buldhana"
+  | "Chalisgaon" | "Chandrapur" | "Chandwad" | "Chhatrapati Sambhajinagar (Aurangabad)"
+  | "Chinchwad" | "Dharashiv" | "Dhule" | "Dombivali" | "Gadchiroli" | "Gadhinglaj"
+  | "Gondia" | "Hingoli" | "Jaisingpur" | "Jalgaon" | "Jalna" | "Jaysingpur"
+  | "Kalyan" | "Kannad" | "Karjat" | "Khamgaon" | "Kolhapur" | "Kopargaon"
+  | "Latur" | "Malegaon" | "Miraj" | "Mumbai" | "Nagpur" | "Nalasopara"
+  | "Nanded" | "Nandihills" | "Nandurbar" | "Nashik" | "Palghar" | "Pandharpur"
+  | "Panvel" | "Parbhani" | "Pune" | "Rahuri" | "Raigad" | "Ratnagiri"
+  | "Rohatur" | "Sakegaon" | "Sangamner" | "Sangi" | "Sangli" | "Satana"
+  | "Satara" | "Sawantwadi" | "Shevgaon" | "Shrirampur" | "Sindhudurg" | "Sindhudurga"
+  | "Sinnar" | "Solapur" | "Thane" | "Vengurla" | "Virar" | "Wardha"
+  | "Washim" | "Yavatmal" | "Yeotmal";
+
+// Valid Cities (Karnataka)
+export type KarnatakaCity = 
+  | "ALL"
+  | "Ballari" | "Belagavi" | "Bengaluru" | "Davanagere" | "Dharwad"
+  | "Hassan" | "Hubballi" | "Kalaburagi" | "Mandya" | "Mangaluru" | "Mysuru"
+  | "Shivamogga" | "Tumakuru" | "Udupi" | "Vijayapura";
+
+// Combined City type
+export type City = MaharashtraCity | KarnatakaCity;
 
 // Academic Credentials
 export interface MedicalAcademicCredentials {
