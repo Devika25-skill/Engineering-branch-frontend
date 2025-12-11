@@ -72,7 +72,8 @@ const MedicalRecommendationResults = () => {
         if (isFormDataIncomplete && user?.accessToken) {
           console.log('Form data missing/incomplete, fetching student details from API...');
           try {
-            const studentDetailsResponse = await apiService.fetchMedicalStudentDetails(user.accessToken);
+            const selectedState = localStorage.getItem('selected_state') || '';
+            const studentDetailsResponse = await apiService.fetchMedicalStudentDetails(user.accessToken, selectedState);
             if (studentDetailsResponse.success && studentDetailsResponse.data) {
               savedFormData = transformStudentDataToFormData(studentDetailsResponse.data);
               // Save to storage for future use
@@ -278,7 +279,7 @@ const MedicalRecommendationResults = () => {
       
       // Always fetch complete student details from API
       console.log('Fetching complete student details from API...');
-      const studentDetailsResponse = await apiService.fetchMedicalStudentDetails(user.accessToken);
+      const studentDetailsResponse = await apiService.fetchMedicalStudentDetails(user.accessToken, selectedState);
       
       if (!studentDetailsResponse.success || !studentDetailsResponse.data) {
         console.error('Failed to fetch student details');

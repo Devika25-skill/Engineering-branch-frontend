@@ -528,7 +528,8 @@ export const MedicalRound2Tab = ({
       // First try API to get latest student details if logged in
       if (user?.accessToken) {
         try {
-          const profileResponse = await apiService.fetchMedicalStudentDetails(user.accessToken);
+          const selectedState = localStorage.getItem('selected_state') || '';
+          const profileResponse = await apiService.fetchMedicalStudentDetails(user.accessToken, selectedState);
           if (profileResponse.success && profileResponse.data) {
             const preferences = profileResponse.data.academic_credentials?.preferences;
             if (preferences) {
@@ -639,7 +640,8 @@ export const MedicalRound2Tab = ({
         console.log('Form data is missing or incomplete, fetching from backend...');
         
     try {
-          const studentDetailsResponse = await apiService.fetchMedicalStudentDetails(user.accessToken);
+          const selectedState = localStorage.getItem('selected_state') || '';
+          const studentDetailsResponse = await apiService.fetchMedicalStudentDetails(user.accessToken, selectedState);
           
           if (studentDetailsResponse.success && studentDetailsResponse.data) {
             const credentials = studentDetailsResponse.data.academic_credentials;
@@ -922,7 +924,8 @@ export const MedicalRound2Tab = ({
             throw new Error('Authentication token not found');
           }
           
-          const studentDetailsResponse = await apiService.fetchMedicalStudentDetails(token);
+          const selectedState = localStorage.getItem('selected_state') || '';
+          const studentDetailsResponse = await apiService.fetchMedicalStudentDetails(token, selectedState);
           
           if (studentDetailsResponse.success && studentDetailsResponse.data) {
             const credentials = studentDetailsResponse.data.academic_credentials;
