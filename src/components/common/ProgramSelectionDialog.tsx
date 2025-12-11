@@ -89,8 +89,42 @@ export function ProgramSelectionDialog({
   const [selectedProgram, setSelectedProgram] = useState<ProgramType | null>(null);
   const [selectedState, setSelectedState] = useState<string>('');
 
+  // Clear all medical workflow data from storage
+  const clearMedicalWorkflowData = () => {
+    // Clear sessionStorage medical keys
+    const sessionKeys = [
+      'cachedMedicalRecommendations',
+      'cachedMedicalRound1Recommendations',
+      'cachedMedicalRound2Recommendations',
+      'cachedMedicalRound3Recommendations',
+      'medicalActiveRound',
+      'medicalRecommendationPaymentData',
+      'medical_academic_details',
+      'medical_preferences',
+      'medical_priorities',
+      'round1Invalidated',
+      'round2Invalidated',
+      'round3Invalidated'
+    ];
+    sessionKeys.forEach(key => sessionStorage.removeItem(key));
+
+    // Clear localStorage medical keys
+    const localKeys = [
+      'medicalRecommendationUnlocked',
+      'medicalRound2Recommendations',
+      'medicalRound2SelectedCollege',
+      'medicalRound2Preferences'
+    ];
+    localKeys.forEach(key => localStorage.removeItem(key));
+  };
+
   const handleSelect = (program: ProgramType) => {
     setSelectedProgram(program);
+    
+    // Clear all previous medical workflow data when selecting a program
+    if (program === 'First_Year_Medical') {
+      clearMedicalWorkflowData();
+    }
     
     // Store selected program and state for future reference
     if (program === 'first-year' || program === 'direct-second-year' || program === 'First_Year_Medical') {
