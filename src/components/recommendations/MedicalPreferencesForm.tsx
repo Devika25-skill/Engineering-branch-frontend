@@ -37,10 +37,9 @@ export const MedicalPreferencesForm = ({ data, onUpdate, validationErrors = [] }
   // Maharashtra cities (sorted alphabetically)
   const maharashtraCities = [
     "ALL",
-    "Ahilyanagar",
+    "Ahilyanagar (Ahmednagar)",
     "Akola",
-    "Alibag",
-    "Alibaug",
+    "Alibag (Alibaug)",
     "Ambajogai",
     "Ambernath",
     "Amravati",
@@ -61,10 +60,9 @@ export const MedicalPreferencesForm = ({ data, onUpdate, validationErrors = [] }
     "Gadhinglaj",
     "Gondia",
     "Hingoli",
-    "Jaisingpur",
     "Jalgaon",
     "Jalna",
-    "Jaysingpur",
+    "Jaysingpur (Jaisingpur)",
     "Kalyan",
     "Kannad",
     "Karjat",
@@ -89,10 +87,8 @@ export const MedicalPreferencesForm = ({ data, onUpdate, validationErrors = [] }
     "Rahuri",
     "Raigad",
     "Ratnagiri",
-    "Rohatur",
     "Sakegaon",
     "Sangamner",
-    "Sangi",
     "Sangli",
     "Satana",
     "Satara",
@@ -100,7 +96,6 @@ export const MedicalPreferencesForm = ({ data, onUpdate, validationErrors = [] }
     "Shevgaon",
     "Shrirampur",
     "Sindhudurg",
-    "Sindhudurga",
     "Sinnar",
     "Solapur",
     "Thane",
@@ -108,8 +103,7 @@ export const MedicalPreferencesForm = ({ data, onUpdate, validationErrors = [] }
     "Virar",
     "Wardha",
     "Washim",
-    "Yavatmal",
-    "Yeotmal"
+    "Yeotmal (Yavatmal)"
   ];
 
   // Karnataka cities
