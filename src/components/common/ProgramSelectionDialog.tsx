@@ -89,8 +89,42 @@ export function ProgramSelectionDialog({
   const [selectedProgram, setSelectedProgram] = useState<ProgramType | null>(null);
   const [selectedState, setSelectedState] = useState<string>('');
 
+  // Clear all medical workflow data from storage
+  const clearMedicalWorkflowData = () => {
+    // Clear sessionStorage medical keys
+    const sessionKeys = [
+      'cachedMedicalRecommendations',
+      'cachedMedicalRound1Recommendations',
+      'cachedMedicalRound2Recommendations',
+      'cachedMedicalRound3Recommendations',
+      'medicalActiveRound',
+      'medicalRecommendationPaymentData',
+      'medical_academic_details',
+      'medical_preferences',
+      'medical_priorities',
+      'round1Invalidated',
+      'round2Invalidated',
+      'round3Invalidated'
+    ];
+    sessionKeys.forEach(key => sessionStorage.removeItem(key));
+
+    // Clear localStorage medical keys
+    const localKeys = [
+      'medicalRecommendationUnlocked',
+      'medicalRound2Recommendations',
+      'medicalRound2SelectedCollege',
+      'medicalRound2Preferences'
+    ];
+    localKeys.forEach(key => localStorage.removeItem(key));
+  };
+
   const handleSelect = (program: ProgramType) => {
     setSelectedProgram(program);
+    
+    // Clear all previous medical workflow data when selecting a program
+    if (program === 'First_Year_Medical') {
+      clearMedicalWorkflowData();
+    }
     
     // Store selected program and state for future reference
     if (program === 'first-year' || program === 'direct-second-year' || program === 'First_Year_Medical') {
@@ -108,7 +142,20 @@ export function ProgramSelectionDialog({
   };
 
   const isMaharashtra = selectedState === 'Maharashtra';
+  const isKarnataka = selectedState === 'Karnataka';
   const hasSelectedState = selectedState !== '';
+  
+  // Filter programs based on state selection
+  const getAvailablePrograms = () => {
+    if (isKarnataka) {
+      // Karnataka only shows First-Year Medical
+      return allPrograms.filter(p => p.id === 'First_Year_Medical');
+    }
+    // Maharashtra shows all programs
+    return allPrograms;
+  };
+  
+  const availableStatePrograms = getAvailablePrograms();
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -142,10 +189,10 @@ export function ProgramSelectionDialog({
         </div>
         
         <div className="p-4 sm:p-6 space-y-3 sm:space-y-4">
-          {/* Show programs only if Maharashtra is selected */}
-          {isMaharashtra && (
+          {/* Show programs for Maharashtra or Karnataka */}
+          {(isMaharashtra || isKarnataka) && (
             <>
-              {allPrograms.map((program) => {
+              {availableStatePrograms.map((program) => {
                 const Icon = program.icon;
                 return (
                   <Card 
@@ -184,7 +231,7 @@ export function ProgramSelectionDialog({
           )}
 
           {/* Show Coming Soon message for other states */}
-          {hasSelectedState && !isMaharashtra && (
+          {hasSelectedState && !isMaharashtra && !isKarnataka && (
             <Card className="border-2 border-dashed border-muted-foreground/30 bg-muted/20">
               <CardContent className="p-6 sm:p-8 text-center">
                 <div className="flex justify-center mb-4">

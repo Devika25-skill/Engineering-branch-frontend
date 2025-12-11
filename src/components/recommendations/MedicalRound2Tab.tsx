@@ -528,7 +528,8 @@ export const MedicalRound2Tab = ({
       // First try API to get latest student details if logged in
       if (user?.accessToken) {
         try {
-          const profileResponse = await apiService.fetchMedicalStudentDetails(user.accessToken);
+          const selectedState = localStorage.getItem('selected_state') || '';
+          const profileResponse = await apiService.fetchMedicalStudentDetails(user.accessToken, selectedState);
           if (profileResponse.success && profileResponse.data) {
             const preferences = profileResponse.data.academic_credentials?.preferences;
             if (preferences) {
@@ -639,7 +640,8 @@ export const MedicalRound2Tab = ({
         console.log('Form data is missing or incomplete, fetching from backend...');
         
     try {
-          const studentDetailsResponse = await apiService.fetchMedicalStudentDetails(user.accessToken);
+          const selectedState = localStorage.getItem('selected_state') || '';
+          const studentDetailsResponse = await apiService.fetchMedicalStudentDetails(user.accessToken, selectedState);
           
           if (studentDetailsResponse.success && studentDetailsResponse.data) {
             const credentials = studentDetailsResponse.data.academic_credentials;
@@ -922,7 +924,8 @@ export const MedicalRound2Tab = ({
             throw new Error('Authentication token not found');
           }
           
-          const studentDetailsResponse = await apiService.fetchMedicalStudentDetails(token);
+          const selectedState = localStorage.getItem('selected_state') || '';
+          const studentDetailsResponse = await apiService.fetchMedicalStudentDetails(token, selectedState);
           
           if (studentDetailsResponse.success && studentDetailsResponse.data) {
             const credentials = studentDetailsResponse.data.academic_credentials;
@@ -1152,21 +1155,34 @@ export const MedicalRound2Tab = ({
     "ALL", "MBBS", "BDS", "BAMS", "BHMS", "BUMS", "BNYS", "BPTH", "BOTH", "BASLP", "BP&O"
   ];
 
-  const availableCities = [
-    "ALL", "Nashik", "Ambajogai", "Ambernath", "Jalna", "Chandrapur", "Malegaon",
-    "Yavatmal", "Raigad", "Nandurbar", "Beed", "Amravati", "Nalasopara",
-    "Chandwad", "Sindhudurga", "Pandharpur", "Parbhani", "Panvel", "Alibaug",
-    "Ratnagiri", "Nagpur", "Latur", "Dombivali", "Vengurla", "Sakegaon",
-    "Chinchwad", "Wardha", "Sindhudurg", "Gadhinglaj", "Baramati", "Hingoli",
-    "Chalisgaon", "Sangi", "Bhiwandi", "Dharashiv", "Yeotmal", "Virar",
-    "Palghar", "Chhatrapati Sambhajinagar (Aurangabad)", "Solapur", "Sawantwadi",
-    "Thane", "Satara", "Satana", "Rohatur", "Dhule", "Buldhana",
-    "Bhandara", "Sangli", "Nanded", "Karjat", "Nandihills", "Sangamner",
-    "Gondia", "Miraj", "Akola", "Jaysingpur", "Pune", "Sinnar", "Washim",
-    "Alibag", "Jalgaon", "Kolhapur", "Kannad", "Kalyan", "Ahilyanagar",
-    "Gadchiroli", "Mumbai", "Khamgaon", "Jaisingpur", "Shevgaon", "Shrirampur",
-    "Kopargaon", "Rahuri"
+  // Get selected state from localStorage
+  const selectedState = localStorage.getItem('selected_state') || 'Maharashtra';
+
+  // Maharashtra cities (sorted alphabetically)
+  const maharashtraCities = [
+    "ALL", "Ahilyanagar (Ahmednagar)", "Akola", "Alibag (Alibaug)", "Ambajogai", "Ambernath",
+    "Amravati", "Baramati", "Beed", "Bhandara", "Bhiwandi", "Buldhana",
+    "Chalisgaon", "Chandrapur", "Chandwad", "Chhatrapati Sambhajinagar (Aurangabad)",
+    "Chinchwad", "Dharashiv", "Dhule", "Dombivali", "Gadchiroli", "Gadhinglaj",
+    "Gondia", "Hingoli", "Jalgaon", "Jalna", "Jaysingpur (Jaisingpur)",
+    "Kalyan", "Kannad", "Karjat", "Khamgaon", "Kolhapur", "Kopargaon",
+    "Latur", "Malegaon", "Miraj", "Mumbai", "Nagpur", "Nalasopara",
+    "Nanded", "Nandihills", "Nandurbar", "Nashik", "Palghar", "Pandharpur",
+    "Panvel", "Parbhani", "Pune", "Rahuri", "Raigad", "Ratnagiri",
+    "Sakegaon", "Sangamner", "Sangli", "Satana", "Satara", "Sawantwadi",
+    "Shevgaon", "Shrirampur", "Sindhudurg", "Sinnar", "Solapur", "Thane",
+    "Vengurla", "Virar", "Wardha", "Washim", "Yeotmal (Yavatmal)"
   ];
+
+  // Karnataka cities
+  const karnatakaCities = [
+    "ALL", "Ballari", "Belagavi", "Bengaluru", "Davanagere", "Dharwad",
+    "Hassan", "Hubballi", "Kalaburagi", "Mandya", "Mangaluru", "Mysuru",
+    "Shivamogga", "Tumakuru", "Udupi", "Vijayapura"
+  ];
+
+  // Select cities based on state
+  const availableCities = selectedState === 'Karnataka' ? karnatakaCities : maharashtraCities;
 
   return (
     <div className="space-y-6">

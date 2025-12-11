@@ -27,18 +27,26 @@ export type Stream =
 
 // Maharashtra Reservation Categories
 export type ReservationCategory = 
-  | "EMST" | "HOPENW" | "HSCW" | "HEWS" | "EMNTDW" | "PWD-ST" | "OBCW"
-  | "PWD-SC" | "OPEN" | "EMNTD" | "DEF2" | "ORPHANC-SE" | "PH" | "PWD-SEB"
-  | "HAORP-" | "NTD" | "MKB" | "HOPEN" | "EMSCW" | "PWD-VJA" | "ORPHANC-SC"
-  | "ORPHAN-OBC" | "PWD-OPEN" | "ORPHANC-VJ" | "PWD-OBC" | "ORPHAN-NTC"
-  | "NTC(W)" | "OBC" | "EMVJAW" | "DEF1" | "EMNTB" | "NTD(W)" | "W" | "OBC(W)"
-  | "PWD-EWS" | "PWD" | "EMSC" | "PWD-NTC" | "HA" | "HVJA" | "VJA" | "HSC"
-  | "EMOBC" | "ORPHANC-ST" | "EMVJA" | "EMNTBW" | "EMSTW" | "ORPHANC-NT"
-  | "HEM" | "EWS(W)" | "HSEBC" | "HNTB" | "HST" | "SC" | "ORPHAN" | "ORPHAN-C"
-  | "EMNTC" | "NTC" | "PWD-SEBC" | "PWD-NTD" | "HSTW" | "PWD-NTB" | "ORPHANC-EW"
-  | "ORPHANC" | "PEM" | "NTB" | "I.Q." | "EMSEBC" | "MINO" | "SEBC" | "ORPHANC-OB"
-  | "HNTC" | "NTB(W)" | "EMSEBCW" | "EWS" | "ST" | "HOBC" | "HNTD" | "HVJAW"
-  | "DEF3" | "EMNTCW" | "SEBC(W)" | "EMOBCW";
+  | "DEF1" | "DEF1 (W)" | "DEF2" | "DEF2 (W)" | "DEF3" | "DEF3 (W)"
+  | "EMNTB" | "EMNTB (W)" | "EMNTC" | "EMNTC (W)" | "EMNTD" | "EMNTD (W)"
+  | "EMOBC" | "EMOBC (W)" | "EMSC" | "EMSC (W)" | "EMSEBC" | "EMSEBC (W)"
+  | "EMST" | "EMST (W)" | "EMVJA" | "EMVJA (W)" | "EWS" | "EWS (W)"
+  | "HAORP-ORPHANC" | "HAORP-ORPHANC-OB" | "HAPWD-OBC" | "HAPWD-OPEN"
+  | "HAPWD-SEBC" | "HAPWD-ST" | "HEM OBC" | "HEM OBC (W)" | "HEM SEBC"
+  | "HEWS" | "HEWS (W)" | "HNTB" | "HNTB (W)" | "HNTC" | "HNTC (W)"
+  | "HNTD" | "HNTD (W)" | "HOBC" | "HOBC (W)" | "HOPEN" | "HOPEN (W)"
+  | "HSC" | "HSC (W)" | "HSEBC" | "HST" | "HST (W)" | "HVJA" | "HVJA (W)"
+  | "I.Q" | "I.Q MINO" | "MKB" | "MKB (W)" | "NTB" | "NTB (W)" | "NTC" | "NTC (W)"
+  | "NTD" | "NTD (W)" | "OBC" | "OBC (W)" | "OPEN" | "OPEN (W)" | "OPEN (W) MINO"
+  | "OPEN MINO" | "ORPHAN" | "ORPHAN-NTC" | "ORPHAN-OBC" | "ORPHANC"
+  | "ORPHANC-EW" | "ORPHANC-NT" | "ORPHANC-OB" | "ORPHANC-OBORPHAN-C"
+  | "ORPHANC-OBORPHAN-COBC" | "ORPHANC-SC" | "ORPHANC-SCORPHAN-CSC"
+  | "ORPHANC-SE" | "ORPHANC-ST" | "ORPHANC-VJ" | "PEM NTC" | "PEM OBC"
+  | "PEM SC" | "PEM SCPH" | "PEM SEBC" | "PWD" | "PWD-EWS" | "PWD-NTB"
+  | "PWD-NTC" | "PWD-NTD" | "PWD-OBC" | "PWD-OBCPH" | "PWD-OPEN" | "PWD-OPENPH"
+  | "PWD-PH" | "PWD-SC" | "PWD-SCPH" | "PWD-SEB" | "PWD-SEBC" | "PWD-SEBCPH"
+  | "PWD-ST" | "PWD-VJA" | "SC" | "SC (W)" | "SEBC" | "SEBC (W)" | "ST" | "ST (W)"
+  | "VJA" | "VJA (W)";
 
 // College Type Preferences
 export type CollegeTypePreference = 
@@ -61,22 +69,31 @@ export type PriorityFactor =
   | "Hostel Facilities"
   | "Sports Facilities";
 
-// Valid Cities (Maharashtra)
-export type City = 
+// Valid Cities (Maharashtra - sorted alphabetically)
+export type MaharashtraCity = 
   | "ALL"
-  | "Nashik" | "Ambajogai" | "Ambernath" | "Jalna" | "Chandrapur" | "Malegaon"
-  | "Yavatmal" | "Raigad" | "Nandurbar" | "Beed" | "Amravati" | "Nalasopara"
-  | "Chandwad" | "Sindhudurga" | "Pandharpur" | "Parbhani" | "Panvel" | "Alibaug"
-  | "Ratnagiri" | "Nagpur" | "Latur" | "Dombivali" | "Vengurla" | "Sakegaon"
-  | "Chinchwad" | "Wardha" | "Sindhudurg" | "Gadhinglaj" | "Baramati" | "Hingoli"
-  | "Chalisgaon" | "Sangi" | "Bhiwandi" | "Dharashiv" | "Yeotmal" | "Virar"
-  | "Palghar" | "Chhatrapati Sambhajinagar (Aurangabad)" | "Solapur" | "Sawantwadi"
-  | "Thane" | "Satara" | "Satana" | "Rohatur" | "Dhule" | "Buldhana"
-  | "Bhandara" | "Sangli" | "Nanded" | "Karjat" | "Nandihills" | "Sangamner"
-  | "Gondia" | "Miraj" | "Akola" | "Jaysingpur" | "Pune" | "Sinnar" | "Washim"
-  | "Alibag" | "Jalgaon" | "Kolhapur" | "Kannad" | "Kalyan" | "Ahilyanagar"
-  | "Gadchiroli" | "Mumbai" | "Khamgaon" | "Jaisingpur" | "Shevgaon" | "Shrirampur"
-  | "Kopargaon" | "Rahuri";
+  | "Ahilyanagar (Ahmednagar)" | "Akola" | "Alibag (Alibaug)" | "Ambajogai" | "Ambernath"
+  | "Amravati" | "Baramati" | "Beed" | "Bhandara" | "Bhiwandi" | "Buldhana"
+  | "Chalisgaon" | "Chandrapur" | "Chandwad" | "Chhatrapati Sambhajinagar (Aurangabad)"
+  | "Chinchwad" | "Dharashiv" | "Dhule" | "Dombivali" | "Gadchiroli" | "Gadhinglaj"
+  | "Gondia" | "Hingoli" | "Jalgaon" | "Jalna" | "Jaysingpur (Jaisingpur)"
+  | "Kalyan" | "Kannad" | "Karjat" | "Khamgaon" | "Kolhapur" | "Kopargaon"
+  | "Latur" | "Malegaon" | "Miraj" | "Mumbai" | "Nagpur" | "Nalasopara"
+  | "Nanded" | "Nandihills" | "Nandurbar" | "Nashik" | "Palghar" | "Pandharpur"
+  | "Panvel" | "Parbhani" | "Pune" | "Rahuri" | "Raigad" | "Ratnagiri"
+  | "Sakegaon" | "Sangamner" | "Sangli" | "Satana" | "Satara" | "Sawantwadi"
+  | "Shevgaon" | "Shrirampur" | "Sindhudurg" | "Sinnar" | "Solapur" | "Thane"
+  | "Vengurla" | "Virar" | "Wardha" | "Washim" | "Yeotmal (Yavatmal)";
+
+// Valid Cities (Karnataka)
+export type KarnatakaCity = 
+  | "ALL"
+  | "Ballari" | "Belagavi" | "Bengaluru" | "Davanagere" | "Dharwad"
+  | "Hassan" | "Hubballi" | "Kalaburagi" | "Mandya" | "Mangaluru" | "Mysuru"
+  | "Shivamogga" | "Tumakuru" | "Udupi" | "Vijayapura";
+
+// Combined City type
+export type City = MaharashtraCity | KarnatakaCity;
 
 // Academic Credentials
 export interface MedicalAcademicCredentials {

@@ -171,8 +171,9 @@ const RecommendationSteps = () => {
       if (isLoggedIn && user?.accessToken) {
         try {
           // Call appropriate API based on program type
+          const selectedState = localStorage.getItem('selected_state') || '';
           const response = isMedical 
-            ? await apiService.fetchMedicalStudentDetails(user.accessToken)
+            ? await apiService.fetchMedicalStudentDetails(user.accessToken, selectedState)
             : await apiService.fetchAICapDetails(user.accessToken);
             
           if (response.success && response.data?.academic_credentials) {
