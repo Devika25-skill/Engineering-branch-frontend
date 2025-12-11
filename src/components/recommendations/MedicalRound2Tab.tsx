@@ -1160,19 +1160,18 @@ export const MedicalRound2Tab = ({
 
   // Maharashtra cities (sorted alphabetically)
   const maharashtraCities = [
-    "ALL", "Ahilyanagar", "Akola", "Alibag", "Alibaug", "Ambajogai", "Ambernath",
+    "ALL", "Ahilyanagar (Ahmednagar)", "Akola", "Alibag (Alibaug)", "Ambajogai", "Ambernath",
     "Amravati", "Baramati", "Beed", "Bhandara", "Bhiwandi", "Buldhana",
     "Chalisgaon", "Chandrapur", "Chandwad", "Chhatrapati Sambhajinagar (Aurangabad)",
     "Chinchwad", "Dharashiv", "Dhule", "Dombivali", "Gadchiroli", "Gadhinglaj",
-    "Gondia", "Hingoli", "Jaisingpur", "Jalgaon", "Jalna", "Jaysingpur",
+    "Gondia", "Hingoli", "Jalgaon", "Jalna", "Jaysingpur (Jaisingpur)",
     "Kalyan", "Kannad", "Karjat", "Khamgaon", "Kolhapur", "Kopargaon",
     "Latur", "Malegaon", "Miraj", "Mumbai", "Nagpur", "Nalasopara",
     "Nanded", "Nandihills", "Nandurbar", "Nashik", "Palghar", "Pandharpur",
     "Panvel", "Parbhani", "Pune", "Rahuri", "Raigad", "Ratnagiri",
-    "Rohatur", "Sakegaon", "Sangamner", "Sangi", "Sangli", "Satana",
-    "Satara", "Sawantwadi", "Shevgaon", "Shrirampur", "Sindhudurg", "Sindhudurga",
-    "Sinnar", "Solapur", "Thane", "Vengurla", "Virar", "Wardha",
-    "Washim", "Yavatmal", "Yeotmal"
+    "Sakegaon", "Sangamner", "Sangli", "Satana", "Satara", "Sawantwadi",
+    "Shevgaon", "Shrirampur", "Sindhudurg", "Sinnar", "Solapur", "Thane",
+    "Vengurla", "Virar", "Wardha", "Washim", "Yeotmal (Yavatmal)"
   ];
 
   // Karnataka cities
