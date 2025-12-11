@@ -1041,8 +1041,8 @@ class ApiService {
     });
   }
 
-  async fetchMedicalStudentDetails(token: string): Promise<FetchMedicalDetailsResponse> {
-    return this.request<FetchMedicalDetailsResponse>('/api/v1/medical/student/details', {
+  async fetchMedicalStudentDetails(token: string, state: string): Promise<FetchMedicalDetailsResponse> {
+    return this.request<FetchMedicalDetailsResponse>(`/api/v1/medical/student/details?state=${encodeURIComponent(state)}`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
