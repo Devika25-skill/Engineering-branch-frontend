@@ -14,7 +14,6 @@ interface RecommendationCardProps {
 export const RecommendationCard = ({ recommendation, index }: RecommendationCardProps) => {
   const { college, course_name, category, admission_probability, probability_message, cutoff_percentile } = recommendation;
   const recommendationFormData = JSON.parse(sessionStorage.getItem("recommendation_form_data") || "{}");
-  const { cetPercentile } = recommendationFormData.cetPercentile;
 
   // Utility function to truncate text
   const truncateText = (text: string, maxLength: number) => {
