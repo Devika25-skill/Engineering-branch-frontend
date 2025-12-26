@@ -176,7 +176,7 @@ export function ProgramSelectionDialog({
           </label>
           <Select value={selectedState} onValueChange={setSelectedState}>
             <SelectTrigger className="w-full bg-background">
-              <SelectValue placeholder="Choose a state or union territory…" />
+              <SelectValue placeholder="Choose a state" />
             </SelectTrigger>
             <SelectContent className="bg-background z-50 max-h-60">
               {indianStatesAndUTs.map((state) => (
@@ -253,7 +253,7 @@ export function ProgramSelectionDialog({
           {/* Show placeholder when no state is selected */}
           {!hasSelectedState && (
             <div className="text-center py-6 text-muted-foreground">
-              <p className="text-sm">Please select your state or union territory to view available programs.</p>
+              <p className="text-sm">Please select your state to view available programs.</p>
             </div>
           )}
           
