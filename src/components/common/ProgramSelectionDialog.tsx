@@ -25,7 +25,7 @@ interface ProgramSelectionDialogProps {
   onSelectProgram: (program: ProgramType, state?: string) => void;
 }
 
-const indianStatesAndUTs = getAllStates();
+const availableStates = ['Karnataka', 'Maharashtra'];
 
 const allPrograms: ProgramOption[] = [
   // Medical Program
@@ -179,7 +179,7 @@ export function ProgramSelectionDialog({
               <SelectValue placeholder="Choose a state or union territory…" />
             </SelectTrigger>
             <SelectContent className="bg-background z-50 max-h-60">
-              {indianStatesAndUTs.map((state) => (
+              {availableStates.map((state) => (
                 <SelectItem key={state} value={state}>
                   {state}
                 </SelectItem>
