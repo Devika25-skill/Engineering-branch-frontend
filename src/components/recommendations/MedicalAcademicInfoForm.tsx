@@ -5,8 +5,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { GraduationCap, User, Award, AlertCircle, ChevronDown } from "lucide-react";
-import { useEffect } from "react";
-import type { ReservationCategory, Gender, Stream } from "@/types/medical";
+import { useEffect, useState } from "react";
+import type { ReservationCategory, Gender, Stream, KarnatakaFirstYearMedicalQuota } from "@/types/medical";
 
 interface MedicalAcademicInfoFormProps {
   data: any;
@@ -15,10 +15,21 @@ interface MedicalAcademicInfoFormProps {
 }
 
 export const MedicalAcademicInfoForm = ({ data, onUpdate, validationErrors = [] }: MedicalAcademicInfoFormProps) => {
+  // Get selected state from localStorage
+  const [selectedState, setSelectedState] = useState<string>('');
+  
+  useEffect(() => {
+    const state = localStorage.getItem('selected_state') || '';
+    setSelectedState(state);
+  }, []);
+
   // Set default values when component mounts
   useEffect(() => {
+    const isKarnataka = selectedState === 'Karnataka';
+    const defaultCategory = isKarnataka ? "GM" : "OPEN";
+    
     const defaultData = {
-      reservationCategory: data.reservationCategory || "OPEN",
+      reservationCategory: data.reservationCategory || defaultCategory,
       grouping: data.grouping || "PCB (Physics, Chemistry, Biology)"
     };
     
@@ -26,7 +37,7 @@ export const MedicalAcademicInfoForm = ({ data, onUpdate, validationErrors = [] 
     if (!data.reservationCategory || !data.grouping) {
       onUpdate(defaultData);
     }
-  }, []);
+  }, [selectedState]);
 
   const handleChange = (field: string, value: any) => {
     onUpdate({ [field]: value });
@@ -148,8 +159,8 @@ export const MedicalAcademicInfoForm = ({ data, onUpdate, validationErrors = [] 
     }
   };
 
-  // Reservation categories from medical.ts enum
-  const reservationCategories: ReservationCategory[] = [
+  // Maharashtra reservation categories from medical.ts enum
+  const maharashtraReservationCategories: ReservationCategory[] = [
     "DEF1", "DEF1 (W)", "DEF2", "DEF2 (W)", "DEF3", "DEF3 (W)",
     "EMNTB", "EMNTB (W)", "EMNTC", "EMNTC (W)", "EMNTD", "EMNTD (W)",
     "EMOBC", "EMOBC (W)", "EMSC", "EMSC (W)", "EMSEBC", "EMSEBC (W)",
@@ -171,6 +182,25 @@ export const MedicalAcademicInfoForm = ({ data, onUpdate, validationErrors = [] 
     "PWD-ST", "PWD-VJA", "SC", "SC (W)", "SEBC", "SEBC (W)", "ST", "ST (W)",
     "VJA", "VJA (W)"
   ];
+
+  // Karnataka First-Year Medical quota categories
+  const karnatakaReservationCategories: KarnatakaFirstYearMedicalQuota[] = [
+    "1G", "1H", "1K", "1KH", "1R", "1RH",
+    "2AG", "2AH", "2AK", "2AKH", "2AR", "2ARH",
+    "2BG", "2BH", "2BK", "2BKH", "2BR", "2BRH",
+    "3AG", "3AH", "3AK", "3AKH", "3AR", "3ARH",
+    "3BG", "3BH", "3BK", "3BKH", "3BR", "3BRH",
+    "CAP", "D", "GM", "GMH", "GMK", "GMKH", "GMP", "GMPH", "GMR", "GMRH",
+    "JK", "MA", "MC", "ME", "MEH", "MK", "MM", "MMH", "MU",
+    "NCC", "NRI", "OPN", "OTH", "PHM",
+    "RC1", "RC2", "RC3", "RC4", "RC5", "RC6", "RC7",
+    "S-G", "SCG", "SCH", "SCK", "SCKH", "SCR", "SCRH",
+    "SPO", "STG", "STH", "STK", "STKH", "STR", "STRH", "XD"
+  ];
+
+  // Select appropriate categories based on state
+  const isKarnataka = selectedState === 'Karnataka';
+  const reservationCategories = isKarnataka ? karnatakaReservationCategories : maharashtraReservationCategories;
 
   const reservationCategoryOptions = reservationCategories.map(category => ({
     value: category,
@@ -237,7 +267,7 @@ export const MedicalAcademicInfoForm = ({ data, onUpdate, validationErrors = [] 
               </Label>
               <SearchableSelect
                 options={reservationCategoryOptions}
-                value={data.reservationCategory || "OPEN"}
+                value={data.reservationCategory || (isKarnataka ? "GM" : "OPEN")}
                 onValueChange={(value) => handleChange('reservationCategory', value)}
                 placeholder="Select your category"
                 searchPlaceholder="Search category..."
