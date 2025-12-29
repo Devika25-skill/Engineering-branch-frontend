@@ -272,17 +272,22 @@ export const MedicalRound2Tab = ({
       if (searchType === 'college_name') {
         response = await apiService.searchMedicalCollegeByName(searchValue, user.accessToken, selectedState);
       } else {
-        const collegeCode = parseInt(searchValue);
-        if (isNaN(collegeCode)) {
-          toast({
-            title: "Invalid College Code",
-            description: "College code must be a 4-digit number",
-            variant: "destructive",
-            duration: 3000
-          });
-          return;
+        // For Karnataka, treat college code as string; for other states, convert to number
+        if (selectedState === 'Karnataka') {
+          response = await apiService.searchMedicalCollegeByCode(searchValue, user.accessToken, selectedState);
+        } else {
+          const collegeCode = parseInt(searchValue);
+          if (isNaN(collegeCode)) {
+            toast({
+              title: "Invalid College Code",
+              description: "College code must be a 4-digit number",
+              variant: "destructive",
+              duration: 3000
+            });
+            return;
+          }
+          response = await apiService.searchMedicalCollegeByCode(collegeCode, user.accessToken, selectedState);
         }
-        response = await apiService.searchMedicalCollegeByCode(collegeCode, user.accessToken, selectedState);
       }
 
       if (response.success && response.data) {
@@ -1829,26 +1834,29 @@ export const MedicalRound2Tab = ({
                 
                 <div className="space-y-2">
                   <Label htmlFor="search-value">
-                    {searchType === 'college_name' ? 'College Name' : 'College Code (4 digits)'}
+                    {searchType === 'college_name' ? 'College Name' : (localStorage.getItem('selected_state') === 'Karnataka' ? 'College Code' : 'College Code (4 digits)')}
                   </Label>
                   <div className="flex gap-2">
                     <Input
                       id="search-value"
                       value={searchValue}
                       onChange={(e) => {
-                        if (searchType === 'college_code') {
-                          // Only allow numeric input and limit to 4 digits
+                        const selectedState = localStorage.getItem('selected_state') || '';
+                        if (searchType === 'college_code' && selectedState !== 'Karnataka') {
+                          // Only allow numeric input and limit to 4 digits for non-Karnataka states
                           const value = e.target.value.replace(/[^0-9]/g, '');
                           if (value.length <= 4) {
                             setSearchValue(value);
                           }
                         } else {
+                          // For Karnataka or college_name, allow any input
                           setSearchValue(e.target.value);
                         }
                       }}
                       onKeyDown={(e) => {
-                        if (searchType === 'college_code') {
-                          // Prevent -, +, e, E and other non-numeric keys
+                        const selectedState = localStorage.getItem('selected_state') || '';
+                        if (searchType === 'college_code' && selectedState !== 'Karnataka') {
+                          // Prevent -, +, e, E and other non-numeric keys for non-Karnataka states
                           if (e.key === '-' || e.key === '+' || e.key === 'e' || e.key === 'E' || e.key === '.') {
                             e.preventDefault();
                           }
@@ -1858,8 +1866,9 @@ export const MedicalRound2Tab = ({
                         }
                       }}
                       onPaste={(e) => {
-                        if (searchType === 'college_code') {
-                          // Handle paste event for college code
+                        const selectedState = localStorage.getItem('selected_state') || '';
+                        if (searchType === 'college_code' && selectedState !== 'Karnataka') {
+                          // Handle paste event for college code (only for non-Karnataka states)
                           e.preventDefault();
                           const pastedText = e.clipboardData.getData('text');
                           const numericValue = pastedText.replace(/[^0-9]/g, '');
@@ -1869,10 +1878,10 @@ export const MedicalRound2Tab = ({
                         }
                       }}
                       placeholder={
-                        searchType === 'college_name' ? 'Enter college name' : 'Enter 4-digit college code'
+                        searchType === 'college_name' ? 'Enter college name' : (localStorage.getItem('selected_state') === 'Karnataka' ? 'Enter college code' : 'Enter 4-digit college code')
                       }
-                      type={searchType === 'college_name' ? 'text' : 'text'}
-                      maxLength={searchType === 'college_code' ? 4 : undefined}
+                      type="text"
+                      maxLength={searchType === 'college_code' && localStorage.getItem('selected_state') !== 'Karnataka' ? 4 : undefined}
                     />
                     <Button onClick={handleSearch} disabled={isSearching}>
                       <Search className="w-4 h-4 mr-2" />
