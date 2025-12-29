@@ -272,17 +272,22 @@ export const MedicalRound2Tab = ({
       if (searchType === 'college_name') {
         response = await apiService.searchMedicalCollegeByName(searchValue, user.accessToken, selectedState);
       } else {
-        const collegeCode = parseInt(searchValue);
-        if (isNaN(collegeCode)) {
-          toast({
-            title: "Invalid College Code",
-            description: "College code must be a 4-digit number",
-            variant: "destructive",
-            duration: 3000
-          });
-          return;
+        // For Karnataka, treat college code as string; for other states, convert to number
+        if (selectedState === 'Karnataka') {
+          response = await apiService.searchMedicalCollegeByCode(searchValue, user.accessToken, selectedState);
+        } else {
+          const collegeCode = parseInt(searchValue);
+          if (isNaN(collegeCode)) {
+            toast({
+              title: "Invalid College Code",
+              description: "College code must be a 4-digit number",
+              variant: "destructive",
+              duration: 3000
+            });
+            return;
+          }
+          response = await apiService.searchMedicalCollegeByCode(collegeCode, user.accessToken, selectedState);
         }
-        response = await apiService.searchMedicalCollegeByCode(collegeCode, user.accessToken, selectedState);
       }
 
       if (response.success && response.data) {
