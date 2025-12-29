@@ -234,21 +234,10 @@ export const MedicalRound2Tab = ({
     return () => window.removeEventListener('storage', checkUnlockStatus);
   }, []);
 
-  // Get selected state for search type logic
-  const selectedStateForSearch = localStorage.getItem('selected_state') || '';
-  const isKarnatakaState = selectedStateForSearch === 'Karnataka';
-
   const searchTypeOptions = [
     { value: 'college_name', label: 'College Name' },
     { value: 'college_code', label: 'College Code' }
   ];
-
-  // For Karnataka, force college_code search type
-  useEffect(() => {
-    if (isKarnatakaState) {
-      setSearchType('college_code');
-    }
-  }, [isKarnatakaState]);
 
   const handleSearch = async () => {
     if (!searchValue.trim()) {
@@ -283,33 +272,17 @@ export const MedicalRound2Tab = ({
       if (searchType === 'college_name') {
         response = await apiService.searchMedicalCollegeByName(searchValue, user.accessToken, selectedState);
       } else {
-        // For Karnataka, handle college_code as string; for others, parse as number
-        if (isKarnatakaState) {
-          // Karnataka: college_code is a string
-          if (!searchValue.trim()) {
-            toast({
-              title: "Invalid College Code",
-              description: "Please enter a valid college code",
-              variant: "destructive",
-              duration: 3000
-            });
-            return;
-          }
-          response = await apiService.searchMedicalCollegeByCode(searchValue, user.accessToken, selectedState);
-        } else {
-          // Non-Karnataka: college_code is a 4-digit number
-          const collegeCode = parseInt(searchValue);
-          if (isNaN(collegeCode)) {
-            toast({
-              title: "Invalid College Code",
-              description: "College code must be a 4-digit number",
-              variant: "destructive",
-              duration: 3000
-            });
-            return;
-          }
-          response = await apiService.searchMedicalCollegeByCode(collegeCode, user.accessToken, selectedState);
+        const collegeCode = parseInt(searchValue);
+        if (isNaN(collegeCode)) {
+          toast({
+            title: "Invalid College Code",
+            description: "College code must be a 4-digit number",
+            variant: "destructive",
+            duration: 3000
+          });
+          return;
         }
+        response = await apiService.searchMedicalCollegeByCode(collegeCode, user.accessToken, selectedState);
       }
 
       if (response.success && response.data) {
@@ -1838,42 +1811,33 @@ export const MedicalRound2Tab = ({
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid gap-4 sm:grid-cols-2">
-                {/* Search Type - Hidden for Karnataka (forced to college_code) */}
-                {!isKarnatakaState && (
-                  <div className="space-y-2">
-                    <Label htmlFor="search-type">Search Type</Label>
-                    <Select value={searchType} onValueChange={(value: any) => setSearchType(value)}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select search type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {searchTypeOptions.map((option) => (
-                          <SelectItem key={option.value} value={option.value}>
-                            {option.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
+                <div className="space-y-2">
+                  <Label htmlFor="search-type">Search Type</Label>
+                  <Select value={searchType} onValueChange={(value: any) => setSearchType(value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select search type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {searchTypeOptions.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
                 
-                <div className={`space-y-2 ${isKarnatakaState ? 'sm:col-span-2' : ''}`}>
+                <div className="space-y-2">
                   <Label htmlFor="search-value">
-                    {isKarnatakaState 
-                      ? 'College Code' 
-                      : (searchType === 'college_name' ? 'College Name' : 'College Code (4 digits)')
-                    }
+                    {searchType === 'college_name' ? 'College Name' : 'College Code (4 digits)'}
                   </Label>
                   <div className="flex gap-2">
                     <Input
                       id="search-value"
                       value={searchValue}
                       onChange={(e) => {
-                        if (isKarnatakaState) {
-                          // Karnataka: Allow alphanumeric college codes (string)
-                          setSearchValue(e.target.value);
-                        } else if (searchType === 'college_code') {
-                          // Non-Karnataka: Only allow numeric input and limit to 4 digits
+                        if (searchType === 'college_code') {
+                          // Only allow numeric input and limit to 4 digits
                           const value = e.target.value.replace(/[^0-9]/g, '');
                           if (value.length <= 4) {
                             setSearchValue(value);
@@ -1883,8 +1847,8 @@ export const MedicalRound2Tab = ({
                         }
                       }}
                       onKeyDown={(e) => {
-                        if (!isKarnatakaState && searchType === 'college_code') {
-                          // Prevent -, +, e, E and other non-numeric keys for non-Karnataka
+                        if (searchType === 'college_code') {
+                          // Prevent -, +, e, E and other non-numeric keys
                           if (e.key === '-' || e.key === '+' || e.key === 'e' || e.key === 'E' || e.key === '.') {
                             e.preventDefault();
                           }
@@ -1894,8 +1858,8 @@ export const MedicalRound2Tab = ({
                         }
                       }}
                       onPaste={(e) => {
-                        if (!isKarnatakaState && searchType === 'college_code') {
-                          // Handle paste event for college code (non-Karnataka)
+                        if (searchType === 'college_code') {
+                          // Handle paste event for college code
                           e.preventDefault();
                           const pastedText = e.clipboardData.getData('text');
                           const numericValue = pastedText.replace(/[^0-9]/g, '');
@@ -1903,15 +1867,12 @@ export const MedicalRound2Tab = ({
                             setSearchValue(numericValue);
                           }
                         }
-                        // Karnataka: Allow normal paste behavior for string codes
                       }}
                       placeholder={
-                        isKarnatakaState 
-                          ? 'Enter college code'
-                          : (searchType === 'college_name' ? 'Enter college name' : 'Enter 4-digit college code')
+                        searchType === 'college_name' ? 'Enter college name' : 'Enter 4-digit college code'
                       }
-                      type="text"
-                      maxLength={!isKarnatakaState && searchType === 'college_code' ? 4 : undefined}
+                      type={searchType === 'college_name' ? 'text' : 'text'}
+                      maxLength={searchType === 'college_code' ? 4 : undefined}
                     />
                     <Button onClick={handleSearch} disabled={isSearching}>
                       <Search className="w-4 h-4 mr-2" />
