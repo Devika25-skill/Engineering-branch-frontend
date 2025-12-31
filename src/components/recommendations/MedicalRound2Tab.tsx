@@ -1181,9 +1181,17 @@ export const MedicalRound2Tab = ({
 
   // Karnataka cities
   const karnatakaCities = [
-    "ALL", "Ballari", "Belagavi", "Bengaluru", "Davanagere", "Dharwad",
-    "Hassan", "Hubballi", "Kalaburagi", "Mandya", "Mangaluru", "Mysuru",
-    "Shivamogga", "Tumakuru", "Udupi", "Vijayapura"
+    "ALL",
+    "Badami", "Bagalkot", "Ballari (Bellary)", "Basavakalyan",
+    "Belagavi (Belgaum)", "Belathangady", "Bengaluru (Bangalore)", "Bidar",
+    "Chamarajanagar", "Chikkaballapura", "Chikkamagaluru", "Chitradurga",
+    "Davanagere", "Dharwad", "Doddabathi", "Gadag",
+    "Hassan", "Haveri", "Hosapete (Hospet)", "Hubballi (Hubli)",
+    "Kalaburagi (Gulbarga)", "Kanakapura", "Kolar", "Koppa", "Koppal", "Kundapura",
+    "Madikeri", "Mandya", "Mangaluru (Mangalore)", "Moodbidri",
+    "Mysuru (Mysore)", "Raibag", "Raichur", "Ramanagara (Ramanagar)",
+    "Shivamogga (Shimoga)", "Siddapur", "Sullia", "Tumakuru (Tumkur)",
+    "Udupi", "Varur", "Vijayanagara", "Vijayapura (Bijapur)", "Virajpet", "Yadgir (Yadgiri)"
   ];
 
   // Select cities based on state
