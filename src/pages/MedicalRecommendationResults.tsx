@@ -167,12 +167,12 @@ const MedicalRecommendationResults = () => {
     
     setActiveRound(round);
     // Update sessionStorage to sync state
-    const roundNumber = round === 'round2' ? '2' : round === 'round3' ? '3' : '1';
-    sessionStorage.setItem('medicalActiveRound', roundNumber);
+    const roundNumStr = round === 'round2' ? '2' : round === 'round3' ? '3' : '1';
+    sessionStorage.setItem('medicalActiveRound', roundNumStr);
     setIsLoading(true);
 
     try {
-      const roundNumber = round === 'round2' ? 2 : 1;
+      const roundNumber = round === 'round3' ? 3 : round === 'round2' ? 2 : 1;
       
       // Check sessionStorage first
       const cacheKey = `cachedMedicalRound${roundNumber}Recommendations`;
@@ -234,7 +234,7 @@ const MedicalRecommendationResults = () => {
         }
       }
     } catch (error) {
-      console.error(`Error loading Round ${round === 'round2' ? '2' : '1'} data:`, error);
+      console.error(`Error loading Round ${round === 'round3' ? '3' : round === 'round2' ? '2' : '1'} data:`, error);
     } finally {
       setIsLoading(false);
     }
@@ -335,9 +335,15 @@ const MedicalRecommendationResults = () => {
         }
       };
 
-      // Add college code for Round 2
+      // Add college code for Round 2 or Round 3
       if (roundNumber === 2) {
         const savedCollege = localStorage.getItem('medicalRound2SelectedCollege');
+        if (savedCollege) {
+          const collegeData = JSON.parse(savedCollege);
+          payload.last_round_college_choice_code = collegeData.collegeCode;
+        }
+      } else if (roundNumber === 3) {
+        const savedCollege = localStorage.getItem('medicalRound3SelectedCollege');
         if (savedCollege) {
           const collegeData = JSON.parse(savedCollege);
           payload.last_round_college_choice_code = collegeData.collegeCode;
