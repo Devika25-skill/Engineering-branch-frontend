@@ -12,6 +12,7 @@ import { RecommendationDisclaimer } from "./RecommendationDisclaimer";
 import { CAPFormInstructions } from "./CAPFormInstructions";
 import { NoResultsState } from "./NoResultsState";
 import { MedicalRound2Tab } from "./MedicalRound2Tab";
+import { MedicalRound3Tab } from "./MedicalRound3Tab";
 import { PremiumGate } from "./PremiumGate";
 
 export interface MedicalRecommendationResultsProps {
@@ -527,7 +528,10 @@ export const MedicalRecommendationResults = ({
         </TabsContent>
 
         <TabsContent value="round3">
-          {renderUpcomingRound(3)}
+          <MedicalRound3Tab 
+            isRoundInvalidated={isRoundInvalidated}
+            onRegenerateRecommendations={onRegenerateRecommendations}
+          />
         </TabsContent>
       </Tabs>
     </div>
