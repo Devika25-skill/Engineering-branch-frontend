@@ -1157,7 +1157,7 @@ export const MedicalRound2Tab = ({
   };
 
   const availablePrograms = [
-    "ALL", "MBBS", "BDS", "BAMS", "BHMS", "BUMS", "BNYS", "BPTH", "BOTH", "BASLP", "BP&O"
+    "ALL", "MBBS", "BDS", "BAMS", "BHMS", "BUMS", "BNYS", "BPTH", "BOTH", "BASLP", "BP&O", "OT", "PT"
   ];
 
   // Get selected state from localStorage

@@ -1074,7 +1074,7 @@ export const MedicalRound3Tab = ({
   };
 
   const availablePrograms = [
-    "ALL", "MBBS", "BDS", "BAMS", "BHMS", "BUMS", "BNYS", "BPTH", "BOTH", "BASLP", "BP&O"
+    "ALL", "MBBS", "BDS", "BAMS", "BHMS", "BUMS", "BNYS", "BPTH", "BOTH", "BASLP", "BP&O", "OT", "PT"
   ];
 
   const selectedState = localStorage.getItem('selected_state') || 'Maharashtra';
