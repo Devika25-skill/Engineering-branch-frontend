@@ -31,7 +31,9 @@ export const MedicalPreferencesForm = ({ data, onUpdate, validationErrors = [] }
     "BPTH",
     "BOTH",
     "BASLP",
-    "BP&O"
+    "BP&O",
+    "OT",
+    "PT"
   ];
 
   // Maharashtra cities (sorted alphabetically)
