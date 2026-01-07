@@ -26,7 +26,9 @@ export type MedicalProgram =
   | "BPTH"
   | "BOTH"
   | "BASLP"
-  | "BP&O";
+  | "BP&O"
+  | "OT"
+  | "PT";
 
 // CAP Rounds
 export type Round = 1 | 2 | 3;
