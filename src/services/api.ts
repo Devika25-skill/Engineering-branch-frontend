@@ -498,7 +498,7 @@ export interface FetchAICapDetailsResponse {
 
 // Round 2 Search Interfaces
 export interface CollegeSearchByChoiceCodeRequest {
-  choice_code: number;
+  choice_code: number | string;
 }
 
 export interface CollegeSearchByNameRequest {
