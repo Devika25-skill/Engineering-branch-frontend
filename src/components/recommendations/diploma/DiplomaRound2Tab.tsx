@@ -548,16 +548,10 @@ export const DiplomaRound2Tab = () => {
       
       switch (searchType) {
         case 'choice_code':
-          const choiceCode = parseInt(searchValue);
-          if (isNaN(choiceCode)) {
-            toast({
-              title: "Invalid Choice Code",
-              description: "Choice code must be a number",
-              variant: "destructive"
-            });
-            return;
-          }
-          response = await apiService.searchCollegeByChoiceCode({ choice_code: choiceCode }, user.accessToken);
+          // Check if the value is purely numeric or alphanumeric
+          const isNumericOnly = /^\d+$/.test(searchValue.trim());
+          const choiceCodeValue = isNumericOnly ? parseInt(searchValue.trim()) : searchValue.trim();
+          response = await apiService.searchCollegeByChoiceCode({ choice_code: choiceCodeValue }, user.accessToken);
           break;
           
         case 'college_name':
@@ -1311,11 +1305,11 @@ export const DiplomaRound2Tab = () => {
                       value={searchValue}
                       onChange={(e) => setSearchValue(e.target.value)}
                       placeholder={
-                        searchType === 'choice_code' ? 'Enter choice code (e.g., 211626310)' :
+                        searchType === 'choice_code' ? 'Enter choice code (e.g., 211626310 or 1234U)' :
                         searchType === 'college_name' ? 'Enter college name' :
                         'Enter college code (e.g., 1146)'
                       }
-                      type={searchType === 'college_name' ? 'text' : 'number'}
+                      type={searchType === 'college_code' ? 'number' : 'text'}
                       onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
                     />
                     <Button onClick={handleSearch} disabled={isSearching}>
