@@ -245,9 +245,9 @@ export const Round2Tab = () => {
       
       switch (searchType) {
         case 'choice_code':
-          // Check if the value is purely numeric or alphanumeric
-          const isNumericOnly = /^\d+$/.test(searchValue.trim());
-          const choiceCodeValue = isNumericOnly ? parseInt(searchValue.trim()) : searchValue.trim();
+          // Preserve user input type: numbers stay numbers, alphanumeric stays string
+          const isNumericOnly = /^\d+$/.test(searchValue);
+          const choiceCodeValue = isNumericOnly ? parseInt(searchValue, 10) : searchValue;
           response = await apiService.searchCollegeByChoiceCode({ choice_code: choiceCodeValue }, user.accessToken);
           break;
           
