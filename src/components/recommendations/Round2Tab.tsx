@@ -163,35 +163,58 @@ export const Round2Tab = () => {
       }
 
       // Check for existing Round 2 recommendations in localStorage if no session cache
+      // If not in storage, try fetching from API (fallback)
       if (!cachedRound2Recommendations) {
         const storedRecommendations = localStorage.getItem(
           "round2Recommendations"
         );
+
+        let apiData = null;
         if (storedRecommendations) {
+          apiData = JSON.parse(storedRecommendations);
+        } else if (user?.accessToken) {
+          // Fetch from API if not in local storage
           try {
-            const parsedRecs = JSON.parse(storedRecommendations);
-            if (parsedRecs && Object.keys(parsedRecs).length > 0) {
-              const convertedRecs =
-                convertApiResponseToRecommendations(parsedRecs);
-              setRound2Recommendations(convertedRecs);
-              setHasGeneratedRecommendations(true);
-
-              // Check if these recommendations were paid and should unlock
-              if (parsedRecs.is_payment === true) {
-                localStorage.setItem("recommendationUnlocked", "true");
-                setIsUnlocked(true);
-              }
-
-              // Cache in session storage for faster future access
-              sessionStorage.setItem(
-                "cachedRound2Recommendations",
-                JSON.stringify(convertedRecs)
+            const response = await apiService.getRoundRecommendations(
+              2,
+              user.accessToken
+            );
+            if (
+              response.success &&
+              response.data &&
+              Object.keys(response.data).length > 0
+            ) {
+              apiData = response.data;
+              // Store it so we don't fetch again
+              localStorage.setItem(
+                "round2Recommendations",
+                JSON.stringify(apiData)
               );
             }
           } catch (error) {
-            console.error("Error loading stored recommendations:", error);
-            // Clear corrupted data
-            localStorage.removeItem("round2Recommendations");
+            console.error("Error fetching Round 2 recommendations:", error);
+          }
+        }
+
+        if (apiData && Object.keys(apiData).length > 0) {
+          try {
+            const convertedRecs = convertApiResponseToRecommendations(apiData);
+            setRound2Recommendations(convertedRecs);
+            setHasGeneratedRecommendations(true);
+
+            // Check if these recommendations were paid and should unlock
+            if (apiData.is_payment === true) {
+              localStorage.setItem("recommendationUnlocked", "true");
+              setIsUnlocked(true);
+            }
+
+            // Cache in session storage for faster future access
+            sessionStorage.setItem(
+              "cachedRound2Recommendations",
+              JSON.stringify(convertedRecs)
+            );
+          } catch (error) {
+            console.error("Error processing loaded recommendations:", error);
           }
         }
       }

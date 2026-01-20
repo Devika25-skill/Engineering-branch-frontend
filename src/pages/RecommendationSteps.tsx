@@ -11,7 +11,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { apiService } from "@/services/api";
 import LoginDialog from "@/components/auth/LoginDialog";
 import { useToast } from "@/hooks/use-toast";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { RecommendationHeader } from "@/components/recommendations/RecommendationHeader";
 import { toast } from "sonner";
 import RecommendationProgress from "@/components/recommendations/RecommendationProgress";
@@ -200,6 +200,8 @@ const RecommendationSteps = () => {
     };
   };
 
+  const location = useLocation();
+
   // Load saved form data on mount and fetch existing details if user is logged in
   useEffect(() => {
     const loadFormData = async () => {
@@ -211,6 +213,79 @@ const RecommendationSteps = () => {
       // Fetch existing user details if logged in
       if (isLoggedIn && user?.accessToken) {
         try {
+          // Check for existing recommendations and redirect if found (unless coming from results page)
+          if (!isMedical && !location.state?.fromResults) {
+            try {
+              // Check Round 3
+              const round3Response = await apiService.getRoundRecommendations(
+                3,
+                user.accessToken
+              );
+              if (
+                round3Response.success &&
+                round3Response.data &&
+                Object.keys(round3Response.data).length > 0
+              ) {
+                // If round 3 data exists, save it and redirect
+                localStorage.setItem(
+                  "round3Recommendations",
+                  JSON.stringify(round3Response.data)
+                );
+                localStorage.setItem("activeRoundTab", "round3");
+                // Also cache converted if possible but Round3Tab handles conversion from raw
+                navigate("/recommendations/results");
+                return;
+              }
+
+              // Check Round 2
+              const round2Response = await apiService.getRoundRecommendations(
+                2,
+                user.accessToken
+              );
+              if (
+                round2Response.success &&
+                round2Response.data &&
+                Object.keys(round2Response.data).length > 0
+              ) {
+                localStorage.setItem(
+                  "round2Recommendations",
+                  JSON.stringify(round2Response.data)
+                );
+                localStorage.setItem("activeRoundTab", "round2");
+                navigate("/recommendations/results");
+                return;
+              }
+
+              // Check Round 1
+              const round1Response = await apiService.getRoundRecommendations(
+                1,
+                user.accessToken
+              );
+              if (
+                round1Response.success &&
+                round1Response.data &&
+                (Array.isArray(round1Response.data)
+                  ? round1Response.data.length > 0
+                  : Object.keys(round1Response.data).length > 0)
+              ) {
+                // Round 1 usually uses 'cachedRecommendations' and 'recommendations'
+                sessionStorage.setItem(
+                  "cachedRecommendations",
+                  JSON.stringify(round1Response.data)
+                );
+                localStorage.setItem("activeRoundTab", "round1");
+                navigate("/recommendations/results");
+                return;
+              }
+            } catch (checkError) {
+              console.error(
+                "Error checking existing recommendations:",
+                checkError
+              );
+              // Continue to load form data if check fails
+            }
+          }
+
           // Call appropriate API based on program type
           const selectedState = localStorage.getItem("selected_state") || "";
           const response = isMedical
@@ -409,8 +484,34 @@ const RecommendationSteps = () => {
     setIsLoading(true);
 
     try {
-      // Call the recommendation generation
-      await generateRecommendation(formData);
+      // Determine round and choice code from state
+      let roundNumber = 1;
+      let activeRoundTab = "round_1";
+      const choiceCode = location.state?.choiceCode;
+
+      if (location.state?.activeRound) {
+        if (location.state.activeRound === "round2") {
+          roundNumber = 2;
+          activeRoundTab = "round2";
+        } else if (location.state.activeRound === "round3") {
+          roundNumber = 3;
+          activeRoundTab = "round3";
+        } else {
+          // Default or round1
+          roundNumber = 1;
+          activeRoundTab = "round1";
+        }
+      } else {
+        // Default to Round 1 if no state
+        roundNumber = 1;
+        activeRoundTab = "round1";
+      }
+
+      // Call the recommendation generation with the specific round and previous choice code
+      await generateRecommendation(formData, roundNumber, choiceCode);
+
+      // Set the active tab for the results page
+      localStorage.setItem("activeRoundTab", activeRoundTab);
 
       // Navigate to results page after successful generation
       if (recommendationType === "First_Year_Medical") {

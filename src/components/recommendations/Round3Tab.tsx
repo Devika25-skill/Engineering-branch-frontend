@@ -167,31 +167,53 @@ export const Round3Tab = () => {
         const storedRecommendations = localStorage.getItem(
           "round3Recommendations"
         );
+
+        let apiData = null;
         if (storedRecommendations) {
+          apiData = JSON.parse(storedRecommendations);
+        } else if (user?.accessToken) {
+          // Fetch from API if not in local storage
           try {
-            const parsedRecs = JSON.parse(storedRecommendations);
-            if (parsedRecs && Object.keys(parsedRecs).length > 0) {
-              const convertedRecs =
-                convertApiResponseToRecommendations(parsedRecs);
-              setRound3Recommendations(convertedRecs);
-              setHasGeneratedRecommendations(true);
-
-              // Check if these recommendations were paid and should unlock
-              if (parsedRecs.is_payment === true) {
-                localStorage.setItem("recommendationUnlocked", "true");
-                setIsUnlocked(true);
-              }
-
-              // Cache in session storage for faster future access
-              sessionStorage.setItem(
-                "cachedRound3Recommendations",
-                JSON.stringify(convertedRecs)
+            const response = await apiService.getRoundRecommendations(
+              3,
+              user.accessToken
+            );
+            if (
+              response.success &&
+              response.data &&
+              Object.keys(response.data).length > 0
+            ) {
+              apiData = response.data;
+              // Store it
+              localStorage.setItem(
+                "round3Recommendations",
+                JSON.stringify(apiData)
               );
             }
           } catch (error) {
-            console.error("Error loading stored recommendations:", error);
-            // Clear corrupted data
-            localStorage.removeItem("round3Recommendations");
+            console.error("Error fetching Round 3 recommendations:", error);
+          }
+        }
+
+        if (apiData && Object.keys(apiData).length > 0) {
+          try {
+            const convertedRecs = convertApiResponseToRecommendations(apiData);
+            setRound3Recommendations(convertedRecs);
+            setHasGeneratedRecommendations(true);
+
+            // Check if these recommendations were paid and should unlock
+            if (apiData.is_payment === true) {
+              localStorage.setItem("recommendationUnlocked", "true");
+              setIsUnlocked(true);
+            }
+
+            // Cache in session storage for faster future access
+            sessionStorage.setItem(
+              "cachedRound3Recommendations",
+              JSON.stringify(convertedRecs)
+            );
+          } catch (error) {
+            console.error("Error processing loaded recommendations:", error);
           }
         }
       }

@@ -956,6 +956,19 @@ class ApiService {
     );
   }
 
+  async getRoundRecommendations(round: number, token: string): Promise<any> {
+    return this.request<any>(
+      `/api/v1/explore/recommendation/college-list?round=${round}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
+      }
+    );
+  }
+
   async getExistingRecommendations(
     token: string
   ): Promise<RecommendationApiResponse> {
