@@ -386,6 +386,7 @@ export interface RecommendationRequest {
   district?: string;
   gender?: string;
   round?: number;
+  last_round_college_choice_code?: number | string;
 }
 
 export interface RecommendationCollegeData {
