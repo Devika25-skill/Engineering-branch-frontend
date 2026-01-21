@@ -105,7 +105,10 @@ export const useRecommendation = () => {
             },
             preferences: {
               engineeringBranches: formData.preferredStreams || [],
-              preferredCities: formData.preferredCities || [],
+              preferredCities:
+                formData.preferredCities && formData.preferredCities.length > 0
+                  ? formData.preferredCities
+                  : ["ALL"],
               preferredDistrict: formData.district,
             },
             campusFacilitiesEnvironment: {
@@ -138,7 +141,11 @@ export const useRecommendation = () => {
                 {
                   round,
                   branches: formData.preferredStreams || [],
-                  cities: formData.preferredCities || [],
+                  cities:
+                    formData.preferredCities &&
+                    formData.preferredCities.length > 0
+                      ? formData.preferredCities
+                      : ["ALL"],
                 },
                 token
               );
@@ -151,7 +158,10 @@ export const useRecommendation = () => {
             category: formData.reservationCategory,
             cet_percentile: formData.cetPercentile,
             cet_course: formData.preferredStreams || [],
-            location: formData.preferredCities || [],
+            location:
+              formData.preferredCities && formData.preferredCities.length > 0
+                ? formData.preferredCities
+                : ["ALL"],
             district: formData.district,
             gender: formData.gender || "male", // Defaulting to male if not present, but should ideally come from form
             round: round,

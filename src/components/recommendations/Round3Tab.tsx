@@ -659,7 +659,7 @@ export const Round3Tab = () => {
       const payload = {
         round: 3,
         branches: selectedBranches,
-        cities: selectedCities,
+        cities: selectedCities.length > 0 ? selectedCities : ["ALL"],
       };
 
       const response = await apiService.updateRoundPreferences(
@@ -675,7 +675,7 @@ export const Round3Tab = () => {
           "round3Preferences",
           JSON.stringify({
             branches: selectedBranches,
-            cities: selectedCities,
+            cities: selectedCities.length > 0 ? selectedCities : ["ALL"],
             timestamp: Date.now(),
           })
         );
@@ -706,6 +706,10 @@ export const Round3Tab = () => {
 
   // Helper functions for PreferencesForm layout
   const addBranch = (branch: string) => {
+    if (branch === "ALL") {
+      setSelectedBranches(["ALL"]);
+      return;
+    }
     if (!selectedBranches.includes(branch)) {
       setSelectedBranches([...selectedBranches, branch]);
     }
@@ -716,6 +720,10 @@ export const Round3Tab = () => {
   };
 
   const addCity = (city: string) => {
+    if (city === "ALL") {
+      setSelectedCities(["ALL"]);
+      return;
+    }
     if (!selectedCities.includes(city)) {
       setSelectedCities([...selectedCities, city]);
     }
@@ -785,7 +793,7 @@ export const Round3Tab = () => {
       const preferencesPayload = {
         round: 3,
         branches: selectedBranches,
-        cities: selectedCities,
+        cities: selectedCities.length > 0 ? selectedCities : ["ALL"],
       };
 
       await apiService.updateRoundPreferences(
@@ -798,7 +806,7 @@ export const Round3Tab = () => {
         "round3Preferences",
         JSON.stringify({
           branches: selectedBranches,
-          cities: selectedCities,
+          cities: selectedCities.length > 0 ? selectedCities : ["ALL"],
           timestamp: Date.now(),
         })
       );
@@ -910,7 +918,7 @@ export const Round3Tab = () => {
         category: category,
         cet_percentile: cetPercentile,
         cet_course: selectedBranches,
-        location: selectedCities,
+        location: selectedCities.length > 0 ? selectedCities : ["ALL"],
         district: district,
         gender: gender,
         round: 3,
@@ -1314,6 +1322,7 @@ export const Round3Tab = () => {
                           placeholder="Add your favorite engineering branches"
                           searchPlaceholder="Search branches..."
                           className="w-full"
+                          disabled={selectedBranches.includes("ALL")}
                         />
 
                         {selectedBranches.length > 0 ? (
@@ -1414,6 +1423,7 @@ export const Round3Tab = () => {
                           placeholder="Add cities you'd love to study in"
                           searchPlaceholder="Search cities..."
                           className="w-full"
+                          disabled={selectedCities.includes("ALL")}
                         />
 
                         {selectedCities.length > 0 ? (
@@ -1554,9 +1564,9 @@ export const Round3Tab = () => {
                           </Badge>
                         ))
                       ) : (
-                        <span className="text-sm text-blue-600 italic">
-                          No cities selected
-                        </span>
+                        <Badge variant="secondary" className="text-xs">
+                          ALL
+                        </Badge>
                       )}
                     </div>
                   </div>
