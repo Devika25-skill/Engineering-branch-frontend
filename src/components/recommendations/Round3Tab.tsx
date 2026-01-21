@@ -1,27 +1,67 @@
-import { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { apiService, CollegeSearchResult, CollegeDepartment } from '@/services/api';
-import { recommendationStorage } from '@/services/recommendationStorage';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { SearchableSelect } from '@/components/ui/searchable-select';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { Search, Building2, MapPin, Globe, Check, BookOpen, X, Plus, GripVertical, ChevronDown, ChevronUp, Sparkles, Lock } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
-import { RecommendationCard } from './RecommendationCard';
-import { CategoryFilter } from './CategoryFilter';
-import { usePdfDownload } from '@/hooks/usePdfDownload';
-import { PremiumGate } from './PremiumGate';
-import { Round3Disclaimer } from './Round3Disclaimer';
-import ScrollToTop from '../ScrollToTop';
-import { NoResultsState } from './NoResultsState';
+import { useState, useEffect } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  apiService,
+  CollegeSearchResult,
+  CollegeDepartment,
+} from "@/services/api";
+import { recommendationStorage } from "@/services/recommendationStorage";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { SearchableSelect } from "@/components/ui/searchable-select";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  Search,
+  Building2,
+  MapPin,
+  Globe,
+  Check,
+  BookOpen,
+  X,
+  Plus,
+  GripVertical,
+  ChevronDown,
+  ChevronUp,
+  Sparkles,
+  Lock,
+} from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
+import { RecommendationCard } from "./RecommendationCard";
+import { CategoryFilter } from "./CategoryFilter";
+import { usePdfDownload } from "@/hooks/usePdfDownload";
+import { PremiumGate } from "./PremiumGate";
+import { Round3Disclaimer } from "./Round3Disclaimer";
+import ScrollToTop from "../ScrollToTop";
+import { NoResultsState } from "./NoResultsState";
 
 interface SelectedCollege {
   college: CollegeSearchResult;
@@ -31,12 +71,23 @@ interface SelectedCollege {
 export const Round3Tab = () => {
   const { user, isLoggedIn } = useAuth();
   const { toast } = useToast();
-  
-  const [searchType, setSearchType] = useState<'choice_code' | 'college_name' | 'college_code'>('choice_code');
-  const [searchValue, setSearchValue] = useState('');
+
+  const [searchType, setSearchType] = useState<
+    "choice_code" | "college_name" | "college_code"
+  >("choice_code");
+  const [searchValue, setSearchValue] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const [searchResults, setSearchResults] = useState<CollegeSearchResult[]>([]);
-  const [selectedCollege, setSelectedCollege] = useState<SelectedCollege | null>(null);
+  const [selectedCollege, setSelectedCollege] =
+    useState<SelectedCollege | null>(() => {
+      try {
+        const saved = sessionStorage.getItem("round3SelectedCollege");
+        return saved ? JSON.parse(saved) : null;
+      } catch (e) {
+        console.error("Failed to restore selected college", e);
+        return null;
+      }
+    });
   const [showSelectionDialog, setShowSelectionDialog] = useState(false);
   const [showFinalConfirmation, setShowFinalConfirmation] = useState(false);
   const [showEditConfirmation, setShowEditConfirmation] = useState(false);
@@ -49,19 +100,25 @@ export const Round3Tab = () => {
   const [selectedCities, setSelectedCities] = useState<string[]>([]);
   const [isUpdatingPreferences, setIsUpdatingPreferences] = useState(false);
   const [isCollegeCardCollapsed, setIsCollegeCardCollapsed] = useState(true);
-  const [isPreferencesCardCollapsed, setIsPreferencesCardCollapsed] = useState(true);
-  const [isGeneratingRecommendations, setIsGeneratingRecommendations] = useState(false);
+  const [isPreferencesCardCollapsed, setIsPreferencesCardCollapsed] =
+    useState(true);
+  const [isGeneratingRecommendations, setIsGeneratingRecommendations] =
+    useState(false);
   const [round3Recommendations, setRound3Recommendations] = useState<any[]>([]);
-  const [hasGeneratedRecommendations, setHasGeneratedRecommendations] = useState(false);
+  const [hasGeneratedRecommendations, setHasGeneratedRecommendations] =
+    useState(false);
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [skipRound2Selection, setSkipRound2Selection] = useState(false);
-  const [showEditConfirmationRecommendation, setShowEditConfirmationRecommendation] = useState(false);
+  const [
+    showEditConfirmationRecommendation,
+    setShowEditConfirmationRecommendation,
+  ] = useState(false);
 
   // Convert API response to recommendation format
   const convertApiResponseToRecommendations = (apiData: any) => {
     const recommendations: any[] = [];
-    
-    ['Dream', 'Reach', 'Match', 'Safety'].forEach(category => {
+
+    ["Dream", "Reach", "Match", "Safety"].forEach((category) => {
       if (apiData[category] && Array.isArray(apiData[category])) {
         apiData[category].forEach((item: any) => {
           recommendations.push({
@@ -75,71 +132,118 @@ export const Round3Tab = () => {
               type: item.college.College_Type,
               nirf_rank: item.college.NIRF_Rank_Min,
               fees: item.college["Annual_Fees_(INR)"],
-              placement_percentage: item.college.Overall_College_Placement_Percentage,
-              top_recruiters: item.college.Top_Recruiters || []
+              placement:
+                item.college.Overall_College_Placement_Percentage || null,
+              Student_Intake: item.college.Student_Intake || null,
+              top_recruiters: item.college.Top_Recruiters || [],
+              rating: item.college.College_Reviews_out_of_5 || null,
             },
             course_name: item.course,
             cutoff_percentile: item.cutoff,
             admission_probability: item.admission_probability,
             probability_message: item.probability_message,
             cet_percentile: item.cet_percentile,
-            reservation_category: item.category
+            reservation_category: item.category,
+            choice_code: item.choice_code || null,
           });
         });
       }
     });
-    
+
     return recommendations;
   };
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [hasGeneratedRecommendations]);
+
+  // Persist selected college changes
+  useEffect(() => {
+    if (selectedCollege) {
+      sessionStorage.setItem(
+        "round3SelectedCollege",
+        JSON.stringify(selectedCollege)
+      );
+    } else {
+      sessionStorage.removeItem("round3SelectedCollege");
+    }
+  }, [selectedCollege]);
+
   // Load from localStorage and API on mount
   useEffect(() => {
     const loadExistingData = async () => {
       // First check for cached Round 3 recommendations in session storage
-      const cachedRound3Recommendations = sessionStorage.getItem('cachedRound3Recommendations');
+      const cachedRound3Recommendations = sessionStorage.getItem(
+        "cachedRound3Recommendations"
+      );
       if (cachedRound3Recommendations) {
         try {
           const parsedRecs = JSON.parse(cachedRound3Recommendations);
           setRound3Recommendations(parsedRecs);
           setHasGeneratedRecommendations(true);
         } catch (error) {
-          console.error('Error loading cached Round 3 recommendations:', error);
-          sessionStorage.removeItem('cachedRound3Recommendations');
+          console.error("Error loading cached Round 3 recommendations:", error);
+          sessionStorage.removeItem("cachedRound3Recommendations");
         }
       }
 
       // Check for existing Round 3 recommendations in localStorage if no session cache
       if (!cachedRound3Recommendations) {
-        const storedRecommendations = localStorage.getItem('round3Recommendations');
+        const storedRecommendations = localStorage.getItem(
+          "round3Recommendations"
+        );
+
+        let apiData = null;
         if (storedRecommendations) {
+          apiData = JSON.parse(storedRecommendations);
+        } else if (user?.accessToken) {
+          // Fetch from API if not in local storage
           try {
-            const parsedRecs = JSON.parse(storedRecommendations);
-            if (parsedRecs && Object.keys(parsedRecs).length > 0) {
-              const convertedRecs = convertApiResponseToRecommendations(parsedRecs);
-              setRound3Recommendations(convertedRecs);
-              setHasGeneratedRecommendations(true);
-              
-              // Check if these recommendations were paid and should unlock
-              if (parsedRecs.is_payment === true) {
-                localStorage.setItem('recommendationUnlocked', 'true');
-                setIsUnlocked(true);
-              }
-              
-              // Cache in session storage for faster future access
-              sessionStorage.setItem('cachedRound3Recommendations', JSON.stringify(convertedRecs));
+            const response = await apiService.getRoundRecommendations(
+              3,
+              user.accessToken
+            );
+            if (
+              response.success &&
+              response.data &&
+              Object.keys(response.data).length > 0
+            ) {
+              apiData = response.data;
+              // Store it
+              localStorage.setItem(
+                "round3Recommendations",
+                JSON.stringify(apiData)
+              );
             }
           } catch (error) {
-            console.error('Error loading stored recommendations:', error);
-            // Clear corrupted data
-            localStorage.removeItem('round3Recommendations');
+            console.error("Error fetching Round 3 recommendations:", error);
+          }
+        }
+
+        if (apiData && Object.keys(apiData).length > 0) {
+          try {
+            const convertedRecs = convertApiResponseToRecommendations(apiData);
+            setRound3Recommendations(convertedRecs);
+            setHasGeneratedRecommendations(true);
+
+            // Check if these recommendations were paid and should unlock
+            if (apiData.is_payment === true) {
+              localStorage.setItem("recommendationUnlocked", "true");
+              setIsUnlocked(true);
+            }
+
+            // Cache in session storage for faster future access
+            sessionStorage.setItem(
+              "cachedRound3Recommendations",
+              JSON.stringify(convertedRecs)
+            );
+          } catch (error) {
+            console.error("Error processing loaded recommendations:", error);
           }
         }
       }
 
       // Load Round 3 selection data
-      const stored = localStorage.getItem('round3Selection');
+      const stored = localStorage.getItem("round3Selection");
       if (stored) {
         try {
           const parsedData = JSON.parse(stored);
@@ -149,7 +253,7 @@ export const Round3Tab = () => {
             setShowPreferences(true);
           }
         } catch (error) {
-          console.error('Error loading stored selection data:', error);
+          console.error("Error loading stored selection data:", error);
         }
       }
 
@@ -159,8 +263,15 @@ export const Round3Tab = () => {
       // If no localStorage data and user is logged in, try API
       if (user?.accessToken) {
         try {
-          const response = await apiService.getUserRoundDetails(3, user.accessToken);
-          if (response.success && response.data && Object.keys(response.data).length > 0) {
+          const response = await apiService.getUserRoundDetails(
+            3,
+            user.accessToken
+          );
+          if (
+            response.success &&
+            response.data &&
+            Object.keys(response.data).length > 0
+          ) {
             const apiData = response.data;
             // Convert API response to selectedCollege format
             const selectedCollege: SelectedCollege = {
@@ -169,24 +280,27 @@ export const Round3Tab = () => {
                 College_code: apiData.College_code,
                 City: apiData.City,
                 College_Website: "", // Default empty values for missing fields
-                department: [] // Default empty array
+                department: [], // Default empty array
               } as CollegeSearchResult,
               selectedDepartment: {
                 course_name: apiData.Course_Name,
                 course_code: apiData.Course_Code,
-                choice_code: apiData.Choice_Code
-              } as CollegeDepartment
+                choice_code: apiData.Choice_Code,
+              } as CollegeDepartment,
             };
             setSelectedCollege(selectedCollege);
             setIsConfirmed(true);
             setShowPreferences(true);
-            
+
             // Also save to localStorage for future use
             const storageData = { selectedCollege, isConfirmed: true };
-            localStorage.setItem('round3Selection', JSON.stringify(storageData));
-          } 
+            localStorage.setItem(
+              "round3Selection",
+              JSON.stringify(storageData)
+            );
+          }
         } catch (error) {
-          console.error('Error loading user round details:', error);
+          console.error("Error loading user round details:", error);
         }
       }
     };
@@ -197,21 +311,22 @@ export const Round3Tab = () => {
   // Check unlock status using same key as Round 1
   useEffect(() => {
     const checkUnlockStatus = () => {
-      const isUnlocked = localStorage.getItem('recommendationUnlocked') === 'true';
+      const isUnlocked =
+        localStorage.getItem("recommendationUnlocked") === "true";
       setIsUnlocked(isUnlocked);
     };
-    
+
     checkUnlockStatus();
-    
+
     // Listen for storage changes
-    window.addEventListener('storage', checkUnlockStatus);
-    return () => window.removeEventListener('storage', checkUnlockStatus);
+    window.addEventListener("storage", checkUnlockStatus);
+    return () => window.removeEventListener("storage", checkUnlockStatus);
   }, []);
 
   const searchTypeOptions = [
-    { value: 'choice_code', label: 'Choice Code' },
-    { value: 'college_name', label: 'College Name' },
-    { value: 'college_code', label: 'College Code' }
+    { value: "choice_code", label: "Choice Code" },
+    { value: "college_name", label: "College Name" },
+    { value: "college_code", label: "College Code" },
   ];
 
   const handleSearch = async () => {
@@ -219,7 +334,7 @@ export const Round3Tab = () => {
       toast({
         title: "Search Required",
         description: "Please enter a search value",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
@@ -228,7 +343,7 @@ export const Round3Tab = () => {
       toast({
         title: "Login Required",
         description: "Please login to search colleges",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
@@ -239,36 +354,45 @@ export const Round3Tab = () => {
 
     try {
       let response;
-      
+
       switch (searchType) {
-        case 'choice_code':
+        case "choice_code":
           const choiceCode = parseInt(searchValue);
           if (isNaN(choiceCode)) {
             toast({
               title: "Invalid Choice Code",
               description: "Choice code must be a number",
-              variant: "destructive"
+              variant: "destructive",
             });
             return;
           }
-          response = await apiService.searchCollegeByChoiceCode({ choice_code: choiceCode }, user.accessToken);
+          response = await apiService.searchCollegeByChoiceCode(
+            { choice_code: choiceCode },
+            user.accessToken
+          );
           break;
-          
-        case 'college_name':
-          response = await apiService.searchCollegeByName({ college_name: searchValue }, user.accessToken);
+
+        case "college_name":
+          response = await apiService.searchCollegeByName(
+            { college_name: searchValue },
+            user.accessToken
+          );
           break;
-          
-        case 'college_code':
+
+        case "college_code":
           const collegeCode = parseInt(searchValue);
           if (isNaN(collegeCode)) {
             toast({
               title: "Invalid College Code",
               description: "College code must be a number",
-              variant: "destructive"
+              variant: "destructive",
             });
             return;
           }
-          response = await apiService.searchCollegeByCode({ college_code: collegeCode }, user.accessToken);
+          response = await apiService.searchCollegeByCode(
+            { college_code: collegeCode },
+            user.accessToken
+          );
           break;
       }
 
@@ -281,24 +405,25 @@ export const Round3Tab = () => {
         }
       } else {
         setSearchResults([]);
-        const errorMessage = searchType === 'choice_code' 
-          ? "No college found for this choice code"
-          : searchType === 'college_name'
-          ? "No colleges found matching this name"
-          : "No college found for this college code";
-        
+        const errorMessage =
+          searchType === "choice_code"
+            ? "No college found for this choice code"
+            : searchType === "college_name"
+              ? "No colleges found matching this name"
+              : "No college found for this college code";
+
         toast({
           title: "No Results",
           description: errorMessage,
-          variant: "destructive"
+          variant: "destructive",
         });
       }
     } catch (error) {
-      console.error('Search failed:', error);
+      console.error("Search failed:", error);
       toast({
         title: "Search Failed",
         description: "Failed to search colleges. Please try again.",
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setIsSearching(false);
@@ -308,9 +433,9 @@ export const Round3Tab = () => {
   const handleEditSelection = () => {
     setShowEditConfirmation(true);
   };
-  const handleRestRecommendation=() =>{
+  const handleRestRecommendation = () => {
     setShowEditConfirmationRecommendation(true);
-  }
+  };
 
   const handleCreateNewList = () => {
     setSkipRound2Selection(true);
@@ -318,14 +443,15 @@ export const Round3Tab = () => {
     loadPreferencesFromFormData();
     toast({
       title: "Creating New List",
-      description: "Set your preferences below to generate Round 3 recommendations without Round 2 selection.",
+      description:
+        "Set your preferences below to generate Round 3 recommendations without Round 2 selection.",
     });
   };
 
   const handleConfirmEdit = () => {
     // Clear localStorage and reset state
-    localStorage.removeItem('round3Selection');
-    localStorage.removeItem('round3Preferences');
+    localStorage.removeItem("round3Selection");
+    localStorage.removeItem("round3Preferences");
     setSelectedCollege(null);
     setIsConfirmed(false);
     setShowPreferences(false);
@@ -336,21 +462,26 @@ export const Round3Tab = () => {
     setShowEditConfirmation(false);
     toast({
       title: "Selection Reset",
-      description: "You can now make a new selection for Round 3 recommendations.",
+      description:
+        "You can now make a new selection for Round 3 recommendations.",
     });
   };
   const handleRecommendationConfirmEdit = () => {
     setRound3Recommendations([]);
-    localStorage.removeItem('round3Recommendations');
-    sessionStorage.removeItem('cachedRound3Recommendations');
+    localStorage.removeItem("round3Recommendations");
+    sessionStorage.removeItem("cachedRound3Recommendations");
     setHasGeneratedRecommendations(false);
     toast({
       title: "Selection Reset",
-      description: "You can now make a new selection for Round 3 recommendations.",
+      description:
+        "You can now make a new selection for Round 3 recommendations.",
     });
   };
 
-  const handleDepartmentSelect = (college: CollegeSearchResult, department: CollegeDepartment) => {
+  const handleDepartmentSelect = (
+    college: CollegeSearchResult,
+    department: CollegeDepartment
+  ) => {
     setSelectedCollege({ college, selectedDepartment: department });
     setShowSelectionDialog(true);
   };
@@ -365,7 +496,7 @@ export const Round3Tab = () => {
       toast({
         title: "Error",
         description: "Missing required information. Please try again.",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
@@ -377,14 +508,15 @@ export const Round3Tab = () => {
       // Store to localStorage first
       const storageData = {
         selectedCollege,
-        isConfirmed: true
+        isConfirmed: true,
       };
-      localStorage.setItem('round3Selection', JSON.stringify(storageData));
+      localStorage.setItem("round3Selection", JSON.stringify(storageData));
 
       // Get form data from session storage for category and CET percentile
       const formData = recommendationStorage.getFormData();
       const category = formData?.reservationCategory || "";
-      const cetPercentile = formData?.cetPercentile || formData?.cet_percentile || 0;
+      const cetPercentile =
+        formData?.cetPercentile || formData?.cet_percentile || 0;
 
       // Prepare API payload
       const apiPayload = {
@@ -397,41 +529,47 @@ export const Round3Tab = () => {
         round: 3,
         location: selectedCollege.college.City,
         category: category,
-        cet_percentile: cetPercentile
+        cet_percentile: cetPercentile,
       };
 
       // Store to backend
-      const response = await apiService.storeCollegeDetails(apiPayload, user.accessToken);
-      
+      const response = await apiService.storeCollegeDetails(
+        apiPayload,
+        user.accessToken
+      );
+
       if (response.success) {
         setIsConfirmed(true);
         setShowPreferences(true);
         await loadPreferencesFromFormData();
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        window.scrollTo({ top: 0, behavior: "smooth" });
         toast({
           title: "College Details Confirmed",
-          description: "Your Round 2 college details have been confirmed and saved. Now please review and update your preferences for Round 3.",
+          description:
+            "Your Round 2 college details have been confirmed and saved. Now please review and update your preferences for Round 3.",
         });
       } else {
         // If API fails, still keep local storage but show warning
         setIsConfirmed(true);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        window.scrollTo({ top: 0, behavior: "smooth" });
         toast({
           title: "Details Saved Locally",
-          description: "Your college details were saved locally. We'll sync them when connection is available.",
-          variant: "destructive"
+          description:
+            "Your college details were saved locally. We'll sync them when connection is available.",
+          variant: "destructive",
         });
       }
     } catch (error) {
-      console.error('Error storing college details:', error);
+      console.error("Error storing college details:", error);
       // Still set as confirmed if localStorage succeeded
       setIsConfirmed(true);
       setShowPreferences(true);
       await loadPreferencesFromFormData();
       toast({
         title: "Details Saved Locally",
-        description: "Your college details were saved locally. Please review your preferences below.",
-        variant: "destructive"
+        description:
+          "Your college details were saved locally. Please review your preferences below.",
+        variant: "destructive",
       });
     } finally {
       setIsStoring(false);
@@ -440,12 +578,12 @@ export const Round3Tab = () => {
 
   const loadPreferencesFromFormData = async () => {
     // First try to get preferences from localStorage
-    let storedPreferences = localStorage.getItem('round3Preferences');
+    let storedPreferences = localStorage.getItem("round3Preferences");
     if (!storedPreferences) {
       // If round3Preferences is missing, try to copy from round2Preferences
-      const round2Prefs = localStorage.getItem('round2Preferences');
+      const round2Prefs = localStorage.getItem("round2Preferences");
       if (round2Prefs) {
-        localStorage.setItem('round3Preferences', round2Prefs);
+        localStorage.setItem("round3Preferences", round2Prefs);
         storedPreferences = round2Prefs;
       }
     }
@@ -456,32 +594,45 @@ export const Round3Tab = () => {
         setSelectedCities(parsed.cities || []);
         return;
       } catch (error) {
-        console.error('Error parsing stored preferences, continuing...');
+        console.error("Error parsing stored preferences, continuing...");
       }
     }
 
     // Then try to get preferences from API
     if (user?.accessToken) {
       try {
-        const response = await apiService.getUserRoundPreferences(3, user.accessToken);
-        if (response.success && response.data && (response.data.branches?.length > 0 || response.data.cities?.length > 0)) {
+        const response = await apiService.getUserRoundPreferences(
+          3,
+          user.accessToken
+        );
+        if (
+          response.success &&
+          response.data &&
+          (response.data.branches?.length > 0 ||
+            response.data.cities?.length > 0)
+        ) {
           const branches = response.data.branches || [];
           const cities = response.data.cities || [];
-          
+
           setSelectedBranches(branches);
           setSelectedCities(cities);
           setShowPreferences(true); // Show preferences when loaded from API
-          
+
           // Store in localStorage for future use
-          localStorage.setItem('round3Preferences', JSON.stringify({
-            branches,
-            cities,
-            timestamp: Date.now()
-          }));
+          localStorage.setItem(
+            "round3Preferences",
+            JSON.stringify({
+              branches,
+              cities,
+              timestamp: Date.now(),
+            })
+          );
           return;
         }
       } catch (error) {
-        console.error('No existing preferences found in API, falling back to form data');
+        console.error(
+          "No existing preferences found in API, falling back to form data"
+        );
       }
     }
 
@@ -490,17 +641,20 @@ export const Round3Tab = () => {
     if (formData) {
       const branches = formData.preferredStreams || [];
       const cities = formData.preferredCities || [];
-      
+
       setSelectedBranches(branches);
       setSelectedCities(cities);
       setShowPreferences(true); // Show preferences when loaded from form data
-      
+
       // Store in localStorage for consistency
-      localStorage.setItem('round3Preferences', JSON.stringify({
-        branches,
-        cities,
-        timestamp: Date.now()
-      }));
+      localStorage.setItem(
+        "round3Preferences",
+        JSON.stringify({
+          branches,
+          cities,
+          timestamp: Date.now(),
+        })
+      );
     }
   };
 
@@ -509,7 +663,7 @@ export const Round3Tab = () => {
       toast({
         title: "Authentication Required",
         description: "Please login to update preferences",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
@@ -518,43 +672,53 @@ export const Round3Tab = () => {
 
     try {
       // First, call the getUserRoundPreferences API to fetch latest preferences
-      const preferencesResponse = await apiService.getUserRoundPreferences(3, user.accessToken);
-      
+      const preferencesResponse = await apiService.getUserRoundPreferences(
+        3,
+        user.accessToken
+      );
+
       const payload = {
         round: 3,
         branches: selectedBranches,
-        cities: selectedCities
+        cities: selectedCities.length > 0 ? selectedCities : ["ALL"],
       };
 
-      const response = await apiService.updateRoundPreferences(payload, user.accessToken);
-      
+      const response = await apiService.updateRoundPreferences(
+        payload,
+        user.accessToken
+      );
+
       if (response.success) {
         setEditingPreferences(false);
-        
+
         // Update localStorage with new preferences
-        localStorage.setItem('round3Preferences', JSON.stringify({
-          branches: selectedBranches,
-          cities: selectedCities,
-          timestamp: Date.now()
-        }));
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        localStorage.setItem(
+          "round3Preferences",
+          JSON.stringify({
+            branches: selectedBranches,
+            cities: selectedCities.length > 0 ? selectedCities : ["ALL"],
+            timestamp: Date.now(),
+          })
+        );
+        window.scrollTo({ top: 0, behavior: "smooth" });
         toast({
           title: "Preferences Updated",
-          description: "Your Round 3 preferences have been successfully updated.",
+          description:
+            "Your Round 3 preferences have been successfully updated.",
         });
       } else {
         toast({
           title: "Update Failed",
           description: "Failed to update preferences. Please try again.",
-          variant: "destructive"
+          variant: "destructive",
         });
       }
     } catch (error) {
-      console.error('Error updating preferences:', error);
+      console.error("Error updating preferences:", error);
       toast({
         title: "Update Failed",
         description: "Failed to update preferences. Please try again.",
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setIsUpdatingPreferences(false);
@@ -563,42 +727,50 @@ export const Round3Tab = () => {
 
   // Helper functions for PreferencesForm layout
   const addBranch = (branch: string) => {
+    if (branch === "ALL") {
+      setSelectedBranches(["ALL"]);
+      return;
+    }
     if (!selectedBranches.includes(branch)) {
       setSelectedBranches([...selectedBranches, branch]);
     }
   };
 
   const removeBranch = (branch: string) => {
-    setSelectedBranches(selectedBranches.filter(b => b !== branch));
+    setSelectedBranches(selectedBranches.filter((b) => b !== branch));
   };
 
   const addCity = (city: string) => {
+    if (city === "ALL") {
+      setSelectedCities(["ALL"]);
+      return;
+    }
     if (!selectedCities.includes(city)) {
       setSelectedCities([...selectedCities, city]);
     }
   };
 
   const removeCity = (city: string) => {
-    setSelectedCities(selectedCities.filter(c => c !== city));
+    setSelectedCities(selectedCities.filter((c) => c !== city));
   };
 
   const handleBranchDragEnd = (result: any) => {
     if (!result.destination) return;
-    
+
     const items = Array.from(selectedBranches);
     const [reorderedItem] = items.splice(result.source.index, 1);
     items.splice(result.destination.index, 0, reorderedItem);
-    
+
     setSelectedBranches(items);
   };
 
   const handleCityDragEnd = (result: any) => {
     if (!result.destination) return;
-    
+
     const items = Array.from(selectedCities);
     const [reorderedItem] = items.splice(result.source.index, 1);
     items.splice(result.destination.index, 0, reorderedItem);
-    
+
     setSelectedCities(items);
   };
 
@@ -607,7 +779,7 @@ export const Round3Tab = () => {
       toast({
         title: "Authentication Required",
         description: "Please login to generate recommendations",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
@@ -615,17 +787,22 @@ export const Round3Tab = () => {
     if (selectedBranches.length === 0) {
       toast({
         title: "Missing Preferences",
-        description: "Please select at least one engineering branch to generate recommendations",
-        variant: "destructive"
+        description:
+          "Please select at least one engineering branch to generate recommendations",
+        variant: "destructive",
       });
       return;
     }
 
-    if (!skipRound2Selection && !selectedCollege?.selectedDepartment?.choice_code) {
+    if (
+      !skipRound2Selection &&
+      !selectedCollege?.selectedDepartment?.choice_code
+    ) {
       toast({
         title: "Missing College Selection",
-        description: "Please select your Round 2 college before generating recommendations",
-        variant: "destructive"
+        description:
+          "Please select your Round 2 college before generating recommendations",
+        variant: "destructive",
       });
       return;
     }
@@ -637,71 +814,194 @@ export const Round3Tab = () => {
       const preferencesPayload = {
         round: 3,
         branches: selectedBranches,
-        cities: selectedCities
+        cities: selectedCities.length > 0 ? selectedCities : ["ALL"],
       };
 
-      await apiService.updateRoundPreferences(preferencesPayload, user.accessToken);
-      
+      await apiService.updateRoundPreferences(
+        preferencesPayload,
+        user.accessToken
+      );
+
       // Update localStorage with latest preferences
-      localStorage.setItem('round3Preferences', JSON.stringify({
-        branches: selectedBranches,
-        cities: selectedCities,
-        timestamp: Date.now()
-      }));
+      localStorage.setItem(
+        "round3Preferences",
+        JSON.stringify({
+          branches: selectedBranches,
+          cities: selectedCities.length > 0 ? selectedCities : ["ALL"],
+          timestamp: Date.now(),
+        })
+      );
 
       // Get form data for category and CET percentile
-      const formData = recommendationStorage.getFormData();
+      let formData = recommendationStorage.getFormData();
+
+      // Attempt to fetch missing data
+      if ((!formData || !formData.district) && user?.email) {
+        try {
+          const capResponse = await apiService.fetchAICapDetails(
+            user.accessToken,
+            user.email
+          );
+          if (capResponse.success && capResponse.data) {
+            const apiData = capResponse.data;
+            const credentials = apiData.academic_credentials || apiData;
+            const gender = apiData.gender;
+            const otherExam =
+              credentials.examPercentiles?.otherEntranceExam?.[0];
+
+            const mappedData = {
+              gender: gender || undefined,
+              reservationCategory: credentials.reservationCategory || "GOPENS",
+              grouping:
+                credentials.educationBackground?.stream ||
+                "PCM (Physics, Chemistry, Mathematics)",
+              tenthMarks:
+                credentials.academicMarks?._10thGradeMarksPercent || undefined,
+              twelfthMarks:
+                credentials.academicMarks?._12thGradeMarksPercent || undefined,
+              groupingMarks:
+                credentials.academicMarks?.groupingMarksPercent || undefined,
+              cetPercentile: credentials.examPercentiles?.CET || undefined,
+              jeePercentile: credentials.examPercentiles?.JEE || undefined,
+              otherExamName: otherExam?.examName || undefined,
+              otherExamPercentile: otherExam?.percentileOrScore || undefined,
+              sportsAchievements:
+                credentials.achievementsExperience?.sportsAchievements ||
+                undefined,
+              certifications:
+                credentials.achievementsExperience?.certifications || undefined,
+              internships:
+                credentials.achievementsExperience?.internshipsWorkExperience ||
+                undefined,
+              otherAchievements:
+                credentials.achievementsExperience?.otherAchievements ||
+                undefined,
+              preferredStreams:
+                credentials.preferences?.engineeringBranches || [],
+              preferredCities: credentials.preferences?.preferredCities || [],
+              district: credentials.preferences?.preferredDistrict || undefined,
+              hostelPreference:
+                credentials.campusFacilitiesEnvironment?.hostelFacility ||
+                undefined,
+              campusSetting:
+                credentials.campusFacilitiesEnvironment?.campusSetting ||
+                undefined,
+              transportFacility:
+                credentials.campusFacilitiesEnvironment?.transportFacility ||
+                undefined,
+              wifiTechInfrastructure:
+                credentials.campusFacilitiesEnvironment
+                  ?.wifiTechInfrastructure || undefined,
+              coCurricularActivities:
+                credentials.campusFacilitiesEnvironment
+                  ?.coCurricularActivities || undefined,
+              maxBudget: credentials.annualBudget || undefined,
+              collegeTypes: credentials.collegeTypePreferences || [],
+              priorities: credentials.priorityFactors || [],
+            };
+
+            recommendationStorage.saveAcademicDetails(mappedData);
+            recommendationStorage.savePreferences(mappedData);
+            recommendationStorage.savePriorities(mappedData);
+            sessionStorage.setItem(
+              "recommendationFormData",
+              JSON.stringify(mappedData)
+            );
+            sessionStorage.setItem(
+              "recommendation_form_data",
+              JSON.stringify(mappedData)
+            );
+            formData = mappedData;
+          }
+        } catch (e) {
+          console.error("Failed to restore form data", e);
+        }
+      }
+
       const category = formData?.reservationCategory || "GOPENS";
-      const cetPercentile = formData?.cetPercentile || formData?.cet_percentile || 0;
+      const cetPercentile =
+        formData?.cetPercentile || formData?.cet_percentile || 0;
+      const district = formData?.district;
+      const gender = formData?.gender || "male";
+
+      if (!district) {
+        toast({
+          title: "Missing Information",
+          description:
+            "District information is missing. Please go back to Round 1 and update your basic information.",
+          variant: "destructive",
+        });
+        return;
+      }
 
       // Generate Round 3 recommendations
       const generateRoundListPayload = {
         category: category,
         cet_percentile: cetPercentile,
         cet_course: selectedBranches,
-        location: selectedCities,
+        location: selectedCities.length > 0 ? selectedCities : ["ALL"],
+        district: district,
+        gender: gender,
         round: 3,
-        last_round_college_choice_code: skipRound2Selection ? 0 : selectedCollege.selectedDepartment.choice_code
+        last_round_college_choice_code: skipRound2Selection
+          ? 0
+          : typeof selectedCollege.selectedDepartment.choice_code === "string"
+            ? parseInt(selectedCollege.selectedDepartment.choice_code)
+            : selectedCollege.selectedDepartment.choice_code,
       };
 
-      const response = await apiService.generateRoundList(generateRoundListPayload, user.accessToken);
-      
+      const response = await apiService.getRecommendations(
+        generateRoundListPayload,
+        user.accessToken
+      );
+
       if (response.success) {
         // Store the raw API response in localStorage
-        localStorage.setItem('round3Recommendations', JSON.stringify(response.data));
-        
+        localStorage.setItem(
+          "round3Recommendations",
+          JSON.stringify(response.data)
+        );
+
         // Convert and set recommendations for display
-        const convertedRecs = convertApiResponseToRecommendations(response.data);
+        const convertedRecs = convertApiResponseToRecommendations(
+          response.data
+        );
         setRound3Recommendations(convertedRecs);
         setHasGeneratedRecommendations(true);
-        
+
         // Cache the converted recommendations in session storage for faster access
-        sessionStorage.setItem('cachedRound3Recommendations', JSON.stringify(convertedRecs));
-        
+        sessionStorage.setItem(
+          "cachedRound3Recommendations",
+          JSON.stringify(convertedRecs)
+        );
+
         // Check if payment is included and unlock recommendations automatically
         if (response.data.is_payment === true) {
-          localStorage.setItem('recommendationUnlocked', 'true');
+          localStorage.setItem("recommendationUnlocked", "true");
           setIsUnlocked(true);
           toast({
             title: "Recommendations Unlocked!",
-            description: "Your Round 3 recommendations have been automatically unlocked.",
+            description:
+              "Your Round 3 recommendations have been automatically unlocked.",
           });
         }
-        
+
         toast({
           title: "Round 3 Recommendations Generated",
-          description: "Your Round 3 recommendation list has been generated successfully based on your preferences.",
+          description:
+            "Your Round 3 recommendation list has been generated successfully based on your preferences.",
         });
       } else {
-        throw new Error(response.message || 'Failed to generate recommendations');
+        throw new Error(
+          response.message || "Failed to generate recommendations"
+        );
       }
-      
     } catch (error) {
-      console.error('Error generating recommendations:', error);
+      console.error("Error generating recommendations:", error);
       toast({
         title: "Generation Failed",
         description: "Failed to generate recommendations. Please try again.",
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setIsGeneratingRecommendations(false);
@@ -709,27 +1009,33 @@ export const Round3Tab = () => {
   };
 
   const { generatePDF, isGenerating: isPdfGenerating } = usePdfDownload();
-  const [activeCategory, setActiveCategory] = useState<string>('All');
+  const [activeCategory, setActiveCategory] = useState<string>("All");
 
   const handleDownloadPDF = () => {
     if (!isUnlocked) {
       toast({
         title: "Download Locked",
-        description: "Please unlock recommendations to download the Round 3 PDF report. Your Round 1 unlock also works for Round 3.",
-        variant: "destructive"
+        description:
+          "Please unlock recommendations to download the Round 3 PDF report. Your Round 1 unlock also works for Round 3.",
+        variant: "destructive",
       });
       return;
     }
-    
+
     const formData = recommendationStorage.getFormData();
-    generatePDF(round3Recommendations, formData);
+    generatePDF(round3Recommendations, formData, {
+      branches: selectedBranches,
+      cities: selectedCities,
+    });
   };
 
   const sortRecommendationsByCategory = (recs: any[]) => {
     return recs.sort((a, b) => {
-      const categoryOrder = { 'Dream': 0, 'Reach': 1, 'Match': 2, 'Safety': 3 };
-      const categoryA = categoryOrder[a.category as keyof typeof categoryOrder] ?? 4;
-      const categoryB = categoryOrder[b.category as keyof typeof categoryOrder] ?? 4;
+      const categoryOrder = { Dream: 0, Reach: 1, Match: 2, Safety: 3 };
+      const categoryA =
+        categoryOrder[a.category as keyof typeof categoryOrder] ?? 4;
+      const categoryB =
+        categoryOrder[b.category as keyof typeof categoryOrder] ?? 4;
 
       if (categoryA !== categoryB) {
         return categoryA - categoryB;
@@ -746,18 +1052,24 @@ export const Round3Tab = () => {
 
     let filtered = round3Recommendations;
 
-    if (activeCategory !== 'All') {
-      filtered = round3Recommendations.filter(rec => rec.category === activeCategory);
+    if (activeCategory !== "All") {
+      filtered = round3Recommendations.filter(
+        (rec) => rec.category === activeCategory
+      );
     }
 
     return sortRecommendationsByCategory(filtered);
   };
 
   const categoryStats = {
-    Dream: round3Recommendations?.filter(r => r.category === 'Dream').length || 0,
-    Reach: round3Recommendations?.filter(r => r.category === 'Reach').length || 0,
-    Match: round3Recommendations?.filter(r => r.category === 'Match').length || 0,
-    Safety: round3Recommendations?.filter(r => r.category === 'Safety').length || 0,
+    Dream:
+      round3Recommendations?.filter((r) => r.category === "Dream").length || 0,
+    Reach:
+      round3Recommendations?.filter((r) => r.category === "Reach").length || 0,
+    Match:
+      round3Recommendations?.filter((r) => r.category === "Match").length || 0,
+    Safety:
+      round3Recommendations?.filter((r) => r.category === "Safety").length || 0,
   };
 
   const categorizedRecommendations = getCategorizedRecommendations();
@@ -790,7 +1102,7 @@ export const Round3Tab = () => {
     "Production",
     "Robotics and Automation",
     "Surface Coating Technology",
-    "Textile Technology"
+    "Textile Technology",
   ];
 
   const availableCities = [
@@ -831,41 +1143,53 @@ export const Round3Tab = () => {
     "Ulhasnagar",
     "Wardha",
     "Washim",
-    "Yavatmal"
+    "Yavatmal",
   ];
 
   const renderDepartments = (college: CollegeSearchResult) => {
-    const departments = Array.isArray(college.department) ? college.department : [college.department];
-    
+    const departments = Array.isArray(college.department)
+      ? college.department
+      : [college.department];
+
     return (
       <div className="space-y-2">
         <h4 className="font-medium text-sm">Select Department:</h4>
         <div className="grid gap-2">
           {departments.map((dept, index) => (
-            <div 
+            <div
               key={`${dept.choice_code}-${index}`}
               className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
             >
               <div className="flex-1">
                 <p className="font-medium text-sm">{dept.course_name}</p>
-                <p className="text-xs text-muted-foreground">Choice Code: {dept.choice_code}</p>
+                <p className="text-xs text-muted-foreground">
+                  Choice Code: {dept.choice_code}
+                </p>
                 {dept.course_code && (
-                  <p className="text-xs text-muted-foreground">Course Code: {dept.course_code}</p>
+                  <p className="text-xs text-muted-foreground">
+                    Course Code: {dept.course_code}
+                  </p>
                 )}
               </div>
               <Button
                 size="sm"
                 onClick={() => handleDepartmentSelect(college, dept)}
-                variant={selectedCollege?.selectedDepartment.choice_code === dept.choice_code ? "default" : "outline"}
+                variant={
+                  selectedCollege?.selectedDepartment.choice_code ===
+                  dept.choice_code
+                    ? "default"
+                    : "outline"
+                }
                 className="ml-2"
               >
-                {selectedCollege?.selectedDepartment.choice_code === dept.choice_code ? (
+                {selectedCollege?.selectedDepartment.choice_code ===
+                dept.choice_code ? (
                   <>
                     <Check className="w-4 h-4 mr-1" />
                     Selected
                   </>
                 ) : (
-                  'Select'
+                  "Select"
                 )}
               </Button>
             </div>
@@ -883,7 +1207,7 @@ export const Round3Tab = () => {
       {/* Confirmed Selection Display - Collapsible */}
       {isConfirmed && selectedCollege && (
         <Card className="border-green-200 bg-green-50">
-          <CardHeader 
+          <CardHeader
             className="cursor-pointer hover:bg-green-100/50 transition-colors"
             onClick={() => setIsCollegeCardCollapsed(!isCollegeCardCollapsed)}
           >
@@ -893,14 +1217,17 @@ export const Round3Tab = () => {
                 Round 3 College Selected
               </div>
               <div className="flex items-center gap-2">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={(e) => {
                     e.stopPropagation();
                     handleEditSelection();
                   }}
-                  disabled={hasGeneratedRecommendations && round3Recommendations.length > 0}
+                  disabled={
+                    hasGeneratedRecommendations &&
+                    round3Recommendations.length > 0
+                  }
                   className="text-orange-600 border-orange-300 hover:bg-orange-50"
                 >
                   Edit Selection
@@ -918,15 +1245,21 @@ export const Round3Tab = () => {
               <div className="space-y-2">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
                   <span className="font-medium text-sm">College:</span>
-                  <span className="text-sm text-green-700 sm:text-right">{selectedCollege.college.College_Name}</span>
+                  <span className="text-sm text-green-700 sm:text-right">
+                    {selectedCollege.college.College_Name}
+                  </span>
                 </div>
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
                   <span className="font-medium text-sm">City:</span>
-                  <span className="text-sm text-green-700">{selectedCollege.college.City}</span>
+                  <span className="text-sm text-green-700">
+                    {selectedCollege.college.City}
+                  </span>
                 </div>
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
                   <span className="font-medium text-sm">Department:</span>
-                  <Badge variant="secondary" className="w-fit">{selectedCollege.selectedDepartment.course_name}</Badge>
+                  <Badge variant="secondary" className="w-fit">
+                    {selectedCollege.selectedDepartment.course_name}
+                  </Badge>
                 </div>
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
                   <span className="font-medium text-sm">Choice Code:</span>
@@ -943,17 +1276,19 @@ export const Round3Tab = () => {
       {/* Preferences Section - Collapsible */}
       {showPreferences && (
         <Card className="border-blue-200 bg-blue-50">
-          <CardHeader 
+          <CardHeader
             className="cursor-pointer hover:bg-blue-100/50 transition-colors"
-            onClick={() => setIsPreferencesCardCollapsed(!isPreferencesCardCollapsed)}
+            onClick={() =>
+              setIsPreferencesCardCollapsed(!isPreferencesCardCollapsed)
+            }
           >
             <CardTitle className="text-lg text-blue-800 flex items-center justify-between">
               <span>Round 3 Preferences</span>
               <div className="flex items-center gap-2">
                 {!editingPreferences && (
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
+                  <Button
+                    variant="outline"
+                    size="sm"
                     onClick={(e) => {
                       e.stopPropagation();
                       setEditingPreferences(true);
@@ -961,7 +1296,10 @@ export const Round3Tab = () => {
                         setIsPreferencesCardCollapsed(false);
                       }
                     }}
-                    disabled={hasGeneratedRecommendations && round3Recommendations.length > 0}
+                    disabled={
+                      hasGeneratedRecommendations &&
+                      round3Recommendations.length > 0
+                    }
                     className="text-blue-600 border-blue-300 hover:bg-blue-100"
                   >
                     Edit Preferences
@@ -993,13 +1331,19 @@ export const Round3Tab = () => {
                       <CardContent className="space-y-6">
                         <SearchableSelect
                           options={availableBranches
-                            .filter(branch => !selectedBranches.includes(branch))
-                            .map(branch => ({ value: branch, label: branch }))}
+                            .filter(
+                              (branch) => !selectedBranches.includes(branch)
+                            )
+                            .map((branch) => ({
+                              value: branch,
+                              label: branch,
+                            }))}
                           value=""
                           onValueChange={addBranch}
                           placeholder="Add your favorite engineering branches"
                           searchPlaceholder="Search branches..."
                           className="w-full"
+                          disabled={selectedBranches.includes("ALL")}
                         />
 
                         {selectedBranches.length > 0 ? (
@@ -1007,31 +1351,50 @@ export const Round3Tab = () => {
                             <p className="text-sm font-medium text-slate-600 flex items-center gap-2">
                               🎯 Your Preferences (drag to reorder by priority):
                             </p>
-                            <div className={`border-2 rounded-xl p-3 bg-white ${selectedBranches.length > 5 ? 'max-h-80 overflow-y-auto' : ''}`}>
+                            <div
+                              className={`border-2 rounded-xl p-3 bg-white ${selectedBranches.length > 5 ? "max-h-80 overflow-y-auto" : ""}`}
+                            >
                               <DragDropContext onDragEnd={handleBranchDragEnd}>
                                 <Droppable droppableId="branches">
                                   {(provided) => (
-                                    <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-2">
+                                    <div
+                                      {...provided.droppableProps}
+                                      ref={provided.innerRef}
+                                      className="space-y-2"
+                                    >
                                       {selectedBranches.map((branch, index) => (
-                                        <Draggable key={branch} draggableId={branch} index={index}>
+                                        <Draggable
+                                          key={branch}
+                                          draggableId={branch}
+                                          index={index}
+                                        >
                                           {(provided) => (
                                             <div
                                               ref={provided.innerRef}
                                               {...provided.draggableProps}
                                               className="flex items-center gap-3 p-3 bg-gradient-to-r from-purple-100 to-pink-100 rounded-xl border shadow-sm hover:shadow-md transition-all"
                                             >
-                                              <div {...provided.dragHandleProps}>
-                                                <GripVertical size={16} className="text-slate-400 hover:text-slate-600" />
+                                              <div
+                                                {...provided.dragHandleProps}
+                                              >
+                                                <GripVertical
+                                                  size={16}
+                                                  className="text-slate-400 hover:text-slate-600"
+                                                />
                                               </div>
                                               <span className="text-sm font-bold text-purple-700 bg-white px-2 py-1 rounded-full">
                                                 #{index + 1}
                                               </span>
-                                              <span className="flex-1 text-sm font-medium text-slate-700">{branch}</span>
+                                              <span className="flex-1 text-sm font-medium text-slate-700">
+                                                {branch}
+                                              </span>
                                               <Button
                                                 type="button"
                                                 size="sm"
                                                 variant="ghost"
-                                                onClick={() => removeBranch(branch)}
+                                                onClick={() =>
+                                                  removeBranch(branch)
+                                                }
                                                 className="h-8 w-8 p-0 text-red-500 hover:bg-red-100 rounded-full"
                                               >
                                                 <X size={14} />
@@ -1049,7 +1412,10 @@ export const Round3Tab = () => {
                           </div>
                         ) : (
                           <div className="text-center py-8 text-slate-500">
-                            <BookOpen size={32} className="mx-auto mb-2 opacity-50" />
+                            <BookOpen
+                              size={32}
+                              className="mx-auto mb-2 opacity-50"
+                            />
                             <p>Select your dream engineering branches!</p>
                           </div>
                         )}
@@ -1063,19 +1429,22 @@ export const Round3Tab = () => {
                             <MapPin className="text-white" size={20} />
                           </div>
                           Preferred Cities
-                          <span className="text-xs text-slate-500 font-normal ml-2">(Optional)</span>
+                          <span className="text-xs text-slate-500 font-normal ml-2">
+                            (Optional)
+                          </span>
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="space-y-6">
                         <SearchableSelect
                           options={availableCities
-                            .filter(city => !selectedCities.includes(city))
-                            .map(city => ({ value: city, label: city }))}
+                            .filter((city) => !selectedCities.includes(city))
+                            .map((city) => ({ value: city, label: city }))}
                           value=""
                           onValueChange={addCity}
                           placeholder="Add cities you'd love to study in"
                           searchPlaceholder="Search cities..."
                           className="w-full"
+                          disabled={selectedCities.includes("ALL")}
                         />
 
                         {selectedCities.length > 0 ? (
@@ -1083,26 +1452,43 @@ export const Round3Tab = () => {
                             <p className="text-sm font-medium text-slate-600 flex items-center gap-2">
                               🗺️ Your Preferences (drag to reorder by priority):
                             </p>
-                            <div className={`border-2 rounded-xl p-3 bg-white ${selectedCities.length > 5 ? 'max-h-80 overflow-y-auto' : ''}`}>
+                            <div
+                              className={`border-2 rounded-xl p-3 bg-white ${selectedCities.length > 5 ? "max-h-80 overflow-y-auto" : ""}`}
+                            >
                               <DragDropContext onDragEnd={handleCityDragEnd}>
                                 <Droppable droppableId="cities">
                                   {(provided) => (
-                                    <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-2">
+                                    <div
+                                      {...provided.droppableProps}
+                                      ref={provided.innerRef}
+                                      className="space-y-2"
+                                    >
                                       {selectedCities.map((city, index) => (
-                                        <Draggable key={city} draggableId={city} index={index}>
+                                        <Draggable
+                                          key={city}
+                                          draggableId={city}
+                                          index={index}
+                                        >
                                           {(provided) => (
                                             <div
                                               ref={provided.innerRef}
                                               {...provided.draggableProps}
                                               className="flex items-center gap-3 p-3 bg-gradient-to-r from-green-100 to-emerald-100 rounded-xl border shadow-sm hover:shadow-md transition-all"
                                             >
-                                              <div {...provided.dragHandleProps}>
-                                                <GripVertical size={16} className="text-slate-400 hover:text-slate-600" />
+                                              <div
+                                                {...provided.dragHandleProps}
+                                              >
+                                                <GripVertical
+                                                  size={16}
+                                                  className="text-slate-400 hover:text-slate-600"
+                                                />
                                               </div>
                                               <span className="text-sm font-bold text-green-700 bg-white px-2 py-1 rounded-full">
                                                 #{index + 1}
                                               </span>
-                                              <span className="flex-1 text-sm font-medium text-slate-700">{city}</span>
+                                              <span className="flex-1 text-sm font-medium text-slate-700">
+                                                {city}
+                                              </span>
                                               <Button
                                                 type="button"
                                                 size="sm"
@@ -1125,25 +1511,30 @@ export const Round3Tab = () => {
                           </div>
                         ) : (
                           <div className="text-center py-8 text-slate-500">
-                            <MapPin size={32} className="mx-auto mb-2 opacity-50" />
+                            <MapPin
+                              size={32}
+                              className="mx-auto mb-2 opacity-50"
+                            />
                             <p>Pick your favorite cities!</p>
                           </div>
                         )}
                       </CardContent>
                     </Card>
                   </div>
-                  
+
                   {/* Action Buttons for editing */}
                   <div className="flex gap-2 pt-4 border-t border-blue-200">
-                    <Button 
+                    <Button
                       onClick={handleUpdatePreferences}
                       disabled={isUpdatingPreferences}
                       className="bg-blue-600 hover:bg-blue-700"
                     >
-                      {isUpdatingPreferences ? 'Updating...' : 'Update Preferences'}
+                      {isUpdatingPreferences
+                        ? "Updating..."
+                        : "Update Preferences"}
                     </Button>
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       onClick={() => {
                         setEditingPreferences(false);
                         loadPreferencesFromFormData(); // Reset to original values
@@ -1156,31 +1547,47 @@ export const Round3Tab = () => {
               ) : (
                 <div className="space-y-3">
                   <div>
-                    <Label className="text-sm font-medium text-blue-800">Selected Engineering Branches:</Label>
+                    <Label className="text-sm font-medium text-blue-800">
+                      Selected Engineering Branches:
+                    </Label>
                     <div className="flex flex-wrap gap-1 mt-1">
                       {selectedBranches.length > 0 ? (
                         selectedBranches.map((branch) => (
-                          <Badge key={branch} variant="secondary" className="text-xs">
+                          <Badge
+                            key={branch}
+                            variant="secondary"
+                            className="text-xs"
+                          >
                             {branch}
                           </Badge>
                         ))
                       ) : (
-                        <span className="text-sm text-blue-600 italic">No branches selected</span>
+                        <span className="text-sm text-blue-600 italic">
+                          No branches selected
+                        </span>
                       )}
                     </div>
                   </div>
-                  
+
                   <div>
-                    <Label className="text-sm font-medium text-blue-800">Preferred Cities:</Label>
+                    <Label className="text-sm font-medium text-blue-800">
+                      Preferred Cities:
+                    </Label>
                     <div className="flex flex-wrap gap-1 mt-1">
                       {selectedCities.length > 0 ? (
                         selectedCities.map((city) => (
-                          <Badge key={city} variant="secondary" className="text-xs">
+                          <Badge
+                            key={city}
+                            variant="secondary"
+                            className="text-xs"
+                          >
                             {city}
                           </Badge>
                         ))
                       ) : (
-                        <span className="text-sm text-blue-600 italic">No cities selected</span>
+                        <Badge variant="secondary" className="text-xs">
+                          ALL
+                        </Badge>
                       )}
                     </div>
                   </div>
@@ -1192,19 +1599,25 @@ export const Round3Tab = () => {
       )}
 
       {/* Generate Round 3 Recommendations Button - Only show if no recommendations generated */}
-      {showPreferences && !editingPreferences && selectedBranches.length > 0 && (!hasGeneratedRecommendations || round3Recommendations.length === 0) && (
-        <div className="flex justify-center pt-6">
-          <Button
-            onClick={handleGenerateRecommendations}
-            disabled={isGeneratingRecommendations}
-            className="px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 hover:shadow-xl transition-all duration-200 text-white font-bold text-base rounded-xl min-w-[200px]"
-            size="default"
-          >
-            <Sparkles className="w-5 h-5 mr-2" />
-            {isGeneratingRecommendations ? 'Generating...' : 'Generate Round 3 Recommendations'}
-          </Button>
-        </div>
-      )}
+      {showPreferences &&
+        !editingPreferences &&
+        selectedBranches.length > 0 &&
+        (!hasGeneratedRecommendations ||
+          round3Recommendations.length === 0) && (
+          <div className="flex justify-center pt-6">
+            <Button
+              onClick={handleGenerateRecommendations}
+              disabled={isGeneratingRecommendations}
+              className="px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 hover:shadow-xl transition-all duration-200 text-white font-bold text-base rounded-xl min-w-[200px]"
+              size="default"
+            >
+              <Sparkles className="w-5 h-5 mr-2" />
+              {isGeneratingRecommendations
+                ? "Generating..."
+                : "Generate Round 3 Recommendations"}
+            </Button>
+          </div>
+        )}
 
       {/* Round 3 Recommendations Display */}
       {hasGeneratedRecommendations && round3Recommendations.length > 0 && (
@@ -1212,10 +1625,10 @@ export const Round3Tab = () => {
           {/* Generate New Recommendations Button */}
           <div className="flex justify-center pt-6">
             <Button
-            onClick={(e) => {
-                    e.stopPropagation();
-                    handleRestRecommendation();
-            }}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleRestRecommendation();
+              }}
               variant="outline"
               className="px-6 py-2"
             >
@@ -1223,9 +1636,12 @@ export const Round3Tab = () => {
             </Button>
           </div>
           <div className="text-center">
-            <h3 className="text-2xl font-bold text-foreground mb-2">Round 3 College Recommendations</h3>
+            <h3 className="text-2xl font-bold text-foreground mb-2">
+              Round 3 College Recommendations
+            </h3>
             <p className="text-muted-foreground">
-              Based on your Round 2 selection and preferences, here are your final Round 3 options
+              Based on your Round 2 selection and preferences, here are your
+              final Round 3 options
             </p>
           </div>
 
@@ -1233,8 +1649,12 @@ export const Round3Tab = () => {
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
             <div className="text-center sm:text-left">
               <p className="text-lg text-gray-600">
-                Found <span className="font-semibold text-blue-600">{categorizedRecommendations.length}</span> college recommendations
-                {activeCategory !== 'All' && ` in ${activeCategory} category`}
+                Found{" "}
+                <span className="font-semibold text-blue-600">
+                  {categorizedRecommendations.length}
+                </span>{" "}
+                college recommendations
+                {activeCategory !== "All" && ` in ${activeCategory} category`}
               </p>
             </div>
 
@@ -1244,7 +1664,11 @@ export const Round3Tab = () => {
               className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg min-h-[44px] touch-manipulation"
             >
               <span className="text-sm font-medium">
-                {isPdfGenerating ? 'Generating...' : isUnlocked ? 'Download PDF' : 'Unlock to Download'}
+                {isPdfGenerating
+                  ? "Generating..."
+                  : isUnlocked
+                    ? "Download PDF"
+                    : "Unlock to Download"}
               </span>
             </Button>
           </div>
@@ -1254,11 +1678,15 @@ export const Round3Tab = () => {
             <div className="space-y-4">
               {categorizedRecommendations.map((recommendation, index) => {
                 // Add debugging and safety checks
-                if (!recommendation || !recommendation.college || !recommendation.college.name) {
-                  console.error('Invalid recommendation data:', recommendation);
+                if (
+                  !recommendation ||
+                  !recommendation.college ||
+                  !recommendation.college.name
+                ) {
+                  console.error("Invalid recommendation data:", recommendation);
                   return null;
                 }
-                
+
                 return (
                   <RecommendationCard
                     key={`${recommendation.college?.SJ_Institute_Code || recommendation.college?.id}-${recommendation.course_name}-${index}`}
@@ -1272,21 +1700,27 @@ export const Round3Tab = () => {
             <div className="relative">
               {/* Blurred preview cards */}
               <div className="space-y-4 opacity-30 blur-sm pointer-events-none">
-                {categorizedRecommendations.slice(0, 3).map((recommendation, index) => {
-                  if (!recommendation || !recommendation.college || !recommendation.college.name) {
-                    return null;
-                  }
-                  
-                  return (
-                    <RecommendationCard
-                      key={`preview-${recommendation.college?.College_Code || recommendation.college?.id}-${index}`}
-                      recommendation={recommendation}
-                      index={index + 1}
-                    />
-                  );
-                })}
+                {categorizedRecommendations
+                  .slice(0, 3)
+                  .map((recommendation, index) => {
+                    if (
+                      !recommendation ||
+                      !recommendation.college ||
+                      !recommendation.college.name
+                    ) {
+                      return null;
+                    }
+
+                    return (
+                      <RecommendationCard
+                        key={`preview-${recommendation.college?.College_Code || recommendation.college?.id}-${index}`}
+                        recommendation={recommendation}
+                        index={index + 1}
+                      />
+                    );
+                  })}
               </div>
-              
+
               {/* Premium Gate for Round 3 */}
               <div className="absolute inset-0 flex items-center justify-center">
                 <PremiumGate
@@ -1312,9 +1746,12 @@ export const Round3Tab = () => {
       {/* Header - Only show if not confirmed */}
       {!isConfirmed && (
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-foreground mb-2">Round 3 College Selection</h2>
+          <h2 className="text-2xl font-bold text-foreground mb-2">
+            Round 3 College Selection
+          </h2>
           <p className="text-muted-foreground">
-            Search and select the college you received in Round 2 for Round 3 counselling
+            Search and select the college you received in Round 2 for Round 3
+            counselling
           </p>
         </div>
       )}
@@ -1329,35 +1766,48 @@ export const Round3Tab = () => {
                   <Plus className="w-6 h-6 text-blue-600" />
                 </div>
                 <div className="space-y-2">
-                  <h3 className="text-lg font-semibold text-gray-800">Create New Round 3 List</h3>
+                  <h3 className="text-lg font-semibold text-gray-800">
+                    Create New Round 3 List
+                  </h3>
                   <p className="text-sm text-gray-600 max-w-md mx-auto">
-                    Don't have Round 2 details? Start fresh with a new Round 3 recommendation list based on your preferences.
+                    Don't have Round 2 details? Start fresh with a new Round 3
+                    recommendation list based on your preferences.
                   </p>
                 </div>
-                <Button onClick={handleCreateNewList} className="bg-blue-600 hover:bg-blue-700">
+                <Button
+                  onClick={handleCreateNewList}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
                   <Plus className="w-4 h-4 mr-2" />
                   Create New List
                 </Button>
               </div>
             </CardContent>
           </Card>
-          
+
           {/* OR Create New List Option */}
           <div className="flex items-center gap-4">
             <div className="flex-1 h-px bg-border"></div>
-            <span className="text-sm text-muted-foreground bg-background px-3">OR</span>
+            <span className="text-sm text-muted-foreground bg-background px-3">
+              OR
+            </span>
             <div className="flex-1 h-px bg-border"></div>
           </div>
-          
+
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Search Your Round 2 College</CardTitle>
+              <CardTitle className="text-lg">
+                Search Your Round 2 College
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="search-type">Search Type</Label>
-                  <Select value={searchType} onValueChange={(value: any) => setSearchType(value)}>
+                  <Select
+                    value={searchType}
+                    onValueChange={(value: any) => setSearchType(value)}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Select search type" />
                     </SelectTrigger>
@@ -1370,11 +1820,14 @@ export const Round3Tab = () => {
                     </SelectContent>
                   </Select>
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="search-value">
-                    {searchType === 'choice_code' ? 'Choice Code' : 
-                     searchType === 'college_name' ? 'College Name' : 'College Code'}
+                    {searchType === "choice_code"
+                      ? "Choice Code"
+                      : searchType === "college_name"
+                        ? "College Name"
+                        : "College Code"}
                   </Label>
                   <div className="flex gap-2">
                     <Input
@@ -1382,16 +1835,18 @@ export const Round3Tab = () => {
                       value={searchValue}
                       onChange={(e) => setSearchValue(e.target.value)}
                       placeholder={
-                        searchType === 'choice_code' ? 'Enter choice code (e.g., 211626310)' :
-                        searchType === 'college_name' ? 'Enter college name' :
-                        'Enter college code (e.g., 1146)'
+                        searchType === "choice_code"
+                          ? "Enter choice code (e.g., 211626310)"
+                          : searchType === "college_name"
+                            ? "Enter college name"
+                            : "Enter college code (e.g., 1146)"
                       }
-                      type={searchType === 'college_name' ? 'text' : 'number'}
-                      onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                      type={searchType === "college_name" ? "text" : "number"}
+                      onKeyPress={(e) => e.key === "Enter" && handleSearch()}
                     />
                     <Button onClick={handleSearch} disabled={isSearching}>
                       <Search className="w-4 h-4 mr-2" />
-                      {isSearching ? 'Searching...' : 'Search'}
+                      {isSearching ? "Searching..." : "Search"}
                     </Button>
                   </div>
                 </div>
@@ -1404,14 +1859,19 @@ export const Round3Tab = () => {
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">Search Results</h3>
               {searchResults.map((college, index) => (
-                <Card key={`${college.College_code}-${index}`} className="hover:shadow-md transition-shadow">
+                <Card
+                  key={`${college.College_code}-${index}`}
+                  className="hover:shadow-md transition-shadow"
+                >
                   <CardContent className="p-6">
                     <div className="space-y-4">
                       {/* College Info */}
                       <div className="space-y-2">
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex-1">
-                            <h4 className="text-lg font-semibold text-foreground">{college.College_Name}</h4>
+                            <h4 className="text-lg font-semibold text-foreground">
+                              {college.College_Name}
+                            </h4>
                             <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
                               <div className="flex items-center gap-1">
                                 <MapPin className="w-4 h-4" />
@@ -1422,9 +1882,9 @@ export const Round3Tab = () => {
                                 Code: {college.College_code}
                               </div>
                               {college.College_Website && (
-                                <a 
-                                  href={college.College_Website} 
-                                  target="_blank" 
+                                <a
+                                  href={college.College_Website}
+                                  target="_blank"
                                   rel="noopener noreferrer"
                                   className="flex items-center gap-1 text-blue-600 hover:text-blue-800"
                                 >
@@ -1454,9 +1914,18 @@ export const Round3Tab = () => {
               <div className="text-sm text-blue-800">
                 <p className="font-medium mb-2">💡 Tips for searching:</p>
                 <ul className="space-y-1 list-disc list-inside text-blue-700">
-                  <li><strong>Choice Code:</strong> Use the exact choice code from your Round 2 allotment</li>
-                  <li><strong>College Name:</strong> You can search with partial names</li>
-                  <li><strong>College Code:</strong> Use the official college code from your documents</li>
+                  <li>
+                    <strong>Choice Code:</strong> Use the exact choice code from
+                    your Round 2 allotment
+                  </li>
+                  <li>
+                    <strong>College Name:</strong> You can search with partial
+                    names
+                  </li>
+                  <li>
+                    <strong>College Code:</strong> Use the official college code
+                    from your documents
+                  </li>
                 </ul>
               </div>
             </CardContent>
@@ -1473,21 +1942,27 @@ export const Round3Tab = () => {
               Please review your Round 2 college selection details.
             </DialogDescription>
           </DialogHeader>
-          
+
           {selectedCollege && (
             <div className="space-y-4">
               <div className="space-y-2">
                 <div className="flex flex-col space-y-1">
                   <span className="font-medium text-sm">College:</span>
-                  <span className="text-sm text-muted-foreground">{selectedCollege.college.College_Name}</span>
+                  <span className="text-sm text-muted-foreground">
+                    {selectedCollege.college.College_Name}
+                  </span>
                 </div>
                 <div className="flex flex-col space-y-1">
                   <span className="font-medium text-sm">City:</span>
-                  <span className="text-sm text-muted-foreground">{selectedCollege.college.City}</span>
+                  <span className="text-sm text-muted-foreground">
+                    {selectedCollege.college.City}
+                  </span>
                 </div>
                 <div className="flex flex-col space-y-1">
                   <span className="font-medium text-sm">Department:</span>
-                  <Badge variant="secondary" className="w-fit">{selectedCollege.selectedDepartment.course_name}</Badge>
+                  <Badge variant="secondary" className="w-fit">
+                    {selectedCollege.selectedDepartment.course_name}
+                  </Badge>
                 </div>
                 <div className="flex flex-col space-y-1">
                   <span className="font-medium text-sm">Choice Code:</span>
@@ -1498,26 +1973,34 @@ export const Round3Tab = () => {
               </div>
             </div>
           )}
-          
+
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowSelectionDialog(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setShowSelectionDialog(false)}
+            >
               Cancel
             </Button>
-            <Button onClick={handleConfirmSelection}>
-              Confirm Selection
-            </Button>
+            <Button onClick={handleConfirmSelection}>Confirm Selection</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* Final Confirmation Dialog */}
-      <AlertDialog open={showFinalConfirmation} onOpenChange={setShowFinalConfirmation}>
+      <AlertDialog
+        open={showFinalConfirmation}
+        onOpenChange={setShowFinalConfirmation}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Confirm Round 2 College Details?</AlertDialogTitle>
+            <AlertDialogTitle>
+              Confirm Round 2 College Details?
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              Based on this selection, your Round 3 recommendation list will be generated when you complete the preference settings.
-              This will help you find the best available options for your final round of counselling.
+              Based on this selection, your Round 3 recommendation list will be
+              generated when you complete the preference settings. This will
+              help you find the best available options for your final round of
+              counselling.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -1530,17 +2013,25 @@ export const Round3Tab = () => {
       </AlertDialog>
 
       {/* Edit Confirmation Dialog */}
-      <AlertDialog open={showEditConfirmation} onOpenChange={setShowEditConfirmation}>
+      <AlertDialog
+        open={showEditConfirmation}
+        onOpenChange={setShowEditConfirmation}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Edit Selection?</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to edit your college selection? This will reset your current selection and any generated Round 3 recommendation list will be affected.
+              Are you sure you want to edit your college selection? This will
+              reset your current selection and any generated Round 3
+              recommendation list will be affected.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmEdit} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            <AlertDialogAction
+              onClick={handleConfirmEdit}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
               Yes, Edit Selection
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -1548,23 +2039,30 @@ export const Round3Tab = () => {
       </AlertDialog>
 
       {/* Edit Confirmation Dialog */}
-      <AlertDialog open={showEditConfirmationRecommendation} onOpenChange={setShowEditConfirmationRecommendation}>
+      <AlertDialog
+        open={showEditConfirmationRecommendation}
+        onOpenChange={setShowEditConfirmationRecommendation}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Edit Selection?</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to edit your Round 3 Recommendation? This will reset your current Round 3 Recommendation list and any generated Round 3 Recommendation list will be affected.
+              Are you sure you want to edit your Round 3 Recommendation? This
+              will reset your current Round 3 Recommendation list and any
+              generated Round 3 Recommendation list will be affected.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleRecommendationConfirmEdit} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            <AlertDialogAction
+              onClick={handleRecommendationConfirmEdit}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
               Yes, Edit Round 3 Recommendation
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
     </div>
   );
 };

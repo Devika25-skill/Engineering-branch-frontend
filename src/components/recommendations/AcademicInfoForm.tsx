@@ -1,12 +1,23 @@
-
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { GraduationCap, User, Award, AlertCircle, ChevronDown } from "lucide-react";
+import {
+  GraduationCap,
+  User,
+  Award,
+  AlertCircle,
+  ChevronDown,
+} from "lucide-react";
 import { useEffect } from "react";
 
 interface AcademicInfoFormProps {
@@ -15,14 +26,18 @@ interface AcademicInfoFormProps {
   validationErrors?: string[];
 }
 
-export const AcademicInfoForm = ({ data, onUpdate, validationErrors = [] }: AcademicInfoFormProps) => {
+export const AcademicInfoForm = ({
+  data,
+  onUpdate,
+  validationErrors = [],
+}: AcademicInfoFormProps) => {
   // Set default values when component mounts
   useEffect(() => {
     const defaultData = {
       reservationCategory: data.reservationCategory || "GOPENS",
-      grouping: data.grouping || "PCM (Physics, Chemistry, Mathematics)"
+      grouping: data.grouping || "PCM (Physics, Chemistry, Mathematics)",
     };
-    
+
     // Only update if the values are different from current data
     if (!data.reservationCategory || !data.grouping) {
       onUpdate(defaultData);
@@ -35,60 +50,121 @@ export const AcademicInfoForm = ({ data, onUpdate, validationErrors = [] }: Acad
 
   const handlePercentageChange = (field: string, value: string) => {
     const numValue = parseFloat(value);
-    if (value === '' || (numValue >= 0 && numValue <= 100)) {
+    if (value === "" || (numValue >= 0 && numValue <= 100)) {
       onUpdate({ [field]: numValue || undefined });
     }
   };
 
   const isFieldError = (fieldName: string) => {
-    return validationErrors.some(error => error.toLowerCase().includes(fieldName.toLowerCase()));
+    return validationErrors.some((error) =>
+      error.toLowerCase().includes(fieldName.toLowerCase())
+    );
   };
 
   const getFieldClassName = (fieldName: string, baseClass: string = "") => {
-    return isFieldError(fieldName) 
-      ? `${baseClass} border-red-300 ring-red-200 focus:border-red-500 focus:ring-red-200` 
+    return isFieldError(fieldName)
+      ? `${baseClass} border-red-300 ring-red-200 focus:border-red-500 focus:ring-red-200`
       : baseClass;
   };
 
   // Updated reservation categories to match API codes
   const reservationCategories = [
-  { "code": "GOPENS", "label": "General – Open" },
-  { "code": "GSCS", "label": "General – Scheduled Caste (SC)" },
-  { "code": "GSTS", "label": "General – Scheduled Tribe (ST)" },
-  { "code": "GVJS", "label": "General – Vimukta Jati/De-notified Tribes (VJ/DT)" },
-  { "code": "GNT1S", "label": "General – Nomadic Tribe 1 (NT1)" },
-  { "code": "GNT2S", "label": "General – Nomadic Tribe 2 (NT2)" },
-  { "code": "GNT3S", "label": "General – Nomadic Tribe 3 (NT3)" },
-  { "code": "GOBCS", "label": "General – Other Backward Class (OBC)" },
-  { "code": "GSEBCS", "label": "General – Socially and Educationally Backward Class (SEBC)" },
-  { "code": "LOPENS", "label": "Ladies – Open" },
-  { "code": "LSCS", "label": "Ladies – Scheduled Caste (SC)" },
-  { "code": "LSTS", "label": "Ladies – Scheduled Tribe (ST)" },
-  { "code": "LVJS", "label": "Ladies – Vimukta Jati/De-notified Tribes (VJ/DT)" },
-  { "code": "LNT1S", "label": "Ladies – Nomadic Tribe 1 (NT1)" },
-  { "code": "LNT2S", "label": "Ladies – Nomadic Tribe 2 (NT2)" },
-  { "code": "LOBCS", "label": "Ladies – Other Backward Class (OBC)" },
-  { "code": "LSEBCS", "label": "Ladies – Socially and Educationally Backward Class (SEBC)" },
-  { "code": "PWDOPENS", "label": "Persons with Disabilities – Open" },
-  { "code": "PWDOBCS", "label": "Persons with Disabilities – Other Backward Class (OBC)" },
-  { "code": "DEFOPENS", "label": "Defence – Open" },
-  { "code": "DEFSCS", "label": "Defence – Scheduled Caste (SC)" },
-  { "code": "DEFOBCS", "label": "Defence – Other Backward Class (OBC)" },
-  { "code": "DEFSEBCS", "label": "Defence – Socially and Educationally Backward Class (SEBC)" },
-  { "code": "TFWS", "label": "Tuition Fee Waiver Scheme" },
-  { "code": "PWDRNT3S", "label": "Persons with Disabilities – Nomadic Tribe 3 (NT3)" },
-  { "code": "DEFRNT3S", "label": "Defence – Nomadic Tribe 3 (NT3)" },
-  { "code": "PWDROBC", "label": "Persons with Disabilities – Reserved OBC" },
-  { "code": "DEFRSEBCS", "label": "Defence – Reserved SEBC" },
-  { "code": "ORPHAN", "label": "Orphan Category" },
-  { "code": "EWS", "label": "Economically Weaker Sections" }
-];
+    { code: "GOPENS", label: "General – Open" },
+    { code: "GSCS", label: "General – Scheduled Caste (SC)" },
+    { code: "GSTS", label: "General – Scheduled Tribe (ST)" },
+    {
+      code: "GVJS",
+      label: "General – Vimukta Jati/De-notified Tribes (VJ/DT)",
+    },
+    { code: "GNT1S", label: "General – Nomadic Tribe 1 (NT1)" },
+    { code: "GNT2S", label: "General – Nomadic Tribe 2 (NT2)" },
+    { code: "GNT3S", label: "General – Nomadic Tribe 3 (NT3)" },
+    { code: "GOBCS", label: "General – Other Backward Class (OBC)" },
+    {
+      code: "GSEBCS",
+      label: "General – Socially and Educationally Backward Class (SEBC)",
+    },
+    { code: "LOPENS", label: "Ladies – Open" },
+    { code: "LSCS", label: "Ladies – Scheduled Caste (SC)" },
+    { code: "LSTS", label: "Ladies – Scheduled Tribe (ST)" },
+    { code: "LVJS", label: "Ladies – Vimukta Jati/De-notified Tribes (VJ/DT)" },
+    { code: "LNT1S", label: "Ladies – Nomadic Tribe 1 (NT1)" },
+    { code: "LNT2S", label: "Ladies – Nomadic Tribe 2 (NT2)" },
+    { code: "LOBCS", label: "Ladies – Other Backward Class (OBC)" },
+    {
+      code: "LSEBCS",
+      label: "Ladies – Socially and Educationally Backward Class (SEBC)",
+    },
+    { code: "PWDOPENS", label: "Persons with Disabilities – Open" },
+    {
+      code: "PWDOBCS",
+      label: "Persons with Disabilities – Other Backward Class (OBC)",
+    },
+    { code: "DEFOPENS", label: "Defence – Open" },
+    { code: "DEFSCS", label: "Defence – Scheduled Caste (SC)" },
+    { code: "DEFOBCS", label: "Defence – Other Backward Class (OBC)" },
+    {
+      code: "DEFSEBCS",
+      label: "Defence – Socially and Educationally Backward Class (SEBC)",
+    },
+    { code: "TFWS", label: "Tuition Fee Waiver Scheme" },
+    {
+      code: "PWDRNT3S",
+      label: "Persons with Disabilities – Nomadic Tribe 3 (NT3)",
+    },
+    { code: "DEFRNT3S", label: "Defence – Nomadic Tribe 3 (NT3)" },
+    { code: "PWDROBC", label: "Persons with Disabilities – Reserved OBC" },
+    { code: "DEFRSEBCS", label: "Defence – Reserved SEBC" },
+    { code: "ORPHAN", label: "Orphan Category" },
+    { code: "EWS", label: "Economically Weaker Sections" },
+  ];
 
   const groupingOptions = [
-    "PCM (Physics, Chemistry, Mathematics)", 
+    "PCM (Physics, Chemistry, Mathematics)",
     "PCB (Physics, Chemistry, Biology)",
-    "PCMB (Physics, Chemistry, Mathematics, Biology)"
+    "PCMB (Physics, Chemistry, Mathematics, Biology)",
   ];
+
+  const districtOptions = [
+    "Ahmednagar",
+    "Akola",
+    "Amravati",
+    "Aurangabad",
+    "Beed",
+    "Bhandara",
+    "Buldhana",
+    "Chandrapur",
+    "Chh. Sambhaji Nagar (Aurangabad)",
+    "Chikhli",
+    "Dharashiv (Osmanabad)",
+    "Dhule",
+    "Ichalkaranji",
+    "Jalgaon",
+    "Jalna",
+    "Kalyan",
+    "Kolhapur",
+    "Latur",
+    "Mumbai",
+    "Nagpur",
+    "Nanded",
+    "Nandurbar",
+    "Nashik",
+    "Palghar",
+    "Pandharpur",
+    "Parbhani",
+    "Pune",
+    "Raigad",
+    "Ratnagiri",
+    "Sangli",
+    "Satara",
+    "Sindhudurg",
+    "Solapur",
+    "Thane",
+    "Ulhasnagar",
+    "Wardha",
+    "Washim",
+    "Yavatmal",
+  ].map((district) => ({ value: district, label: district }));
 
   return (
     <div className="space-y-6">
@@ -106,16 +182,53 @@ export const AcademicInfoForm = ({ data, onUpdate, validationErrors = [] }: Acad
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label className="flex items-center gap-2 text-slate-700 font-semibold text-sm">
+                <User size={14} />
+                Gender
+                <span className="text-red-500">*</span>
+                {isFieldError("Gender") && (
+                  <AlertCircle size={14} className="text-red-500" />
+                )}
+              </Label>
+              <Select
+                onValueChange={(value) => handleChange("gender", value)}
+                value={data.gender ?? ""}
+              >
+                <SelectTrigger
+                  className={getFieldClassName(
+                    "Gender",
+                    "h-10 rounded-xl border-2 bg-white"
+                  )}
+                >
+                  <SelectValue placeholder="Select your gender" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="male">Male</SelectItem>
+                  <SelectItem value="female">Female</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2 text-slate-700 font-semibold text-sm">
                 <GraduationCap size={14} />
                 Reservation Category
                 <span className="text-red-500">*</span>
-                {isFieldError('Reservation Category') && <AlertCircle size={14} className="text-red-500" />}
+                {isFieldError("Reservation Category") && (
+                  <AlertCircle size={14} className="text-red-500" />
+                )}
               </Label>
-              <Select 
-                onValueChange={(value) => handleChange('reservationCategory', value)} 
+              <Select
+                onValueChange={(value) =>
+                  handleChange("reservationCategory", value)
+                }
                 value={data.reservationCategory || "GOPENS"}
               >
-                <SelectTrigger className={getFieldClassName('Reservation Category', "h-10 rounded-xl border-2 bg-white")}>
+                <SelectTrigger
+                  className={getFieldClassName(
+                    "Reservation Category",
+                    "h-10 rounded-xl border-2 bg-white"
+                  )}
+                >
                   <SelectValue placeholder="Select your category" />
                 </SelectTrigger>
                 <SelectContent className="max-h-80">
@@ -133,13 +246,20 @@ export const AcademicInfoForm = ({ data, onUpdate, validationErrors = [] }: Acad
                 <GraduationCap size={14} />
                 12th Grade Grouping
                 <span className="text-red-500">*</span>
-                {isFieldError('12th Grade Grouping') && <AlertCircle size={14} className="text-red-500" />}
+                {isFieldError("12th Grade Grouping") && (
+                  <AlertCircle size={14} className="text-red-500" />
+                )}
               </Label>
-              <Select 
-                onValueChange={(value) => handleChange('grouping', value)} 
+              <Select
+                onValueChange={(value) => handleChange("grouping", value)}
                 value={data.grouping || "PCM (Physics, Chemistry, Mathematics)"}
               >
-                <SelectTrigger className={getFieldClassName('12th Grade Grouping', "h-10 rounded-xl border-2 bg-white")}>
+                <SelectTrigger
+                  className={getFieldClassName(
+                    "12th Grade Grouping",
+                    "h-10 rounded-xl border-2 bg-white"
+                  )}
+                >
                   <SelectValue placeholder="What did you study in 12th?" />
                 </SelectTrigger>
                 <SelectContent>
@@ -150,6 +270,28 @@ export const AcademicInfoForm = ({ data, onUpdate, validationErrors = [] }: Acad
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2 text-slate-700 font-semibold text-sm">
+                <GraduationCap size={14} />
+                Select the District Where Your Most Recent College Is Located
+                <span className="text-red-500">*</span>
+                {isFieldError("District") && (
+                  <AlertCircle size={14} className="text-red-500" />
+                )}
+              </Label>
+              <SearchableSelect
+                options={districtOptions}
+                value={data.district}
+                onValueChange={(value) => handleChange("district", value)}
+                placeholder="Search and select district..."
+                searchPlaceholder="Type to search district..."
+                className={getFieldClassName(
+                  "District",
+                  "h-10 rounded-xl border-2 bg-white"
+                )}
+              />
             </div>
           </div>
         </CardContent>
@@ -171,14 +313,21 @@ export const AcademicInfoForm = ({ data, onUpdate, validationErrors = [] }: Acad
               <Label className="flex items-center gap-2 text-slate-700 font-semibold text-sm">
                 📊 10th Grade Marks (%)
                 <span className="text-red-500">*</span>
-                {isFieldError('10th Grade Marks') && <AlertCircle size={14} className="text-red-500" />}
+                {isFieldError("10th Grade Marks") && (
+                  <AlertCircle size={14} className="text-red-500" />
+                )}
               </Label>
               <Input
                 type="number"
                 placeholder="Enter your 10th percentage"
-                value={data.tenthMarks || ''}
-                onChange={(e) => handlePercentageChange('tenthMarks', e.target.value)}
-                className={getFieldClassName('10th Grade Marks', "h-10 rounded-xl border-2 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none")}
+                value={data.tenthMarks || ""}
+                onChange={(e) =>
+                  handlePercentageChange("tenthMarks", e.target.value)
+                }
+                className={getFieldClassName(
+                  "10th Grade Marks",
+                  "h-10 rounded-xl border-2 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                )}
                 min="0"
                 max="100"
               />
@@ -188,14 +337,21 @@ export const AcademicInfoForm = ({ data, onUpdate, validationErrors = [] }: Acad
               <Label className="flex items-center gap-2 text-slate-700 font-semibold text-sm">
                 📈 12th Grade Marks (%)
                 <span className="text-red-500">*</span>
-                {isFieldError('12th Grade Marks') && <AlertCircle size={14} className="text-red-500" />}
+                {isFieldError("12th Grade Marks") && (
+                  <AlertCircle size={14} className="text-red-500" />
+                )}
               </Label>
               <Input
                 type="number"
                 placeholder="Enter your 12th percentage"
-                value={data.twelfthMarks || ''}
-                onChange={(e) => handlePercentageChange('twelfthMarks', e.target.value)}
-                className={getFieldClassName('12th Grade Marks', "h-10 rounded-xl border-2 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none")}
+                value={data.twelfthMarks || ""}
+                onChange={(e) =>
+                  handlePercentageChange("twelfthMarks", e.target.value)
+                }
+                className={getFieldClassName(
+                  "12th Grade Marks",
+                  "h-10 rounded-xl border-2 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                )}
                 min="0"
                 max="100"
               />
@@ -205,14 +361,21 @@ export const AcademicInfoForm = ({ data, onUpdate, validationErrors = [] }: Acad
               <Label className="flex items-center gap-2 text-slate-700 font-semibold text-sm">
                 🎯 Grouping Marks (%)
                 <span className="text-red-500">*</span>
-                {isFieldError('Grouping Marks') && <AlertCircle size={14} className="text-red-500" />}
+                {isFieldError("Grouping Marks") && (
+                  <AlertCircle size={14} className="text-red-500" />
+                )}
               </Label>
               <Input
                 type="number"
                 placeholder="Enter your grouping marks"
-                value={data.groupingMarks || ''}
-                onChange={(e) => handlePercentageChange('groupingMarks', e.target.value)}
-                className={getFieldClassName('Grouping Marks', "h-10 rounded-xl border-2 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none")}
+                value={data.groupingMarks || ""}
+                onChange={(e) =>
+                  handlePercentageChange("groupingMarks", e.target.value)
+                }
+                className={getFieldClassName(
+                  "Grouping Marks",
+                  "h-10 rounded-xl border-2 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                )}
                 min="0"
                 max="100"
               />
@@ -229,26 +392,38 @@ export const AcademicInfoForm = ({ data, onUpdate, validationErrors = [] }: Acad
                 <Label className="flex items-center gap-2 text-slate-700 font-semibold text-sm">
                   CET Percentile
                   <span className="text-red-500">*</span>
-                  {isFieldError('CET Percentile') && <AlertCircle size={14} className="text-red-500" />}
+                  {isFieldError("CET Percentile") && (
+                    <AlertCircle size={14} className="text-red-500" />
+                  )}
                 </Label>
                 <Input
                   type="number"
                   placeholder="Your CET percentile (0-100)"
-                  value={data.cetPercentile || ''}
-                  onChange={(e) => handlePercentageChange('cetPercentile', e.target.value)}
-                  className={getFieldClassName('CET Percentile', "h-10 rounded-xl border-2 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none")}
+                  value={data.cetPercentile || ""}
+                  onChange={(e) =>
+                    handlePercentageChange("cetPercentile", e.target.value)
+                  }
+                  className={getFieldClassName(
+                    "CET Percentile",
+                    "h-10 rounded-xl border-2 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  )}
                   min="0"
                   max="100"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label className="text-slate-600 font-medium text-sm">JEE Percentile <span className="text-xs text-slate-500">(Optional)</span></Label>
+                <Label className="text-slate-600 font-medium text-sm">
+                  JEE Percentile{" "}
+                  <span className="text-xs text-slate-500">(Optional)</span>
+                </Label>
                 <Input
                   type="number"
                   placeholder="Your JEE percentile (0-100)"
-                  value={data.jeePercentile || ''}
-                  onChange={(e) => handlePercentageChange('jeePercentile', e.target.value)}
+                  value={data.jeePercentile || ""}
+                  onChange={(e) =>
+                    handlePercentageChange("jeePercentile", e.target.value)
+                  }
                   className="h-10 rounded-xl border-2 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   min="0"
                   max="100"
@@ -256,22 +431,35 @@ export const AcademicInfoForm = ({ data, onUpdate, validationErrors = [] }: Acad
               </div>
 
               <div className="space-y-2">
-                <Label className="text-slate-600 font-medium text-sm">Other Exam Name <span className="text-xs text-slate-500">(Optional)</span></Label>
+                <Label className="text-slate-600 font-medium text-sm">
+                  Other Exam Name{" "}
+                  <span className="text-xs text-slate-500">(Optional)</span>
+                </Label>
                 <Input
                   placeholder="e.g., BITSAT, VITEEE, COMEDK"
-                  value={data.otherExamName || ''}
-                  onChange={(e) => handleChange('otherExamName', e.target.value)}
+                  value={data.otherExamName || ""}
+                  onChange={(e) =>
+                    handleChange("otherExamName", e.target.value)
+                  }
                   className="h-10 rounded-xl border-2 bg-white"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label className="text-slate-600 font-medium text-sm">Other Exam Score <span className="text-xs text-slate-500">(Optional)</span></Label>
+                <Label className="text-slate-600 font-medium text-sm">
+                  Other Exam Score{" "}
+                  <span className="text-xs text-slate-500">(Optional)</span>
+                </Label>
                 <Input
                   type="number"
                   placeholder="Your score/percentile"
-                  value={data.otherExamPercentile || ''}
-                  onChange={(e) => handleChange('otherExamPercentile', parseFloat(e.target.value) || undefined)}
+                  value={data.otherExamPercentile || ""}
+                  onChange={(e) =>
+                    handleChange(
+                      "otherExamPercentile",
+                      parseFloat(e.target.value) || undefined
+                    )
+                  }
                   className="h-10 rounded-xl border-2 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 />
               </div>
@@ -289,14 +477,17 @@ export const AcademicInfoForm = ({ data, onUpdate, validationErrors = [] }: Acad
                 <Award className="text-white" size={16} />
               </div>
               <span className="text-lg font-bold text-slate-800">
-                Your Achievements <span className="text-sm text-slate-500 font-normal">(Optional)</span>
+                Your Achievements{" "}
+                <span className="text-sm text-slate-500 font-normal">
+                  (Optional)
+                </span>
               </span>
               <div className="ml-auto transform transition-transform duration-200 group-open:rotate-180">
                 <ChevronDown className="w-5 h-5 text-slate-600" />
               </div>
             </div>
           </summary>
-          
+
           <div className="px-6 pb-6 space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
@@ -305,8 +496,10 @@ export const AcademicInfoForm = ({ data, onUpdate, validationErrors = [] }: Acad
                 </Label>
                 <Textarea
                   placeholder="State-level cricket, student council president, debate competitions..."
-                  value={data.sportsAchievements || ''}
-                  onChange={(e) => handleChange('sportsAchievements', e.target.value)}
+                  value={data.sportsAchievements || ""}
+                  onChange={(e) =>
+                    handleChange("sportsAchievements", e.target.value)
+                  }
                   rows={2}
                   className="rounded-xl border-2 bg-white resize-none"
                 />
@@ -318,8 +511,10 @@ export const AcademicInfoForm = ({ data, onUpdate, validationErrors = [] }: Acad
                 </Label>
                 <Textarea
                   placeholder="Python certification, web development course, cloud computing..."
-                  value={data.certifications || ''}
-                  onChange={(e) => handleChange('certifications', e.target.value)}
+                  value={data.certifications || ""}
+                  onChange={(e) =>
+                    handleChange("certifications", e.target.value)
+                  }
                   rows={2}
                   className="rounded-xl border-2 bg-white resize-none"
                 />
@@ -331,8 +526,8 @@ export const AcademicInfoForm = ({ data, onUpdate, validationErrors = [] }: Acad
                 </Label>
                 <Textarea
                   placeholder="Summer internship, part-time job, freelance projects..."
-                  value={data.internships || ''}
-                  onChange={(e) => handleChange('internships', e.target.value)}
+                  value={data.internships || ""}
+                  onChange={(e) => handleChange("internships", e.target.value)}
                   rows={2}
                   className="rounded-xl border-2 bg-white resize-none"
                 />
@@ -344,8 +539,10 @@ export const AcademicInfoForm = ({ data, onUpdate, validationErrors = [] }: Acad
                 </Label>
                 <Textarea
                   placeholder="Hackathon winner, published research, volunteer work..."
-                  value={data.otherAchievements || ''}
-                  onChange={(e) => handleChange('otherAchievements', e.target.value)}
+                  value={data.otherAchievements || ""}
+                  onChange={(e) =>
+                    handleChange("otherAchievements", e.target.value)
+                  }
                   rows={2}
                   className="rounded-xl border-2 bg-white resize-none"
                 />

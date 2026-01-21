@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 import Navigation from "@/components/Navigation";
 import { AcademicInfoForm } from "@/components/recommendations/AcademicInfoForm";
 import { MedicalAcademicInfoForm } from "@/components/recommendations/MedicalAcademicInfoForm";
@@ -11,7 +11,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { apiService } from "@/services/api";
 import LoginDialog from "@/components/auth/LoginDialog";
 import { useToast } from "@/hooks/use-toast";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { RecommendationHeader } from "@/components/recommendations/RecommendationHeader";
 import { toast } from "sonner";
 import RecommendationProgress from "@/components/recommendations/RecommendationProgress";
@@ -20,9 +20,9 @@ import StepFormCard from "@/components/recommendations/StepFormCard";
 import { recommendationStorage } from "@/services/recommendationStorage";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { History, X } from 'lucide-react';
-import StepLoadingMessages from '@/components/recommendations/StepLoadingMessages';
-import PreferencesConfirmationDialog from '@/components/recommendations/PreferencesConfirmationDialog';
+import { History, X } from "lucide-react";
+import StepLoadingMessages from "@/components/recommendations/StepLoadingMessages";
+import PreferencesConfirmationDialog from "@/components/recommendations/PreferencesConfirmationDialog";
 
 interface FormData {
   tenthMarks?: number;
@@ -50,6 +50,7 @@ interface FormData {
   coCurricularActivities?: string;
   collegeTypes?: string[];
   priorities?: string[];
+  district?: string;
   // Medical-specific fields
   gender?: string;
   neetPercentile?: number;
@@ -59,17 +60,20 @@ interface FormData {
 
 const RecommendationSteps = () => {
   const [currentStep, setCurrentStep] = useState(1);
-  const recommendationType = localStorage.getItem('recommendation_type');
-  const isMedical = recommendationType === 'First_Year_Medical';
-  
+  const recommendationType = localStorage.getItem("recommendation_type");
+  const isMedical = recommendationType === "First_Year_Medical";
+
   const [formData, setFormData] = useState<FormData>({
     reservationCategory: "GOPENS",
-    grouping: isMedical ? "PCB (Physics, Chemistry, Biology)" : "PCM (Physics, Chemistry, Mathematics)"
+    grouping: isMedical
+      ? "PCB (Physics, Chemistry, Biology)"
+      : "PCM (Physics, Chemistry, Mathematics)",
   });
   const [loginOpen, setLoginOpen] = useState(false);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const [showHistory, setShowHistory] = useState(false);
-  const [showPreferencesConfirmation, setShowPreferencesConfirmation] = useState(false);
+  const [showPreferencesConfirmation, setShowPreferencesConfirmation] =
+    useState(false);
   const { generateRecommendation } = useRecommendation();
   const { isLoggedIn, user } = useAuth();
   const { toast: toastHook } = useToast();
@@ -80,38 +84,61 @@ const RecommendationSteps = () => {
 
   // Map API response to form data structure for Engineering
   const mapApiResponseToFormData = (apiData: any) => {
+    // Check if we received the full object with academic_credentials or just credentials
+    const credentials = apiData.academic_credentials || apiData;
+    const gender = apiData.gender;
+
     // Extract other exam details if available
-    const otherExam = apiData.examPercentiles?.otherEntranceExam?.[0];
-    
+    const otherExam = credentials.examPercentiles?.otherEntranceExam?.[0];
+
     return {
       // Academic Info
-      reservationCategory: apiData.reservationCategory || 'GOPENS',
-      grouping: apiData.educationBackground?.stream || 'PCM (Physics, Chemistry, Mathematics)',
-      tenthMarks: apiData.academicMarks?._10thGradeMarksPercent || undefined,
-      twelfthMarks: apiData.academicMarks?._12thGradeMarksPercent || undefined,
-      groupingMarks: apiData.academicMarks?.groupingMarksPercent || undefined,
-      cetPercentile: apiData.examPercentiles?.CET || undefined,
-      jeePercentile: apiData.examPercentiles?.JEE || undefined,
+      gender: gender || undefined,
+      reservationCategory: credentials.reservationCategory || "GOPENS",
+      grouping:
+        credentials.educationBackground?.stream ||
+        "PCM (Physics, Chemistry, Mathematics)",
+      tenthMarks:
+        credentials.academicMarks?._10thGradeMarksPercent || undefined,
+      twelfthMarks:
+        credentials.academicMarks?._12thGradeMarksPercent || undefined,
+      groupingMarks:
+        credentials.academicMarks?.groupingMarksPercent || undefined,
+      cetPercentile: credentials.examPercentiles?.CET || undefined,
+      jeePercentile: credentials.examPercentiles?.JEE || undefined,
       otherExamName: otherExam?.examName || undefined,
       otherExamPercentile: otherExam?.percentileOrScore || undefined,
-      sportsAchievements: apiData.achievementsExperience?.sportsAchievements || undefined,
-      certifications: apiData.achievementsExperience?.certifications || undefined,
-      internships: apiData.achievementsExperience?.internshipsWorkExperience || undefined,
-      otherAchievements: apiData.achievementsExperience?.otherAchievements || undefined,
-      
+      sportsAchievements:
+        credentials.achievementsExperience?.sportsAchievements || undefined,
+      certifications:
+        credentials.achievementsExperience?.certifications || undefined,
+      internships:
+        credentials.achievementsExperience?.internshipsWorkExperience ||
+        undefined,
+      otherAchievements:
+        credentials.achievementsExperience?.otherAchievements || undefined,
+
       // Preferences
-      preferredStreams: apiData.preferences?.engineeringBranches || [],
-      preferredCities: apiData.preferences?.preferredCities || [],
-      
+      preferredStreams: credentials.preferences?.engineeringBranches || [],
+      preferredCities: credentials.preferences?.preferredCities || [],
+      district: credentials.preferences?.preferredDistrict || undefined,
+
       // Priorities
-      hostelPreference: apiData.campusFacilitiesEnvironment?.hostelFacility || undefined,
-      campusSetting: apiData.campusFacilitiesEnvironment?.campusSetting || undefined,
-      transportFacility: apiData.campusFacilitiesEnvironment?.transportFacility || undefined,
-      wifiTechInfrastructure: apiData.campusFacilitiesEnvironment?.wifiTechInfrastructure || undefined,
-      coCurricularActivities: apiData.campusFacilitiesEnvironment?.coCurricularActivities || undefined,
-      maxBudget: apiData.annualBudget || undefined,
-      collegeTypes: apiData.collegeTypePreferences || [],
-      priorities: apiData.priorityFactors || [],
+      hostelPreference:
+        credentials.campusFacilitiesEnvironment?.hostelFacility || undefined,
+      campusSetting:
+        credentials.campusFacilitiesEnvironment?.campusSetting || undefined,
+      transportFacility:
+        credentials.campusFacilitiesEnvironment?.transportFacility || undefined,
+      wifiTechInfrastructure:
+        credentials.campusFacilitiesEnvironment?.wifiTechInfrastructure ||
+        undefined,
+      coCurricularActivities:
+        credentials.campusFacilitiesEnvironment?.coCurricularActivities ||
+        undefined,
+      maxBudget: credentials.annualBudget || undefined,
+      collegeTypes: credentials.collegeTypePreferences || [],
+      priorities: credentials.priorityFactors || [],
     };
   };
 
@@ -120,38 +147,52 @@ const RecommendationSteps = () => {
     // Extract other exam details if available
     const credentials = apiData.academic_credentials || apiData;
     const otherExam = credentials.examPercentiles?.otherEntranceExam?.[0];
-    
+
     return {
       // Academic Info - gender is at top level
       gender: apiData.gender || undefined,
-      reservationCategory: credentials.reservationCategory || 'OPEN',
-      grouping: credentials.educationBackground?.stream || 'PCB (Physics, Chemistry, Biology)',
-      tenthMarks: credentials.academicMarks?.tenthGradeMarksPercent || undefined,
-      twelfthMarks: credentials.academicMarks?.twelfthGradeMarksPercent || undefined,
-      groupingMarks: credentials.academicMarks?.groupingMarksPercent || undefined,
-      
+      reservationCategory: credentials.reservationCategory || "OPEN",
+      grouping:
+        credentials.educationBackground?.stream ||
+        "PCB (Physics, Chemistry, Biology)",
+      tenthMarks:
+        credentials.academicMarks?.tenthGradeMarksPercent || undefined,
+      twelfthMarks:
+        credentials.academicMarks?.twelfthGradeMarksPercent || undefined,
+      groupingMarks:
+        credentials.academicMarks?.groupingMarksPercent || undefined,
+
       // Medical Exam Info
       neetPercentile: credentials.examPercentiles?.NEETPercentile || undefined,
-      neetAllIndiaRank: credentials.examPercentiles?.NEETAllIndiaRank || undefined,
+      neetAllIndiaRank:
+        credentials.examPercentiles?.NEETAllIndiaRank || undefined,
       neetRollNumber: credentials.examPercentiles?.NEETRollNumber || undefined,
       otherExamName: otherExam?.examName || undefined,
       otherExamPercentile: otherExam?.percentileOrScore || undefined,
-      
+
       // Achievements
-      sportsAchievements: credentials.achievementsExperience?.sportsAchievements || undefined,
-      certifications: credentials.achievementsExperience?.certifications || undefined,
-      internships: credentials.achievementsExperience?.internshipsWorkExperience || undefined,
-      otherAchievements: credentials.achievementsExperience?.otherAchievements || undefined,
-      
+      sportsAchievements:
+        credentials.achievementsExperience?.sportsAchievements || undefined,
+      certifications:
+        credentials.achievementsExperience?.certifications || undefined,
+      internships:
+        credentials.achievementsExperience?.internshipsWorkExperience ||
+        undefined,
+      otherAchievements:
+        credentials.achievementsExperience?.otherAchievements || undefined,
+
       // Preferences
       preferredMedicalPrograms: credentials.preferences?.medicalPrograms || [],
       preferredCities: credentials.preferences?.preferredCities || [],
-      
+
       // Campus Facilities
-      hostelPreference: credentials.campusFacilitiesEnvironment?.hostelFacility || undefined,
-      campusSetting: credentials.campusFacilitiesEnvironment?.campusSetting || undefined,
-      transportFacility: credentials.campusFacilitiesEnvironment?.transportFacility || undefined,
-      
+      hostelPreference:
+        credentials.campusFacilitiesEnvironment?.hostelFacility || undefined,
+      campusSetting:
+        credentials.campusFacilitiesEnvironment?.campusSetting || undefined,
+      transportFacility:
+        credentials.campusFacilitiesEnvironment?.transportFacility || undefined,
+
       // Budget and Priorities
       maxBudget: credentials.annualBudget || undefined,
       collegeTypes: credentials.collegeTypePreferences || [],
@@ -159,33 +200,117 @@ const RecommendationSteps = () => {
     };
   };
 
+  const location = useLocation();
+
   // Load saved form data on mount and fetch existing details if user is logged in
   useEffect(() => {
     const loadFormData = async () => {
       const savedFormData = recommendationStorage.getFormData();
       if (savedFormData) {
-        setFormData(prev => ({ ...prev, ...savedFormData }));
+        setFormData((prev) => ({ ...prev, ...savedFormData }));
       }
 
       // Fetch existing user details if logged in
       if (isLoggedIn && user?.accessToken) {
         try {
+          // Check for existing recommendations and redirect if found (unless coming from results page)
+          if (!isMedical && !location.state?.fromResults) {
+            try {
+              // Check Round 3
+              const round3Response = await apiService.getRoundRecommendations(
+                3,
+                user.accessToken
+              );
+              if (
+                round3Response.success &&
+                round3Response.data &&
+                Object.keys(round3Response.data).length > 0
+              ) {
+                // If round 3 data exists, save it and redirect
+                localStorage.setItem(
+                  "round3Recommendations",
+                  JSON.stringify(round3Response.data)
+                );
+                localStorage.setItem("activeRoundTab", "round3");
+                // Also cache converted if possible but Round3Tab handles conversion from raw
+                navigate("/recommendations/results");
+                return;
+              }
+
+              // Check Round 2
+              const round2Response = await apiService.getRoundRecommendations(
+                2,
+                user.accessToken
+              );
+              if (
+                round2Response.success &&
+                round2Response.data &&
+                Object.keys(round2Response.data).length > 0
+              ) {
+                localStorage.setItem(
+                  "round2Recommendations",
+                  JSON.stringify(round2Response.data)
+                );
+                localStorage.setItem("activeRoundTab", "round2");
+                navigate("/recommendations/results");
+                return;
+              }
+
+              // Check Round 1
+              const round1Response = await apiService.getRoundRecommendations(
+                1,
+                user.accessToken
+              );
+              if (
+                round1Response.success &&
+                round1Response.data &&
+                (Array.isArray(round1Response.data)
+                  ? round1Response.data.length > 0
+                  : Object.keys(round1Response.data).length > 0)
+              ) {
+                // Round 1 usually uses 'cachedRecommendations' and 'recommendations'
+                sessionStorage.setItem(
+                  "cachedRecommendations",
+                  JSON.stringify(round1Response.data)
+                );
+                localStorage.setItem("activeRoundTab", "round1");
+                navigate("/recommendations/results");
+                return;
+              }
+            } catch (checkError) {
+              console.error(
+                "Error checking existing recommendations:",
+                checkError
+              );
+              // Continue to load form data if check fails
+            }
+          }
+
           // Call appropriate API based on program type
-          const selectedState = localStorage.getItem('selected_state') || '';
-          const response = isMedical 
-            ? await apiService.fetchMedicalStudentDetails(user.accessToken, selectedState)
+          const selectedState = localStorage.getItem("selected_state") || "";
+          const response = isMedical
+            ? await apiService.fetchMedicalStudentDetails(
+                user.accessToken,
+                selectedState
+              )
             : await apiService.fetchAICapDetails(user.accessToken);
-            
+
           if (response.success && response.data?.academic_credentials) {
             // Use appropriate mapping function based on program type
-            const mappedData = isMedical 
+            const mappedData = isMedical
               ? mapMedicalApiResponseToFormData(response.data)
-              : mapApiResponseToFormData(response.data.academic_credentials);
-            setFormData(prev => ({ ...prev, ...mappedData }));
-            toast.success("Loaded your previous details", { duration: 3000, dismissible: true });
+              : mapApiResponseToFormData(response.data);
+            setFormData((prev) => ({ ...prev, ...mappedData }));
+            toast.success("Loaded your previous details", {
+              duration: 3000,
+              dismissible: true,
+            });
           }
         } catch (error) {
-          console.error('No existing data found or error fetching data:', error);
+          console.error(
+            "No existing data found or error fetching data:",
+            error
+          );
         }
       }
     };
@@ -210,52 +335,72 @@ const RecommendationSteps = () => {
     {
       number: 3,
       component: PrioritiesForm,
-    }
+    },
   ];
 
   const validateCurrentStep = () => {
     const errors: string[] = [];
-    
+
     if (currentStep === 1) {
-      if (!formData.tenthMarks || formData.tenthMarks <= 0) errors.push('10th Grade Marks');
-      if (!formData.reservationCategory) errors.push('Reservation Category');
-      if (!formData.twelfthMarks || formData.twelfthMarks <= 0) errors.push('12th Grade Marks');
-      if (!formData.grouping) errors.push('12th Grade Grouping');
-      if (!formData.groupingMarks || formData.groupingMarks <= 0) errors.push('Grouping Marks');
-      
+      if (!isMedical && !formData.district) errors.push("District");
+      if (!formData.tenthMarks || formData.tenthMarks <= 0)
+        errors.push("10th Grade Marks");
+      if (!formData.reservationCategory) errors.push("Reservation Category");
+      if (!formData.twelfthMarks || formData.twelfthMarks <= 0)
+        errors.push("12th Grade Marks");
+      if (!formData.grouping) errors.push("12th Grade Grouping");
+      if (!formData.groupingMarks || formData.groupingMarks <= 0)
+        errors.push("Grouping Marks");
+
       // Different validation for medical vs engineering
       if (isMedical) {
-        if (!formData.gender) errors.push('Gender');
-        if (!formData.neetPercentile || formData.neetPercentile <= 0) errors.push('NEET Percentile');
-        if (!formData.neetAllIndiaRank || formData.neetAllIndiaRank <= 0) errors.push('All India Rank');
-        if (!formData.neetRollNumber || formData.neetRollNumber < 1000000000 || formData.neetRollNumber > 9999999999) errors.push('NEET Roll Number');
+        if (!formData.gender) errors.push("Gender");
+        if (!formData.neetPercentile || formData.neetPercentile <= 0)
+          errors.push("NEET Percentile");
+        if (!formData.neetAllIndiaRank || formData.neetAllIndiaRank <= 0)
+          errors.push("All India Rank");
+        if (
+          !formData.neetRollNumber ||
+          formData.neetRollNumber < 1000000000 ||
+          formData.neetRollNumber > 9999999999
+        )
+          errors.push("NEET Roll Number");
       } else {
-        if (!formData.cetPercentile || formData.cetPercentile <= 0) errors.push('CET Percentile');
+        if (!formData.gender) errors.push("Gender");
+        if (!formData.cetPercentile || formData.cetPercentile <= 0)
+          errors.push("CET Percentile");
       }
     }
-    
+
     if (currentStep === 2) {
       if (isMedical) {
-        if (!formData.preferredMedicalPrograms || formData.preferredMedicalPrograms.length === 0) {
-          errors.push('Medical Programs');
+        if (
+          !formData.preferredMedicalPrograms ||
+          formData.preferredMedicalPrograms.length === 0
+        ) {
+          errors.push("Medical Programs");
         }
       } else {
-        if (!formData.preferredStreams || formData.preferredStreams.length === 0) {
-          errors.push('Engineering Branches');
+        if (
+          !formData.preferredStreams ||
+          formData.preferredStreams.length === 0
+        ) {
+          errors.push("Engineering Branches");
         }
       }
     }
-    
+
     if (currentStep === 3) {
-      if (!formData.maxBudget || formData.maxBudget <= 0) errors.push('Annual Budget');
+      if (!formData.maxBudget || formData.maxBudget <= 0)
+        errors.push("Annual Budget");
     }
-    
+
     setValidationErrors(errors);
     return errors.length === 0;
   };
 
   const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   useEffect(() => {
@@ -273,7 +418,7 @@ const RecommendationSteps = () => {
         title: "Missing Information",
         description: "Please fill in all required fields to continue",
         variant: "destructive",
-        duration: 3000
+        duration: 3000,
       });
     }
   };
@@ -287,7 +432,7 @@ const RecommendationSteps = () => {
   };
 
   const handleFormUpdate = (stepData: any) => {
-    setFormData(prev => {
+    setFormData((prev) => {
       const updated = { ...prev, ...stepData };
       return updated;
     });
@@ -302,7 +447,7 @@ const RecommendationSteps = () => {
     toastHook({
       title: "Form Data Loaded",
       description: "Previous form data has been loaded successfully.",
-      duration: 3000
+      duration: 3000,
     });
   };
 
@@ -310,9 +455,10 @@ const RecommendationSteps = () => {
     if (!validateCurrentStep()) {
       toastHook({
         title: "Missing Information",
-        description: "Please fill in all required fields to generate recommendations",
+        description:
+          "Please fill in all required fields to generate recommendations",
         variant: "destructive",
-        duration: 3000
+        duration: 3000,
       });
       return;
     }
@@ -322,8 +468,8 @@ const RecommendationSteps = () => {
       return;
     }
 
-    const recommendationType = localStorage.getItem('recommendation_type');
-    
+    const recommendationType = localStorage.getItem("recommendation_type");
+
     // Check login status
     if (!user) {
       setLoginOpen(true);
@@ -331,29 +477,55 @@ const RecommendationSteps = () => {
     }
 
     // Clear cached recommendations
-    sessionStorage.removeItem('cachedRecommendations');
-    sessionStorage.removeItem('cachedMedicalRecommendations');
-    
+    sessionStorage.removeItem("cachedRecommendations");
+    sessionStorage.removeItem("cachedMedicalRecommendations");
+
     // Show loading state
     setIsLoading(true);
-    
+
     try {
-      // Call the recommendation generation
-      await generateRecommendation(formData);
-      
-      // Navigate to results page after successful generation
-      if (recommendationType === 'First_Year_Medical') {
-        navigate('/medical-recommendations/results');
+      // Determine round and choice code from state
+      let roundNumber = 1;
+      let activeRoundTab = "round_1";
+      const choiceCode = location.state?.choiceCode;
+
+      if (location.state?.activeRound) {
+        if (location.state.activeRound === "round2") {
+          roundNumber = 2;
+          activeRoundTab = "round2";
+        } else if (location.state.activeRound === "round3") {
+          roundNumber = 3;
+          activeRoundTab = "round3";
+        } else {
+          // Default or round1
+          roundNumber = 1;
+          activeRoundTab = "round1";
+        }
       } else {
-        navigate('/recommendations/results');
+        // Default to Round 1 if no state
+        roundNumber = 1;
+        activeRoundTab = "round1";
+      }
+
+      // Call the recommendation generation with the specific round and previous choice code
+      await generateRecommendation(formData, roundNumber, choiceCode);
+
+      // Set the active tab for the results page
+      localStorage.setItem("activeRoundTab", activeRoundTab);
+
+      // Navigate to results page after successful generation
+      if (recommendationType === "First_Year_Medical") {
+        navigate("/medical-recommendations/results");
+      } else {
+        navigate("/recommendations/results");
       }
     } catch (error) {
-      console.error('Error generating recommendations:', error);
+      console.error("Error generating recommendations:", error);
       toastHook({
         title: "Error",
         description: "Failed to generate recommendations. Please try again.",
         variant: "destructive",
-        duration: 3000
+        duration: 3000,
       });
     } finally {
       setIsLoading(false);
@@ -362,23 +534,23 @@ const RecommendationSteps = () => {
 
   const handleConfirmPreferences = async () => {
     setShowPreferencesConfirmation(false);
-    sessionStorage.removeItem('cachedRecommendations');
-    sessionStorage.removeItem('cachedMedicalRecommendations');
-    
-    const recommendationType = localStorage.getItem('recommendation_type');
-    
-    if (recommendationType === 'First_Year_Medical') {
-      navigate('/medical-recommendations/results');
+    sessionStorage.removeItem("cachedRecommendations");
+    sessionStorage.removeItem("cachedMedicalRecommendations");
+
+    const recommendationType = localStorage.getItem("recommendation_type");
+
+    if (recommendationType === "First_Year_Medical") {
+      navigate("/medical-recommendations/results");
     } else {
-      navigate('/recommendations/results');
+      navigate("/recommendations/results");
     }
-    
+
     // Start generation in background
     try {
       window.scrollTo(0, 0);
       setIsLoading(true);
     } catch (error) {
-      console.error('Error generating recommendations:', error);
+      console.error("Error generating recommendations:", error);
     } finally {
       setIsLoading(false);
     }
@@ -386,28 +558,28 @@ const RecommendationSteps = () => {
 
   const handleLoginSuccess = async () => {
     setLoginOpen(false);
-    const recommendationType = localStorage.getItem('recommendation_type');
-    
+    const recommendationType = localStorage.getItem("recommendation_type");
+
     // Show loading state
     setIsLoading(true);
-    
+
     try {
       // Generate recommendations after successful login
       await generateRecommendation(formData);
-      
+
       // Navigate to results page after successful generation
-      if (recommendationType === 'First_Year_Medical') {
-        navigate('/medical-recommendations/results');
+      if (recommendationType === "First_Year_Medical") {
+        navigate("/medical-recommendations/results");
       } else {
-        navigate('/recommendations/results');
+        navigate("/recommendations/results");
       }
     } catch (error) {
-      console.error('Error generating recommendations after login:', error);
+      console.error("Error generating recommendations after login:", error);
       toastHook({
         title: "Error",
         description: "Failed to generate recommendations. Please try again.",
         variant: "destructive",
-        duration: 3000
+        duration: 3000,
       });
     } finally {
       setIsLoading(false);
@@ -435,13 +607,14 @@ const RecommendationSteps = () => {
         <div className="relative z-[5]">
           <RecommendationHeader formData={formData} />
         </div>
-        
-        
-        
+
         <div className="relative z-[5]">
-          <RecommendationProgress currentStep={currentStep} totalSteps={totalSteps} />
+          <RecommendationProgress
+            currentStep={currentStep}
+            totalSteps={totalSteps}
+          />
         </div>
-        
+
         <div className="relative z-[15]">
           <ValidationErrors errors={validationErrors} />
         </div>
@@ -459,7 +632,9 @@ const RecommendationSteps = () => {
               data={formData}
               onUpdate={handleFormUpdate}
               validationErrors={validationErrors}
-              {...(currentStep === 3 && isMedical ? { collegeTypeOptions: ["Government", "Private"] } : {})}
+              {...(currentStep === 3 && isMedical
+                ? { collegeTypeOptions: ["Government", "Private"] }
+                : {})}
             />
           </StepFormCard>
         </div>
