@@ -47,9 +47,11 @@ const RecommendationResults = () => {
               type: item.college.College_Type,
               nirf_rank: item.college.NIRF_Rank_Min,
               fees: item.college["Annual_Fees_(INR)"],
-              placement_percentage:
-                item.college.Overall_College_Placement_Percentage,
+              placement:
+                item.college.Overall_College_Placement_Percentage || null,
+              Student_Intake: item.college.Student_Intake || null,
               top_recruiters: item.college.Top_Recruiters || [],
+              rating: item.college.College_Reviews_out_of_5 || null,
             },
             course_name: item.course,
             cutoff_percentile: item.cutoff,
@@ -57,6 +59,7 @@ const RecommendationResults = () => {
             probability_message: item.probability_message,
             cet_percentile: item.cet_percentile,
             reservation_category: item.category,
+            choice_code: item.choice_code || null,
           });
         });
       }
@@ -65,8 +68,62 @@ const RecommendationResults = () => {
   }, []);
 
   const mapApiResponseToFormData = useCallback((apiData: any) => {
-    // Basic mapping or return as is if structure matches
-    return apiData;
+    // Check if we received the full object with academic_credentials or just credentials
+    const credentials = apiData.academic_credentials || apiData;
+    const gender = apiData.gender;
+
+    // Extract other exam details if available
+    const otherExam = credentials.examPercentiles?.otherEntranceExam?.[0];
+
+    return {
+      // Academic Info
+      gender: gender || undefined,
+      reservationCategory: credentials.reservationCategory || "GOPENS",
+      grouping:
+        credentials.educationBackground?.stream ||
+        "PCM (Physics, Chemistry, Mathematics)",
+      tenthMarks:
+        credentials.academicMarks?._10thGradeMarksPercent || undefined,
+      twelfthMarks:
+        credentials.academicMarks?._12thGradeMarksPercent || undefined,
+      groupingMarks:
+        credentials.academicMarks?.groupingMarksPercent || undefined,
+      cetPercentile: credentials.examPercentiles?.CET || undefined,
+      jeePercentile: credentials.examPercentiles?.JEE || undefined,
+      otherExamName: otherExam?.examName || undefined,
+      otherExamPercentile: otherExam?.percentileOrScore || undefined,
+      sportsAchievements:
+        credentials.achievementsExperience?.sportsAchievements || undefined,
+      certifications:
+        credentials.achievementsExperience?.certifications || undefined,
+      internships:
+        credentials.achievementsExperience?.internshipsWorkExperience ||
+        undefined,
+      otherAchievements:
+        credentials.achievementsExperience?.otherAchievements || undefined,
+
+      // Preferences
+      preferredStreams: credentials.preferences?.engineeringBranches || [],
+      preferredCities: credentials.preferences?.preferredCities || [],
+      district: credentials.preferences?.preferredDistrict || undefined,
+
+      // Priorities
+      hostelPreference:
+        credentials.campusFacilitiesEnvironment?.hostelFacility || undefined,
+      campusSetting:
+        credentials.campusFacilitiesEnvironment?.campusSetting || undefined,
+      transportFacility:
+        credentials.campusFacilitiesEnvironment?.transportFacility || undefined,
+      wifiTechInfrastructure:
+        credentials.campusFacilitiesEnvironment?.wifiTechInfrastructure ||
+        undefined,
+      coCurricularActivities:
+        credentials.campusFacilitiesEnvironment?.coCurricularActivities ||
+        undefined,
+      maxBudget: credentials.annualBudget || undefined,
+      collegeTypes: credentials.collegeTypePreferences || [],
+      priorities: credentials.priorityFactors || [],
+    };
   }, []);
 
   const fetchRound1Data = useCallback(async () => {
@@ -92,19 +149,38 @@ const RecommendationResults = () => {
 
       // Ensure we have form data, if not try to fetch it first
       if (!currentFormData || Object.keys(currentFormData).length === 0) {
-        if (isLoggedIn && user?.accessToken) {
+        if (isLoggedIn && user?.accessToken && user?.email) {
           try {
             const capResponse = await apiService.fetchAICapDetails(
-              user.accessToken
+              user.accessToken,
+              user.email
             );
             if (capResponse.success && capResponse.data) {
-              const mappedData = mapApiResponseToFormData(capResponse.data);
-              recommendationStorage.saveFormData(mappedData);
-              setFormData(mappedData);
-              currentFormData = mappedData;
+              const mappedFormData = mapApiResponseToFormData(capResponse.data);
+
+              // Restore to storage (all keys to ensure backward compatibility)
+              recommendationStorage.saveAcademicDetails(mappedFormData);
+              recommendationStorage.savePreferences(mappedFormData);
+              recommendationStorage.savePriorities(mappedFormData);
+
+              sessionStorage.setItem(
+                "recommendationFormData",
+                JSON.stringify(mappedFormData)
+              );
+              sessionStorage.setItem(
+                "recommendation_form_data",
+                JSON.stringify(mappedFormData)
+              );
+              localStorage.setItem(
+                "recommendationFormData",
+                JSON.stringify(mappedFormData)
+              ); // For PDF robustness
+
+              currentFormData = mappedFormData;
+              setFormData(mappedFormData);
             }
-          } catch (err) {
-            console.error("Failed to fetch CAP details", err);
+          } catch (error) {
+            console.error("Failed to fetch CAP details", error);
           }
         }
       }
@@ -128,6 +204,11 @@ const RecommendationResults = () => {
             sessionStorage.setItem(
               "cachedRecommendations",
               JSON.stringify(recs)
+            );
+            // Also update localStorage with the raw data to ensure consistency with useRecommendation
+            localStorage.setItem(
+              "recommendations",
+              JSON.stringify(round1Response.data)
             );
           } else if (
             currentFormData &&

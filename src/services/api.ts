@@ -1302,6 +1302,22 @@ class ApiService {
     );
   }
 
+  // Fetch AI Cap Details
+  async fetchAICapDetails(
+    token: string,
+    username: string
+  ): Promise<ApiResponse<any>> {
+    return this.request<ApiResponse<any>>(
+      `/api/v1/explore/fetchAICapDetails?username=${encodeURIComponent(username)}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+  }
+
   // Get Saved Medical Round Details
   async getMedicalUserRoundDetails(
     round: number,

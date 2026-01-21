@@ -1,9 +1,14 @@
-
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CollegeRecommendation } from "@/services/cutoffService";
-import { MapPin, Users, DollarSign, TrendingUp, ExternalLink } from "lucide-react";
+import {
+  MapPin,
+  Users,
+  DollarSign,
+  TrendingUp,
+  ExternalLink,
+} from "lucide-react";
 import { Link } from "react-router-dom";
 
 interface RecommendationCardProps {
@@ -11,23 +16,44 @@ interface RecommendationCardProps {
   index: number;
 }
 
-export const RecommendationCard = ({ recommendation, index }: RecommendationCardProps) => {
-  const { college, course_name, category, admission_probability, probability_message, cutoff_percentile } = recommendation;
-  const recommendationFormData = JSON.parse(sessionStorage.getItem("recommendation_form_data") || "{}");
+export const RecommendationCard = ({
+  recommendation,
+  index,
+}: RecommendationCardProps) => {
+  const {
+    college,
+    course_name,
+    category,
+    admission_probability,
+    probability_message,
+    cutoff_percentile,
+    choice_code,
+    reservation_category,
+  } = recommendation;
+  const recommendationFormData = JSON.parse(
+    sessionStorage.getItem("recommendation_form_data") || "{}"
+  );
 
   // Utility function to truncate text
   const truncateText = (text: string, maxLength: number) => {
     if (!text) return "";
-    return text.length > maxLength ? `${text.substring(0, maxLength)}...` : text;
+    return text.length > maxLength
+      ? `${text.substring(0, maxLength)}...`
+      : text;
   };
 
   const getCategoryColor = (category: string) => {
     switch (category) {
-      case "Dream": return "bg-purple-100 text-purple-800 border-purple-200";
-      case "Reach": return "bg-blue-100 text-blue-800 border-blue-200";
-      case "Match": return "bg-green-100 text-green-800 border-green-200";
-      case "Safety": return "bg-orange-100 text-orange-800 border-orange-200";
-      default: return "bg-gray-100 text-gray-800 border-gray-200";
+      case "Dream":
+        return "bg-purple-100 text-purple-800 border-purple-200";
+      case "Reach":
+        return "bg-blue-100 text-blue-800 border-blue-200";
+      case "Match":
+        return "bg-green-100 text-green-800 border-green-200";
+      case "Safety":
+        return "bg-orange-100 text-orange-800 border-orange-200";
+      default:
+        return "bg-gray-100 text-gray-800 border-gray-200";
     }
   };
 
@@ -38,16 +64,16 @@ export const RecommendationCard = ({ recommendation, index }: RecommendationCard
   };
 
   const formatCurrency = (amount: number | null) => {
-    if (!amount) return 'Not specified';
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
-      maximumFractionDigits: 0
+    if (!amount) return "Not specified";
+    return new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
+      maximumFractionDigits: 0,
     }).format(amount);
   };
 
   const handleCollegeClick = () => {
-    sessionStorage.setItem('navigationSource', 'recommendations');
+    sessionStorage.setItem("navigationSource", "recommendations");
   };
 
   return (
@@ -68,7 +94,7 @@ export const RecommendationCard = ({ recommendation, index }: RecommendationCard
                 className="w-10 h-10 object-contain rounded-lg border border-gray-100 bg-gray-50 p-1"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
-                  target.style.display = 'none';
+                  target.style.display = "none";
                 }}
               />
             ) : (
@@ -95,6 +121,8 @@ export const RecommendationCard = ({ recommendation, index }: RecommendationCard
                 <div className="flex items-center gap-1 mt-1 text-xs text-gray-500">
                   <MapPin size={10} />
                   <span>{truncateText(college.city, 20)}</span>
+                  <span className="mx-1">•</span>
+                  <span>College Code: {college.id}</span>
                   {college.rating && (
                     <>
                       <span>•</span>
@@ -103,7 +131,9 @@ export const RecommendationCard = ({ recommendation, index }: RecommendationCard
                   )}
                 </div>
               </div>
-              <Badge className={`${getCategoryColor(category)} px-2 py-0.5 text-xs font-medium flex-shrink-0`}>
+              <Badge
+                className={`${getCategoryColor(category)} px-2 py-0.5 text-xs font-medium flex-shrink-0`}
+              >
                 {category}
               </Badge>
             </div>
@@ -111,16 +141,38 @@ export const RecommendationCard = ({ recommendation, index }: RecommendationCard
             {/* Course Info - More compact */}
             <div className="bg-blue-50 rounded-lg p-2 mb-2">
               <div className="text-xs">
-                <div className="font-medium text-blue-900 mb-1" title={course_name}>
+                <div
+                  className="font-medium text-blue-900 mb-1"
+                  title={course_name}
+                >
                   {truncateText(course_name, 45)}
                 </div>
-                {cutoff_percentile && (
-                  <span className="text-blue-700 bg-blue-200 px-1.5 py-0.5 rounded text-xs">
-                    {cutoff_percentile}%ile
-                  </span>
-                )}
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {choice_code && (
+                    <span className="text-blue-700 bg-blue-100 px-1.5 py-0.5 rounded text-xs border border-blue-200">
+                      Choice Code: {choice_code}
+                    </span>
+                  )}
+                  {cutoff_percentile && (
+                    <span className="text-blue-700 bg-blue-100 px-1.5 py-0.5 rounded text-xs">
+                      Previous Year Cutoff: {cutoff_percentile}%ile
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
+
+            {/* Category Info */}
+            {reservation_category && (
+              <div className="mb-2 px-1">
+                <p className="text-xs text-gray-600">
+                  Category:{" "}
+                  <span className="font-medium text-gray-900">
+                    {reservation_category}
+                  </span>
+                </p>
+              </div>
+            )}
 
             {/* Metrics Row */}
             <div className="flex flex-wrap gap-2 mb-2 text-xs">
@@ -128,7 +180,9 @@ export const RecommendationCard = ({ recommendation, index }: RecommendationCard
                 <div className="bg-green-50 rounded-md px-2 py-1 border border-green-100 flex-1">
                   <div className="flex items-center gap-1">
                     {/* <DollarSign size={10} className="text-green-600" /> */}
-                    <span className="font-medium text-green-800 truncate">{formatCurrency(college.fees)}</span>
+                    <span className="font-medium text-green-800 truncate">
+                      {formatCurrency(college.fees)}
+                    </span>
                   </div>
                 </div>
               )}
@@ -137,7 +191,9 @@ export const RecommendationCard = ({ recommendation, index }: RecommendationCard
                 <div className="bg-purple-50 rounded-md px-2 py-1 border border-purple-100 flex-1">
                   <div className="flex items-center gap-1">
                     <TrendingUp size={10} className="text-purple-600" />
-                    <span className="font-medium text-purple-800">{college.placement}%</span>
+                    <span className="font-medium text-purple-800">
+                      {college.placement}%
+                    </span>
                   </div>
                 </div>
               )}
@@ -146,7 +202,9 @@ export const RecommendationCard = ({ recommendation, index }: RecommendationCard
                 <div className="bg-blue-50 rounded-md px-2 py-1 border border-blue-100 flex-1">
                   <div className="flex items-center gap-1">
                     <Users size={10} className="text-blue-600" />
-                    <span className="font-medium text-blue-800">{college.Student_Intake}</span>
+                    <span className="font-medium text-blue-800">
+                      {college.Student_Intake}
+                    </span>
                   </div>
                 </div>
               )}
@@ -158,26 +216,35 @@ export const RecommendationCard = ({ recommendation, index }: RecommendationCard
         <div className="flex flex-col sm:flex-row items-start justify-between bg-gray-50 rounded-lg p-2 mt-2 gap-2">
           <div className="flex-1">
             <div className="flex items-center justify-between mb-1">
-              <span className="text-xs font-medium text-gray-800">Admission Chances</span>
-              <span className={`text-lg font-bold ${getProbabilityColor(admission_probability)}`}>
+              <span className="text-xs font-medium text-gray-800">
+                Admission Chances
+              </span>
+              <span
+                className={`text-lg font-bold ${getProbabilityColor(admission_probability)}`}
+              >
                 {admission_probability}%
               </span>
             </div>
             {probability_message && (
               <>
-             
-              <p className="text-xs text-gray-600 break-words">{recommendationFormData.cetPercentile ? `Your CET Percentile: ${recommendationFormData.cetPercentile}%` : ''} </p>
-              <p className="text-xs text-gray-600 break-words">{recommendationFormData.reservationCategory ? ` Reservation Category: ${recommendationFormData.reservationCategory}` : ''}</p>
-            </> )}
+                <p className="text-xs text-gray-600 break-words">
+                  {recommendationFormData.cetPercentile
+                    ? `Your CET Percentile: ${recommendationFormData.cetPercentile}%`
+                    : ""}{" "}
+                </p>
+                <p className="text-xs text-gray-600 break-words">
+                  {recommendationFormData.reservationCategory
+                    ? ` Reservation Category: ${recommendationFormData.reservationCategory}`
+                    : ""}
+                </p>
+              </>
+            )}
           </div>
         </div>
 
         {/* Compact View Details Button - Positioned at top right */}
         <div className="absolute top-3 right-3">
-          <Link
-            to={`/college/${college?.id}`}
-            onClick={handleCollegeClick}
-          >
+          <Link to={`/college/${college?.id}`} onClick={handleCollegeClick}>
             <Button
               size="sm"
               className="h-8 px-3 text-xs font-medium bg-blue-600 hover:bg-blue-700 text-white rounded-md shadow-sm transition-all duration-200 flex items-center gap-1"

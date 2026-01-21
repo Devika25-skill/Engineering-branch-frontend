@@ -124,9 +124,11 @@ export const Round3Tab = () => {
               type: item.college.College_Type,
               nirf_rank: item.college.NIRF_Rank_Min,
               fees: item.college["Annual_Fees_(INR)"],
-              placement_percentage:
-                item.college.Overall_College_Placement_Percentage,
+              placement:
+                item.college.Overall_College_Placement_Percentage || null,
+              Student_Intake: item.college.Student_Intake || null,
               top_recruiters: item.college.Top_Recruiters || [],
+              rating: item.college.College_Reviews_out_of_5 || null,
             },
             course_name: item.course,
             cutoff_percentile: item.cutoff,
@@ -134,6 +136,7 @@ export const Round3Tab = () => {
             probability_message: item.probability_message,
             cet_percentile: item.cet_percentile,
             reservation_category: item.category,
+            choice_code: item.choice_code || null,
           });
         });
       }
@@ -801,7 +804,91 @@ export const Round3Tab = () => {
       );
 
       // Get form data for category and CET percentile
-      const formData = recommendationStorage.getFormData();
+      let formData = recommendationStorage.getFormData();
+
+      // Attempt to fetch missing data
+      if ((!formData || !formData.district) && user?.email) {
+        try {
+          const capResponse = await apiService.fetchAICapDetails(
+            user.accessToken,
+            user.email
+          );
+          if (capResponse.success && capResponse.data) {
+            const apiData = capResponse.data;
+            const credentials = apiData.academic_credentials || apiData;
+            const gender = apiData.gender;
+            const otherExam =
+              credentials.examPercentiles?.otherEntranceExam?.[0];
+
+            const mappedData = {
+              gender: gender || undefined,
+              reservationCategory: credentials.reservationCategory || "GOPENS",
+              grouping:
+                credentials.educationBackground?.stream ||
+                "PCM (Physics, Chemistry, Mathematics)",
+              tenthMarks:
+                credentials.academicMarks?._10thGradeMarksPercent || undefined,
+              twelfthMarks:
+                credentials.academicMarks?._12thGradeMarksPercent || undefined,
+              groupingMarks:
+                credentials.academicMarks?.groupingMarksPercent || undefined,
+              cetPercentile: credentials.examPercentiles?.CET || undefined,
+              jeePercentile: credentials.examPercentiles?.JEE || undefined,
+              otherExamName: otherExam?.examName || undefined,
+              otherExamPercentile: otherExam?.percentileOrScore || undefined,
+              sportsAchievements:
+                credentials.achievementsExperience?.sportsAchievements ||
+                undefined,
+              certifications:
+                credentials.achievementsExperience?.certifications || undefined,
+              internships:
+                credentials.achievementsExperience?.internshipsWorkExperience ||
+                undefined,
+              otherAchievements:
+                credentials.achievementsExperience?.otherAchievements ||
+                undefined,
+              preferredStreams:
+                credentials.preferences?.engineeringBranches || [],
+              preferredCities: credentials.preferences?.preferredCities || [],
+              district: credentials.preferences?.preferredDistrict || undefined,
+              hostelPreference:
+                credentials.campusFacilitiesEnvironment?.hostelFacility ||
+                undefined,
+              campusSetting:
+                credentials.campusFacilitiesEnvironment?.campusSetting ||
+                undefined,
+              transportFacility:
+                credentials.campusFacilitiesEnvironment?.transportFacility ||
+                undefined,
+              wifiTechInfrastructure:
+                credentials.campusFacilitiesEnvironment
+                  ?.wifiTechInfrastructure || undefined,
+              coCurricularActivities:
+                credentials.campusFacilitiesEnvironment
+                  ?.coCurricularActivities || undefined,
+              maxBudget: credentials.annualBudget || undefined,
+              collegeTypes: credentials.collegeTypePreferences || [],
+              priorities: credentials.priorityFactors || [],
+            };
+
+            recommendationStorage.saveAcademicDetails(mappedData);
+            recommendationStorage.savePreferences(mappedData);
+            recommendationStorage.savePriorities(mappedData);
+            sessionStorage.setItem(
+              "recommendationFormData",
+              JSON.stringify(mappedData)
+            );
+            sessionStorage.setItem(
+              "recommendation_form_data",
+              JSON.stringify(mappedData)
+            );
+            formData = mappedData;
+          }
+        } catch (e) {
+          console.error("Failed to restore form data", e);
+        }
+      }
+
       const category = formData?.reservationCategory || "GOPENS";
       const cetPercentile =
         formData?.cetPercentile || formData?.cet_percentile || 0;
@@ -907,7 +994,10 @@ export const Round3Tab = () => {
     }
 
     const formData = recommendationStorage.getFormData();
-    generatePDF(round3Recommendations, formData);
+    generatePDF(round3Recommendations, formData, {
+      branches: selectedBranches,
+      cities: selectedCities,
+    });
   };
 
   const sortRecommendationsByCategory = (recs: any[]) => {

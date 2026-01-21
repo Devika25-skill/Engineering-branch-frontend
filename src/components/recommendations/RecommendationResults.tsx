@@ -111,7 +111,10 @@ export const RecommendationResults = ({
       return;
     }
 
-    generatePDF(recommendations, formData);
+    generatePDF(recommendations, formData, {
+      branches: formData?.preferredStreams,
+      cities: formData?.preferredCities,
+    });
   };
   // Load user data from localStorage
   useEffect(() => {
