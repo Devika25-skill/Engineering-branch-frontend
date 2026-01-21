@@ -79,7 +79,15 @@ export const Round2Tab = () => {
   const [isSearching, setIsSearching] = useState(false);
   const [searchResults, setSearchResults] = useState<CollegeSearchResult[]>([]);
   const [selectedCollege, setSelectedCollege] =
-    useState<SelectedCollege | null>(null);
+    useState<SelectedCollege | null>(() => {
+      try {
+        const saved = sessionStorage.getItem("round2SelectedCollege");
+        return saved ? JSON.parse(saved) : null;
+      } catch (e) {
+        console.error("Failed to restore selected college", e);
+        return null;
+      }
+    });
   const [showSelectionDialog, setShowSelectionDialog] = useState(false);
   const [showFinalConfirmation, setShowFinalConfirmation] = useState(false);
   const [showEditConfirmation, setShowEditConfirmation] = useState(false);
@@ -147,6 +155,19 @@ export const Round2Tab = () => {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [hasGeneratedRecommendations]);
+
+  // Sync selectedCollege with sessionStorage
+  useEffect(() => {
+    if (selectedCollege) {
+      sessionStorage.setItem(
+        "round2SelectedCollege",
+        JSON.stringify(selectedCollege)
+      );
+    } else {
+      sessionStorage.removeItem("round2SelectedCollege");
+    }
+  }, [selectedCollege]);
+
   // Load from localStorage and API on mount
   useEffect(() => {
     const loadExistingData = async () => {

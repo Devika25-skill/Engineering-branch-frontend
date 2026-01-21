@@ -1,31 +1,44 @@
-import { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { GraduationCap, Users, Calendar, MapPin } from "lucide-react";
 
 interface RecommendationTypeDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSelectType: (type: 'first-year' | 'direct-second-year') => void;
+  onSelectType: (type: "first-year" | "direct-second-year") => void;
 }
 
-export const RecommendationTypeDialog = ({ 
-  open, 
-  onOpenChange, 
-  onSelectType 
+export const RecommendationTypeDialog = ({
+  open,
+  onOpenChange,
+  onSelectType,
 }: RecommendationTypeDialogProps) => {
-  const [selectedType, setSelectedType] = useState<'first-year' | 'direct-second-year' | null>(null);
+  const [selectedType, setSelectedType] = useState<
+    "first-year" | "direct-second-year" | null
+  >(null);
 
-  const handleSelect = (type: 'first-year' | 'direct-second-year') => {
+  const handleSelect = (type: "first-year" | "direct-second-year") => {
     setSelectedType(type);
-    localStorage.setItem('recommendation_type', type);
+    localStorage.setItem("recommendation_type", type);
     onSelectType(type);
     onOpenChange(false);
   };
 
   const handleClearPreference = () => {
-    localStorage.removeItem('recommendation_type');
+    localStorage.removeItem("recommendation_type");
   };
 
   return (
@@ -36,12 +49,12 @@ export const RecommendationTypeDialog = ({
             Choose Admission Type
           </DialogTitle>
         </DialogHeader>
-        
+
         <div className="space-y-3">
           {/* First Year Engineering */}
-          <Card 
+          <Card
             className="cursor-pointer transition-all duration-200 hover:shadow-md active:scale-[0.98] border-2 hover:border-purple-300 touch-manipulation"
-            onClick={() => handleSelect('first-year')}
+            onClick={() => handleSelect("first-year")}
           >
             <CardHeader className="text-center pb-2">
               <div className="mx-auto w-10 h-10 bg-gradient-to-br from-purple-100 to-purple-200 rounded-full flex items-center justify-center mb-2">
@@ -67,9 +80,9 @@ export const RecommendationTypeDialog = ({
           </Card>
 
           {/* Direct Second Year */}
-          <Card 
+          <Card
             className="cursor-pointer transition-all duration-200 hover:shadow-md active:scale-[0.98] border-2 hover:border-indigo-300 touch-manipulation"
-            onClick={() => handleSelect('direct-second-year')}
+            onClick={() => handleSelect("direct-second-year")}
           >
             <CardHeader className="text-center pb-2">
               <div className="mx-auto w-10 h-10 bg-gradient-to-br from-indigo-100 to-indigo-200 rounded-full flex items-center justify-center mb-2">
@@ -96,8 +109,8 @@ export const RecommendationTypeDialog = ({
         </div>
 
         <div className="flex flex-col gap-2 pt-3 border-t">
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             onClick={() => onOpenChange(false)}
             className="min-h-[40px] text-sm touch-manipulation"
           >

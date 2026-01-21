@@ -221,6 +221,8 @@ export const useRecommendation = () => {
                       "Offers your preferred course",
                       "Within your specified criteria",
                     ],
+                    choice_code: item.choice_code,
+                    reservation_category: item.category,
                   };
 
                   allRecommendations.push(recommendation);

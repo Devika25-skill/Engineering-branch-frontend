@@ -10,6 +10,11 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { apiService } from "@/services/api";
+import { recommendationStorage } from "@/services/recommendationStorage";
+import { mapApiResponseToFormData } from "@/utils/recommendationUtils";
 
 interface RecommendationCardProps {
   recommendation: CollegeRecommendation;
@@ -30,9 +35,72 @@ export const RecommendationCard = ({
     choice_code,
     reservation_category,
   } = recommendation;
-  const recommendationFormData = JSON.parse(
-    sessionStorage.getItem("recommendation_form_data") || "{}"
+  const formData = JSON.parse(
+    sessionStorage.getItem("recommendationFormData") ||
+      sessionStorage.getItem("recommendation_form_data") ||
+      localStorage.getItem("recommendationFormData") ||
+      localStorage.getItem("recommendation_form_data") ||
+      "{}"
   );
+
+  const { user } = useAuth();
+  const [localFormData, setLocalFormData] = useState(formData);
+
+  useEffect(() => {
+    const fetchMissingData = async () => {
+      const cetPercentile = formData.cetPercentile || formData.cet_percentile;
+
+      if (
+        !cetPercentile &&
+        user?.accessToken &&
+        user?.email &&
+        !sessionStorage.getItem("fetchingMissingData")
+      ) {
+        sessionStorage.setItem("fetchingMissingData", "true");
+        try {
+          const capResponse = await apiService.fetchAICapDetails(
+            user.accessToken,
+            user.email
+          );
+
+          if (capResponse.success && capResponse.data) {
+            const mappedFormData = mapApiResponseToFormData(capResponse.data);
+
+            // Save using storage service
+            recommendationStorage.saveAcademicDetails(mappedFormData);
+            recommendationStorage.savePreferences(mappedFormData);
+            recommendationStorage.savePriorities(mappedFormData);
+
+            // Update session/local storage manually for immediate use
+            sessionStorage.setItem(
+              "recommendationFormData",
+              JSON.stringify(mappedFormData)
+            );
+            localStorage.setItem(
+              "recommendationFormData",
+              JSON.stringify(mappedFormData)
+            );
+
+            setLocalFormData(mappedFormData);
+          }
+        } catch (error) {
+          console.error("Failed to fetch missing CAP details in card", error);
+        } finally {
+          sessionStorage.removeItem("fetchingMissingData");
+        }
+      }
+    };
+
+    fetchMissingData();
+  }, [formData.cetPercentile, formData.cet_percentile, user]);
+
+  const currentFormData = localFormData || formData;
+  const currentCetPercentile =
+    currentFormData.cetPercentile || currentFormData.cet_percentile || null;
+  const currentReservationCategory =
+    currentFormData.reservationCategory ||
+    currentFormData.reservation_category ||
+    "";
 
   // Utility function to truncate text
   const truncateText = (text: string, maxLength: number) => {
@@ -228,15 +296,15 @@ export const RecommendationCard = ({
             {probability_message && (
               <>
                 <p className="text-xs text-gray-600 break-words">
-                  {recommendationFormData.cetPercentile
-                    ? `Your CET Percentile: ${recommendationFormData.cetPercentile}%`
+                  {currentCetPercentile
+                    ? `Your CET Percentile: ${currentCetPercentile}%`
                     : ""}{" "}
                 </p>
-                <p className="text-xs text-gray-600 break-words">
-                  {recommendationFormData.reservationCategory
-                    ? ` Reservation Category: ${recommendationFormData.reservationCategory}`
-                    : ""}
-                </p>
+                {/* {currentReservationCategory && (
+                  <p className="text-xs text-gray-600 break-words">
+                    Reservation Category: {currentReservationCategory}
+                  </p>
+                )} */}
               </>
             )}
           </div>
