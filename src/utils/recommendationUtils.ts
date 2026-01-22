@@ -34,7 +34,10 @@ export const mapApiResponseToFormData = (apiData: any) => {
     // Preferences
     preferredStreams: credentials.preferences?.engineeringBranches || [],
     preferredCities: credentials.preferences?.preferredCities || [],
-    district: credentials.preferences?.preferredDistrict || undefined,
+    district:
+      credentials.educationBackground?.district ||
+      credentials.preferences?.preferredDistrict ||
+      undefined,
 
     // Priorities
     hostelPreference:

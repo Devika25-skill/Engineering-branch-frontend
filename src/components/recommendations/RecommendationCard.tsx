@@ -59,8 +59,7 @@ export const RecommendationCard = ({
         sessionStorage.setItem("fetchingMissingData", "true");
         try {
           const capResponse = await apiService.fetchAICapDetails(
-            user.accessToken,
-            user.email
+            user.accessToken
           );
 
           if (capResponse.success && capResponse.data) {

@@ -23,6 +23,7 @@ import { Button } from "@/components/ui/button";
 import { History, X } from "lucide-react";
 import StepLoadingMessages from "@/components/recommendations/StepLoadingMessages";
 import PreferencesConfirmationDialog from "@/components/recommendations/PreferencesConfirmationDialog";
+import { mapApiResponseToFormData } from "@/utils/recommendationUtils";
 
 interface FormData {
   tenthMarks?: number;
@@ -81,66 +82,6 @@ const RecommendationSteps = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   const totalSteps = 3;
-
-  // Map API response to form data structure for Engineering
-  const mapApiResponseToFormData = (apiData: any) => {
-    // Check if we received the full object with academic_credentials or just credentials
-    const credentials = apiData.academic_credentials || apiData;
-    const gender = apiData.gender;
-
-    // Extract other exam details if available
-    const otherExam = credentials.examPercentiles?.otherEntranceExam?.[0];
-
-    return {
-      // Academic Info
-      gender: gender || undefined,
-      reservationCategory: credentials.reservationCategory || "GOPENS",
-      grouping:
-        credentials.educationBackground?.stream ||
-        "PCM (Physics, Chemistry, Mathematics)",
-      tenthMarks:
-        credentials.academicMarks?._10thGradeMarksPercent || undefined,
-      twelfthMarks:
-        credentials.academicMarks?._12thGradeMarksPercent || undefined,
-      groupingMarks:
-        credentials.academicMarks?.groupingMarksPercent || undefined,
-      cetPercentile: credentials.examPercentiles?.CET || undefined,
-      jeePercentile: credentials.examPercentiles?.JEE || undefined,
-      otherExamName: otherExam?.examName || undefined,
-      otherExamPercentile: otherExam?.percentileOrScore || undefined,
-      sportsAchievements:
-        credentials.achievementsExperience?.sportsAchievements || undefined,
-      certifications:
-        credentials.achievementsExperience?.certifications || undefined,
-      internships:
-        credentials.achievementsExperience?.internshipsWorkExperience ||
-        undefined,
-      otherAchievements:
-        credentials.achievementsExperience?.otherAchievements || undefined,
-
-      // Preferences
-      preferredStreams: credentials.preferences?.engineeringBranches || [],
-      preferredCities: credentials.preferences?.preferredCities || [],
-      district: credentials.preferences?.preferredDistrict || undefined,
-
-      // Priorities
-      hostelPreference:
-        credentials.campusFacilitiesEnvironment?.hostelFacility || undefined,
-      campusSetting:
-        credentials.campusFacilitiesEnvironment?.campusSetting || undefined,
-      transportFacility:
-        credentials.campusFacilitiesEnvironment?.transportFacility || undefined,
-      wifiTechInfrastructure:
-        credentials.campusFacilitiesEnvironment?.wifiTechInfrastructure ||
-        undefined,
-      coCurricularActivities:
-        credentials.campusFacilitiesEnvironment?.coCurricularActivities ||
-        undefined,
-      maxBudget: credentials.annualBudget || undefined,
-      collegeTypes: credentials.collegeTypePreferences || [],
-      priorities: credentials.priorityFactors || [],
-    };
-  };
 
   // Map API response to form data structure for Medical
   const mapMedicalApiResponseToFormData = (apiData: any) => {
@@ -507,8 +448,50 @@ const RecommendationSteps = () => {
         activeRoundTab = "round1";
       }
 
+      // If round > 1 and choiceCode is missing, try to resolve it
+      let resolvedChoiceCode = choiceCode;
+
+      if (roundNumber > 1 && !resolvedChoiceCode) {
+        // Only need previous choice for Round 3 (from Round 2)
+        // Or Round 2 (from Round 1 if applicable - though usually R2 is fresh or from R1 cutoff?
+        // Logic mainly applies to R3 needing R2 choice
+
+        const prevRound = roundNumber - 1;
+
+        // 1. Try Session Storage
+        const storageKey = `round${prevRound}SelectedCollege`;
+        const savedSelection = sessionStorage.getItem(storageKey);
+
+        if (savedSelection) {
+          try {
+            const parsed = JSON.parse(savedSelection);
+            resolvedChoiceCode = parsed.selectedDepartment?.choice_code;
+          } catch (e) {
+            console.error("Error parsing saved selection", e);
+          }
+        }
+
+        // 2. If still missing, try API
+        if (!resolvedChoiceCode && user.accessToken) {
+          try {
+            const detailsResponse = await apiService.getUserRoundDetails(
+              prevRound,
+              user.accessToken
+            );
+            if (detailsResponse.success && detailsResponse.data) {
+              // Assuming data has choice_code or similar structure
+              // Adjust based on UserRoundDetailsResponse definition
+              const data = detailsResponse.data as any;
+              resolvedChoiceCode = data.choice_code;
+            }
+          } catch (apiError) {
+            console.error("Failed to fetch previous round details", apiError);
+          }
+        }
+      }
+
       // Call the recommendation generation with the specific round and previous choice code
-      await generateRecommendation(formData, roundNumber, choiceCode);
+      await generateRecommendation(formData, roundNumber, resolvedChoiceCode);
 
       // Set the active tab for the results page
       localStorage.setItem("activeRoundTab", activeRoundTab);
