@@ -74,6 +74,7 @@ export const useRecommendation = () => {
             educationBackground: {
               educationType: "12th",
               stream: formData.grouping,
+              district: formData.district,
             },
             academicMarks: {
               _10thGradeMarksPercent: formData.tenthMarks,
@@ -109,7 +110,6 @@ export const useRecommendation = () => {
                 formData.preferredCities && formData.preferredCities.length > 0
                   ? formData.preferredCities
                   : ["ALL"],
-              preferredDistrict: formData.district,
             },
             campusFacilitiesEnvironment: {
               hostelFacility: formData.hostelPreference,
