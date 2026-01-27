@@ -142,6 +142,28 @@ interface UserRoundDetailsResponse {
   round: number;
 }
 
+export interface StoreDiplomaCollegeDetailsRequest {
+  username: string;
+  college_name: string;
+  college_code: number;
+  course_name: string;
+  course_code: number;
+  choice_code: number;
+  round: number;
+  location: string;
+}
+
+export interface DiplomaRoundDetailsResponse {
+  username: string;
+  College_Name: string;
+  College_code: number;
+  City: string;
+  Course_Name: string;
+  Course_Code: number;
+  Choice_Code: number;
+  round: number;
+}
+
 export interface SendOTPRequest {
   email: string;
 }
@@ -338,6 +360,9 @@ export interface DiplomaRoundListRequest {
   cet_percentile: number;
   cet_course: string[];
   location: string[];
+  gender?: string;
+  round?: number;
+  last_round_college_choice_code?: number;
 }
 
 export interface DiplomaRoundListResponse {
@@ -539,7 +564,7 @@ export interface CollegeSearchResponse {
 class ApiService {
   private async request<T>(
     endpoint: string,
-    options?: RequestInit
+    options?: RequestInit,
   ): Promise<T> {
     try {
       const token = localStorage.getItem("accessToken");
@@ -576,7 +601,7 @@ class ApiService {
       {
         method: "GET",
         headers,
-      }
+      },
     );
   }
 
@@ -595,7 +620,7 @@ class ApiService {
       {
         method: "POST",
         body: JSON.stringify(payload),
-      }
+      },
     );
 
     // Transform API response to match our College interface
@@ -677,7 +702,7 @@ class ApiService {
 
   async getCollegeById(id: number): Promise<ApiResponse<College>> {
     const response = await this.request<ApiCollegeDetailsResponse>(
-      `/api/v1/explore/college/${id}`
+      `/api/v1/explore/college/${id}`,
     );
 
     // Transform API response to match our College interface
@@ -737,7 +762,7 @@ class ApiService {
       rating: safeValue(apiData.College_Reviews_out_of_5),
       placement: safeValue(
         apiData.Placement_Details?.Overall_College_Placement_Percentage ||
-          apiData.Average_Placement_Percentage
+          apiData.Average_Placement_Percentage,
       ),
       placementRange: null,
       type:
@@ -780,7 +805,7 @@ class ApiService {
 
       placementDetails: {
         averagePackage: safeValue(
-          apiData.Placement_Details?.Average_Package_LPA
+          apiData.Placement_Details?.Average_Package_LPA,
         ),
         highestPackage:
           safeValue(apiData.Placement_Details?.Highest_Package_LPA) ||
@@ -818,17 +843,17 @@ class ApiService {
       // Add location details
       locationDetails: {
         address: safeValue(
-          apiData.Location?.Address || apiData.College_Address
+          apiData.Location?.Address || apiData.College_Address,
         ),
         nearestRailwayStation: safeValue(
-          apiData.Location?.Nearest_Railway_Station
+          apiData.Location?.Nearest_Railway_Station,
         ),
         distanceFromRailway: safeValue(
-          apiData.Location?.Distance_from_Railway_Station_km
+          apiData.Location?.Distance_from_Railway_Station_km,
         ),
         nearestAirport: safeValue(apiData.Location?.Nearest_Airport),
         distanceFromAirport: safeValue(
-          apiData.Location?.Distance_from_Airport_km
+          apiData.Location?.Distance_from_Airport_km,
         ),
       },
     };
@@ -858,7 +883,7 @@ class ApiService {
       ...new Set(colleges.flatMap((c) => c.streams || [])),
     ].filter(Boolean);
     const types = [...new Set(colleges.map((c) => c.college_type))].filter(
-      Boolean
+      Boolean,
     );
     const fees = colleges.map((c) => c.fees).filter((f) => f > 0);
 
@@ -899,7 +924,7 @@ class ApiService {
   async storeUser(
     email: string,
     name: string,
-    mobile?: string
+    mobile?: string,
   ): Promise<StoreUserResponse> {
     const username: string = email;
     const payload: StoreUserRequest = {
@@ -915,32 +940,32 @@ class ApiService {
   }
 
   async calculateAdmissionChances(
-    payload: AdmissionChancesRequest
+    payload: AdmissionChancesRequest,
   ): Promise<AdmissionChancesResponse> {
     return this.request<AdmissionChancesResponse>(
       "/api/v1/explore/admission-chances",
       {
         method: "POST",
         body: JSON.stringify(payload),
-      }
+      },
     );
   }
 
   async generateRecommendation(
-    payload: GenerateRecommendationRequest
+    payload: GenerateRecommendationRequest,
   ): Promise<GenerateRecommendationResponse> {
     return this.request<GenerateRecommendationResponse>(
       "/api/v1/explore/generate_recommendation",
       {
         method: "POST",
         body: JSON.stringify(payload),
-      }
+      },
     );
   }
 
   async getRecommendations(
     payload: RecommendationRequest,
-    token: string
+    token: string,
   ): Promise<RecommendationApiResponse> {
     return this.request<RecommendationApiResponse>(
       "/api/v1/explore/recommendation/college-list",
@@ -952,7 +977,7 @@ class ApiService {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(payload),
-      }
+      },
     );
   }
 
@@ -965,12 +990,12 @@ class ApiService {
           Authorization: `Bearer ${token}`,
           Accept: "application/json",
         },
-      }
+      },
     );
   }
 
   async getExistingRecommendations(
-    token: string
+    token: string,
   ): Promise<RecommendationApiResponse> {
     return this.request<RecommendationApiResponse>(
       "/api/v1/explore/recommendation/college-list",
@@ -981,7 +1006,7 @@ class ApiService {
           Accept: "application/json",
           "Content-Type": "application/json",
         },
-      }
+      },
     );
   }
 
@@ -993,14 +1018,14 @@ class ApiService {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
   }
 
   // Round 2 Search Methods
   async searchCollegeByChoiceCode(
     payload: CollegeSearchByChoiceCodeRequest,
-    token: string
+    token: string,
   ): Promise<CollegeSearchResponse> {
     return this.request<CollegeSearchResponse>(
       "/api/v1/explore/search_college_by/choice_code",
@@ -1012,13 +1037,13 @@ class ApiService {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(payload),
-      }
+      },
     );
   }
 
   async searchCollegeByName(
     payload: CollegeSearchByNameRequest,
-    token: string
+    token: string,
   ): Promise<CollegeSearchResponse> {
     return this.request<CollegeSearchResponse>(
       "/api/v1/explore/search_college_by/college_name",
@@ -1030,13 +1055,13 @@ class ApiService {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(payload),
-      }
+      },
     );
   }
 
   async searchCollegeByCode(
     payload: CollegeSearchByCodeRequest,
-    token: string
+    token: string,
   ): Promise<CollegeSearchResponse> {
     return this.request<CollegeSearchResponse>(
       "/api/v1/explore/search_college_by/college_code",
@@ -1048,13 +1073,13 @@ class ApiService {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(payload),
-      }
+      },
     );
   }
 
   async storeCollegeDetails(
     payload: StoreCollegeDetailsRequest,
-    token: string
+    token: string,
   ): Promise<ApiResponse<any>> {
     return this.request<ApiResponse<any>>(
       "/api/v1/user/store_college_details",
@@ -1066,13 +1091,13 @@ class ApiService {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(payload),
-      }
+      },
     );
   }
 
   async getUserRoundDetails(
     round: number,
-    token: string
+    token: string,
   ): Promise<ApiResponse<UserRoundDetailsResponse>> {
     return this.request<ApiResponse<UserRoundDetailsResponse>>(
       `/api/v1/user/get_user_round_details/${round}`,
@@ -1082,13 +1107,13 @@ class ApiService {
           Authorization: `Bearer ${token}`,
           Accept: "application/json",
         },
-      }
+      },
     );
   }
 
   async updateRoundPreferences(
     payload: { round: number; branches: string[]; cities: string[] },
-    token: string
+    token: string,
   ): Promise<ApiResponse<{ round_status: string }>> {
     return this.request<ApiResponse<{ round_status: string }>>(
       "/api/v1/user/round_prefrences",
@@ -1099,13 +1124,13 @@ class ApiService {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(payload),
-      }
+      },
     );
   }
 
   async getUserRoundPreferences(
     round: number,
-    token: string
+    token: string,
   ): Promise<
     ApiResponse<{ round: number; branches: string[]; cities: string[] }>
   > {
@@ -1122,7 +1147,7 @@ class ApiService {
 
   async generateRoundList(
     payload: GenerateRoundListRequest,
-    token: string
+    token: string,
   ): Promise<GenerateRoundListResponse> {
     return this.request<GenerateRoundListResponse>(
       "/api/v1/explore/generate/round-list",
@@ -1133,13 +1158,13 @@ class ApiService {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(payload),
-      }
+      },
     );
   }
 
   // Diploma recommendation methods
   async generateDiplomaRoundList(
-    payload: DiplomaRoundListRequest
+    payload: DiplomaRoundListRequest,
   ): Promise<DiplomaRoundListResponse> {
     return this.request<DiplomaRoundListResponse>(
       "/api/v1/explore/generate/diploma-round-list",
@@ -1150,7 +1175,7 @@ class ApiService {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(payload),
-      }
+      },
     );
   }
 
@@ -1172,7 +1197,7 @@ class ApiService {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(payload),
-      }
+      },
     );
   }
 
@@ -1185,13 +1210,82 @@ class ApiService {
           Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
           "Content-Type": "application/json",
         },
-      }
+      },
+    );
+  }
+
+  async storeDiplomaCollegeDetails(
+    payload: StoreDiplomaCollegeDetailsRequest,
+    token: string,
+  ): Promise<ApiResponse<any>> {
+    return this.request<ApiResponse<any>>(
+      "/api/v1/explore/store_diploma_college_details",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      },
+    );
+  }
+
+  async getDiplomaRoundDetails(
+    round: number,
+    token: string,
+  ): Promise<ApiResponse<DiplomaRoundDetailsResponse>> {
+    return this.request<ApiResponse<DiplomaRoundDetailsResponse>>(
+      `/api/v1/explore/get_diploma_round_details/${round}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
+      },
+    );
+  }
+
+  async storeDiplomaUserConfig(payload: {
+    category: string;
+    cet_percentile: number;
+    cet_course: string[];
+    location: string[];
+    gender: string;
+    round: number;
+    last_round_college_choice_code: number;
+  }): Promise<ApiResponse<any>> {
+    return this.request<ApiResponse<any>>(
+      "/api/v1/explore/store-diploma-user-config",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      },
+    );
+  }
+
+  async getDiplomaRoundList(round: number): Promise<DiplomaRoundListResponse> {
+    return this.request<DiplomaRoundListResponse>(
+      `/api/v1/explore/get/diploma-round-list/${round}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+          "Content-Type": "application/json",
+        },
+      },
     );
   }
 
   // Medical recommendation methods
   async storeMedicalConfiguration(
-    payload: StoreMedicalConfigRequest
+    payload: StoreMedicalConfigRequest,
   ): Promise<StoreMedicalConfigResponse> {
     return this.request<StoreMedicalConfigResponse>(
       "/api/v1/medical/student/configuration",
@@ -1202,13 +1296,13 @@ class ApiService {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(payload),
-      }
+      },
     );
   }
 
   async fetchMedicalStudentDetails(
     token: string,
-    state: string
+    state: string,
   ): Promise<FetchMedicalDetailsResponse> {
     return this.request<FetchMedicalDetailsResponse>(
       `/api/v1/medical/student/details?state=${encodeURIComponent(state)}`,
@@ -1218,12 +1312,12 @@ class ApiService {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
   }
 
   async generateMedicalRecommendations(
-    payload: GenerateMedicalRecommendationsRequest
+    payload: GenerateMedicalRecommendationsRequest,
   ): Promise<GenerateMedicalRecommendationsResponse> {
     return this.request<GenerateMedicalRecommendationsResponse>(
       "/api/v1/medical/medical/recommendations",
@@ -1234,7 +1328,7 @@ class ApiService {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(payload),
-      }
+      },
     );
   }
 
@@ -1242,7 +1336,7 @@ class ApiService {
   async searchMedicalCollegeByName(
     collegeName: string,
     token: string,
-    state: string
+    state: string,
   ): Promise<any> {
     return this.request<any>(
       `/api/v1/medical/college/search/name?college_name=${encodeURIComponent(collegeName)}&state=${encodeURIComponent(state)}`,
@@ -1252,14 +1346,14 @@ class ApiService {
           Authorization: `Bearer ${token}`,
           Accept: "application/json",
         },
-      }
+      },
     );
   }
 
   async searchMedicalCollegeByCode(
     collegeCode: number | string,
     token: string,
-    state: string
+    state: string,
   ): Promise<any> {
     return this.request<any>(
       `/api/v1/medical/college/search/code?college_code=${collegeCode}&state=${encodeURIComponent(state)}`,
@@ -1269,7 +1363,7 @@ class ApiService {
           Authorization: `Bearer ${token}`,
           Accept: "application/json",
         },
-      }
+      },
     );
   }
 
@@ -1286,7 +1380,7 @@ class ApiService {
       NEETAllIndiaRank: number;
       isDeleted?: boolean;
     },
-    token: string
+    token: string,
   ): Promise<ApiResponse<{ college_status: string }>> {
     return this.request<ApiResponse<{ college_status: string }>>(
       "/api/v1/medical/store_medical_college_details",
@@ -1298,7 +1392,7 @@ class ApiService {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(payload),
-      }
+      },
     );
   }
 
@@ -1306,7 +1400,7 @@ class ApiService {
   async getMedicalUserRoundDetails(
     round: number,
     token: string,
-    state: string
+    state: string,
   ): Promise<
     ApiResponse<{
       userName: string;
@@ -1338,7 +1432,7 @@ class ApiService {
           Authorization: `Bearer ${token}`,
           Accept: "application/json",
         },
-      }
+      },
     );
   }
 
@@ -1346,7 +1440,7 @@ class ApiService {
   async getMedicalRecommendationsByRound(
     round: number,
     token: string,
-    state: string
+    state: string,
   ): Promise<
     ApiResponse<{
       username: string;
@@ -1378,7 +1472,7 @@ class ApiService {
           Authorization: `Bearer ${token}`,
           Accept: "application/json",
         },
-      }
+      },
     );
   }
 }

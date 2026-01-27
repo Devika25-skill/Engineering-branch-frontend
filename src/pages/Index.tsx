@@ -1,29 +1,40 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { GraduationCap, Search, MapPin, Users, TrendingUp, Building, Sparkles } from "lucide-react";
+import {
+  GraduationCap,
+  Search,
+  MapPin,
+  Users,
+  TrendingUp,
+  Building,
+  Sparkles,
+} from "lucide-react";
 import Navigation from "@/components/Navigation";
-import { Link, useNavigate } from 'react-router-dom';
-import { backgroundLoader } from '@/services/backgroundLoader';
-import { sessionStorageService } from '@/services/sessionStorage';
-import { ProgramSelectionDialog } from '@/components/common/ProgramSelectionDialog';
-import { useAuth } from '@/contexts/AuthContext';
-import { IntegratedAdmissionType } from '@/types/integratedAdmission';
+import StepLoadingMessages from "@/components/recommendations/StepLoadingMessages";
+import { Link, useNavigate } from "react-router-dom";
+import { backgroundLoader } from "@/services/backgroundLoader";
+import { sessionStorageService } from "@/services/sessionStorage";
+import { ProgramSelectionDialog } from "@/components/common/ProgramSelectionDialog";
+import { useAuth } from "@/contexts/AuthContext";
+
+import { IntegratedAdmissionType } from "@/types/integratedAdmission";
+import { apiService } from "@/services/api";
 
 const Index = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [showProgramDialog, setShowProgramDialog] = useState(false);
+  const [isProcessingDSE, setIsProcessingDSE] = useState(false);
   const navigate = useNavigate();
   const { user, isLoggedIn, logout } = useAuth();
 
-// Remove All the applied filters on Coming back to home
+  // Remove All the applied filters on Coming back to home
   useEffect(() => {
-    if(!isLoggedIn){
-      localStorage.removeItem('recommendation_type');
-      localStorage.removeItem('integrated_admission_type');
+    if (!isLoggedIn) {
+      localStorage.removeItem("recommendation_type");
+      localStorage.removeItem("integrated_admission_type");
     }
     sessionStorageService.clearFilters();
-    
   }, []);
 
   // Load college data in background when component mounts
@@ -35,42 +46,256 @@ const Index = () => {
     if (searchTerm.trim()) {
       navigate(`/colleges?search=${encodeURIComponent(searchTerm)}`);
     } else {
-      navigate('/colleges');
+      navigate("/colleges");
     }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       handleSearch();
     }
   };
 
-  const handleRecommendationTypeSelect = (type: 'first-year' | 'direct-second-year') => {
+  // Helper to match existing format
+  const convertApiResponseToRecommendations = (apiData: any) => {
+    const recommendations: any[] = [];
+    ["Dream", "Reach", "Match", "Safety"].forEach((category) => {
+      if (apiData[category] && Array.isArray(apiData[category])) {
+        apiData[category].forEach((item: any) => {
+          recommendations.push({
+            category: category,
+            college: {
+              id: item.college.SJ_Institute_Code,
+              name: item.college.College_Name,
+              city: item.college.City,
+              logo: item.college.College_Logo,
+              website: item.college.College_Website,
+              type: item.college.College_Type,
+              nirf_rank: item.college.NIRF_Rank_Min,
+              fees: item.college["Annual_Fees_(INR)"],
+              placement: item.college.Overall_College_Placement_Percentage,
+              rating: item.college.College_Reviews_out_of_5,
+              Student_Intake: item.college.Student_Intake,
+            },
+            course_name: item.course,
+            cutoff_percentile: item.cutoff,
+            admission_probability: item.admission_probability,
+            probability_message: item.probability_message,
+            choice_code: item.choice_code,
+            cet_percentile: item.cet_percentile,
+            reservation_category: item.category,
+            match_reasons: [],
+          });
+        });
+      }
+    });
+
+    return recommendations;
+  };
+
+  const handleRecommendationTypeSelect = async (
+    type: "first-year" | "direct-second-year",
+  ) => {
     // Store the selected type for future reference
-    localStorage.setItem('recommendation_type', type);
-    
-    if (type === 'first-year') {
-      const hasExistingData = sessionStorage.getItem('recommendationFormData');
-      navigate(hasExistingData ? '/recommendations/results' : '/recommendations/steps');
+    localStorage.setItem("recommendation_type", type);
+
+    if (type === "first-year") {
+      const hasExistingData = sessionStorage.getItem("recommendationFormData");
+      navigate(
+        hasExistingData ? "/recommendations/results" : "/recommendations/steps",
+      );
     } else {
-      const hasExistingData = sessionStorage.getItem('cachedDiplomaRecommendations');
-      navigate(hasExistingData ? '/diploma-recommendations/results' : '/diploma-recommendations/steps');
+      // Direct Second Year Logic
+      if (!isLoggedIn) {
+        // If not logged in, just check local cache or go to steps
+        const hasExistingData = sessionStorage.getItem(
+          "cachedDiplomaRecommendations",
+        );
+        navigate(
+          hasExistingData
+            ? "/diploma-recommendations/results"
+            : "/diploma-recommendations/steps",
+        );
+        return;
+      }
+
+      setIsProcessingDSE(true);
+
+      try {
+        const lastActiveRound = localStorage.getItem("diploma_active_round");
+
+        // 1. Check Round 2 Data
+        const round2Response = await apiService.getDiplomaRoundList(2);
+
+        // 2. Check Round 1 Data
+        const round1Response = await apiService.getDiplomaRoundList(1);
+
+        const hasRound2 = round2Response.success && round2Response.data;
+        const hasRound1 = round1Response.success && round1Response.data;
+
+        // Process Round 2 Data if available
+        if (hasRound2) {
+          const converted = convertApiResponseToRecommendations(
+            round2Response.data,
+          );
+          sessionStorage.setItem(
+            "cachedDiplomaRound2Recommendations",
+            JSON.stringify(converted),
+          );
+          if (round2Response.data.is_payment) {
+            localStorage.setItem("diplomaRecommendationUnlocked", "true");
+          }
+        }
+
+        // Process Round 1 Data if available
+        if (hasRound1) {
+          const converted = convertApiResponseToRecommendations(
+            round1Response.data,
+          );
+          sessionStorage.setItem(
+            "cachedDiplomaRecommendations",
+            JSON.stringify(converted),
+          );
+          if (round1Response.data.is_payment) {
+            localStorage.setItem("diplomaRecommendationUnlocked", "true");
+          }
+        }
+
+        // Determine where to navigate
+        if (hasRound2 || hasRound1) {
+          // Fetch and store config data (try Round 2 then Round 1)
+          try {
+            let configData = null;
+            try {
+              const c2 = await apiService.getDiplomaConfig(2);
+              if (c2.success && c2.data)
+                configData = (c2.data as any).configuration || c2.data;
+            } catch (e) {}
+
+            if (!configData) {
+              const c1 = await apiService.getDiplomaConfig(1);
+              if (c1.success && c1.data)
+                configData = (c1.data as any).configuration || c1.data;
+            }
+
+            if (configData) {
+              const formData = {
+                diplomaPercentage:
+                  configData.cet_percentile || configData.diploma_percentage,
+                reservationCategory: configData.category,
+                gender: configData.gender || "male",
+                selectedBranches: configData.cet_course,
+                selectedCities: configData.location,
+              };
+              sessionStorage.setItem(
+                "diplomaRecommendationFormData",
+                JSON.stringify(formData),
+              );
+              localStorage.setItem(
+                "diploma_form_data",
+                JSON.stringify(formData),
+              );
+            }
+          } catch (e) {
+            console.error("Config fetch error", e);
+          }
+
+          // Navigation Logic
+          if (lastActiveRound === "round2" && hasRound2) {
+            navigate("/diploma-recommendations/results?round=2");
+          } else if (lastActiveRound === "round1" && hasRound1) {
+            navigate("/diploma-recommendations/results?round=1");
+          } else if (hasRound2) {
+            navigate("/diploma-recommendations/results?round=2");
+          } else {
+            navigate("/diploma-recommendations/results?round=1");
+          }
+          return;
+        }
+
+        // 3. Fallback to Form
+        // Fetch Config and Pre-fill Form (Fallback)
+        let configData = null;
+        let roundForConfig = 2;
+
+        try {
+          const configResponse2 = await apiService.getDiplomaConfig(2);
+          if (configResponse2.success && configResponse2.data) {
+            configData =
+              (configResponse2.data as any).configuration ||
+              configResponse2.data;
+          }
+        } catch (e) {
+          // Ignore error and try Round 1
+        }
+
+        if (!configData) {
+          try {
+            roundForConfig = 1;
+            const configResponse1 = await apiService.getDiplomaConfig(1);
+            if (configResponse1.success && configResponse1.data) {
+              configData =
+                (configResponse1.data as any).configuration ||
+                configResponse1.data;
+            }
+          } catch (e) {
+            // Ignore error
+          }
+        }
+
+        if (configData) {
+          const formData = {
+            diplomaPercentage:
+              configData.cet_percentile || configData.diploma_percentage,
+            reservationCategory: configData.category,
+            gender: configData.gender || "male",
+            selectedBranches: configData.cet_course,
+            selectedCities: configData.location,
+          };
+
+          // Save to specific round key as expected by steps page
+          localStorage.setItem(
+            `diploma_form_data_round_${roundForConfig}`,
+            JSON.stringify(formData),
+          );
+          // Also save to generic key as fallback
+          localStorage.setItem("diploma_form_data", JSON.stringify(formData));
+
+          navigate(`/diploma-recommendations/steps?round=${roundForConfig}`);
+        } else {
+          navigate("/diploma-recommendations/steps");
+        }
+      } catch (error) {
+        console.error("Error fetching DSE data:", error);
+        // Fallback to steps on error
+        navigate("/diploma-recommendations/steps");
+      } finally {
+        setIsProcessingDSE(false);
+      }
     }
   };
 
   const handleGetRecommendations = () => {
-    
     // Check saved preference and navigate accordingly
-    const savedRecommendationType = localStorage.getItem('recommendation_type');
-    const savedIntegratedType = localStorage.getItem('integrated_admission_type');
-    
+    const savedRecommendationType = localStorage.getItem("recommendation_type");
+    const savedIntegratedType = localStorage.getItem(
+      "integrated_admission_type",
+    );
 
-    
-    if (savedRecommendationType === 'direct-second-year') {
-      const hasExistingData = sessionStorage.getItem('cachedDiplomaRecommendations');
-      navigate(hasExistingData ? '/diploma-recommendations/results' : '/diploma-recommendations/steps');
-    } else if (savedRecommendationType === 'first-year' || savedRecommendationType === 'First_Year_Medical') {
-      navigate('/recommendations');
+    if (savedRecommendationType === "direct-second-year") {
+      const hasExistingData = sessionStorage.getItem(
+        "cachedDiplomaRecommendations",
+      );
+      navigate(
+        hasExistingData
+          ? "/diploma-recommendations/results"
+          : "/diploma-recommendations/steps",
+      );
+    } else if (
+      savedRecommendationType === "first-year" ||
+      savedRecommendationType === "First_Year_Medical"
+    ) {
+      navigate("/recommendations");
     } else if (savedIntegratedType) {
       navigate(`/integrated-rounds?type=${savedIntegratedType}`);
     } else {
@@ -80,21 +305,26 @@ const Index = () => {
   };
 
   const handleProgramSelect = (program: string) => {
-    
-    if (program === 'first-year' || program === 'direct-second-year' || program === 'First_Year_Medical') {
-      localStorage.setItem('recommendation_type', program);
-      localStorage.removeItem('integrated_admission_type');
-      
-      if (program === 'First_Year_Medical') {
+    if (
+      program === "first-year" ||
+      program === "direct-second-year" ||
+      program === "First_Year_Medical"
+    ) {
+      localStorage.setItem("recommendation_type", program);
+      localStorage.removeItem("integrated_admission_type");
+
+      if (program === "First_Year_Medical") {
         // Navigate to medical recommendations (using same flow as first-year for now)
-        navigate('/recommendations');
+        navigate("/recommendations");
       } else {
-        handleRecommendationTypeSelect(program as 'first-year' | 'direct-second-year');
+        handleRecommendationTypeSelect(
+          program as "first-year" | "direct-second-year",
+        );
       }
     } else {
-      localStorage.setItem('integrated_admission_type', program);
-      localStorage.removeItem('recommendation_type');
-      
+      localStorage.setItem("integrated_admission_type", program);
+      localStorage.removeItem("recommendation_type");
+
       // Add a small delay to ensure localStorage is set before navigation
       setTimeout(() => {
         navigate(`/integrated-steps?type=${program}`);
@@ -104,21 +334,30 @@ const Index = () => {
 
   // Check if user has any saved program selection
   const hasSavedSelection = () => {
-    const savedRecommendationType = localStorage.getItem('recommendation_type');
-    const savedIntegratedType = localStorage.getItem('integrated_admission_type');
+    const savedRecommendationType = localStorage.getItem("recommendation_type");
+    const savedIntegratedType = localStorage.getItem(
+      "integrated_admission_type",
+    );
     return !!(savedRecommendationType || savedIntegratedType);
   };
 
   const handleChangeType = () => {
-    localStorage.removeItem('recommendation_type');
-    localStorage.removeItem('integrated_admission_type');
+    localStorage.removeItem("recommendation_type");
+    localStorage.removeItem("integrated_admission_type");
     setShowProgramDialog(true);
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-indigo-50">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-indigo-50 relative">
+      {isProcessingDSE && (
+        <div className="fixed inset-0 bg-white/80 backdrop-blur-sm z-50 flex items-center justify-center">
+          <div className="bg-white p-8 rounded-2xl shadow-xl">
+            <StepLoadingMessages />
+          </div>
+        </div>
+      )}
       <Navigation />
-      
+
       {/* Hero Section - Mobile Optimized */}
       <div className="relative bg-gradient-to-r from-purple-600 via-pink-600 to-indigo-700 text-white py-12 sm:py-20 overflow-hidden">
         <div className="absolute inset-0 opacity-10">
@@ -132,19 +371,32 @@ const Index = () => {
           <div className="animate-fade-in">
             <div className="flex justify-center mb-4 sm:mb-6">
               <div className="relative">
-                <GraduationCap size={60} className="sm:w-20 sm:h-20 text-yellow-300 animate-pulse" />
-                <Sparkles size={24} className="sm:w-8 sm:h-8 absolute -top-2 -right-2 text-pink-300 animate-spin" />
+                <GraduationCap
+                  size={60}
+                  className="sm:w-20 sm:h-20 text-yellow-300 animate-pulse"
+                />
+                <Sparkles
+                  size={24}
+                  className="sm:w-8 sm:h-8 absolute -top-2 -right-2 text-pink-300 animate-spin"
+                />
               </div>
             </div>
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-[3.5rem] font-bold mb-4 sm:mb-6 bg-gradient-to-r from-white to-purple-100 bg-clip-text text-transparent leading-tight">
               Find Your Dream
-              <span className="block text-3xl sm:text-4xl md:text-5xl lg:text-[3.5rem] mt-2 text-yellow-300">College! 🎓</span>
-              <span className="block text-sm sm:text-4xl md:text-5xl lg:text-[3.5rem] mt-2 text-white-300 leading-tight sm:leading-tight md:leading-[1.35] lg:leading-[1.35]">Medical, Engineering, BCA, BBA, B-Pharmacy</span>
-
+              <span className="block text-3xl sm:text-4xl md:text-5xl lg:text-[3.5rem] mt-2 text-yellow-300">
+                College! 🎓
+              </span>
+              <span className="block text-sm sm:text-4xl md:text-5xl lg:text-[3.5rem] mt-2 text-white-300 leading-tight sm:leading-tight md:leading-[1.35] lg:leading-[1.35]">
+                Medical, Engineering, BCA, BBA, B-Pharmacy
+              </span>
             </h1>
             <p className="text-base sm:text-lg md:text-xl mb-6 sm:mb-8 opacity-90 font-light max-w-3xl mx-auto px-2">
-              Discover the perfect engineering college that matches your dreams, budget, and career goals with our 
-              <span className="font-bold text-yellow-300"> smart recommendation engine!</span>
+              Discover the perfect engineering college that matches your dreams,
+              budget, and career goals with our
+              <span className="font-bold text-yellow-300">
+                {" "}
+                smart recommendation engine!
+              </span>
             </p>
           </div>
 
@@ -152,7 +404,10 @@ const Index = () => {
           <div className="max-w-2xl mx-auto mb-4 sm:mb-6 animate-fade-in animation-delay-300 px-2">
             <div className="flex flex-row gap-2">
               <div className="relative flex-1">
-                <Search className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 text-purple-400" size={18} />
+                <Search
+                  className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 text-purple-400"
+                  size={18}
+                />
                 <Input
                   type="text"
                   placeholder="Search colleges or cities..."
@@ -162,7 +417,7 @@ const Index = () => {
                   className="w-full pl-10 sm:pl-12 pr-4 py-3 sm:py-4 text-base sm:text-lg text-gray-800 bg-white/95 backdrop-blur-sm border-2 border-white/20 rounded-xl focus:border-yellow-300 focus:ring-4 focus:ring-yellow-300/20 shadow-xl placeholder:text-gray-500"
                 />
               </div>
-              <Button 
+              <Button
                 onClick={handleSearch}
                 className="px-4 sm:px-6 py-3 sm:py-4 text-base sm:text-lg font-bold bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-black rounded-xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
               >
@@ -173,17 +428,17 @@ const Index = () => {
           </div>
 
           <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4 animate-fade-in animation-delay-500 px-2">
-            <Button 
+            <Button
               onClick={handleGetRecommendations}
               className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg font-bold bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-black rounded-xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
             >
               <Sparkles className="mr-2" size={18} />
               Get AI Recommended CET List ✨
             </Button>
-            
+
             {/* Reset button for logged-in users with saved selections */}
             {isLoggedIn && hasSavedSelection() && (
-              <Button 
+              <Button
                 onClick={handleChangeType}
                 variant="outline"
                 className="w-full sm:w-auto px-4 sm:px-6 py-3 sm:py-4 text-base sm:text-lg font-medium bg-white/20 backdrop-blur-sm border-2 border-white/30 text-white hover:bg-white/30 rounded-xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
@@ -203,29 +458,45 @@ const Index = () => {
             <div className="mx-auto w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-purple-100 to-purple-200 rounded-full flex items-center justify-center mb-2 sm:mb-3">
               <Building className="text-purple-600" size={20} />
             </div>
-            <h3 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-1 sm:mb-2">300+</h3>
-            <p className="text-gray-600 font-medium text-xs sm:text-sm">Engineering Colleges</p>
+            <h3 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-1 sm:mb-2">
+              300+
+            </h3>
+            <p className="text-gray-600 font-medium text-xs sm:text-sm">
+              Engineering Colleges
+            </p>
           </div>
           <div className="text-center animate-fade-in animation-delay-200">
             <div className="mx-auto w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-pink-100 to-pink-200 rounded-full flex items-center justify-center mb-2 sm:mb-3">
               <GraduationCap className="text-pink-600" size={20} />
             </div>
-            <h3 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-1 sm:mb-2">12+</h3>
-            <p className="text-gray-600 font-medium text-xs sm:text-sm">Engineering Branches</p>
+            <h3 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-1 sm:mb-2">
+              12+
+            </h3>
+            <p className="text-gray-600 font-medium text-xs sm:text-sm">
+              Engineering Branches
+            </p>
           </div>
           <div className="text-center animate-fade-in animation-delay-400">
             <div className="mx-auto w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-indigo-100 to-indigo-200 rounded-full flex items-center justify-center mb-2 sm:mb-3">
               <MapPin className="text-indigo-600" size={20} />
             </div>
-            <h3 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-1 sm:mb-2">20+</h3>
-            <p className="text-gray-600 font-medium text-xs sm:text-sm">Cities Covered</p>
+            <h3 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-1 sm:mb-2">
+              20+
+            </h3>
+            <p className="text-gray-600 font-medium text-xs sm:text-sm">
+              Cities Covered
+            </p>
           </div>
           <div className="text-center animate-fade-in animation-delay-600">
             <div className="mx-auto w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-green-100 to-green-200 rounded-full flex items-center justify-center mb-2 sm:mb-3">
               <Users className="text-green-600" size={20} />
             </div>
-            <h3 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-1 sm:mb-2">50K+</h3>
-            <p className="text-gray-600 font-medium text-xs sm:text-sm">Students Helped</p>
+            <h3 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-1 sm:mb-2">
+              50K+
+            </h3>
+            <p className="text-gray-600 font-medium text-xs sm:text-sm">
+              Students Helped
+            </p>
           </div>
         </div>
 
@@ -244,27 +515,36 @@ const Index = () => {
             <div className="mx-auto w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-purple-100 to-purple-200 rounded-full flex items-center justify-center mb-3 sm:mb-4">
               <Sparkles className="text-purple-600" size={24} />
             </div>
-            <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-2 sm:mb-3">AI-Powered Matching</h3>
+            <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-2 sm:mb-3">
+              AI-Powered Matching
+            </h3>
             <p className="text-gray-600 text-sm">
-              Our smart algorithm analyzes your profile and preferences to recommend the best colleges for you
+              Our smart algorithm analyzes your profile and preferences to
+              recommend the best colleges for you
             </p>
           </div>
           <div className="text-center p-4 sm:p-6 bg-white/80 backdrop-blur-sm rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
             <div className="mx-auto w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-pink-100 to-pink-200 rounded-full flex items-center justify-center mb-3 sm:mb-4">
               <TrendingUp className="text-pink-600" size={24} />
             </div>
-            <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-2 sm:mb-3">Updated Data</h3>
+            <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-2 sm:mb-3">
+              Updated Data
+            </h3>
             <p className="text-gray-600 text-sm">
-              Real-time information on placements, fees, cutoffs, and admission criteria from official sources
+              Real-time information on placements, fees, cutoffs, and admission
+              criteria from official sources
             </p>
           </div>
           <div className="text-center p-4 sm:p-6 bg-white/80 backdrop-blur-sm rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
             <div className="mx-auto w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-indigo-100 to-indigo-200 rounded-full flex items-center justify-center mb-3 sm:mb-4">
               <Users className="text-indigo-600" size={24} />
             </div>
-            <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-2 sm:mb-3">Expert Guidance</h3>
+            <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-2 sm:mb-3">
+              Expert Guidance
+            </h3>
             <p className="text-gray-600 text-sm">
-              Comprehensive college profiles with detailed information to help you make informed decisions
+              Comprehensive college profiles with detailed information to help
+              you make informed decisions
             </p>
           </div>
         </div>
