@@ -238,6 +238,52 @@ export const DiplomaRound2Tab = () => {
 
       // If no localStorage data and user is logged in, try API
       if (user?.accessToken) {
+        // Fetch preserved Round 1 selection details
+        try {
+          const round1Details = await apiService.getDiplomaRoundDetails(
+            1,
+            user.accessToken,
+          );
+          if (round1Details.success && round1Details.data) {
+            const data = round1Details.data;
+            const fetchedSelection = {
+              college: {
+                College_Name: data.College_Name,
+                College_Website: "",
+                City: data.City,
+                College_code: data.College_code,
+                department: [
+                  {
+                    course_name: data.Course_Name,
+                    choice_code: data.Choice_Code,
+                    course_code: data.Course_Code,
+                  },
+                ],
+              },
+              selectedDepartment: {
+                course_name: data.Course_Name,
+                choice_code: data.Choice_Code,
+                course_code: data.Course_Code,
+              },
+            };
+
+            setSelectedCollege(fetchedSelection);
+            setIsConfirmed(true);
+            setShowPreferences(true);
+
+            // Sync to local storage
+            localStorage.setItem(
+              "diplomaRound2Selection",
+              JSON.stringify({
+                selectedCollege: fetchedSelection,
+                isConfirmed: true,
+              }),
+            );
+          }
+        } catch (error) {
+          console.error("Error fetching Round 1 details:", error);
+        }
+
         if (
           (!cachedRound2Recommendations &&
             !localStorage.getItem("diplomaRound2Recommendations")) ||
@@ -860,11 +906,6 @@ export const DiplomaRound2Tab = () => {
         JSON.stringify(storageData),
       );
 
-      // Get form data from session storage for category and CET percentile
-      const formData = recommendationStorage.getFormData();
-      const category = formData?.reservationCategory || "";
-      const cetPercentile = formData?.diplomaPercentile || 0;
-
       // Prepare API payload (for diploma it might use different fields)
       const apiPayload = {
         username: user.email,
@@ -873,14 +914,12 @@ export const DiplomaRound2Tab = () => {
         course_name: selectedCollege.selectedDepartment.course_name,
         course_code: selectedCollege.selectedDepartment.course_code || 0,
         choice_code: selectedCollege.selectedDepartment.choice_code,
-        round: 2,
+        round: 1,
         location: selectedCollege.college.City,
-        category: category,
-        cet_percentile: cetPercentile,
       };
 
       // Store to backend
-      const response = await apiService.storeCollegeDetails(
+      const response = await apiService.storeDiplomaCollegeDetails(
         apiPayload,
         user.accessToken,
       );

@@ -11,6 +11,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import Navigation from "@/components/Navigation";
+import StepLoadingMessages from "@/components/recommendations/StepLoadingMessages";
 import { Link, useNavigate } from "react-router-dom";
 import { backgroundLoader } from "@/services/backgroundLoader";
 import { sessionStorageService } from "@/services/sessionStorage";
@@ -23,6 +24,7 @@ import { apiService } from "@/services/api";
 const Index = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [showProgramDialog, setShowProgramDialog] = useState(false);
+  const [isProcessingDSE, setIsProcessingDSE] = useState(false);
   const navigate = useNavigate();
   const { user, isLoggedIn, logout } = useAuth();
 
@@ -116,6 +118,8 @@ const Index = () => {
         );
         return;
       }
+
+      setIsProcessingDSE(true);
 
       try {
         const lastActiveRound = localStorage.getItem("diploma_active_round");
@@ -265,6 +269,8 @@ const Index = () => {
         console.error("Error fetching DSE data:", error);
         // Fallback to steps on error
         navigate("/diploma-recommendations/steps");
+      } finally {
+        setIsProcessingDSE(false);
       }
     }
   };
@@ -342,7 +348,14 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-indigo-50">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-indigo-50 relative">
+      {isProcessingDSE && (
+        <div className="fixed inset-0 bg-white/80 backdrop-blur-sm z-50 flex items-center justify-center">
+          <div className="bg-white p-8 rounded-2xl shadow-xl">
+            <StepLoadingMessages />
+          </div>
+        </div>
+      )}
       <Navigation />
 
       {/* Hero Section - Mobile Optimized */}

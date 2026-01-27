@@ -142,6 +142,28 @@ interface UserRoundDetailsResponse {
   round: number;
 }
 
+export interface StoreDiplomaCollegeDetailsRequest {
+  username: string;
+  college_name: string;
+  college_code: number;
+  course_name: string;
+  course_code: number;
+  choice_code: number;
+  round: number;
+  location: string;
+}
+
+export interface DiplomaRoundDetailsResponse {
+  username: string;
+  College_Name: string;
+  College_code: number;
+  City: string;
+  Course_Name: string;
+  Course_Code: number;
+  Choice_Code: number;
+  round: number;
+}
+
 export interface SendOTPRequest {
   email: string;
 }
@@ -1187,6 +1209,40 @@ class ApiService {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
           "Content-Type": "application/json",
+        },
+      },
+    );
+  }
+
+  async storeDiplomaCollegeDetails(
+    payload: StoreDiplomaCollegeDetailsRequest,
+    token: string,
+  ): Promise<ApiResponse<any>> {
+    return this.request<ApiResponse<any>>(
+      "/api/v1/explore/store_diploma_college_details",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      },
+    );
+  }
+
+  async getDiplomaRoundDetails(
+    round: number,
+    token: string,
+  ): Promise<ApiResponse<DiplomaRoundDetailsResponse>> {
+    return this.request<ApiResponse<DiplomaRoundDetailsResponse>>(
+      `/api/v1/explore/get_diploma_round_details/${round}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
         },
       },
     );
