@@ -168,14 +168,20 @@ const Index = () => {
             let configData = null;
             try {
               const c2 = await apiService.getDiplomaConfig(2);
-              if (c2.success && c2.data)
-                configData = (c2.data as any).configuration || c2.data;
+              if (c2.success && c2.data) {
+                const data = c2.data as any;
+                configData =
+                  data.diploma_user_config || data.configuration || data;
+              }
             } catch (e) {}
 
             if (!configData) {
               const c1 = await apiService.getDiplomaConfig(1);
-              if (c1.success && c1.data)
-                configData = (c1.data as any).configuration || c1.data;
+              if (c1.success && c1.data) {
+                const data = c1.data as any;
+                configData =
+                  data.diploma_user_config || data.configuration || data;
+              }
             }
 
             if (configData) {
@@ -195,6 +201,34 @@ const Index = () => {
                 "diploma_form_data",
                 JSON.stringify(formData),
               );
+
+              // Also store in round-specific key if we can determine the round
+              // configData comes from data.diploma_user_config, so it might not have 'Round'
+              // But 'c2' or 'c1' response 'data' has 'Round'. We need access to that.
+
+              // However, we are inside 'if (hasRound2 || hasRound1)'.
+              // If we are navigating to round 2, use round 2 key.
+              if (lastActiveRound === "round2" && hasRound2) {
+                localStorage.setItem(
+                  "diploma_form_data_round_2",
+                  JSON.stringify(formData),
+                );
+              } else if (lastActiveRound === "round1" && hasRound1) {
+                localStorage.setItem(
+                  "diploma_form_data_round_1",
+                  JSON.stringify(formData),
+                );
+              } else if (hasRound2) {
+                localStorage.setItem(
+                  "diploma_form_data_round_2",
+                  JSON.stringify(formData),
+                );
+              } else {
+                localStorage.setItem(
+                  "diploma_form_data_round_1",
+                  JSON.stringify(formData),
+                );
+              }
             }
           } catch (e) {
             console.error("Config fetch error", e);
@@ -221,9 +255,8 @@ const Index = () => {
         try {
           const configResponse2 = await apiService.getDiplomaConfig(2);
           if (configResponse2.success && configResponse2.data) {
-            configData =
-              (configResponse2.data as any).configuration ||
-              configResponse2.data;
+            const data = configResponse2.data as any;
+            configData = data.diploma_user_config || data.configuration || data;
           }
         } catch (e) {
           // Ignore error and try Round 1
@@ -234,9 +267,9 @@ const Index = () => {
             roundForConfig = 1;
             const configResponse1 = await apiService.getDiplomaConfig(1);
             if (configResponse1.success && configResponse1.data) {
+              const data = configResponse1.data as any;
               configData =
-                (configResponse1.data as any).configuration ||
-                configResponse1.data;
+                data.diploma_user_config || data.configuration || data;
             }
           } catch (e) {
             // Ignore error

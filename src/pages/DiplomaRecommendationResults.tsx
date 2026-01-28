@@ -76,9 +76,9 @@ const DiplomaRecommendationResults = () => {
               try {
                 const configResponse = await apiService.getDiplomaConfig(2);
                 if (configResponse.success && configResponse.data) {
+                  const data = configResponse.data as any;
                   const config =
-                    (configResponse.data as any).configuration ||
-                    configResponse.data;
+                    data.diploma_user_config || data.configuration || data;
                   if (config.last_round_college_choice_code) {
                     payload.last_round_college_choice_code =
                       config.last_round_college_choice_code;
@@ -377,8 +377,9 @@ const DiplomaRecommendationResults = () => {
         const config = configResponse.data as any; // Cast to any to handle structure mismatch
 
         // Map response to form data
-        // Check if structure is nested in 'configuration' or flat
-        const validConfig = config.configuration || config;
+        // Check if structure is nested in 'diploma_user_config', 'configuration' or flat
+        const validConfig =
+          config.diploma_user_config || config.configuration || config;
 
         const mappedFormData = {
           diplomaPercentage: validConfig.cet_percentile,

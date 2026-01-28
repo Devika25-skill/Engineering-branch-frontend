@@ -447,8 +447,9 @@ export const DiplomaRound2Tab = () => {
           const response = await apiService.getDiplomaConfig(2);
           if (response.success && response.data) {
             // Handle potentially different response structures
+            const data = response.data as any;
             const config =
-              (response.data as any).configuration || response.data;
+              data.diploma_user_config || data.configuration || data;
             const branches = config.cet_course || [];
             const cities = config.location || [];
 
@@ -522,6 +523,23 @@ export const DiplomaRound2Tab = () => {
           title: "Preferences Updated",
           description: "Your Round 2 preferences have been saved successfully.",
         });
+
+        // Sync back to form data storage so "Back to Form" works correctly
+        const newFormData = {
+          ...formData,
+          diplomaPercentage: payload.cet_percentile,
+          reservationCategory: payload.category,
+          gender: payload.gender,
+          selectedBranches: payload.cet_course,
+          selectedCities: payload.location,
+        };
+
+        localStorage.setItem(
+          "diploma_form_data_round_2",
+          JSON.stringify(newFormData),
+        );
+        // Also update generic key just in case
+        localStorage.setItem("diploma_form_data", JSON.stringify(newFormData));
 
         // Refresh local config state
         setDiplomaConfig(payload);
