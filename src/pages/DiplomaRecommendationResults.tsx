@@ -315,7 +315,7 @@ const DiplomaRecommendationResults = () => {
           recommendations.push({
             category: category,
             college: {
-              id: item.college.College_Code || item.college.SJ_Institute_Code,
+              id: item.college.SJ_Institute_Code || item.college.College_Code,
               name: item.college.College_Name,
               city: item.college.City,
               logo: item.college.College_Logo,
