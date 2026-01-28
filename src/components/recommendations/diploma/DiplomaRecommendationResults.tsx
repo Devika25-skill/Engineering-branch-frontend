@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { CollegeRecommendation } from "@/services/cutoffService";
 import { DiplomaRecommendationCard } from "./DiplomaRecommendationCard";
 import { DiplomaCategoryFilter } from "./DiplomaCategoryFilter";
@@ -23,6 +23,7 @@ import { usePdfDownload } from "@/hooks/usePdfDownload";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DiplomaRound2Tab } from "./DiplomaRound2Tab";
 import { usePdfDownloadDSY } from "@/hooks/usePdfDownloadDSY";
+import StepLoadingMessages from "@/components/recommendations/StepLoadingMessages";
 
 interface DiplomaRecommendationResultsProps {
   recommendations: CollegeRecommendation[];
@@ -32,6 +33,8 @@ interface DiplomaRecommendationResultsProps {
     is_payment?: boolean;
     accept_payment?: boolean;
   };
+  activeRound?: string;
+  onRoundChange?: (round: string) => void;
 }
 
 interface FormData {
@@ -78,7 +81,7 @@ const convertApiResponseToRecommendations = (apiData: any) => {
         recommendations.push({
           category: category,
           college: {
-            id: item.college.College_Code || item.college.SJ_Institute_Code,
+            id: item.college.SJ_Institute_Code || item.college.College_Code,
             name: item.college.College_Name,
             city: item.college.City,
             logo: item.college.College_Logo,
@@ -119,8 +122,15 @@ export const DiplomaRecommendationResults = ({
   const [internalActiveRound, setInternalActiveRound] =
     useState<string>("round2");
 
+  const [isTabLoading, setIsTabLoading] = useState(false);
+
   const activeRound = propActiveRound || internalActiveRound;
   const setActiveRound = (round: string) => {
+    // Only set loading if actually changing rounds
+    if (round !== activeRound) {
+      setIsTabLoading(true);
+      setRecommendations([]); // Clear immediately to trigger fetch if needed
+    }
     setInternalActiveRound(round);
     if (onRoundChange) {
       onRoundChange(round);
@@ -137,8 +147,13 @@ export const DiplomaRecommendationResults = ({
   // When initialRecommendations changes (e.g. parent updates), update local state
   useEffect(() => {
     // Always update if initialRecommendations is provided (even if empty, to clear previous round data)
+    // NOTE: We only stop loading if we actually have data, OR if we know for sure it's empty (but that's tricky).
+    // For now, if we get data and we are in active round, stop loading.
     if (initialRecommendations) {
       setRecommendations(initialRecommendations);
+      if (initialRecommendations.length > 0) {
+        setIsTabLoading(false);
+      }
     }
   }, [initialRecommendations]);
 
@@ -159,6 +174,7 @@ export const DiplomaRecommendationResults = ({
           setRecommendations(JSON.parse(cached));
           // If already unlocked, no need to refetch just for lock status
           if (isUnlockedLocal) {
+            setIsTabLoading(false);
             return;
           }
           // If cached but locked, continue to fetch to check is_payment status
@@ -190,6 +206,7 @@ export const DiplomaRecommendationResults = ({
           console.error("Error fetching Round 1 data:", error);
         } finally {
           setIsRound1Loading(false);
+          setIsTabLoading(false);
         }
       }
     };
@@ -208,6 +225,10 @@ export const DiplomaRecommendationResults = ({
   });
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+
+  const handleLoadComplete = useCallback(() => {
+    setIsTabLoading(false);
+  }, []);
 
   const handleDownloadPDF = () => {
     if (!isUnlocked && paymentData?.is_payment !== true) {
@@ -591,7 +612,13 @@ export const DiplomaRecommendationResults = ({
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 relative">
+      {isTabLoading && (
+        <div className="fixed inset-0 bg-white/90 backdrop-blur-sm z-50 flex items-center justify-center">
+          <StepLoadingMessages />
+        </div>
+      )}
+
       <DiplomaRecommendationHeader formData={formData} />
 
       {/* Rounds Tabs */}
@@ -891,7 +918,7 @@ export const DiplomaRecommendationResults = ({
         </TabsContent>
 
         <TabsContent value="round2" className="mt-4">
-          <DiplomaRound2Tab />
+          <DiplomaRound2Tab onLoadComplete={handleLoadComplete} />
         </TabsContent>
       </Tabs>
     </div>

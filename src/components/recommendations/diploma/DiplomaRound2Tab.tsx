@@ -68,7 +68,11 @@ interface SelectedCollege {
   selectedDepartment: CollegeDepartment;
 }
 
-export const DiplomaRound2Tab = () => {
+interface DiplomaRound2TabProps {
+  onLoadComplete?: () => void;
+}
+
+export const DiplomaRound2Tab = ({ onLoadComplete }: DiplomaRound2TabProps) => {
   const { user, isLoggedIn } = useAuth();
   const { toast } = useToast();
 
@@ -323,10 +327,13 @@ export const DiplomaRound2Tab = () => {
           }
         }
       }
+      if (onLoadComplete) {
+        onLoadComplete();
+      }
     };
 
     loadExistingData();
-  }, [user?.accessToken]);
+  }, [user?.accessToken, onLoadComplete]);
 
   // Fetch Diploma Config for Round 2
   useEffect(() => {
