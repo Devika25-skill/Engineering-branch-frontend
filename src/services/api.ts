@@ -384,8 +384,19 @@ export interface DiplomaConfigResponse {
   message: string;
   success: boolean;
   data: {
-    round: number;
-    configuration: any;
+    email?: string;
+    Round?: number;
+    diploma_user_config?: {
+      category: string;
+      cet_percentile: number;
+      cet_course: string[];
+      location: string[];
+      gender?: string;
+      last_round_college_choice_code?: number;
+    };
+    configuration?: any; // Fallback
+    round?: number; // Fallback
+    [key: string]: any;
   };
 }
 
