@@ -1,13 +1,36 @@
-import { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { GraduationCap, Users, MapPin, Building, Pill, Heart, LucideIcon, Clock } from 'lucide-react';
-import { IntegratedAdmissionType } from '@/types/integratedAdmission';
-import { State, getAllStates } from '@/types/state';
+import { useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  GraduationCap,
+  Users,
+  MapPin,
+  Building,
+  Pill,
+  Heart,
+  LucideIcon,
+  Clock,
+} from "lucide-react";
+import { IntegratedAdmissionType } from "@/types/integratedAdmission";
+import { State, getAllStates } from "@/types/state";
 
-type RecommendationType = 'first-year' | 'direct-second-year' | 'First_Year_Medical';
+type RecommendationType =
+  | "first-year"
+  | "direct-second-year"
+  | "First_Year_Medical";
 export type ProgramType = RecommendationType | IntegratedAdmissionType;
 
 interface ProgramOption {
@@ -30,131 +53,145 @@ const indianStatesAndUTs = getAllStates();
 const allPrograms: ProgramOption[] = [
   // Medical Program
   {
-    id: 'First_Year_Medical' as const,
-    title: 'First Year Medical',
-    description: 'MBBS and Medical programs after 12th',
+    id: "First_Year_Medical" as const,
+    title: "First Year Medical",
+    description: "MBBS and Medical programs after 12th",
     icon: Heart,
-    gradient: 'from-red-500 to-pink-500',
-    details: ['3 Rounds', 'Medical focus']
+    gradient: "from-red-500 to-pink-500",
+    details: ["3 Rounds", "Medical focus"],
   },
   // Engineering Programs (First Year & Direct Second Year)
   {
-    id: 'first-year' as const,
-    title: 'First Year Engineering',
-    description: 'After 12th grade',
+    id: "first-year" as const,
+    title: "First Year Engineering",
+    description: "After 12th grade",
     icon: GraduationCap,
-    gradient: 'from-purple-500 to-purple-600',
-    details: ['3 Rounds', 'Full form']
+    gradient: "from-purple-500 to-purple-600",
+    details: ["3 Rounds", "Full form"],
   },
   {
-    id: 'direct-second-year' as const,
-    title: 'Direct Second Year',
-    description: 'After diploma',
+    id: "direct-second-year" as const,
+    title: "Direct Second Year",
+    description: "After diploma",
     icon: GraduationCap,
-    gradient: 'from-indigo-500 to-indigo-600',
-    details: ['2 Rounds', 'Simple form']
+    gradient: "from-indigo-500 to-indigo-600",
+    details: ["2 Rounds", "Simple form"],
   },
   // Integrated Programs
   {
-    id: 'BCA_MCA_Int' as const,
-    title: 'BCA/MCA (Integrated)',
-    description: 'Bachelor of Computer Applications with integrated Master\'s',
+    id: "BCA_MCA_Int" as const,
+    title: "BCA/MCA (Integrated)",
+    description: "Bachelor of Computer Applications with integrated Master's",
     icon: GraduationCap,
-    gradient: 'from-blue-500 to-cyan-500',
-    details: ['3 Rounds', 'Integrated program']
+    gradient: "from-blue-500 to-cyan-500",
+    details: ["3 Rounds", "Integrated program"],
   },
   {
-    id: 'BBA_BMS_BBM_MBA_Int' as const,
-    title: 'BBA/BMS/BBM/MBA (Int.)',
-    description: 'Business Administration programs with integrated MBA',
+    id: "BBA_BMS_BBM_MBA_Int" as const,
+    title: "BBA/BMS/BBM/MBA (Int.)",
+    description: "Business Administration programs with integrated MBA",
     icon: Building,
-    gradient: 'from-emerald-500 to-teal-500',
-    details: ['3 Rounds', 'Business focus']
+    gradient: "from-emerald-500 to-teal-500",
+    details: ["3 Rounds", "Business focus"],
   },
   {
-    id: 'B_and_D_Pharmacy' as const,
-    title: 'B.Pharmacy/Pharm D',
-    description: 'Bachelor of Pharmacy and Doctor of Pharmacy programs',
+    id: "B_and_D_Pharmacy" as const,
+    title: "B.Pharmacy/Pharm D",
+    description: "Bachelor of Pharmacy and Doctor of Pharmacy programs",
     icon: Pill,
-    gradient: 'from-green-500 to-emerald-500',
-    details: ['3 Rounds', 'Healthcare sector']
-  }
+    gradient: "from-green-500 to-emerald-500",
+    details: ["3 Rounds", "Healthcare sector"],
+  },
 ];
 
 export function ProgramSelectionDialog({
   open,
   onOpenChange,
-  onSelectProgram
+  onSelectProgram,
 }: ProgramSelectionDialogProps) {
-  const [selectedProgram, setSelectedProgram] = useState<ProgramType | null>(null);
-  const [selectedState, setSelectedState] = useState<string>('');
+  const [selectedProgram, setSelectedProgram] = useState<ProgramType | null>(
+    null,
+  );
+  const [selectedState, setSelectedState] = useState<string>("");
 
   // Clear all medical workflow data from storage
   const clearMedicalWorkflowData = () => {
     // Clear sessionStorage medical keys
     const sessionKeys = [
-      'cachedMedicalRecommendations',
-      'cachedMedicalRound1Recommendations',
-      'cachedMedicalRound2Recommendations',
-      'cachedMedicalRound3Recommendations',
-      'medicalActiveRound',
-      'medicalRecommendationPaymentData',
-      'medical_academic_details',
-      'medical_preferences',
-      'medical_priorities',
-      'round1Invalidated',
-      'round2Invalidated',
-      'round3Invalidated'
+      "cachedMedicalRecommendations",
+      "cachedMedicalRound1Recommendations",
+      "cachedMedicalRound2Recommendations",
+      "cachedMedicalRound3Recommendations",
+      "medicalActiveRound",
+      "medicalRecommendationPaymentData",
+      "medical_academic_details",
+      "medical_preferences",
+      "medical_priorities",
+      "round1Invalidated",
+      "round2Invalidated",
+      "round3Invalidated",
     ];
-    sessionKeys.forEach(key => sessionStorage.removeItem(key));
+    sessionKeys.forEach((key) => sessionStorage.removeItem(key));
 
     // Clear localStorage medical keys
     const localKeys = [
-      'medicalRecommendationUnlocked',
-      'medicalRound2Recommendations',
-      'medicalRound2SelectedCollege',
-      'medicalRound2Preferences'
+      "medicalRecommendationUnlocked",
+      "medicalRound2Recommendations",
+      "medicalRound2SelectedCollege",
+      "medicalRound2Preferences",
     ];
-    localKeys.forEach(key => localStorage.removeItem(key));
+    localKeys.forEach((key) => localStorage.removeItem(key));
   };
 
   const handleSelect = (program: ProgramType) => {
     setSelectedProgram(program);
-    
+
     // Clear all previous medical workflow data when selecting a program
-    if (program === 'First_Year_Medical') {
+    if (program === "First_Year_Medical") {
       clearMedicalWorkflowData();
     }
-    
+
     // Store selected program and state for future reference
-    if (program === 'first-year' || program === 'direct-second-year' || program === 'First_Year_Medical') {
-      localStorage.setItem('recommendation_type', program as RecommendationType);
+    if (
+      program === "first-year" ||
+      program === "direct-second-year" ||
+      program === "First_Year_Medical"
+    ) {
+      localStorage.setItem(
+        "recommendation_type",
+        program as RecommendationType,
+      );
     } else {
-      localStorage.setItem('integrated_admission_type', program as IntegratedAdmissionType);
+      localStorage.setItem(
+        "integrated_admission_type",
+        program as IntegratedAdmissionType,
+      );
     }
-    
+
     if (selectedState) {
-      localStorage.setItem('selected_state', selectedState);
+      localStorage.setItem("selected_state", selectedState);
     }
-    
+
     onSelectProgram(program, selectedState);
     onOpenChange(false);
   };
 
-  const isMaharashtra = selectedState === 'Maharashtra';
-  const isKarnataka = selectedState === 'Karnataka';
-  const hasSelectedState = selectedState !== '';
-  
+  const isMaharashtra = selectedState === "Maharashtra";
+  const isKarnataka = selectedState === "Karnataka";
+  const hasSelectedState = selectedState !== "";
+
   // Filter programs based on state selection
   const getAvailablePrograms = () => {
     if (isKarnataka) {
-      // Karnataka only shows First-Year Medical
-      return allPrograms.filter(p => p.id === 'First_Year_Medical');
+      // Karnataka shows First-Year Medical and First Year Engineering
+      return allPrograms.filter(
+        (p) => p.id === "First_Year_Medical" || p.id === "first-year",
+      );
     }
     // Maharashtra shows all programs
     return allPrograms;
   };
-  
+
   const availableStatePrograms = getAvailablePrograms();
 
   return (
@@ -187,7 +224,7 @@ export function ProgramSelectionDialog({
             </SelectContent>
           </Select>
         </div>
-        
+
         <div className="p-4 sm:p-6 space-y-3 sm:space-y-4">
           {/* Show programs for Maharashtra or Karnataka */}
           {(isMaharashtra || isKarnataka) && (
@@ -195,14 +232,16 @@ export function ProgramSelectionDialog({
               {availableStatePrograms.map((program) => {
                 const Icon = program.icon;
                 return (
-                  <Card 
+                  <Card
                     key={program.id}
                     className="cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] border-2 hover:border-primary/50 bg-gradient-to-r from-background to-background/50 touch-manipulation"
                     onClick={() => handleSelect(program.id)}
                   >
                     <CardContent className="p-4 sm:p-6">
                       <div className="flex items-start space-x-3 sm:space-x-4">
-                        <div className={`p-2 sm:p-3 rounded-full bg-gradient-to-r ${program.gradient} text-white flex-shrink-0`}>
+                        <div
+                          className={`p-2 sm:p-3 rounded-full bg-gradient-to-r ${program.gradient} text-white flex-shrink-0`}
+                        >
                           <Icon size={20} className="sm:w-6 sm:h-6" />
                         </div>
                         <div className="flex-1 min-w-0">
@@ -214,9 +253,16 @@ export function ProgramSelectionDialog({
                           </p>
                           <div className="flex items-center gap-3 sm:gap-4 mt-2 sm:mt-3">
                             {program.details.map((detail, index) => (
-                              <div key={index} className="flex items-center text-xs text-muted-foreground">
-                                {index === 0 && <Users className="w-3 h-3 mr-1 flex-shrink-0" />}
-                                {index === 1 && <MapPin className="w-3 h-3 mr-1 flex-shrink-0" />}
+                              <div
+                                key={index}
+                                className="flex items-center text-xs text-muted-foreground"
+                              >
+                                {index === 0 && (
+                                  <Users className="w-3 h-3 mr-1 flex-shrink-0" />
+                                )}
+                                {index === 1 && (
+                                  <MapPin className="w-3 h-3 mr-1 flex-shrink-0" />
+                                )}
                                 <span>{detail}</span>
                               </div>
                             ))}
@@ -243,8 +289,11 @@ export function ProgramSelectionDialog({
                   Coming Soon!
                 </h3>
                 <p className="text-muted-foreground text-sm sm:text-base">
-                  We're working on bringing college recommendations for <span className="font-medium text-foreground">{selectedState}</span>. 
-                  Stay tuned for updates!
+                  We're working on bringing college recommendations for{" "}
+                  <span className="font-medium text-foreground">
+                    {selectedState}
+                  </span>
+                  . Stay tuned for updates!
                 </p>
               </CardContent>
             </Card>
@@ -253,13 +302,15 @@ export function ProgramSelectionDialog({
           {/* Show placeholder when no state is selected */}
           {!hasSelectedState && (
             <div className="text-center py-6 text-muted-foreground">
-              <p className="text-sm">Please select your state to view available programs.</p>
+              <p className="text-sm">
+                Please select your state to view available programs.
+              </p>
             </div>
           )}
-          
+
           <div className="flex justify-center pt-2 sm:pt-4 border-t">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => onOpenChange(false)}
               className="px-6 sm:px-8 min-h-[40px] touch-manipulation"
             >

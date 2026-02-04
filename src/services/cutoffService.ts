@@ -33,6 +33,7 @@ export interface CollegeRecommendation {
     fees?: number;
     placement?: number;
     logo?: string;
+    college_code?: string; // Mapped from College_Code
     SJ_Institute_code?: number;
     // Additional properties from the new API response
     Student_Intake?: number;
@@ -57,7 +58,7 @@ export const cutoffService = {
   async generateRecommendations(
     formData: any,
     colleges: any[],
-    token: string
+    token: string,
   ): Promise<CollegeRecommendation[]> {
     try {
       // Validate that the category is one of the allowed categories
@@ -65,7 +66,7 @@ export const cutoffService = {
       const category = formData.reservationCategory || "GOPENS";
 
       if (!allowedCategories.includes(category)) {
-        console.warn(`Invalid category ${category}, defaulting to GOPENS`);
+        console.warn(`Invalid category ${category}, default to GOPENS`);
         formData.reservationCategory = "GOPENS";
       }
 
@@ -75,7 +76,7 @@ export const cutoffService = {
         cet_percentile: formData.cetPercentile,
         cet_course: formData.preferredStreams || [], // Send actual course names
         location: (formData.preferredCities || []).map((city: string) =>
-          city.toLowerCase()
+          city.toLowerCase(),
         ),
       };
 
@@ -141,6 +142,7 @@ export const cutoffService = {
               fees: college["Annual_Fees_(INR)"],
               placement: college.Overall_College_Placement_Percentage,
               logo: college.College_Logo,
+              college_code: college.College_Code, // Map College_Code
               SJ_Institute_code: college.SJ_Institute_Code,
               // Map additional properties from the new API response
               Student_Intake: college.Student_Intake,

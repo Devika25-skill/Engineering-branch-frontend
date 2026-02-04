@@ -93,6 +93,12 @@ const convertApiResponseToRecommendations = (apiData: any) => {
             rating: item.college.College_Reviews_out_of_5,
             Student_Intake: item.college.Student_Intake,
             SJ_Institute_code: item.college.SJ_Institute_Code,
+            college_code:
+              item.college.College_Code ||
+              item.college.College_code ||
+              item.college.college_code ||
+              item.college.dte_code ||
+              item.college.institute_code,
             Top_Recruiters: item.college.Top_Recruiters || [],
           },
           course_name: item.course,
@@ -166,7 +172,9 @@ export const DiplomaRecommendationResults = ({
         !isRound1Loading
       ) {
         // Check session storage first
-        const cached = sessionStorage.getItem("cachedDiplomaRecommendations");
+        const cached = sessionStorage.getItem(
+          "cachedDiplomaRecommendations_v3",
+        );
         const isUnlockedLocal =
           localStorage.getItem("diplomaRecommendationUnlocked") === "true";
 
@@ -192,7 +200,7 @@ export const DiplomaRecommendationResults = ({
             );
             setRecommendations(converted);
             sessionStorage.setItem(
-              "cachedDiplomaRecommendations",
+              "cachedDiplomaRecommendations_v3",
               JSON.stringify(converted),
             );
             if (response.data.is_payment) {

@@ -65,7 +65,7 @@ const RecommendationSteps = () => {
   const isMedical = recommendationType === "First_Year_Medical";
 
   const [formData, setFormData] = useState<FormData>({
-    reservationCategory: "GOPENS",
+    reservationCategory: isMedical ? undefined : "GOPENS",
     grouping: isMedical
       ? "PCB (Physics, Chemistry, Biology)"
       : "PCM (Physics, Chemistry, Mathematics)",
@@ -92,7 +92,7 @@ const RecommendationSteps = () => {
     return {
       // Academic Info - gender is at top level
       gender: apiData.gender || undefined,
-      reservationCategory: credentials.reservationCategory || "OPEN",
+      reservationCategory: credentials.reservationCategory || undefined,
       grouping:
         credentials.educationBackground?.stream ||
         "PCB (Physics, Chemistry, Biology)",
@@ -160,7 +160,7 @@ const RecommendationSteps = () => {
               // Check Round 3
               const round3Response = await apiService.getRoundRecommendations(
                 3,
-                user.accessToken
+                user.accessToken,
               );
               if (
                 round3Response.success &&
@@ -170,7 +170,7 @@ const RecommendationSteps = () => {
                 // If round 3 data exists, save it and redirect
                 localStorage.setItem(
                   "round3Recommendations",
-                  JSON.stringify(round3Response.data)
+                  JSON.stringify(round3Response.data),
                 );
                 localStorage.setItem("activeRoundTab", "round3");
                 // Also cache converted if possible but Round3Tab handles conversion from raw
@@ -181,7 +181,7 @@ const RecommendationSteps = () => {
               // Check Round 2
               const round2Response = await apiService.getRoundRecommendations(
                 2,
-                user.accessToken
+                user.accessToken,
               );
               if (
                 round2Response.success &&
@@ -190,7 +190,7 @@ const RecommendationSteps = () => {
               ) {
                 localStorage.setItem(
                   "round2Recommendations",
-                  JSON.stringify(round2Response.data)
+                  JSON.stringify(round2Response.data),
                 );
                 localStorage.setItem("activeRoundTab", "round2");
                 navigate("/recommendations/results");
@@ -200,7 +200,7 @@ const RecommendationSteps = () => {
               // Check Round 1
               const round1Response = await apiService.getRoundRecommendations(
                 1,
-                user.accessToken
+                user.accessToken,
               );
               if (
                 round1Response.success &&
@@ -212,7 +212,7 @@ const RecommendationSteps = () => {
                 // Round 1 usually uses 'cachedRecommendations' and 'recommendations'
                 sessionStorage.setItem(
                   "cachedRecommendations",
-                  JSON.stringify(round1Response.data)
+                  JSON.stringify(round1Response.data),
                 );
                 localStorage.setItem("activeRoundTab", "round1");
                 navigate("/recommendations/results");
@@ -221,7 +221,7 @@ const RecommendationSteps = () => {
             } catch (checkError) {
               console.error(
                 "Error checking existing recommendations:",
-                checkError
+                checkError,
               );
               // Continue to load form data if check fails
             }
@@ -232,7 +232,7 @@ const RecommendationSteps = () => {
           const response = isMedical
             ? await apiService.fetchMedicalStudentDetails(
                 user.accessToken,
-                selectedState
+                selectedState,
               )
             : await apiService.fetchAICapDetails(user.accessToken);
 
@@ -250,7 +250,7 @@ const RecommendationSteps = () => {
         } catch (error) {
           console.error(
             "No existing data found or error fetching data:",
-            error
+            error,
           );
         }
       }
@@ -476,7 +476,7 @@ const RecommendationSteps = () => {
           try {
             const detailsResponse = await apiService.getUserRoundDetails(
               prevRound,
-              user.accessToken
+              user.accessToken,
             );
             if (detailsResponse.success && detailsResponse.data) {
               // Assuming data has choice_code or similar structure

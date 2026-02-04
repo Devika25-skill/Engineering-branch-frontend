@@ -124,7 +124,9 @@ export const DiplomaRecommendationCard = ({
                   <MapPin size={10} />
                   <span>{truncateText(college.city, 20)}</span>
                   <span className="mx-1">•</span>
-                  <span>College Code: {college.id}</span>
+                  <span>
+                    College Code: {college.college_code || college.id}
+                  </span>
                   {college.rating && (
                     <>
                       <span>•</span>

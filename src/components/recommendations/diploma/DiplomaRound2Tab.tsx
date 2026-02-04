@@ -136,6 +136,12 @@ export const DiplomaRound2Tab = ({ onLoadComplete }: DiplomaRound2TabProps) => {
               placement: item.college.Overall_College_Placement_Percentage,
               rating: item.college.College_Reviews_out_of_5,
               top_recruiters: item.college.Top_Recruiters || [],
+              college_code:
+                item.college.College_Code ||
+                item.college.College_code ||
+                item.college.college_code ||
+                item.college.dte_code ||
+                item.college.institute_code,
             },
             course_name: item.course,
             cutoff_percentile: item.cutoff,
@@ -172,7 +178,7 @@ export const DiplomaRound2Tab = ({ onLoadComplete }: DiplomaRound2TabProps) => {
     const loadExistingData = async () => {
       // First check for cached Round 2 recommendations in session storage
       const cachedRound2Recommendations = sessionStorage.getItem(
-        "cachedDiplomaRound2Recommendations",
+        "cachedDiplomaRound2Recommendations_v3",
       );
       if (cachedRound2Recommendations) {
         try {
@@ -184,14 +190,15 @@ export const DiplomaRound2Tab = ({ onLoadComplete }: DiplomaRound2TabProps) => {
             "Error loading cached Diploma Round 2 recommendations:",
             error,
           );
-          sessionStorage.removeItem("cachedDiplomaRound2Recommendations");
+          sessionStorage.removeItem("cachedDiplomaRound2Recommendations_v3");
         }
       }
 
       // Check for existing Round 2 recommendations in localStorage if no session cache
+      // CHANGE: Updated key to force refresh from API if old key exists or empty
       if (!cachedRound2Recommendations) {
         const storedRecommendations = localStorage.getItem(
-          "diplomaRound2Recommendations",
+          "diplomaRound2Recommendations_v3",
         );
         if (storedRecommendations) {
           try {
@@ -210,14 +217,14 @@ export const DiplomaRound2Tab = ({ onLoadComplete }: DiplomaRound2TabProps) => {
 
               // Cache in session storage for faster future access
               sessionStorage.setItem(
-                "cachedDiplomaRound2Recommendations",
+                "cachedDiplomaRound2Recommendations_v3",
                 JSON.stringify(convertedRecs),
               );
             }
           } catch (error) {
             console.error("Error loading stored recommendations:", error);
             // Clear corrupted data
-            localStorage.removeItem("diplomaRound2Recommendations");
+            localStorage.removeItem("diplomaRound2Recommendations_v3");
           }
         }
       }
@@ -290,7 +297,7 @@ export const DiplomaRound2Tab = ({ onLoadComplete }: DiplomaRound2TabProps) => {
 
         if (
           (!cachedRound2Recommendations &&
-            !localStorage.getItem("diplomaRound2Recommendations")) ||
+            !localStorage.getItem("diplomaRound2Recommendations_v3")) ||
           (!localStorage.getItem("diplomaRecommendationUnlocked") &&
             user?.accessToken)
         ) {
@@ -305,11 +312,11 @@ export const DiplomaRound2Tab = ({ onLoadComplete }: DiplomaRound2TabProps) => {
 
               // Cache
               localStorage.setItem(
-                "diplomaRound2Recommendations",
+                "diplomaRound2Recommendations_v3",
                 JSON.stringify(listResponse.data),
               );
               sessionStorage.setItem(
-                "cachedDiplomaRound2Recommendations",
+                "cachedDiplomaRound2Recommendations_v3",
                 JSON.stringify(converted),
               );
 
@@ -694,7 +701,7 @@ export const DiplomaRound2Tab = ({ onLoadComplete }: DiplomaRound2TabProps) => {
       if (response.success && response.data) {
         // Store in localStorage
         localStorage.setItem(
-          "diplomaRound2Recommendations",
+          "diplomaRound2Recommendations_v3",
           JSON.stringify(response.data),
         );
 
@@ -707,7 +714,7 @@ export const DiplomaRound2Tab = ({ onLoadComplete }: DiplomaRound2TabProps) => {
 
         // Cache in session storage
         sessionStorage.setItem(
-          "cachedDiplomaRound2Recommendations",
+          "cachedDiplomaRound2Recommendations_v3",
           JSON.stringify(convertedRecommendations),
         );
 

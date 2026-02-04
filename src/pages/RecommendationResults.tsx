@@ -44,6 +44,12 @@ const RecommendationResults = () => {
               name: item.college.College_Name,
               city: item.college.City,
               logo: item.college.College_Logo,
+              college_code:
+                item.college.College_Code ||
+                item.college.College_code ||
+                item.college.college_code ||
+                item.college.dte_code ||
+                item.college.institute_code,
               website: item.college.College_Website,
               type: item.college.College_Type,
               nirf_rank: item.college.NIRF_Rank_Min,
@@ -72,7 +78,9 @@ const RecommendationResults = () => {
     setIsGenerating(true);
     try {
       // Check for cached data first
-      const cachedCallbacks = sessionStorage.getItem("cachedRecommendations");
+      const cachedCallbacks = sessionStorage.getItem(
+        "cachedRecommendations_v3",
+      );
       if (cachedCallbacks) {
         try {
           const recs = JSON.parse(cachedCallbacks);
@@ -95,7 +103,7 @@ const RecommendationResults = () => {
           try {
             const capResponse = await apiService.fetchAICapDetails(
               user.accessToken,
-              user.email
+              user.email,
             );
             if (capResponse.success && capResponse.data) {
               const mappedFormData = mapApiResponseToFormData(capResponse.data);
@@ -107,15 +115,15 @@ const RecommendationResults = () => {
 
               sessionStorage.setItem(
                 "recommendationFormData",
-                JSON.stringify(mappedFormData)
+                JSON.stringify(mappedFormData),
               );
               sessionStorage.setItem(
                 "recommendation_form_data",
-                JSON.stringify(mappedFormData)
+                JSON.stringify(mappedFormData),
               );
               localStorage.setItem(
                 "recommendationFormData",
-                JSON.stringify(mappedFormData)
+                JSON.stringify(mappedFormData),
               ); // For PDF robustness
 
               currentFormData = mappedFormData;
@@ -133,7 +141,7 @@ const RecommendationResults = () => {
         try {
           const round1Response = await apiService.getRoundRecommendations(
             1,
-            user.accessToken
+            user.accessToken,
           );
           if (round1Response.success && round1Response.data) {
             let recs: any[] = [];
@@ -144,13 +152,13 @@ const RecommendationResults = () => {
             }
             setRecommendations(recs);
             sessionStorage.setItem(
-              "cachedRecommendations",
-              JSON.stringify(recs)
+              "cachedRecommendations_v3",
+              JSON.stringify(recs),
             );
             // Also update localStorage with the raw data to ensure consistency with useRecommendation
             localStorage.setItem(
               "recommendations",
-              JSON.stringify(round1Response.data)
+              JSON.stringify(round1Response.data),
             );
           } else if (
             currentFormData &&
@@ -164,7 +172,7 @@ const RecommendationResults = () => {
                 recs = result.recommendations;
               } else {
                 recs = convertApiResponseToRecommendations(
-                  result.recommendations
+                  result.recommendations,
                 );
               }
               setRecommendations(recs);
@@ -207,7 +215,7 @@ const RecommendationResults = () => {
         if (!currentFormData || Object.keys(currentFormData).length === 0) {
           try {
             const capResponse = await apiService.fetchAICapDetails(
-              user.accessToken
+              user.accessToken,
             );
             if (capResponse.success && capResponse.data) {
               const mappedData = mapApiResponseToFormData(capResponse.data);
@@ -230,7 +238,7 @@ const RecommendationResults = () => {
       } else {
         // Not logged in
         const cachedRecommendations = sessionStorage.getItem(
-          "cachedRecommendations"
+          "cachedRecommendations",
         );
         if (cachedRecommendations) {
           setRecommendations(JSON.parse(cachedRecommendations));
@@ -251,7 +259,7 @@ const RecommendationResults = () => {
   ]);
 
   const [currentTab, setCurrentTab] = useState<string>(
-    localStorage.getItem("activeRoundTab") || "round2"
+    localStorage.getItem("activeRoundTab") || "round2",
   );
 
   const handleTabChange = useCallback(
@@ -262,7 +270,7 @@ const RecommendationResults = () => {
         await fetchRound1Data();
       }
     },
-    [fetchRound1Data]
+    [fetchRound1Data],
   );
 
   useEffect(() => {
