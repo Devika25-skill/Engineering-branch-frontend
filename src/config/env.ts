@@ -11,7 +11,7 @@ const getApiBaseUrl = () => {
     return "https://staging-futurebridge.azurewebsites.net";
   } else {
     // Default to staging for development and other domains
-    return "http://127.0.0.1:8000";
+    return "https://staging-futurebridge.azurewebsites.net";
   }
 };
 
