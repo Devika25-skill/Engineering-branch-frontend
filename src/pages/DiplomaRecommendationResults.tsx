@@ -105,12 +105,12 @@ const DiplomaRecommendationResults = () => {
               // Update cache
               if (activeRound === "round1") {
                 sessionStorage.setItem(
-                  "cachedDiplomaRecommendations",
+                  "cachedDiplomaRecommendations_v3",
                   JSON.stringify(converted),
                 );
               } else {
                 sessionStorage.setItem(
-                  "cachedDiplomaRound2Recommendations",
+                  "cachedDiplomaRound2Recommendations_v3",
                   JSON.stringify(converted),
                 );
               }
@@ -134,10 +134,10 @@ const DiplomaRecommendationResults = () => {
 
         // First check if we have cached recommendations and should show them
         const cachedRecommendations = sessionStorage.getItem(
-          "cachedDiplomaRecommendations",
+          "cachedDiplomaRecommendations_v3",
         );
         const cachedRound2Recommendations = sessionStorage.getItem(
-          "cachedDiplomaRound2Recommendations",
+          "cachedDiplomaRound2Recommendations_v3",
         );
         const storedFormData = sessionStorage.getItem(
           "diplomaRecommendationFormData",
@@ -234,10 +234,10 @@ const DiplomaRecommendationResults = () => {
       let cachedData = null;
 
       if (activeRound === "round1") {
-        cachedData = sessionStorage.getItem("cachedDiplomaRecommendations");
+        cachedData = sessionStorage.getItem("cachedDiplomaRecommendations_v3");
       } else {
         cachedData = sessionStorage.getItem(
-          "cachedDiplomaRound2Recommendations",
+          "cachedDiplomaRound2Recommendations_v3",
         );
       }
 
@@ -278,7 +278,7 @@ const DiplomaRecommendationResults = () => {
 
         // Cache the data
         sessionStorage.setItem(
-          "cachedDiplomaRecommendations",
+          "cachedDiplomaRecommendations_v3",
           JSON.stringify(recommendations),
         );
         sessionStorage.setItem(
@@ -327,6 +327,12 @@ const DiplomaRecommendationResults = () => {
               rating: item.college.College_Reviews_out_of_5,
               Student_Intake: item.college.Student_Intake,
               SJ_Institute_code: item.college.SJ_Institute_Code,
+              college_code:
+                item.college.College_Code ||
+                item.college.College_code ||
+                item.college.college_code ||
+                item.college.dte_code ||
+                item.college.institute_code,
               Top_Recruiters: item.college.Top_Recruiters || [],
             },
             course_name: item.course,

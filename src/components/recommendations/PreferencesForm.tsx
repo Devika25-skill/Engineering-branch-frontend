@@ -38,15 +38,18 @@ export const PreferencesForm = ({
   validationErrors = [],
 }: PreferencesFormProps) => {
   const [selectedStreams, setSelectedStreams] = useState<string[]>(
-    data.preferredStreams || []
+    data.preferredStreams || [],
   );
   const [selectedCities, setSelectedCities] = useState<string[]>(
-    data.preferredCities || []
+    data.preferredCities || [],
   );
+
+  // Get selected state from localStorage
+  const selectedState = localStorage.getItem("selected_state") || "Maharashtra";
 
   const isFieldError = (fieldName: string) => {
     return validationErrors.some((error) =>
-      error.toLowerCase().includes(fieldName.toLowerCase())
+      error.toLowerCase().includes(fieldName.toLowerCase()),
     );
   };
 
@@ -81,7 +84,7 @@ export const PreferencesForm = ({
     "Textile Technology",
   ];
 
-  const availableCities = [
+  const maharashtraCities = [
     "ALL",
     "Ahmednagar",
     "Akola",
@@ -121,6 +124,54 @@ export const PreferencesForm = ({
     "Washim",
     "Yavatmal",
   ];
+
+  const karnatakaCities = [
+    "ALL",
+    "Bagalkote",
+    "Ballari",
+    "Belagavi",
+    "Bengaluru",
+    "Bidar",
+    "Chamarajanagara",
+    "Chikkaballapura",
+    "Chikkamagaluru (Chikmagalur)",
+    "Chintamani",
+    "Chitradurga",
+    "Davanagere",
+    "Devanahalli",
+    "Dharwad",
+    "Gadag",
+    "Gokak",
+    "Haliyal",
+    "Hassan",
+    "Haveri",
+    "Hubballi (Hubli)",
+    "Kalaburagi",
+    "Karwar",
+    "Kolar",
+    "Koppal",
+    "Kushalanagar",
+    "Mandya",
+    "Mangaluru (Mangalore)",
+    "Moodabidri (Moodabidre)",
+    "Mysuru (Mysore)",
+    "Nelamangala",
+    "Ponnampet",
+    "Puttur",
+    "Raichur",
+    "Ramanagara (Ramanagar)",
+    "Shivamogga (Shimoga)",
+    "Shorapur",
+    "Sullia",
+    "Tiptur",
+    "Tumakuru (Tumkur)",
+    "Udupi",
+    "Ujire",
+    "Vijayapura",
+  ];
+
+  const availableCities =
+    selectedState === "Karnataka" ? karnatakaCities : maharashtraCities;
 
   useEffect(() => {
     onUpdate({

@@ -45,20 +45,14 @@ export const MedicalAcademicInfoForm = ({
   }, []);
 
   // Set default values when component mounts
+  // Set default values when component mounts
   useEffect(() => {
-    const isKarnataka = selectedState === "Karnataka";
-    const defaultCategory = isKarnataka ? "GM" : "OPEN";
-
-    const defaultData = {
-      reservationCategory: data.reservationCategory || defaultCategory,
-      grouping: data.grouping || "PCB (Physics, Chemistry, Biology)",
-    };
-
     // Only update if the values are different from current data
-    if (!data.reservationCategory || !data.grouping) {
-      onUpdate(defaultData);
+    if (!data.grouping) {
+      onUpdate({ grouping: "PCB (Physics, Chemistry, Biology)" });
     }
-  }, [selectedState]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleChange = (field: string, value: any) => {
     onUpdate({ [field]: value });
@@ -141,7 +135,7 @@ export const MedicalAcademicInfoForm = ({
 
   const isFieldError = (fieldName: string) => {
     return validationErrors.some((error) =>
-      error.toLowerCase().includes(fieldName.toLowerCase())
+      error.toLowerCase().includes(fieldName.toLowerCase()),
     );
   };
 
@@ -161,7 +155,7 @@ export const MedicalAcademicInfoForm = ({
 
   // Prevent invalid characters for integer fields (only digits allowed)
   const preventInvalidCharsInteger = (
-    e: React.KeyboardEvent<HTMLInputElement>
+    e: React.KeyboardEvent<HTMLInputElement>,
   ) => {
     const invalidChars = ["e", "E", "+", "-", "."];
     if (invalidChars.includes(e.key)) {
@@ -180,7 +174,7 @@ export const MedicalAcademicInfoForm = ({
 
   // Prevent invalid paste for integer fields
   const preventInvalidPasteInteger = (
-    e: React.ClipboardEvent<HTMLInputElement>
+    e: React.ClipboardEvent<HTMLInputElement>,
   ) => {
     const pastedText = e.clipboardData.getData("text");
     const validPattern = /^\d+$/;
@@ -449,7 +443,7 @@ export const MedicalAcademicInfoForm = ({
                 <SelectTrigger
                   className={getFieldClassName(
                     "Gender",
-                    "h-10 rounded-xl border-2 bg-white"
+                    "h-10 rounded-xl border-2 bg-white",
                   )}
                 >
                   <SelectValue placeholder="Select your gender" />
@@ -475,9 +469,7 @@ export const MedicalAcademicInfoForm = ({
               </Label>
               <SearchableSelect
                 options={reservationCategoryOptions}
-                value={
-                  data.reservationCategory || (isKarnataka ? "GM" : "OPEN")
-                }
+                value={data.reservationCategory}
                 onValueChange={(value) =>
                   handleChange("reservationCategory", value)
                 }
@@ -485,7 +477,7 @@ export const MedicalAcademicInfoForm = ({
                 searchPlaceholder="Search category..."
                 className={getFieldClassName(
                   "Reservation Category",
-                  "h-10 rounded-xl border-2 bg-white"
+                  "h-10 rounded-xl border-2 bg-white",
                 )}
               />
             </div>
@@ -506,7 +498,7 @@ export const MedicalAcademicInfoForm = ({
                 <SelectTrigger
                   className={getFieldClassName(
                     "12th Grade Grouping",
-                    "h-10 rounded-xl border-2 bg-white"
+                    "h-10 rounded-xl border-2 bg-white",
                   )}
                 >
                   <SelectValue placeholder="What did you study in 12th?" />
@@ -555,7 +547,7 @@ export const MedicalAcademicInfoForm = ({
                 onPaste={preventInvalidPaste}
                 className={getFieldClassName(
                   "10th Grade Marks",
-                  "h-10 rounded-xl border-2 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  "h-10 rounded-xl border-2 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none",
                 )}
                 min="0"
                 max="100"
@@ -581,7 +573,7 @@ export const MedicalAcademicInfoForm = ({
                 onPaste={preventInvalidPaste}
                 className={getFieldClassName(
                   "12th Grade Marks",
-                  "h-10 rounded-xl border-2 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  "h-10 rounded-xl border-2 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none",
                 )}
                 min="0"
                 max="100"
@@ -607,7 +599,7 @@ export const MedicalAcademicInfoForm = ({
                 onPaste={preventInvalidPaste}
                 className={getFieldClassName(
                   "Grouping Marks",
-                  "h-10 rounded-xl border-2 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  "h-10 rounded-xl border-2 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none",
                 )}
                 min="0"
                 max="100"
@@ -640,7 +632,7 @@ export const MedicalAcademicInfoForm = ({
                   onPaste={preventInvalidPaste}
                   className={getFieldClassName(
                     "NEET Percentile",
-                    "h-10 rounded-xl border-2 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    "h-10 rounded-xl border-2 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none",
                   )}
                   min="0"
                   max="100"
@@ -666,7 +658,7 @@ export const MedicalAcademicInfoForm = ({
                   onPaste={preventInvalidPasteInteger}
                   className={getFieldClassName(
                     "All India Rank",
-                    "h-10 rounded-xl border-2 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    "h-10 rounded-xl border-2 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none",
                   )}
                   min="1"
                 />
@@ -689,7 +681,7 @@ export const MedicalAcademicInfoForm = ({
                   onPaste={preventInvalidPasteInteger}
                   className={getFieldClassName(
                     "NEET Roll Number",
-                    "h-10 rounded-xl border-2 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    "h-10 rounded-xl border-2 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none",
                   )}
                   min="1000000000"
                   max="9999999999"
@@ -727,7 +719,7 @@ export const MedicalAcademicInfoForm = ({
                   onChange={(e) =>
                     handleChange(
                       "otherExamPercentile",
-                      parseFloat(e.target.value) || undefined
+                      parseFloat(e.target.value) || undefined,
                     )
                   }
                   className="h-10 rounded-xl border-2 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"

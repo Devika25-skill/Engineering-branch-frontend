@@ -40,7 +40,7 @@ export const RecommendationCard = ({
       sessionStorage.getItem("recommendation_form_data") ||
       localStorage.getItem("recommendationFormData") ||
       localStorage.getItem("recommendation_form_data") ||
-      "{}"
+      "{}",
   );
 
   const { user } = useAuth();
@@ -59,7 +59,7 @@ export const RecommendationCard = ({
         sessionStorage.setItem("fetchingMissingData", "true");
         try {
           const capResponse = await apiService.fetchAICapDetails(
-            user.accessToken
+            user.accessToken,
           );
 
           if (capResponse.success && capResponse.data) {
@@ -73,11 +73,11 @@ export const RecommendationCard = ({
             // Update session/local storage manually for immediate use
             sessionStorage.setItem(
               "recommendationFormData",
-              JSON.stringify(mappedFormData)
+              JSON.stringify(mappedFormData),
             );
             localStorage.setItem(
               "recommendationFormData",
-              JSON.stringify(mappedFormData)
+              JSON.stringify(mappedFormData),
             );
 
             setLocalFormData(mappedFormData);
@@ -189,7 +189,9 @@ export const RecommendationCard = ({
                   <MapPin size={10} />
                   <span>{truncateText(college.city, 20)}</span>
                   <span className="mx-1">•</span>
-                  <span>College Code: {college.id}</span>
+                  <span>
+                    College Code: {college.college_code || college.id}
+                  </span>
                   {college.rating && (
                     <>
                       <span>•</span>

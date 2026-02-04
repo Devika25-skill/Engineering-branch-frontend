@@ -128,6 +128,12 @@ export const Round2Tab = () => {
               name: item.college.College_Name,
               city: item.college.City,
               logo: item.college.College_Logo,
+              college_code:
+                item.college.College_Code ||
+                item.college.College_code ||
+                item.college.college_code ||
+                item.college.dte_code ||
+                item.college.institute_code,
               website: item.college.College_Website,
               type: item.college.College_Type,
               nirf_rank: item.college.NIRF_Rank_Min,
@@ -161,7 +167,7 @@ export const Round2Tab = () => {
     if (selectedCollege) {
       sessionStorage.setItem(
         "round2SelectedCollege",
-        JSON.stringify(selectedCollege)
+        JSON.stringify(selectedCollege),
       );
     } else {
       sessionStorage.removeItem("round2SelectedCollege");
@@ -173,7 +179,7 @@ export const Round2Tab = () => {
     const loadExistingData = async () => {
       // First check for cached Round 2 recommendations in session storage
       const cachedRound2Recommendations = sessionStorage.getItem(
-        "cachedRound2Recommendations"
+        "cachedRound2Recommendations_v3",
       );
       if (cachedRound2Recommendations) {
         try {
@@ -182,7 +188,7 @@ export const Round2Tab = () => {
           setHasGeneratedRecommendations(true);
         } catch (error) {
           console.error("Error loading cached Round 2 recommendations:", error);
-          sessionStorage.removeItem("cachedRound2Recommendations");
+          sessionStorage.removeItem("cachedRound2Recommendations_v3");
         }
       }
 
@@ -190,7 +196,7 @@ export const Round2Tab = () => {
       // If not in storage, try fetching from API (fallback)
       if (!cachedRound2Recommendations) {
         const storedRecommendations = localStorage.getItem(
-          "round2Recommendations"
+          "round2Recommendations",
         );
 
         let apiData = null;
@@ -201,7 +207,7 @@ export const Round2Tab = () => {
           try {
             const response = await apiService.getRoundRecommendations(
               2,
-              user.accessToken
+              user.accessToken,
             );
             if (
               response.success &&
@@ -212,7 +218,7 @@ export const Round2Tab = () => {
               // Store it so we don't fetch again
               localStorage.setItem(
                 "round2Recommendations",
-                JSON.stringify(apiData)
+                JSON.stringify(apiData),
               );
             }
           } catch (error) {
@@ -234,8 +240,8 @@ export const Round2Tab = () => {
 
             // Cache in session storage for faster future access
             sessionStorage.setItem(
-              "cachedRound2Recommendations",
-              JSON.stringify(convertedRecs)
+              "cachedRound2Recommendations_v3",
+              JSON.stringify(convertedRecs),
             );
           } catch (error) {
             console.error("Error processing loaded recommendations:", error);
@@ -266,7 +272,7 @@ export const Round2Tab = () => {
         try {
           const response = await apiService.getUserRoundDetails(
             2,
-            user.accessToken
+            user.accessToken,
           );
           if (
             response.success &&
@@ -297,7 +303,7 @@ export const Round2Tab = () => {
             const storageData = { selectedCollege, isConfirmed: true };
             localStorage.setItem(
               "round2Selection",
-              JSON.stringify(storageData)
+              JSON.stringify(storageData),
             );
           }
         } catch (error) {
@@ -365,14 +371,14 @@ export const Round2Tab = () => {
             : searchValue.trim();
           response = await apiService.searchCollegeByChoiceCode(
             { choice_code: choiceCodeValue },
-            user.accessToken
+            user.accessToken,
           );
           break;
 
         case "college_name":
           response = await apiService.searchCollegeByName(
             { college_name: searchValue },
-            user.accessToken
+            user.accessToken,
           );
           break;
 
@@ -388,7 +394,7 @@ export const Round2Tab = () => {
           }
           response = await apiService.searchCollegeByCode(
             { college_code: collegeCode },
-            user.accessToken
+            user.accessToken,
           );
           break;
       }
@@ -481,7 +487,7 @@ export const Round2Tab = () => {
 
   const handleDepartmentSelect = (
     college: CollegeSearchResult,
-    department: CollegeDepartment
+    department: CollegeDepartment,
   ) => {
     setSelectedCollege({ college, selectedDepartment: department });
     setShowSelectionDialog(true);
@@ -536,7 +542,7 @@ export const Round2Tab = () => {
       // Store to backend
       const response = await apiService.storeCollegeDetails(
         apiPayload,
-        user.accessToken
+        user.accessToken,
       );
 
       if (response.success) {
@@ -597,7 +603,7 @@ export const Round2Tab = () => {
       try {
         const response = await apiService.getUserRoundPreferences(
           2,
-          user.accessToken
+          user.accessToken,
         );
         if (
           response.success &&
@@ -619,13 +625,13 @@ export const Round2Tab = () => {
               branches,
               cities,
               timestamp: Date.now(),
-            })
+            }),
           );
           return;
         }
       } catch (error) {
         console.error(
-          "No existing preferences found in API, falling back to form data"
+          "No existing preferences found in API, falling back to form data",
         );
       }
     }
@@ -647,7 +653,7 @@ export const Round2Tab = () => {
           branches,
           cities,
           timestamp: Date.now(),
-        })
+        }),
       );
     }
   };
@@ -668,7 +674,7 @@ export const Round2Tab = () => {
       // First, call the getUserRoundPreferences API to fetch latest preferences
       const preferencesResponse = await apiService.getUserRoundPreferences(
         2,
-        user.accessToken
+        user.accessToken,
       );
 
       const payload = {
@@ -679,7 +685,7 @@ export const Round2Tab = () => {
 
       const response = await apiService.updateRoundPreferences(
         payload,
-        user.accessToken
+        user.accessToken,
       );
 
       if (response.success) {
@@ -692,7 +698,7 @@ export const Round2Tab = () => {
             branches: selectedBranches,
             cities: selectedCities.length > 0 ? selectedCities : ["ALL"],
             timestamp: Date.now(),
-          })
+          }),
         );
 
         window.scrollTo({ top: 0, behavior: "smooth" });
@@ -815,7 +821,7 @@ export const Round2Tab = () => {
 
       await apiService.updateRoundPreferences(
         preferencesPayload,
-        user.accessToken
+        user.accessToken,
       );
 
       // Update localStorage with latest preferences
@@ -825,7 +831,7 @@ export const Round2Tab = () => {
           branches: selectedBranches,
           cities: selectedCities.length > 0 ? selectedCities : ["ALL"],
           timestamp: Date.now(),
-        })
+        }),
       );
 
       // Get form data for category and CET percentile
@@ -836,7 +842,7 @@ export const Round2Tab = () => {
         try {
           const capResponse = await apiService.fetchAICapDetails(
             user.accessToken,
-            user.email
+            user.email,
           );
           if (capResponse.success && capResponse.data) {
             const apiData = capResponse.data;
@@ -901,11 +907,11 @@ export const Round2Tab = () => {
             recommendationStorage.savePriorities(mappedData);
             sessionStorage.setItem(
               "recommendationFormData",
-              JSON.stringify(mappedData)
+              JSON.stringify(mappedData),
             );
             sessionStorage.setItem(
               "recommendation_form_data",
-              JSON.stringify(mappedData)
+              JSON.stringify(mappedData),
             );
             formData = mappedData;
           }
@@ -948,27 +954,27 @@ export const Round2Tab = () => {
 
       const response = await apiService.getRecommendations(
         generateRoundListPayload,
-        user.accessToken
+        user.accessToken,
       );
 
       if (response.success) {
-        // Store the raw API response in localStorage
+        // Store in localStorage
         localStorage.setItem(
           "round2Recommendations",
-          JSON.stringify(response.data)
+          JSON.stringify(response.data),
         );
 
-        // Convert and set recommendations for display
-        const convertedRecs = convertApiResponseToRecommendations(
-          response.data
+        // Convert and set recommendations
+        const convertedRecommendations = convertApiResponseToRecommendations(
+          response.data,
         );
-        setRound2Recommendations(convertedRecs);
+        setRound2Recommendations(convertedRecommendations);
         setHasGeneratedRecommendations(true);
 
-        // Cache the converted recommendations in session storage for faster access
+        // Cache in session storage
         sessionStorage.setItem(
-          "cachedRound2Recommendations",
-          JSON.stringify(convertedRecs)
+          "cachedRound2Recommendations_v3",
+          JSON.stringify(convertedRecommendations),
         );
 
         // Check if payment is included and unlock recommendations automatically
@@ -989,7 +995,7 @@ export const Round2Tab = () => {
         });
       } else {
         throw new Error(
-          response.message || "Failed to generate recommendations"
+          response.message || "Failed to generate recommendations",
         );
       }
     } catch (error) {
@@ -1050,7 +1056,7 @@ export const Round2Tab = () => {
 
     if (activeCategory !== "All") {
       filtered = round2Recommendations.filter(
-        (rec) => rec.category === activeCategory
+        (rec) => rec.category === activeCategory,
       );
     }
 
@@ -1101,7 +1107,10 @@ export const Round2Tab = () => {
     "Textile Technology",
   ];
 
-  const availableCities = [
+  // Get selected state from localStorage
+  const selectedState = localStorage.getItem("selected_state") || "Maharashtra";
+
+  const maharashtraCities = [
     "ALL",
     "Ahmednagar",
     "Akola",
@@ -1141,6 +1150,54 @@ export const Round2Tab = () => {
     "Washim",
     "Yavatmal",
   ];
+
+  const karnatakaCities = [
+    "ALL",
+    "Bagalkote",
+    "Ballari",
+    "Belagavi",
+    "Bengaluru",
+    "Bidar",
+    "Chamarajanagara",
+    "Chikkaballapura",
+    "Chikkamagaluru (Chikmagalur)",
+    "Chintamani",
+    "Chitradurga",
+    "Davanagere",
+    "Devanahalli",
+    "Dharwad",
+    "Gadag",
+    "Gokak",
+    "Haliyal",
+    "Hassan",
+    "Haveri",
+    "Hubballi (Hubli)",
+    "Kalaburagi",
+    "Karwar",
+    "Kolar",
+    "Koppal",
+    "Kushalanagar",
+    "Mandya",
+    "Mangaluru (Mangalore)",
+    "Moodabidri (Moodabidre)",
+    "Mysuru (Mysore)",
+    "Nelamangala",
+    "Ponnampet",
+    "Puttur",
+    "Raichur",
+    "Ramanagara (Ramanagar)",
+    "Shivamogga (Shimoga)",
+    "Shorapur",
+    "Sullia",
+    "Tiptur",
+    "Tumakuru (Tumkur)",
+    "Udupi",
+    "Ujire",
+    "Vijayapura",
+  ];
+
+  const availableCities =
+    selectedState === "Karnataka" ? karnatakaCities : maharashtraCities;
 
   const renderDepartments = (college: CollegeSearchResult) => {
     const departments = Array.isArray(college.department)
@@ -1328,7 +1385,7 @@ export const Round2Tab = () => {
                         <SearchableSelect
                           options={availableBranches
                             .filter(
-                              (branch) => !selectedBranches.includes(branch)
+                              (branch) => !selectedBranches.includes(branch),
                             )
                             .map((branch) => ({
                               value: branch,
