@@ -15,6 +15,8 @@ export const useRecommendation = () => {
   const generateRecommendation = useCallback(
     async (formData: any, round: number = 1, prevChoiceCode?: string) => {
       const recommendationType = localStorage.getItem("recommendation_type");
+      const isKarnataka =
+        localStorage.getItem("selected_state") === "Karnataka";
 
       // Route to medical recommendations if it's a medical program
       if (recommendationType === "First_Year_Medical") {
@@ -36,10 +38,16 @@ export const useRecommendation = () => {
         "twelfthMarks",
         "grouping",
         "groupingMarks",
-        "cetPercentile",
         "preferredStreams",
         "maxBudget",
       ];
+
+      // Add specific field check based on region
+      if (isKarnataka) {
+        requiredFields.push("cetRank");
+      } else {
+        requiredFields.push("cetPercentile");
+      }
 
       const missingFields = requiredFields.filter((field) => {
         const value = formData[field];
@@ -56,7 +64,11 @@ export const useRecommendation = () => {
         throw new Error(`Missing required fields: ${missingFields.join(", ")}`);
       }
 
-      if (formData.cetPercentile < 0 || formData.cetPercentile > 100) {
+      // Only check percentile range if not Karnataka
+      if (
+        !isKarnataka &&
+        (formData.cetPercentile < 0 || formData.cetPercentile > 100)
+      ) {
         toast({
           title: "Invalid CET Percentile",
           description: "CET percentile must be between 0 and 100.",
@@ -69,64 +81,138 @@ export const useRecommendation = () => {
 
       try {
         // Create recommendation record
-        const payload: GenerateRecommendationRequest = {
-          academic_credentials: {
-            educationBackground: {
-              educationType: "12th",
-              stream: formData.grouping,
-              district: formData.district,
-            },
-            academicMarks: {
-              _10thGradeMarksPercent: formData.tenthMarks,
-              _12thGradeMarksPercent: formData.twelfthMarks,
-              groupingMarksPercent: formData.groupingMarks,
-            },
-            examPercentiles: {
-              CET: formData.cetPercentile,
-              JEE:
-                formData.jeePercentile && formData.jeePercentile !== ""
-                  ? Number(formData.jeePercentile)
-                  : undefined,
-              otherEntranceExam:
-                formData.otherExamName && formData.otherExamPercentile
-                  ? [
-                      {
-                        examName: formData.otherExamName,
-                        percentileOrScore: Number(formData.otherExamPercentile),
-                      },
-                    ]
-                  : undefined,
-            },
-            reservationCategory: formData.reservationCategory,
-            achievementsExperience: {
-              sportsAchievements: formData.sportsAchievements,
-              certifications: formData.certifications,
-              internshipsWorkExperience: formData.internships,
-              otherAchievements: formData.otherAchievements,
-            },
-            preferences: {
-              engineeringBranches: formData.preferredStreams || [],
-              preferredCities:
-                formData.preferredCities && formData.preferredCities.length > 0
-                  ? formData.preferredCities
-                  : ["ALL"],
-            },
-            campusFacilitiesEnvironment: {
-              hostelFacility: formData.hostelPreference,
-              campusSetting: formData.campusSetting,
-              transportFacility: formData.transportFacility,
-              wifiTechInfrastructure: formData.wifiTechInfrastructure,
-              coCurricularActivities: formData.coCurricularActivities,
-            },
-            annualBudget: formData.maxBudget,
-            collegeTypePreferences: formData.collegeTypes || [],
-            priorityFactors: formData.priorities || [],
-          },
-          username: user.email,
-          gender: formData.gender,
-        };
+        let response: any;
+        let recommendationId: string;
 
-        const response = await apiService.generateRecommendation(payload);
+        if (isKarnataka) {
+          const karnatakaPayload: any = {
+            academic_credentials: {
+              educationBackground: {
+                educationType: "12th",
+                stream: formData.grouping,
+                // district removed for Karnataka
+              },
+              academicMarks: {
+                _10thGradeMarksPercent: formData.tenthMarks,
+                _12thGradeMarksPercent: formData.twelfthMarks,
+                groupingMarksPercent: formData.groupingMarks,
+              },
+              examPercentiles: {
+                CET_Rank: formData.cetRank, // Mapping to CET_Rank directly based on interface
+                JEE:
+                  formData.jeePercentile && formData.jeePercentile !== ""
+                    ? Number(formData.jeePercentile)
+                    : 0,
+                otherEntranceExam:
+                  formData.otherExamName && formData.otherExamPercentile
+                    ? [
+                        {
+                          examName: formData.otherExamName,
+                          percentileOrScore: Number(
+                            formData.otherExamPercentile,
+                          ),
+                        },
+                      ]
+                    : [],
+              },
+              achievementsExperience: {
+                sportsAchievements: formData.sportsAchievements,
+                certifications: formData.certifications,
+                internshipsWorkExperience: formData.internships,
+                otherAchievements: formData.otherAchievements,
+              },
+              preferences: {
+                engineeringBranches: formData.preferredStreams || [],
+                preferredCities:
+                  formData.preferredCities &&
+                  formData.preferredCities.length > 0
+                    ? formData.preferredCities
+                    : ["ALL"],
+              },
+              campusFacilitiesEnvironment: {
+                hostelFacility: formData.hostelPreference,
+                campusSetting: formData.campusSetting,
+                transportFacility: formData.transportFacility,
+                wifiTechInfrastructure: formData.wifiTechInfrastructure,
+                coCurricularActivities: formData.coCurricularActivities,
+              },
+              annualBudget: formData.maxBudget,
+              collegeTypePreferences: formData.collegeTypes || [],
+              priorityFactors: formData.priorities || [],
+            },
+            username: user.email,
+            gender: formData.gender,
+            reservationCategory: formData.reservationCategory,
+          };
+          const res =
+            await apiService.storeKarnatakaEngineeringConfig(karnatakaPayload);
+          response = res;
+          recommendationId = res.data.engineering_configuration_id;
+        } else {
+          // Existing Logic
+          const payload: GenerateRecommendationRequest = {
+            academic_credentials: {
+              educationBackground: {
+                educationType: "12th",
+                stream: formData.grouping,
+                district: formData.district,
+              },
+              academicMarks: {
+                _10thGradeMarksPercent: formData.tenthMarks,
+                _12thGradeMarksPercent: formData.twelfthMarks,
+                groupingMarksPercent: formData.groupingMarks,
+              },
+              examPercentiles: {
+                CET: formData.cetPercentile,
+                JEE:
+                  formData.jeePercentile && formData.jeePercentile !== ""
+                    ? Number(formData.jeePercentile)
+                    : undefined,
+                otherEntranceExam:
+                  formData.otherExamName && formData.otherExamPercentile
+                    ? [
+                        {
+                          examName: formData.otherExamName,
+                          percentileOrScore: Number(
+                            formData.otherExamPercentile,
+                          ),
+                        },
+                      ]
+                    : undefined,
+              },
+              reservationCategory: formData.reservationCategory,
+              achievementsExperience: {
+                sportsAchievements: formData.sportsAchievements,
+                certifications: formData.certifications,
+                internshipsWorkExperience: formData.internships,
+                otherAchievements: formData.otherAchievements,
+              },
+              preferences: {
+                engineeringBranches: formData.preferredStreams || [],
+                preferredCities:
+                  formData.preferredCities &&
+                  formData.preferredCities.length > 0
+                    ? formData.preferredCities
+                    : ["ALL"],
+              },
+              campusFacilitiesEnvironment: {
+                hostelFacility: formData.hostelPreference,
+                campusSetting: formData.campusSetting,
+                transportFacility: formData.transportFacility,
+                wifiTechInfrastructure: formData.wifiTechInfrastructure,
+                coCurricularActivities: formData.coCurricularActivities,
+              },
+              annualBudget: formData.maxBudget,
+              collegeTypePreferences: formData.collegeTypes || [],
+              priorityFactors: formData.priorities || [],
+            },
+            username: user.email,
+            gender: formData.gender,
+          };
+          const res = await apiService.generateRecommendation(payload);
+          response = res;
+          recommendationId = res.data.recommendation_id;
+        }
 
         if (response.success) {
           const token = user.accessToken;
@@ -147,7 +233,7 @@ export const useRecommendation = () => {
                       ? formData.preferredCities
                       : ["ALL"],
                 },
-                token
+                token,
               );
             } catch (prefError) {
               console.error("Failed to sync preferences:", prefError);
@@ -170,7 +256,7 @@ export const useRecommendation = () => {
 
           const recommendationsResponse = await apiService.getRecommendations(
             recommendationPayload,
-            token
+            token,
           );
 
           if (recommendationsResponse.success) {
@@ -235,64 +321,82 @@ export const useRecommendation = () => {
               recommendationStorage.saveRecommendation(
                 formData,
                 allRecommendations,
-                response.data.recommendation_id
+                recommendationId,
               );
 
               // Store in sessionStorage for immediate access
               sessionStorage.setItem(
                 "recommendationFormData",
-                JSON.stringify(formData)
+                JSON.stringify(formData),
               );
               // Store in appropriate storage based on round
               const dataString = JSON.stringify(recommendationsResponse.data);
               const mappedDataString = JSON.stringify(allRecommendations);
 
               if (round === 2) {
+                const sessionKey = isKarnataka
+                  ? "karnataka_cachedRound2Recommendations"
+                  : "cachedRound2Recommendations";
+                const localKey = isKarnataka
+                  ? "karnataka_round2Recommendations"
+                  : "round2Recommendations";
+                const prefKey = isKarnataka
+                  ? "karnataka_round2Preferences"
+                  : "round2Preferences";
+
                 // Session storage expects mapped array
-                sessionStorage.setItem(
-                  "cachedRound2Recommendations",
-                  mappedDataString
-                );
+                sessionStorage.setItem(sessionKey, mappedDataString);
                 // Local storage expects raw API response object
-                localStorage.setItem("round2Recommendations", dataString);
+                localStorage.setItem(localKey, dataString);
 
                 // Also update preferences for Round 2
                 localStorage.setItem(
-                  "round2Preferences",
+                  prefKey,
                   JSON.stringify({
                     branches: formData.preferredStreams || [],
                     cities: formData.preferredCities || [],
                     timestamp: Date.now(),
-                  })
+                  }),
                 );
               } else if (round === 3) {
+                const sessionKey = isKarnataka
+                  ? "karnataka_cachedRound3Recommendations"
+                  : "cachedRound3Recommendations";
+                const localKey = isKarnataka
+                  ? "karnataka_round3Recommendations"
+                  : "round3Recommendations";
+                const prefKey = isKarnataka
+                  ? "karnataka_round3Preferences"
+                  : "round3Preferences";
+
                 // Session storage expects mapped array
-                sessionStorage.setItem(
-                  "cachedRound3Recommendations",
-                  mappedDataString
-                );
+                sessionStorage.setItem(sessionKey, mappedDataString);
                 // Local storage expects raw API response object
-                localStorage.setItem("round3Recommendations", dataString);
+                localStorage.setItem(localKey, dataString);
 
                 // Also update preferences for Round 3
                 localStorage.setItem(
-                  "round3Preferences",
+                  prefKey,
                   JSON.stringify({
                     branches: formData.preferredStreams || [],
                     cities: formData.preferredCities || [],
                     timestamp: Date.now(),
-                  })
+                  }),
                 );
               } else {
+                const sessionKey = isKarnataka
+                  ? "karnataka_cachedRecommendations"
+                  : "cachedRecommendations";
+                const localKey = isKarnataka
+                  ? "karnataka_recommendations"
+                  : "recommendations";
+
                 // Session storage expects mapped array
-                sessionStorage.setItem(
-                  "cachedRecommendations",
-                  mappedDataString
-                );
+                sessionStorage.setItem(sessionKey, mappedDataString);
                 // Round 1 might not strictly use this local key, but if it does, it likely expects raw or mapped.
                 // Given R2/R3 pattern, local is usually raw. But R1 is legacy.
                 // Let's store raw for consistency with other rounds, but R1 component loads from API or Session mainly.
-                localStorage.setItem("recommendations", dataString);
+                localStorage.setItem(localKey, dataString);
               }
 
               // setRecommendations(allRecommendations); // This line was removed as it's not in the provided snippet and might be handled elsewhere.
@@ -312,12 +416,12 @@ export const useRecommendation = () => {
           } else {
             throw new Error(
               recommendationsResponse.message ||
-                "Failed to fetch recommendations from college-list API"
+                "Failed to fetch recommendations from college-list API",
             );
           }
         } else {
           throw new Error(
-            response.message || "Failed to generate recommendation"
+            response.message || "Failed to generate recommendation",
           );
         }
       } catch (error: any) {
@@ -335,7 +439,7 @@ export const useRecommendation = () => {
         setIsGenerating(false);
       }
     },
-    [user, isLoggedIn, generateMedicalRecommendation, toast]
+    [user, isLoggedIn, generateMedicalRecommendation, toast],
   );
 
   return {

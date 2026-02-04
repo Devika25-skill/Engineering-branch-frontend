@@ -279,6 +279,110 @@ export interface GenerateRecommendationResponse {
   };
 }
 
+export interface StoreKarnatakaEngineeringConfigRequest {
+  username: string;
+  gender: string;
+  reservationCategory: string;
+  academic_credentials: {
+    educationBackground: {
+      educationType: string;
+      stream: string;
+    };
+    academicMarks: {
+      _10thGradeMarksPercent: number;
+      _12thGradeMarksPercent: number;
+      groupingMarksPercent: number;
+    };
+    examPercentiles: {
+      CET_Rank?: number;
+      JEE?: number;
+      otherEntranceExam?: Array<{
+        examName?: string;
+        percentileOrScore?: number;
+      }>;
+    };
+    achievementsExperience?: {
+      sportsAchievements?: string;
+      certifications?: string;
+      internshipsWorkExperience?: string;
+      otherAchievements?: string;
+    };
+    preferences: {
+      engineeringBranches: string[];
+      preferredCities: string[];
+    };
+    campusFacilitiesEnvironment?: {
+      hostelFacility?: string;
+      campusSetting?: string;
+      transportFacility?: string;
+      wifiTechInfrastructure?: string;
+      coCurricularActivities?: string;
+    };
+    annualBudget: number;
+    collegeTypePreferences?: string[];
+    priorityFactors?: string[];
+  };
+}
+
+export interface StoreKarnatakaEngineeringConfigResponse {
+  message: string;
+  success: boolean;
+  data: {
+    engineering_configuration_id: string;
+    timestamp: string;
+    operation: string;
+  };
+}
+
+export interface FetchKarnatakaEngineeringConfigResponse {
+  message: string;
+  success: boolean;
+  data: {
+    username: string;
+    gender: string;
+    reservationCategory: string;
+    academic_credentials: {
+      educationBackground: {
+        educationType: string;
+        stream: string;
+      };
+      academicMarks: {
+        _10thGradeMarksPercent: number;
+        _12thGradeMarksPercent: number;
+        groupingMarksPercent: number;
+      };
+      examPercentiles: {
+        CET_Rank: number;
+        JEE: number;
+        otherEntranceExam: Array<{
+          examName: string;
+          percentileOrScore: number;
+        }>;
+      };
+      achievementsExperience: {
+        sportsAchievements: string;
+        certifications: string;
+        internshipsWorkExperience: string;
+        otherAchievements: string;
+      };
+      preferences: {
+        engineeringBranches: string[];
+        preferredCities: string[];
+      };
+      campusFacilitiesEnvironment: {
+        hostelFacility: string;
+        campusSetting: string;
+        transportFacility: string;
+        wifiTechInfrastructure: string;
+        coCurricularActivities: string;
+      };
+      annualBudget: number;
+      collegeTypePreferences: string[];
+      priorityFactors: string[];
+    };
+  };
+}
+
 export interface GenerateRoundListRequest {
   category: string;
   cet_percentile: number;
@@ -1477,6 +1581,38 @@ class ApiService {
       }>
     >(
       `/api/v1/medical/medical/recommendations/college-list?round=${round}&state=${encodeURIComponent(state)}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
+      },
+    );
+  }
+  async storeKarnatakaEngineeringConfig(
+    payload: StoreKarnatakaEngineeringConfigRequest,
+  ): Promise<StoreKarnatakaEngineeringConfigResponse> {
+    const token = localStorage.getItem("accessToken");
+    return this.request<StoreKarnatakaEngineeringConfigResponse>(
+      "/api/v1/karnatakaEngineering/store-engineering-user-config/",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      },
+    );
+  }
+
+  async fetchKarnatakaEngineeringConfig(
+    token: string,
+  ): Promise<FetchKarnatakaEngineeringConfigResponse> {
+    return this.request<FetchKarnatakaEngineeringConfigResponse>(
+      "/api/v1/karnatakaEngineering/fetch-engineering-user-config",
       {
         method: "GET",
         headers: {

@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { IntegratedAdmissionType } from "@/types/integratedAdmission";
 import { State, getAllStates } from "@/types/state";
+import { recommendationStorage } from "@/services/recommendationStorage";
 
 type RecommendationType =
   | "first-year"
@@ -114,42 +115,17 @@ export function ProgramSelectionDialog({
   );
   const [selectedState, setSelectedState] = useState<string>("");
 
-  // Clear all medical workflow data from storage
-  const clearMedicalWorkflowData = () => {
-    // Clear sessionStorage medical keys
-    const sessionKeys = [
-      "cachedMedicalRecommendations",
-      "cachedMedicalRound1Recommendations",
-      "cachedMedicalRound2Recommendations",
-      "cachedMedicalRound3Recommendations",
-      "medicalActiveRound",
-      "medicalRecommendationPaymentData",
-      "medical_academic_details",
-      "medical_preferences",
-      "medical_priorities",
-      "round1Invalidated",
-      "round2Invalidated",
-      "round3Invalidated",
-    ];
-    sessionKeys.forEach((key) => sessionStorage.removeItem(key));
-
-    // Clear localStorage medical keys
-    const localKeys = [
-      "medicalRecommendationUnlocked",
-      "medicalRound2Recommendations",
-      "medicalRound2SelectedCollege",
-      "medicalRound2Preferences",
-    ];
-    localKeys.forEach((key) => localStorage.removeItem(key));
+  const handleStateChange = (state: string) => {
+    // Clear all workflow data when state changes
+    recommendationStorage.clearAllWorkflowData();
+    setSelectedState(state);
   };
 
   const handleSelect = (program: ProgramType) => {
     setSelectedProgram(program);
 
-    // Clear all previous medical workflow data when selecting a program
-    if (program === "First_Year_Medical") {
-      clearMedicalWorkflowData();
-    }
+    // Clear all previous workflow data when selecting a program
+    recommendationStorage.clearAllWorkflowData();
 
     // Store selected program and state for future reference
     if (
@@ -211,7 +187,7 @@ export function ProgramSelectionDialog({
           <label className="block text-sm font-medium text-foreground mb-2">
             Select Your State
           </label>
-          <Select value={selectedState} onValueChange={setSelectedState}>
+          <Select value={selectedState} onValueChange={handleStateChange}>
             <SelectTrigger className="w-full bg-background">
               <SelectValue placeholder="Choose a state" />
             </SelectTrigger>

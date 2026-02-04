@@ -31,16 +31,17 @@ export const AcademicInfoForm = ({
   onUpdate,
   validationErrors = [],
 }: AcademicInfoFormProps) => {
+  const isKarnataka = localStorage.getItem("selected_state") === "Karnataka";
+
   // Set default values when component mounts
   useEffect(() => {
-    const defaultData = {
-      reservationCategory: data.reservationCategory || "GOPENS",
+    const defaultData: any = {
       grouping: data.grouping || "PCM (Physics, Chemistry, Mathematics)",
     };
 
-    // Only update if the values are different from current data
-    if (!data.reservationCategory || !data.grouping) {
-      onUpdate(defaultData);
+    // Only update if grouping is missing
+    if (!data.grouping) {
+      onUpdate({ ...defaultData });
     }
   }, []);
 
@@ -57,7 +58,7 @@ export const AcademicInfoForm = ({
 
   const isFieldError = (fieldName: string) => {
     return validationErrors.some((error) =>
-      error.toLowerCase().includes(fieldName.toLowerCase())
+      error.toLowerCase().includes(fieldName.toLowerCase()),
     );
   };
 
@@ -66,6 +67,67 @@ export const AcademicInfoForm = ({
       ? `${baseClass} border-red-300 ring-red-200 focus:border-red-500 focus:ring-red-200`
       : baseClass;
   };
+
+  // Karnataka Reservation Categories
+  const karnatakaReservationCategories = [
+    { code: "1G", label: "1G - 1 GENERAL" },
+    { code: "1H", label: "1H - 1 UNDER HYD-KAR QUOTA" },
+    { code: "1K", label: "1K - 1 KARNATAKA CANDIDATES" },
+    { code: "1KH", label: "1KH - 1 KARNATAKA UNDER HYD-KAR QUOTA" },
+    { code: "1R", label: "1R - 1 NRI" },
+    { code: "1RH", label: "1RH - 1 NRI UNDER HYD-KAR QUOTA" },
+    { code: "2AG", label: "2AG - 2A GENERAL" },
+    { code: "2AH", label: "2AH - 2A UNDER HYD-KAR QUOTA" },
+    { code: "2AK", label: "2AK - 2A KARNATAKA CANDIDATES" },
+    { code: "2AKH", label: "2AKH - 2A KARNATAKA UNDER HYD-KAR QUOTA" },
+    { code: "2AR", label: "2AR - 2A NRI" },
+    { code: "2ARH", label: "2ARH - 2A NRI UNDER HYD-KAR QUOTA" },
+    { code: "2BG", label: "2BG - 2B GENERAL" },
+    { code: "2BH", label: "2BH - 2B UNDER HYD-KAR QUOTA" },
+    { code: "2BK", label: "2BK - 2B KARNATAKA CANDIDATES" },
+    { code: "2BKH", label: "2BKH - 2B KARNATAKA UNDER HYD-KAR QUOTA" },
+    { code: "2BR", label: "2BR - 2B NRI" },
+    { code: "2BRH", label: "2BRH - 2B NRI UNDER HYD-KAR QUOTA" },
+    { code: "3AG", label: "3AG - 3A GENERAL" },
+    { code: "3AH", label: "3AH - 3A UNDER HYD-KAR QUOTA" },
+    { code: "3AK", label: "3AK - 3A KARNATAKA CANDIDATES" },
+    { code: "3AKH", label: "3AKH - 3A KARNATAKA UNDER HYD-KAR QUOTA" },
+    { code: "3AR", label: "3AR - 3A NRI" },
+    { code: "3ARH", label: "3ARH - 3A NRI UNDER HYD-KAR QUOTA" },
+    { code: "3BG", label: "3BG - 3B GENERAL" },
+    { code: "3BH", label: "3BH - 3B UNDER HYD-KAR QUOTA" },
+    { code: "3BK", label: "3BK - 3B KARNATAKA CANDIDATES" },
+    { code: "3BKH", label: "3BKH - 3B KARNATAKA UNDER HYD-KAR QUOTA" },
+    { code: "3BR", label: "3BR - 3B NRI" },
+    { code: "3BRH", label: "3BRH - 3B NRI UNDER HYD-KAR QUOTA" },
+    { code: "GM", label: "GM - GENERAL MERIT" },
+    { code: "GMH", label: "GMH - GENERAL MERIT UNDER HYD-KAR QUOTA" },
+    { code: "GMK", label: "GMK - GENERAL MERIT KARNATAKA CANDIDATES" },
+    {
+      code: "GMKH",
+      label: "GMKH - GENERAL MERIT KARNATAKA UNDER HYD-KAR QUOTA",
+    },
+    { code: "GMR", label: "GMR - GENERAL MERIT NRI" },
+    { code: "GMRH", label: "GMRH - GENERAL MERIT NRI UNDER HYD-KAR QUOTA" },
+    { code: "SCG", label: "SCG - SCHEDULED CASTE GENERAL" },
+    { code: "SCH", label: "SCH - SCHEDULED CASTE UNDER HYD-KAR QUOTA" },
+    { code: "SCK", label: "SCK - SCHEDULED CASTE KARNATAKA CANDIDATES" },
+    {
+      code: "SCKH",
+      label: "SCKH - SCHEDULED CASTE KARNATAKA UNDER HYD-KAR QUOTA",
+    },
+    { code: "SCR", label: "SCR - SCHEDULED CASTE NRI" },
+    { code: "SCRH", label: "SCRH - SCHEDULED CASTE NRI UNDER HYD-KAR QUOTA" },
+    { code: "STG", label: "STG - SCHEDULED TRIBE GENERAL" },
+    { code: "STH", label: "STH - SCHEDULED TRIBE UNDER HYD-KAR QUOTA" },
+    { code: "STK", label: "STK - SCHEDULED TRIBE KARNATAKA CANDIDATES" },
+    {
+      code: "STKH",
+      label: "STKH - SCHEDULED TRIBE KARNATAKA UNDER HYD-KAR QUOTA",
+    },
+    { code: "STR", label: "STR - SCHEDULED TRIBE NRI" },
+    { code: "STRH", label: "STRH - SCHEDULED TRIBE NRI UNDER HYD-KAR QUOTA" },
+  ];
 
   // Updated reservation categories to match API codes
   const reservationCategories = [
@@ -166,6 +228,10 @@ export const AcademicInfoForm = ({
     "Yavatmal",
   ].map((district) => ({ value: district, label: district }));
 
+  const currentCategories = isKarnataka
+    ? karnatakaReservationCategories
+    : reservationCategories;
+
   return (
     <div className="space-y-6">
       {/* Basic Info Card */}
@@ -196,7 +262,7 @@ export const AcademicInfoForm = ({
                 <SelectTrigger
                   className={getFieldClassName(
                     "Gender",
-                    "h-10 rounded-xl border-2 bg-white"
+                    "h-10 rounded-xl border-2 bg-white",
                   )}
                 >
                   <SelectValue placeholder="Select your gender" />
@@ -221,18 +287,18 @@ export const AcademicInfoForm = ({
                 onValueChange={(value) =>
                   handleChange("reservationCategory", value)
                 }
-                value={data.reservationCategory || "GOPENS"}
+                value={data.reservationCategory || ""}
               >
                 <SelectTrigger
                   className={getFieldClassName(
                     "Reservation Category",
-                    "h-10 rounded-xl border-2 bg-white"
+                    "h-10 rounded-xl border-2 bg-white",
                   )}
                 >
                   <SelectValue placeholder="Select your category" />
                 </SelectTrigger>
                 <SelectContent className="max-h-80">
-                  {reservationCategories.map((category) => (
+                  {currentCategories.map((category) => (
                     <SelectItem key={category.code} value={category.code}>
                       {category.label}
                     </SelectItem>
@@ -257,7 +323,7 @@ export const AcademicInfoForm = ({
                 <SelectTrigger
                   className={getFieldClassName(
                     "12th Grade Grouping",
-                    "h-10 rounded-xl border-2 bg-white"
+                    "h-10 rounded-xl border-2 bg-white",
                   )}
                 >
                   <SelectValue placeholder="What did you study in 12th?" />
@@ -272,27 +338,29 @@ export const AcademicInfoForm = ({
               </Select>
             </div>
 
-            <div className="space-y-2">
-              <Label className="flex items-center gap-2 text-slate-700 font-semibold text-sm">
-                <GraduationCap size={14} />
-                Select the District Where Your Most Recent College Is Located
-                <span className="text-red-500">*</span>
-                {isFieldError("District") && (
-                  <AlertCircle size={14} className="text-red-500" />
-                )}
-              </Label>
-              <SearchableSelect
-                options={districtOptions}
-                value={data.district}
-                onValueChange={(value) => handleChange("district", value)}
-                placeholder="Search and select district..."
-                searchPlaceholder="Type to search district..."
-                className={getFieldClassName(
-                  "District",
-                  "h-10 rounded-xl border-2 bg-white"
-                )}
-              />
-            </div>
+            {!isKarnataka && (
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2 text-slate-700 font-semibold text-sm">
+                  <GraduationCap size={14} />
+                  Select the District Where Your Most Recent College Is Located
+                  <span className="text-red-500">*</span>
+                  {isFieldError("District") && (
+                    <AlertCircle size={14} className="text-red-500" />
+                  )}
+                </Label>
+                <SearchableSelect
+                  options={districtOptions}
+                  value={data.district}
+                  onValueChange={(value) => handleChange("district", value)}
+                  placeholder="Search and select district..."
+                  searchPlaceholder="Type to search district..."
+                  className={getFieldClassName(
+                    "District",
+                    "h-10 rounded-xl border-2 bg-white",
+                  )}
+                />
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -326,7 +394,7 @@ export const AcademicInfoForm = ({
                 }
                 className={getFieldClassName(
                   "10th Grade Marks",
-                  "h-10 rounded-xl border-2 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  "h-10 rounded-xl border-2 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none",
                 )}
                 min="0"
                 max="100"
@@ -350,7 +418,7 @@ export const AcademicInfoForm = ({
                 }
                 className={getFieldClassName(
                   "12th Grade Marks",
-                  "h-10 rounded-xl border-2 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  "h-10 rounded-xl border-2 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none",
                 )}
                 min="0"
                 max="100"
@@ -374,7 +442,7 @@ export const AcademicInfoForm = ({
                 }
                 className={getFieldClassName(
                   "Grouping Marks",
-                  "h-10 rounded-xl border-2 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  "h-10 rounded-xl border-2 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none",
                 )}
                 min="0"
                 max="100"
@@ -390,26 +458,46 @@ export const AcademicInfoForm = ({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="flex items-center gap-2 text-slate-700 font-semibold text-sm">
-                  CET Percentile
+                  {isKarnataka ? "CET Rank" : "CET Percentile"}
                   <span className="text-red-500">*</span>
-                  {isFieldError("CET Percentile") && (
-                    <AlertCircle size={14} className="text-red-500" />
-                  )}
+                  {isKarnataka
+                    ? isFieldError("CET Rank") && (
+                        <AlertCircle size={14} className="text-red-500" />
+                      )
+                    : isFieldError("CET Percentile") && (
+                        <AlertCircle size={14} className="text-red-500" />
+                      )}
                 </Label>
-                <Input
-                  type="number"
-                  placeholder="Your CET percentile (0-100)"
-                  value={data.cetPercentile || ""}
-                  onChange={(e) =>
-                    handlePercentageChange("cetPercentile", e.target.value)
-                  }
-                  className={getFieldClassName(
-                    "CET Percentile",
-                    "h-10 rounded-xl border-2 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                  )}
-                  min="0"
-                  max="100"
-                />
+                {isKarnataka ? (
+                  <Input
+                    type="number"
+                    placeholder="Your CET Rank"
+                    value={data.cetRank || ""}
+                    onChange={(e) =>
+                      handleChange("cetRank", parseFloat(e.target.value))
+                    }
+                    className={getFieldClassName(
+                      "CET Rank",
+                      "h-10 rounded-xl border-2 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none",
+                    )}
+                    min="1"
+                  />
+                ) : (
+                  <Input
+                    type="number"
+                    placeholder="Your CET percentile (0-100)"
+                    value={data.cetPercentile || ""}
+                    onChange={(e) =>
+                      handlePercentageChange("cetPercentile", e.target.value)
+                    }
+                    className={getFieldClassName(
+                      "CET Percentile",
+                      "h-10 rounded-xl border-2 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none",
+                    )}
+                    min="0"
+                    max="100"
+                  />
+                )}
               </div>
 
               <div className="space-y-2">
@@ -457,7 +545,7 @@ export const AcademicInfoForm = ({
                   onChange={(e) =>
                     handleChange(
                       "otherExamPercentile",
-                      parseFloat(e.target.value) || undefined
+                      parseFloat(e.target.value) || undefined,
                     )
                   }
                   className="h-10 rounded-xl border-2 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"

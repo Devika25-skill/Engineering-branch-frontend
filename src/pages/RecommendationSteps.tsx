@@ -37,6 +37,7 @@ interface FormData {
   preferredCities?: string[];
   maxBudget?: number;
   cetPercentile?: number;
+  cetRank?: number;
   jeePercentile?: number;
   otherExamName?: string;
   otherExamPercentile?: number;
@@ -65,7 +66,10 @@ const RecommendationSteps = () => {
   const isMedical = recommendationType === "First_Year_Medical";
 
   const [formData, setFormData] = useState<FormData>({
-    reservationCategory: isMedical ? undefined : "GOPENS",
+    reservationCategory:
+      isMedical || localStorage.getItem("selected_state") === "Karnataka"
+        ? undefined
+        : "GOPENS",
     grouping: isMedical
       ? "PCB (Physics, Chemistry, Biology)"
       : "PCM (Physics, Chemistry, Mathematics)",
@@ -154,69 +158,105 @@ const RecommendationSteps = () => {
       // Fetch existing user details if logged in
       if (isLoggedIn && user?.accessToken) {
         try {
-          // Check for existing recommendations and redirect if found (unless coming from results page)
+          const isKarnataka =
+            localStorage.getItem("selected_state") === "Karnataka";
+          // Check for existing recommendations (Karnataka or General)
           if (!isMedical && !location.state?.fromResults) {
             try {
-              // Check Round 3
-              const round3Response = await apiService.getRoundRecommendations(
-                3,
-                user.accessToken,
-              );
-              if (
-                round3Response.success &&
-                round3Response.data &&
-                Object.keys(round3Response.data).length > 0
-              ) {
-                // If round 3 data exists, save it and redirect
-                localStorage.setItem(
-                  "round3Recommendations",
-                  JSON.stringify(round3Response.data),
+              // Karnataka Logic
+              if (isKarnataka) {
+                // Check Round 3
+                const round3Data = localStorage.getItem(
+                  "karnataka_round3Recommendations",
                 );
-                localStorage.setItem("activeRoundTab", "round3");
-                // Also cache converted if possible but Round3Tab handles conversion from raw
-                navigate("/recommendations/results");
-                return;
-              }
+                if (round3Data) {
+                  localStorage.setItem("activeRoundTab", "round3");
+                  navigate("/recommendations/results");
+                  return;
+                }
 
-              // Check Round 2
-              const round2Response = await apiService.getRoundRecommendations(
-                2,
-                user.accessToken,
-              );
-              if (
-                round2Response.success &&
-                round2Response.data &&
-                Object.keys(round2Response.data).length > 0
-              ) {
-                localStorage.setItem(
-                  "round2Recommendations",
-                  JSON.stringify(round2Response.data),
+                // Check Round 2
+                const round2Data = localStorage.getItem(
+                  "karnataka_round2Recommendations",
                 );
-                localStorage.setItem("activeRoundTab", "round2");
-                navigate("/recommendations/results");
-                return;
-              }
+                if (round2Data) {
+                  localStorage.setItem("activeRoundTab", "round2");
+                  navigate("/recommendations/results");
+                  return;
+                }
 
-              // Check Round 1
-              const round1Response = await apiService.getRoundRecommendations(
-                1,
-                user.accessToken,
-              );
-              if (
-                round1Response.success &&
-                round1Response.data &&
-                (Array.isArray(round1Response.data)
-                  ? round1Response.data.length > 0
-                  : Object.keys(round1Response.data).length > 0)
-              ) {
-                // Round 1 usually uses 'cachedRecommendations' and 'recommendations'
-                sessionStorage.setItem(
-                  "cachedRecommendations",
-                  JSON.stringify(round1Response.data),
+                // Check Round 1
+                const round1Data = localStorage.getItem(
+                  "karnataka_recommendations",
                 );
-                localStorage.setItem("activeRoundTab", "round1");
-                navigate("/recommendations/results");
-                return;
+                if (round1Data) {
+                  localStorage.setItem("activeRoundTab", "round1");
+                  navigate("/recommendations/results");
+                  return;
+                }
+              } else {
+                // Existing General Logic
+                // Check Round 3
+                const round3Response = await apiService.getRoundRecommendations(
+                  3,
+                  user.accessToken,
+                );
+                if (
+                  round3Response.success &&
+                  round3Response.data &&
+                  Object.keys(round3Response.data).length > 0
+                ) {
+                  // If round 3 data exists, save it and redirect
+                  localStorage.setItem(
+                    "round3Recommendations",
+                    JSON.stringify(round3Response.data),
+                  );
+                  localStorage.setItem("activeRoundTab", "round3");
+                  // Also cache converted if possible but Round3Tab handles conversion from raw
+                  navigate("/recommendations/results");
+                  return;
+                }
+
+                // Check Round 2
+                const round2Response = await apiService.getRoundRecommendations(
+                  2,
+                  user.accessToken,
+                );
+                if (
+                  round2Response.success &&
+                  round2Response.data &&
+                  Object.keys(round2Response.data).length > 0
+                ) {
+                  localStorage.setItem(
+                    "round2Recommendations",
+                    JSON.stringify(round2Response.data),
+                  );
+                  localStorage.setItem("activeRoundTab", "round2");
+                  navigate("/recommendations/results");
+                  return;
+                }
+
+                // Check Round 1
+                const round1Response = await apiService.getRoundRecommendations(
+                  1,
+                  user.accessToken,
+                );
+                if (
+                  round1Response.success &&
+                  round1Response.data &&
+                  (Array.isArray(round1Response.data)
+                    ? round1Response.data.length > 0
+                    : Object.keys(round1Response.data).length > 0)
+                ) {
+                  // Round 1 usually uses 'cachedRecommendations' and 'recommendations'
+                  sessionStorage.setItem(
+                    "cachedRecommendations",
+                    JSON.stringify(round1Response.data),
+                  );
+                  localStorage.setItem("activeRoundTab", "round1");
+                  navigate("/recommendations/results");
+                  return;
+                }
               }
             } catch (checkError) {
               console.error(
@@ -228,15 +268,34 @@ const RecommendationSteps = () => {
           }
 
           // Call appropriate API based on program type
+          // Call appropriate API based on program type
           const selectedState = localStorage.getItem("selected_state") || "";
-          const response = isMedical
-            ? await apiService.fetchMedicalStudentDetails(
-                user.accessToken,
-                selectedState,
-              )
-            : await apiService.fetchAICapDetails(user.accessToken);
+          let response: any = { success: false };
 
-          if (response.success && response.data?.academic_credentials) {
+          if (isMedical) {
+            response = await apiService.fetchMedicalStudentDetails(
+              user.accessToken,
+              selectedState,
+            );
+          } else if (
+            isKarnataka ||
+            selectedState.toLowerCase() === "karnataka"
+          ) {
+            response = await apiService.fetchKarnatakaEngineeringConfig(
+              user.accessToken,
+            );
+          } else {
+            // Strictly check to avoid calling AI Cap for Karnataka and ensure state is selected
+            if (selectedState && selectedState.toLowerCase() !== "karnataka") {
+              response = await apiService.fetchAICapDetails(user.accessToken);
+            }
+          }
+
+          if (
+            response &&
+            response.success &&
+            response.data?.academic_credentials
+          ) {
             // Use appropriate mapping function based on program type
             const mappedData = isMedical
               ? mapMedicalApiResponseToFormData(response.data)
@@ -283,7 +342,10 @@ const RecommendationSteps = () => {
     const errors: string[] = [];
 
     if (currentStep === 1) {
-      if (!isMedical && !formData.district) errors.push("District");
+      const isKarnataka =
+        localStorage.getItem("selected_state") === "Karnataka";
+      if (!isMedical && !isKarnataka && !formData.district)
+        errors.push("District");
       if (!formData.tenthMarks || formData.tenthMarks <= 0)
         errors.push("10th Grade Marks");
       if (!formData.reservationCategory) errors.push("Reservation Category");
@@ -308,8 +370,13 @@ const RecommendationSteps = () => {
           errors.push("NEET Roll Number");
       } else {
         if (!formData.gender) errors.push("Gender");
-        if (!formData.cetPercentile || formData.cetPercentile <= 0)
-          errors.push("CET Percentile");
+        if (isKarnataka) {
+          if (!formData.cetRank || formData.cetRank <= 0)
+            errors.push("CET Rank");
+        } else {
+          if (!formData.cetPercentile || formData.cetPercentile <= 0)
+            errors.push("CET Percentile");
+        }
       }
     }
 
@@ -502,11 +569,42 @@ const RecommendationSteps = () => {
       } else {
         navigate("/recommendations/results");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error generating recommendations:", error);
+
+      // Parse validation errors
+      if (error.message && error.message.includes("Missing required fields:")) {
+        const missingFields = error.message
+          .replace("Missing required fields: ", "")
+          .split(", ")
+          .map((field: string) => {
+            // Map field names to display names if needed for specific highlighting
+            // Since AcademicInfoForm checks "error.toLowerCase().includes(fieldName.toLowerCase())",
+            // we can return the field name directly or a user-friendly name that matches the check.
+            if (field === "reservationCategory") return "Reservation Category";
+            if (field === "tenthMarks") return "10th Grade Marks";
+            if (field === "twelfthMarks") return "12th Grade Marks";
+            if (field === "groupingMarks") return "Grouping Marks";
+            if (field === "cetRank") return "CET Rank";
+            if (field === "cetPercentile") return "CET Percentile";
+            if (field === "gender") return "Gender";
+            if (field === "grouping") return "12th Grade Grouping";
+            if (field === "neetPercentile") return "NEET Percentile";
+            if (field === "neetAllIndiaRank") return "NEET All India Rank";
+            if (field === "district") return "District";
+
+            return field;
+          });
+        setValidationErrors(missingFields);
+      } else {
+        setValidationErrors([]);
+      }
+
       toastHook({
         title: "Error",
-        description: "Failed to generate recommendations. Please try again.",
+        description:
+          error.message ||
+          "Failed to generate recommendations. Please try again.",
         variant: "destructive",
         duration: 3000,
       });
