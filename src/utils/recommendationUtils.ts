@@ -9,7 +9,10 @@ export const mapApiResponseToFormData = (apiData: any) => {
   return {
     // Academic Info
     gender: gender || undefined,
-    reservationCategory: credentials.reservationCategory || "GOPENS",
+    reservationCategory:
+      apiData.reservationCategory ||
+      credentials.reservationCategory ||
+      undefined,
     grouping:
       credentials.educationBackground?.stream ||
       "PCM (Physics, Chemistry, Mathematics)",
@@ -18,6 +21,7 @@ export const mapApiResponseToFormData = (apiData: any) => {
       credentials.academicMarks?._12thGradeMarksPercent || undefined,
     groupingMarks: credentials.academicMarks?.groupingMarksPercent || undefined,
     cetPercentile: credentials.examPercentiles?.CET || undefined,
+    cetRank: credentials.examPercentiles?.CET_Rank || undefined,
     jeePercentile: credentials.examPercentiles?.JEE || undefined,
     otherExamName: otherExam?.examName || undefined,
     otherExamPercentile: otherExam?.percentileOrScore || undefined,

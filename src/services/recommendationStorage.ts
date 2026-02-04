@@ -22,18 +22,34 @@ class RecommendationStorageService {
   private static ENGINEERING_ACADEMIC_KEY = "engineering_academic_details";
   private static ENGINEERING_PREFERENCES_KEY = "engineering_preferences";
   private static ENGINEERING_PRIORITIES_KEY = "engineering_priorities";
+  private static KARNATAKA_ENGINEERING_ACADEMIC_KEY =
+    "karnataka_engineering_academic_details";
+  private static KARNATAKA_ENGINEERING_PREFERENCES_KEY =
+    "karnataka_engineering_preferences";
+  private static KARNATAKA_ENGINEERING_PRIORITIES_KEY =
+    "karnataka_engineering_priorities";
 
   // Determine if current recommendation is medical
   private isMedicalRecommendation(): boolean {
     return localStorage.getItem("recommendation_type") === "First_Year_Medical";
   }
 
+  // Determine if current recommendation is Karnataka engineering
+  private isKarnatakaEngineering(): boolean {
+    return localStorage.getItem("selected_state") === "Karnataka";
+  }
+
   // Save academic details
   saveAcademicDetails(data: any): void {
     try {
-      const key = this.isMedicalRecommendation()
-        ? RecommendationStorageService.MEDICAL_ACADEMIC_KEY
-        : RecommendationStorageService.ENGINEERING_ACADEMIC_KEY;
+      let key = "";
+      if (this.isMedicalRecommendation()) {
+        key = RecommendationStorageService.MEDICAL_ACADEMIC_KEY;
+      } else if (this.isKarnatakaEngineering()) {
+        key = RecommendationStorageService.KARNATAKA_ENGINEERING_ACADEMIC_KEY;
+      } else {
+        key = RecommendationStorageService.ENGINEERING_ACADEMIC_KEY;
+      }
       sessionStorage.setItem(key, JSON.stringify(data));
     } catch (error) {
       console.error("Failed to save academic details:", error);
@@ -43,9 +59,14 @@ class RecommendationStorageService {
   // Get academic details
   getAcademicDetails(): any | null {
     try {
-      const key = this.isMedicalRecommendation()
-        ? RecommendationStorageService.MEDICAL_ACADEMIC_KEY
-        : RecommendationStorageService.ENGINEERING_ACADEMIC_KEY;
+      let key = "";
+      if (this.isMedicalRecommendation()) {
+        key = RecommendationStorageService.MEDICAL_ACADEMIC_KEY;
+      } else if (this.isKarnatakaEngineering()) {
+        key = RecommendationStorageService.KARNATAKA_ENGINEERING_ACADEMIC_KEY;
+      } else {
+        key = RecommendationStorageService.ENGINEERING_ACADEMIC_KEY;
+      }
       const stored = sessionStorage.getItem(key);
       return stored ? JSON.parse(stored) : null;
     } catch (error) {
@@ -57,9 +78,15 @@ class RecommendationStorageService {
   // Save preferences
   savePreferences(data: any): void {
     try {
-      const key = this.isMedicalRecommendation()
-        ? RecommendationStorageService.MEDICAL_PREFERENCES_KEY
-        : RecommendationStorageService.ENGINEERING_PREFERENCES_KEY;
+      let key = "";
+      if (this.isMedicalRecommendation()) {
+        key = RecommendationStorageService.MEDICAL_PREFERENCES_KEY;
+      } else if (this.isKarnatakaEngineering()) {
+        key =
+          RecommendationStorageService.KARNATAKA_ENGINEERING_PREFERENCES_KEY;
+      } else {
+        key = RecommendationStorageService.ENGINEERING_PREFERENCES_KEY;
+      }
       sessionStorage.setItem(key, JSON.stringify(data));
     } catch (error) {
       console.error("Failed to save preferences:", error);
@@ -69,9 +96,15 @@ class RecommendationStorageService {
   // Get preferences
   getPreferences(): any | null {
     try {
-      const key = this.isMedicalRecommendation()
-        ? RecommendationStorageService.MEDICAL_PREFERENCES_KEY
-        : RecommendationStorageService.ENGINEERING_PREFERENCES_KEY;
+      let key = "";
+      if (this.isMedicalRecommendation()) {
+        key = RecommendationStorageService.MEDICAL_PREFERENCES_KEY;
+      } else if (this.isKarnatakaEngineering()) {
+        key =
+          RecommendationStorageService.KARNATAKA_ENGINEERING_PREFERENCES_KEY;
+      } else {
+        key = RecommendationStorageService.ENGINEERING_PREFERENCES_KEY;
+      }
       const stored = sessionStorage.getItem(key);
       return stored ? JSON.parse(stored) : null;
     } catch (error) {
@@ -83,9 +116,14 @@ class RecommendationStorageService {
   // Save priorities
   savePriorities(data: any): void {
     try {
-      const key = this.isMedicalRecommendation()
-        ? RecommendationStorageService.MEDICAL_PRIORITIES_KEY
-        : RecommendationStorageService.ENGINEERING_PRIORITIES_KEY;
+      let key = "";
+      if (this.isMedicalRecommendation()) {
+        key = RecommendationStorageService.MEDICAL_PRIORITIES_KEY;
+      } else if (this.isKarnatakaEngineering()) {
+        key = RecommendationStorageService.KARNATAKA_ENGINEERING_PRIORITIES_KEY;
+      } else {
+        key = RecommendationStorageService.ENGINEERING_PRIORITIES_KEY;
+      }
       sessionStorage.setItem(key, JSON.stringify(data));
     } catch (error) {
       console.error("Failed to save priorities:", error);
@@ -95,9 +133,14 @@ class RecommendationStorageService {
   // Get priorities
   getPriorities(): any | null {
     try {
-      const key = this.isMedicalRecommendation()
-        ? RecommendationStorageService.MEDICAL_PRIORITIES_KEY
-        : RecommendationStorageService.ENGINEERING_PRIORITIES_KEY;
+      let key = "";
+      if (this.isMedicalRecommendation()) {
+        key = RecommendationStorageService.MEDICAL_PRIORITIES_KEY;
+      } else if (this.isKarnatakaEngineering()) {
+        key = RecommendationStorageService.KARNATAKA_ENGINEERING_PRIORITIES_KEY;
+      } else {
+        key = RecommendationStorageService.ENGINEERING_PRIORITIES_KEY;
+      }
       const stored = sessionStorage.getItem(key);
       return stored ? JSON.parse(stored) : null;
     } catch (error) {
@@ -188,7 +231,7 @@ class RecommendationStorageService {
   saveRecommendation(
     formData: any,
     recommendations: any[],
-    recommendationId?: string
+    recommendationId?: string,
   ): void {
     try {
       const history = this.getHistory();
@@ -209,13 +252,13 @@ class RecommendationStorageService {
       ) {
         history.recommendations = history.recommendations.slice(
           0,
-          RecommendationStorageService.MAX_HISTORY
+          RecommendationStorageService.MAX_HISTORY,
         );
       }
 
       localStorage.setItem(
         RecommendationStorageService.STORAGE_KEY,
-        JSON.stringify(history)
+        JSON.stringify(history),
       );
     } catch (error) {
       console.error("Failed to save recommendation:", error);
@@ -226,7 +269,7 @@ class RecommendationStorageService {
   getHistory(): RecommendationHistory {
     try {
       const stored = localStorage.getItem(
-        RecommendationStorageService.STORAGE_KEY
+        RecommendationStorageService.STORAGE_KEY,
       );
       return stored ? JSON.parse(stored) : { recommendations: [] };
     } catch (error) {
@@ -246,11 +289,11 @@ class RecommendationStorageService {
     try {
       const history = this.getHistory();
       history.recommendations = history.recommendations.filter(
-        (rec) => rec.id !== id
+        (rec) => rec.id !== id,
       );
       localStorage.setItem(
         RecommendationStorageService.STORAGE_KEY,
-        JSON.stringify(history)
+        JSON.stringify(history),
       );
     } catch (error) {
       console.error("Failed to delete recommendation:", error);
@@ -270,22 +313,31 @@ class RecommendationStorageService {
   clearFormData(): void {
     try {
       sessionStorage.removeItem(
-        RecommendationStorageService.MEDICAL_ACADEMIC_KEY
+        RecommendationStorageService.MEDICAL_ACADEMIC_KEY,
       );
       sessionStorage.removeItem(
-        RecommendationStorageService.MEDICAL_PREFERENCES_KEY
+        RecommendationStorageService.MEDICAL_PREFERENCES_KEY,
       );
       sessionStorage.removeItem(
-        RecommendationStorageService.MEDICAL_PRIORITIES_KEY
+        RecommendationStorageService.MEDICAL_PRIORITIES_KEY,
       );
       sessionStorage.removeItem(
-        RecommendationStorageService.ENGINEERING_ACADEMIC_KEY
+        RecommendationStorageService.ENGINEERING_ACADEMIC_KEY,
       );
       sessionStorage.removeItem(
-        RecommendationStorageService.ENGINEERING_PREFERENCES_KEY
+        RecommendationStorageService.ENGINEERING_PREFERENCES_KEY,
       );
       sessionStorage.removeItem(
-        RecommendationStorageService.ENGINEERING_PRIORITIES_KEY
+        RecommendationStorageService.ENGINEERING_PRIORITIES_KEY,
+      );
+      sessionStorage.removeItem(
+        RecommendationStorageService.KARNATAKA_ENGINEERING_ACADEMIC_KEY,
+      );
+      sessionStorage.removeItem(
+        RecommendationStorageService.KARNATAKA_ENGINEERING_PREFERENCES_KEY,
+      );
+      sessionStorage.removeItem(
+        RecommendationStorageService.KARNATAKA_ENGINEERING_PRIORITIES_KEY,
       );
     } catch (error) {
       console.error("Failed to clear form data:", error);
@@ -297,19 +349,19 @@ class RecommendationStorageService {
     recommendations: any[],
     formData: any,
     isPaid: boolean = false,
-    acceptPayment: boolean = true
+    acceptPayment: boolean = true,
   ): void {
     try {
       sessionStorage.setItem(
         "cachedMedicalRecommendations",
-        JSON.stringify(recommendations)
+        JSON.stringify(recommendations),
       );
       sessionStorage.setItem(
         "medicalRecommendationPaymentData",
         JSON.stringify({
           is_payment: isPaid,
           accept_payment: acceptPayment,
-        })
+        }),
       );
       this.saveFormData(formData);
     } catch (error) {
@@ -352,7 +404,7 @@ class RecommendationStorageService {
         JSON.stringify({
           ...currentData,
           is_payment: isPaid,
-        })
+        }),
       );
     } catch (error) {
       console.error("Failed to set medical paid status:", error);
@@ -367,6 +419,37 @@ class RecommendationStorageService {
       localStorage.removeItem("medicalRound2Recommendations");
     } catch (error) {
       console.error("Failed to clear medical recommendations:", error);
+    }
+  }
+
+  // Clear all workflow data (Medical, Engineering, Karnataka)
+  clearAllWorkflowData(): void {
+    try {
+      // Retrieve critical auth data before clearing
+      const accessTokenLocal = localStorage.getItem("accessToken");
+      const userLocal = localStorage.getItem("user");
+      const accessTokenSession = sessionStorage.getItem("accessToken");
+      const userSession = sessionStorage.getItem("user");
+
+      // Clear everything
+      localStorage.clear();
+      sessionStorage.clear();
+
+      // Restore critical auth data
+      if (accessTokenLocal) {
+        localStorage.setItem("accessToken", accessTokenLocal);
+      }
+      if (userLocal) {
+        localStorage.setItem("user", userLocal);
+      }
+      if (accessTokenSession) {
+        sessionStorage.setItem("accessToken", accessTokenSession);
+      }
+      if (userSession) {
+        sessionStorage.setItem("user", userSession);
+      }
+    } catch (error) {
+      console.error("Failed to clear all workflow data:", error);
     }
   }
 }
