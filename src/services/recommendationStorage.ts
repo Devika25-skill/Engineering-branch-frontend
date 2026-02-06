@@ -170,6 +170,7 @@ class RecommendationStorageService {
         "certifications",
         "internships",
         "otherAchievements",
+        "cetRank", // Added cetRank to academic fields
       ];
 
       const preferencesFields = [
@@ -260,6 +261,9 @@ class RecommendationStorageService {
         RecommendationStorageService.STORAGE_KEY,
         JSON.stringify(history),
       );
+
+      // Also save to active session storage keys
+      this.saveFormData(formData);
     } catch (error) {
       console.error("Failed to save recommendation:", error);
     }

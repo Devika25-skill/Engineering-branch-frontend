@@ -125,30 +125,43 @@ export const Round2Tab = () => {
             category: category,
             college: {
               id: item.college.SJ_Institute_Code,
-              name: item.college.College_Name,
-              city: item.college.City,
-              logo: item.college.College_Logo,
+              name: item.college.College_Name || item.college.college_name,
+              city: item.college.City || item.college.city,
+              logo: item.college.College_Logo || item.college.college_logo,
               college_code:
                 item.college.College_Code ||
                 item.college.College_code ||
                 item.college.college_code ||
                 item.college.dte_code ||
                 item.college.institute_code,
-              website: item.college.College_Website,
-              type: item.college.College_Type,
+              website:
+                item.college.College_Website || item.college.college_website,
+              type: item.college.College_Type || item.college.college_type,
               nirf_rank: item.college.NIRF_Rank_Min,
-              fees: item.college["Annual_Fees_(INR)"],
+              fees:
+                item.college["Annual_Fees_(INR)"] || item.college.annual_fees,
               placement:
-                item.college.Overall_College_Placement_Percentage || null,
-              Student_Intake: item.college.Student_Intake || null,
-              top_recruiters: item.college.Top_Recruiters || [],
-              rating: item.college.College_Reviews_out_of_5 || null,
+                item.college.Overall_College_Placement_Percentage ||
+                item.college.overall_college_placement_percentage ||
+                null,
+              Student_Intake:
+                item.college.Student_Intake ||
+                item.college.student_intake ||
+                null,
+              top_recruiters:
+                item.college.Top_Recruiters ||
+                item.college.top_recruiters ||
+                [],
+              rating:
+                item.college.College_Reviews_out_of_5 ||
+                item.college.college_reviews_out_of_5 ||
+                null,
             },
             course_name: item.course,
             cutoff_percentile: item.cutoff,
             admission_probability: item.admission_probability,
             probability_message: item.probability_message,
-            cet_percentile: item.cet_percentile,
+            cet_percentile: item.cet_percentile || item.cet_rank,
             reservation_category: item.category,
             choice_code: item.choice_code || null,
           });
@@ -270,41 +283,81 @@ export const Round2Tab = () => {
       // If no localStorage data and user is logged in, try API
       if (user?.accessToken) {
         try {
-          const response = await apiService.getUserRoundDetails(
-            2,
-            user.accessToken,
-          );
-          if (
-            response.success &&
-            response.data &&
-            Object.keys(response.data).length > 0
-          ) {
-            const apiData = response.data;
-            // Convert API response to selectedCollege format
-            const selectedCollege: SelectedCollege = {
-              college: {
-                College_Name: apiData.College_Name,
-                College_code: apiData.College_code,
-                City: apiData.City,
-                College_Website: "", // Default empty values for missing fields
-                department: [], // Default empty array
-              } as CollegeSearchResult,
-              selectedDepartment: {
-                course_name: apiData.Course_Name,
-                course_code: apiData.Course_Code,
-                choice_code: apiData.Choice_Code,
-              } as CollegeDepartment,
-            };
-            setSelectedCollege(selectedCollege);
-            setIsConfirmed(true);
-            setShowPreferences(true);
+          const isKarnataka =
+            localStorage.getItem("selected_state") === "Karnataka";
 
-            // Also save to localStorage for future use
-            const storageData = { selectedCollege, isConfirmed: true };
-            localStorage.setItem(
-              "round2Selection",
-              JSON.stringify(storageData),
+          if (isKarnataka) {
+            const response =
+              await apiService.getKarnatakaEngineeringRoundDetails(
+                1, // Karnataka Round 2 uses round=1 query param
+                user.accessToken,
+              );
+
+            if (response.success && response.data) {
+              const apiData = response.data;
+              // Convert API response to selectedCollege format
+              const selectedCollege: SelectedCollege = {
+                college: {
+                  College_Name: apiData.college_name,
+                  College_code: apiData.college_code.toString(),
+                  City: apiData.city,
+                  College_Website: "", // Default empty values for missing fields
+                  department: [], // Default empty array
+                } as CollegeSearchResult,
+                selectedDepartment: {
+                  course_name: apiData.course_name,
+                  course_code: 0,
+                  choice_code: 0, // Placeholder
+                } as unknown as CollegeDepartment,
+              };
+              setSelectedCollege(selectedCollege);
+              setIsConfirmed(true);
+              setShowPreferences(true);
+
+              // Also save to localStorage for future use
+              const storageData = { selectedCollege, isConfirmed: true };
+              localStorage.setItem(
+                "round2Selection",
+                JSON.stringify(storageData),
+              );
+            }
+          } else {
+            const response = await apiService.getUserRoundDetails(
+              2,
+              user.accessToken,
             );
+            if (
+              response.success &&
+              response.data &&
+              Object.keys(response.data).length > 0
+            ) {
+              const apiData = response.data;
+              // Convert API response to selectedCollege format
+              const selectedCollege: SelectedCollege = {
+                college: {
+                  College_Name: apiData.College_Name,
+                  College_code: apiData.College_code,
+                  City: apiData.City,
+                  College_Website: "", // Default empty values for missing fields
+                  department: [], // Default empty array
+                } as CollegeSearchResult,
+                selectedDepartment: {
+                  course_name: apiData.Course_Name,
+                  course_code: apiData.Course_Code,
+                  choice_code: apiData.Choice_Code,
+                } as CollegeDepartment,
+              };
+              setSelectedCollege(selectedCollege);
+              setIsConfirmed(true);
+              setShowPreferences(true);
+
+              // Also save to localStorage for future use
+              const storageData = { selectedCollege, isConfirmed: true };
+              localStorage.setItem(
+                "round2Selection",
+                JSON.stringify(storageData),
+              );
+            }
           }
         } catch (error) {
           console.error("Error loading user round details:", error);
@@ -330,11 +383,306 @@ export const Round2Tab = () => {
     return () => window.removeEventListener("storage", checkUnlockStatus);
   }, []);
 
+  // Set default search type for Karnataka
+  useEffect(() => {
+    const isKarnataka = localStorage.getItem("selected_state") === "Karnataka";
+    if (isKarnataka && searchType === "choice_code") {
+      setSearchType("college_code");
+    }
+  }, []);
+
   const searchTypeOptions = [
-    { value: "choice_code", label: "Choice Code" },
-    { value: "college_name", label: "College Name" },
     { value: "college_code", label: "College Code" },
-  ];
+    { value: "college_name", label: "College Name" },
+    { value: "choice_code", label: "Choice Code" },
+  ].filter((option) =>
+    localStorage.getItem("selected_state") === "Karnataka"
+      ? option.value !== "choice_code"
+      : true,
+  );
+
+  const handleGenerateRecommendations = async () => {
+    if (!user?.accessToken) {
+      toast({
+        title: "Authentication Required",
+        description: "Please login to generate recommendations",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (selectedBranches.length === 0) {
+      toast({
+        title: "Missing Preferences",
+        description:
+          "Please select at least one engineering branch to generate recommendations",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Check local storage for Karnataka state
+    const isKarnataka = localStorage.getItem("selected_state") === "Karnataka";
+
+    if (
+      !skipRound1Selection &&
+      !selectedCollege?.selectedDepartment?.choice_code &&
+      !isKarnataka // Skip choice_code check for Karnataka
+    ) {
+      toast({
+        title: "Missing College Selection",
+        description:
+          "Please select your Round 1 college before generating recommendations",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // For Karnataka, ensure college is selected (even if choice_code is missing)
+    if (
+      isKarnataka &&
+      !skipRound1Selection &&
+      (!selectedCollege?.college?.College_code ||
+        !selectedCollege?.selectedDepartment?.course_name)
+    ) {
+      toast({
+        title: "Missing College Selection",
+        description:
+          "Please select your Round 1 college before generating recommendations",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsGeneratingRecommendations(true);
+
+    try {
+      // Update preferences first
+      const preferencesPayload = {
+        round: 2,
+        branches: selectedBranches,
+        cities: selectedCities.length > 0 ? selectedCities : ["ALL"],
+      };
+
+      if (isKarnataka) {
+        // Get form data
+        const formData = recommendationStorage.getFormData();
+        const category = formData?.reservationCategory || "GM";
+        const cetRank = formData?.cetRank || formData?.cet_rank || 0;
+        const gender = formData?.gender || "male";
+
+        const payload = {
+          category: category,
+          cet_rank: cetRank,
+          cet_course: selectedBranches,
+          cities: selectedCities,
+          gender: gender,
+          round: 2,
+          last_round_choice_college_code:
+            selectedCollege?.college?.College_code?.toString() || "",
+          last_round_choice_course_name:
+            selectedCollege?.selectedDepartment?.course_name || "",
+        };
+
+        const response = await apiService.karnatakaEngineeringRecommendation(
+          payload,
+          user.accessToken,
+        );
+
+        if (response.success && response.data) {
+          const convertedRecs = convertApiResponseToRecommendations(
+            response.data,
+          );
+          setRound2Recommendations(convertedRecs);
+          setHasGeneratedRecommendations(true);
+
+          if (response.data.is_payment === true) {
+            localStorage.setItem("recommendationUnlocked", "true");
+            setIsUnlocked(true);
+          }
+
+          sessionStorage.setItem(
+            "cachedRound2Recommendations_v3",
+            JSON.stringify(convertedRecs),
+          );
+
+          localStorage.setItem(
+            "round2Recommendations",
+            JSON.stringify(response.data),
+          );
+
+          toast({
+            title: "Recommendations Generated",
+            description: "Your Round 2 recommendations have been generated.",
+          });
+        } else {
+          toast({
+            title: "Generation Failed",
+            description:
+              response.message || "Failed to generate recommendations",
+            variant: "destructive",
+          });
+        }
+      } else {
+        // EXISTING LOGIC FOR NON-KARNATAKA
+        await apiService.updateRoundPreferences(
+          preferencesPayload,
+          user.accessToken,
+        );
+
+        // Update localStorage with latest preferences
+        localStorage.setItem(
+          "round2Preferences",
+          JSON.stringify({
+            branches: selectedBranches,
+            cities: selectedCities.length > 0 ? selectedCities : ["ALL"],
+            timestamp: Date.now(),
+          }),
+        );
+
+        // Get form data for category and CET percentile
+        let formData = recommendationStorage.getFormData();
+
+        // Attempt to fetch missing data
+        if ((!formData || !formData.district) && user?.email) {
+          try {
+            const capResponse = await apiService.fetchAICapDetails(
+              user.accessToken,
+              user.email,
+            );
+            if (capResponse.success && capResponse.data) {
+              const apiData = capResponse.data;
+              const credentials = apiData.academic_credentials || apiData;
+              const gender = apiData.gender;
+              const otherExam =
+                credentials.examPercentiles?.otherEntranceExam?.[0];
+
+              const mappedData = {
+                gender: gender || undefined,
+                reservationCategory:
+                  credentials.reservationCategory || "GOPENS",
+                grouping:
+                  credentials.educationBackground?.stream ||
+                  "PCM (Physics, Chemistry, Mathematics)",
+                tenthMarks:
+                  credentials.academicMarks?._10thGradeMarksPercent ||
+                  undefined,
+                twelfthMarks:
+                  credentials.academicMarks?._12thGradeMarksPercent ||
+                  undefined,
+                groupingMarks:
+                  credentials.academicMarks?.groupingMarksPercent || undefined,
+                cetPercentile: credentials.examPercentiles?.CET || undefined,
+                jeePercentile: credentials.examPercentiles?.JEE || undefined,
+                otherExamName: otherExam?.examName || undefined,
+                otherExamPercentile: otherExam?.percentileOrScore || undefined,
+                sportsAchievements:
+                  credentials.achievementsExperience?.sportsAchievements ||
+                  undefined,
+                certifications:
+                  credentials.achievementsExperience?.certifications ||
+                  undefined,
+                internships:
+                  credentials.achievementsExperience
+                    ?.internshipsWorkExperience || undefined,
+                otherAchievements:
+                  credentials.achievementsExperience?.otherAchievements ||
+                  undefined,
+                preferredStreams:
+                  credentials.preferences?.engineeringBranches || [],
+                preferredCities: credentials.preferences?.preferredCities || [],
+                district:
+                  credentials.preferences?.preferredDistrict || undefined,
+                hostelPreference:
+                  credentials.campusFacilitiesEnvironment?.hostelFacility ||
+                  undefined,
+                campusSetting:
+                  credentials.campusFacilitiesEnvironment?.campusSetting ||
+                  undefined,
+                transportFacility:
+                  credentials.campusFacilitiesEnvironment?.transportFacility ||
+                  undefined,
+                wifiTechInfrastructure:
+                  credentials.campusFacilitiesEnvironment
+                    ?.wifiTechInfrastructure || undefined,
+                coCurricularActivities:
+                  credentials.campusFacilitiesEnvironment
+                    ?.coCurricularActivities || undefined,
+                maxBudget: credentials.annualBudget || undefined,
+                collegeTypes: credentials.collegeTypePreferences || [],
+                priorities: credentials.priorityFactors || [],
+              };
+
+              recommendationStorage.saveAcademicDetails(mappedData);
+              recommendationStorage.savePreferences(mappedData);
+              recommendationStorage.savePriorities(mappedData);
+              sessionStorage.setItem(
+                "recommendationFormData",
+                JSON.stringify(mappedData),
+              );
+              sessionStorage.setItem(
+                "recommendation_form_data",
+                JSON.stringify(mappedData),
+              );
+              formData = mappedData;
+            }
+          } catch (e) {
+            console.error("Failed to restore form data", e);
+          }
+        }
+
+        // Call the generic API
+        const response = await apiService.generateRecommendations(
+          2,
+          user.accessToken,
+        );
+
+        if (response.success && response.data) {
+          const convertedRecs = convertApiResponseToRecommendations(
+            response.data,
+          );
+          setRound2Recommendations(convertedRecs);
+          setHasGeneratedRecommendations(true);
+
+          if (response.data.is_payment === true) {
+            localStorage.setItem("recommendationUnlocked", "true");
+            setIsUnlocked(true);
+          }
+
+          sessionStorage.setItem(
+            "cachedRound2Recommendations_v3",
+            JSON.stringify(convertedRecs),
+          );
+
+          localStorage.setItem(
+            "round2Recommendations",
+            JSON.stringify(response.data),
+          );
+
+          toast({
+            title: "Recommendations Generated",
+            description: "Your Round 2 recommendations have been generated.",
+          });
+        } else {
+          throw new Error(
+            response.message || "Failed to generate recommendations",
+          );
+        }
+      }
+    } catch (error) {
+      console.error("Error generating recommendations:", error);
+      toast({
+        title: "Generation Failed",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Failed to generate recommendations. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGeneratingRecommendations(false);
+    }
+  };
 
   const handleSearch = async () => {
     if (!searchValue.trim()) {
@@ -361,6 +709,8 @@ export const Round2Tab = () => {
 
     try {
       let response;
+      const isKarnataka =
+        localStorage.getItem("selected_state") === "Karnataka";
 
       switch (searchType) {
         case "choice_code":
@@ -376,35 +726,71 @@ export const Round2Tab = () => {
           break;
 
         case "college_name":
-          response = await apiService.searchCollegeByName(
-            { college_name: searchValue },
-            user.accessToken,
-          );
+          if (isKarnataka) {
+            response = await apiService.searchKarnatakaCollegeByName(
+              searchValue,
+              user.accessToken,
+            );
+          } else {
+            response = await apiService.searchCollegeByName(
+              { college_name: searchValue },
+              user.accessToken,
+            );
+          }
           break;
 
         case "college_code":
-          const collegeCode = parseInt(searchValue);
-          if (isNaN(collegeCode)) {
-            toast({
-              title: "Invalid College Code",
-              description: "College code must be a number",
-              variant: "destructive",
-            });
-            return;
+          if (isKarnataka) {
+            // Karnataka college code is a string (E184), no parseInt needed
+            response = await apiService.searchKarnatakaCollegeByCode(
+              searchValue.trim(),
+              user.accessToken,
+            );
+          } else {
+            const collegeCode = parseInt(searchValue);
+            if (isNaN(collegeCode)) {
+              toast({
+                title: "Invalid College Code",
+                description: "College code must be a number",
+                variant: "destructive",
+              });
+              return;
+            }
+            response = await apiService.searchCollegeByCode(
+              { college_code: collegeCode },
+              user.accessToken,
+            );
           }
-          response = await apiService.searchCollegeByCode(
-            { college_code: collegeCode },
-            user.accessToken,
-          );
           break;
       }
 
       if (response.success && response.data) {
         // Handle different response structures
-        if (Array.isArray(response.data)) {
-          setSearchResults(response.data);
+        if (isKarnataka) {
+          const apiData = Array.isArray(response.data)
+            ? response.data
+            : [response.data];
+          const mappedData: CollegeSearchResult[] = apiData.map(
+            (item: any) => ({
+              College_Name: item.college_name,
+              College_Website: "", // Not provided in Karnataka search API
+              City: item.city,
+              College_code: item.college_code,
+              department: Array.isArray(item.department)
+                ? item.department.map((dept: any) => ({
+                    course_name: dept.course_name,
+                    // choice_code not available in search response for Karnataka
+                  }))
+                : [],
+            }),
+          );
+          setSearchResults(mappedData);
         } else {
-          setSearchResults([response.data]);
+          if (Array.isArray(response.data)) {
+            setSearchResults(response.data);
+          } else {
+            setSearchResults([response.data]);
+          }
         }
       } else {
         setSearchResults([]);
@@ -524,26 +910,49 @@ export const Round2Tab = () => {
       const category = formData?.reservationCategory || "";
       const cetPercentile =
         formData?.cetPercentile || formData?.cet_percentile || 0;
+      const cetRank = formData?.cetRank || formData?.cet_rank || 0;
 
-      // Prepare API payload
-      const apiPayload = {
-        username: user.email,
-        college_name: selectedCollege.college.College_Name,
-        college_code: selectedCollege.college.College_code,
-        course_name: selectedCollege.selectedDepartment.course_name,
-        course_code: selectedCollege.selectedDepartment.course_code || 0,
-        choice_code: selectedCollege.selectedDepartment.choice_code,
-        round: 2,
-        location: selectedCollege.college.City,
-        category: category,
-        cet_percentile: cetPercentile,
-      };
+      const isKarnataka =
+        localStorage.getItem("selected_state") === "Karnataka";
 
-      // Store to backend
-      const response = await apiService.storeCollegeDetails(
-        apiPayload,
-        user.accessToken,
-      );
+      let response;
+
+      if (isKarnataka) {
+        const payload = {
+          round: 1, // Karnataka Round 2 uses round=1 for storage
+          college_code: selectedCollege.college.College_code,
+          college_name: selectedCollege.college.College_Name,
+          course_name: selectedCollege.selectedDepartment.course_name,
+          city: selectedCollege.college.City,
+          category: category,
+          cet_rank: cetRank, // Use authentic cetRank
+          isDeleted: false,
+        };
+        response = await apiService.storeKarnatakaEngineeringRoundDetails(
+          payload,
+          user.accessToken,
+        );
+      } else {
+        // Prepare API payload
+        const apiPayload = {
+          username: user.email,
+          college_name: selectedCollege.college.College_Name,
+          college_code: selectedCollege.college.College_code as number,
+          course_name: selectedCollege.selectedDepartment.course_name,
+          course_code: selectedCollege.selectedDepartment.course_code || 0,
+          choice_code: selectedCollege.selectedDepartment.choice_code as number,
+          round: 2,
+          location: selectedCollege.college.City,
+          category: category,
+          cet_percentile: cetPercentile,
+        };
+
+        // Store to backend
+        response = await apiService.storeCollegeDetails(
+          apiPayload,
+          user.accessToken,
+        );
+      }
 
       if (response.success) {
         setIsConfirmed(true);
@@ -601,19 +1010,40 @@ export const Round2Tab = () => {
     // Then try to get preferences from API
     if (user?.accessToken) {
       try {
-        const response = await apiService.getUserRoundPreferences(
-          2,
-          user.accessToken,
-        );
-        if (
-          response.success &&
-          response.data &&
-          (response.data.branches?.length > 0 ||
-            response.data.cities?.length > 0)
-        ) {
-          const branches = response.data.branches || [];
-          const cities = response.data.cities || [];
+        let branches: string[] = [];
+        let cities: string[] = [];
+        let hasData = false;
 
+        if (localStorage.getItem("selected_state") === "Karnataka") {
+          const configResponse =
+            await apiService.fetchKarnatakaEngineeringConfig(user.accessToken);
+          if (
+            configResponse.success &&
+            configResponse.data?.academic_credentials?.preferences
+          ) {
+            const prefs = configResponse.data.academic_credentials.preferences;
+            branches = prefs.engineeringBranches || [];
+            cities = prefs.preferredCities || [];
+            hasData = branches.length > 0 || cities.length > 0;
+          }
+        } else {
+          const response = await apiService.getUserRoundPreferences(
+            2,
+            user.accessToken,
+          );
+          if (
+            response.success &&
+            response.data &&
+            (response.data.branches?.length > 0 ||
+              response.data.cities?.length > 0)
+          ) {
+            branches = response.data.branches || [];
+            cities = response.data.cities || [];
+            hasData = true;
+          }
+        }
+
+        if (hasData) {
           setSelectedBranches(branches);
           setSelectedCities(cities);
           setShowPreferences(true); // Show preferences when loaded from API
@@ -671,24 +1101,57 @@ export const Round2Tab = () => {
     setIsUpdatingPreferences(true);
 
     try {
-      // First, call the getUserRoundPreferences API to fetch latest preferences
-      const preferencesResponse = await apiService.getUserRoundPreferences(
-        2,
-        user.accessToken,
-      );
+      let isSuccess = false;
 
-      const payload = {
-        round: 2,
-        branches: selectedBranches,
-        cities: selectedCities.length > 0 ? selectedCities : ["ALL"],
-      };
+      // Check if Karnataka state is selected
+      if (localStorage.getItem("selected_state") === "Karnataka") {
+        // 1. Fetch current Karnataka config
+        const configResponse = await apiService.fetchKarnatakaEngineeringConfig(
+          user.accessToken,
+        );
 
-      const response = await apiService.updateRoundPreferences(
-        payload,
-        user.accessToken,
-      );
+        if (configResponse.success && configResponse.data) {
+          const currentConfig = configResponse.data;
 
-      if (response.success) {
+          // 2. Prepare updated payload with new preferences
+          const updatedPayload = {
+            ...currentConfig,
+            academic_credentials: {
+              ...currentConfig.academic_credentials,
+              preferences: {
+                ...currentConfig.academic_credentials?.preferences,
+                engineeringBranches: selectedBranches,
+                preferredCities:
+                  selectedCities.length > 0 ? selectedCities : ["Bengaluru"], // Default to Bengaluru if empty for Karnataka
+                // preferredDistrict is removed for Karnataka as per requirements
+              },
+            },
+          };
+
+          // 3. Store updated config
+          const storeResponse =
+            await apiService.storeKarnatakaEngineeringConfig(updatedPayload);
+          isSuccess = storeResponse.success;
+        }
+      } else {
+        // Existing logic for other states (Maharashtra)
+        // First, call the getUserRoundPreferences API to fetch latest preferences
+        await apiService.getUserRoundPreferences(2, user.accessToken);
+
+        const payload = {
+          round: 2,
+          branches: selectedBranches,
+          cities: selectedCities.length > 0 ? selectedCities : ["ALL"],
+        };
+
+        const response = await apiService.updateRoundPreferences(
+          payload,
+          user.accessToken,
+        );
+        isSuccess = response.success;
+      }
+
+      if (isSuccess) {
         setEditingPreferences(false);
 
         // Update localStorage with new preferences
@@ -774,240 +1237,6 @@ export const Round2Tab = () => {
     items.splice(result.destination.index, 0, reorderedItem);
 
     setSelectedCities(items);
-  };
-
-  const handleGenerateRecommendations = async () => {
-    if (!user?.accessToken) {
-      toast({
-        title: "Authentication Required",
-        description: "Please login to generate recommendations",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (selectedBranches.length === 0) {
-      toast({
-        title: "Missing Preferences",
-        description:
-          "Please select at least one engineering branch to generate recommendations",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (
-      !skipRound1Selection &&
-      !selectedCollege?.selectedDepartment?.choice_code
-    ) {
-      toast({
-        title: "Missing College Selection",
-        description:
-          "Please select your Round 1 college before generating recommendations",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsGeneratingRecommendations(true);
-
-    try {
-      // Update preferences first
-      const preferencesPayload = {
-        round: 2,
-        branches: selectedBranches,
-        cities: selectedCities.length > 0 ? selectedCities : ["ALL"],
-      };
-
-      await apiService.updateRoundPreferences(
-        preferencesPayload,
-        user.accessToken,
-      );
-
-      // Update localStorage with latest preferences
-      localStorage.setItem(
-        "round2Preferences",
-        JSON.stringify({
-          branches: selectedBranches,
-          cities: selectedCities.length > 0 ? selectedCities : ["ALL"],
-          timestamp: Date.now(),
-        }),
-      );
-
-      // Get form data for category and CET percentile
-      let formData = recommendationStorage.getFormData();
-
-      // Attempt to fetch missing data
-      if ((!formData || !formData.district) && user?.email) {
-        try {
-          const capResponse = await apiService.fetchAICapDetails(
-            user.accessToken,
-            user.email,
-          );
-          if (capResponse.success && capResponse.data) {
-            const apiData = capResponse.data;
-            const credentials = apiData.academic_credentials || apiData;
-            const gender = apiData.gender;
-            const otherExam =
-              credentials.examPercentiles?.otherEntranceExam?.[0];
-
-            const mappedData = {
-              gender: gender || undefined,
-              reservationCategory: credentials.reservationCategory || "GOPENS",
-              grouping:
-                credentials.educationBackground?.stream ||
-                "PCM (Physics, Chemistry, Mathematics)",
-              tenthMarks:
-                credentials.academicMarks?._10thGradeMarksPercent || undefined,
-              twelfthMarks:
-                credentials.academicMarks?._12thGradeMarksPercent || undefined,
-              groupingMarks:
-                credentials.academicMarks?.groupingMarksPercent || undefined,
-              cetPercentile: credentials.examPercentiles?.CET || undefined,
-              jeePercentile: credentials.examPercentiles?.JEE || undefined,
-              otherExamName: otherExam?.examName || undefined,
-              otherExamPercentile: otherExam?.percentileOrScore || undefined,
-              sportsAchievements:
-                credentials.achievementsExperience?.sportsAchievements ||
-                undefined,
-              certifications:
-                credentials.achievementsExperience?.certifications || undefined,
-              internships:
-                credentials.achievementsExperience?.internshipsWorkExperience ||
-                undefined,
-              otherAchievements:
-                credentials.achievementsExperience?.otherAchievements ||
-                undefined,
-              preferredStreams:
-                credentials.preferences?.engineeringBranches || [],
-              preferredCities: credentials.preferences?.preferredCities || [],
-              district: credentials.preferences?.preferredDistrict || undefined,
-              hostelPreference:
-                credentials.campusFacilitiesEnvironment?.hostelFacility ||
-                undefined,
-              campusSetting:
-                credentials.campusFacilitiesEnvironment?.campusSetting ||
-                undefined,
-              transportFacility:
-                credentials.campusFacilitiesEnvironment?.transportFacility ||
-                undefined,
-              wifiTechInfrastructure:
-                credentials.campusFacilitiesEnvironment
-                  ?.wifiTechInfrastructure || undefined,
-              coCurricularActivities:
-                credentials.campusFacilitiesEnvironment
-                  ?.coCurricularActivities || undefined,
-              maxBudget: credentials.annualBudget || undefined,
-              collegeTypes: credentials.collegeTypePreferences || [],
-              priorities: credentials.priorityFactors || [],
-            };
-
-            recommendationStorage.saveAcademicDetails(mappedData);
-            recommendationStorage.savePreferences(mappedData);
-            recommendationStorage.savePriorities(mappedData);
-            sessionStorage.setItem(
-              "recommendationFormData",
-              JSON.stringify(mappedData),
-            );
-            sessionStorage.setItem(
-              "recommendation_form_data",
-              JSON.stringify(mappedData),
-            );
-            formData = mappedData;
-          }
-        } catch (e) {
-          console.error("Failed to restore form data", e);
-        }
-      }
-
-      const category = formData?.reservationCategory || "GOPENS";
-      const cetPercentile =
-        formData?.cetPercentile || formData?.cet_percentile || 0;
-      const district = formData?.district;
-      const gender = formData?.gender || "male";
-
-      if (!district) {
-        toast({
-          title: "Missing Information",
-          description:
-            "District information is missing. Please go back to Round 1 and update your basic information.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // Generate Round 2 recommendations
-      const generateRoundListPayload = {
-        category: category,
-        cet_percentile: cetPercentile,
-        cet_course: selectedBranches,
-        location: selectedCities.length > 0 ? selectedCities : ["ALL"],
-        district: district,
-        gender: gender,
-        round: 2,
-        last_round_college_choice_code: skipRound1Selection
-          ? 0
-          : typeof selectedCollege.selectedDepartment.choice_code === "string"
-            ? parseInt(selectedCollege.selectedDepartment.choice_code)
-            : selectedCollege.selectedDepartment.choice_code,
-      };
-
-      const response = await apiService.getRecommendations(
-        generateRoundListPayload,
-        user.accessToken,
-      );
-
-      if (response.success) {
-        // Store in localStorage
-        localStorage.setItem(
-          "round2Recommendations",
-          JSON.stringify(response.data),
-        );
-
-        // Convert and set recommendations
-        const convertedRecommendations = convertApiResponseToRecommendations(
-          response.data,
-        );
-        setRound2Recommendations(convertedRecommendations);
-        setHasGeneratedRecommendations(true);
-
-        // Cache in session storage
-        sessionStorage.setItem(
-          "cachedRound2Recommendations_v3",
-          JSON.stringify(convertedRecommendations),
-        );
-
-        // Check if payment is included and unlock recommendations automatically
-        if (response.data.is_payment === true) {
-          localStorage.setItem("recommendationUnlocked", "true");
-          setIsUnlocked(true);
-          toast({
-            title: "Recommendations Unlocked!",
-            description:
-              "Your Round 2 recommendations have been automatically unlocked.",
-          });
-        }
-
-        toast({
-          title: "Round 2 Recommendations Generated",
-          description:
-            "Your Round 2 recommendation list has been generated successfully based on your preferences.",
-        });
-      } else {
-        throw new Error(
-          response.message || "Failed to generate recommendations",
-        );
-      }
-    } catch (error) {
-      console.error("Error generating recommendations:", error);
-      toast({
-        title: "Generation Failed",
-        description: "Failed to generate recommendations. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsGeneratingRecommendations(false);
-    }
   };
 
   const { generatePDF, isGenerating: isPdfGenerating } = usePdfDownload();
@@ -1215,9 +1444,11 @@ export const Round2Tab = () => {
             >
               <div className="flex-1">
                 <p className="font-medium text-sm">{dept.course_name}</p>
-                <p className="text-xs text-muted-foreground">
-                  Choice Code: {dept.choice_code}
-                </p>
+                {localStorage.getItem("selected_state") !== "Karnataka" && (
+                  <p className="text-xs text-muted-foreground">
+                    Choice Code: {dept.choice_code}
+                  </p>
+                )}
                 {dept.course_code && (
                   <p className="text-xs text-muted-foreground">
                     Course Code: {dept.course_code}
@@ -1315,9 +1546,15 @@ export const Round2Tab = () => {
                   </Badge>
                 </div>
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
-                  <span className="font-medium text-sm">Choice Code:</span>
+                  <span className="font-medium text-sm">
+                    {localStorage.getItem("selected_state") === "Karnataka"
+                      ? "College Code:"
+                      : "Choice Code:"}
+                  </span>
                   <code className="px-2 py-1 bg-green-100 rounded text-sm w-fit">
-                    {selectedCollege.selectedDepartment.choice_code}
+                    {localStorage.getItem("selected_state") === "Karnataka"
+                      ? selectedCollege.college.College_code
+                      : selectedCollege.selectedDepartment.choice_code}
                   </code>
                 </div>
               </div>
@@ -1779,7 +2016,11 @@ export const Round2Tab = () => {
                 <PremiumGate
                   onUnlock={() => setIsUnlocked(true)}
                   storageKey="recommendationUnlocked"
-                  productType="future-bridge"
+                  productType={
+                    localStorage.getItem("selected_state") === "Karnataka"
+                      ? "karnataka-engineering-recommendations"
+                      : "future-bridge"
+                  }
                   title="Unlock Round 2 Recommendations"
                   description="Get access to all round recommendations including Round 2 counselling guidance."
                 />
@@ -1890,9 +2131,19 @@ export const Round2Tab = () => {
                           ? "Enter choice code (e.g., 211626310 or 1234U)"
                           : searchType === "college_name"
                             ? "Enter college name"
-                            : "Enter college code (e.g., 1146)"
+                            : localStorage.getItem("selected_state") ===
+                                "Karnataka"
+                              ? "Enter college code (e.g., E184)"
+                              : "Enter college code (e.g., 1146)"
                       }
-                      type={searchType === "college_code" ? "number" : "text"}
+                      type={
+                        searchType === "college_name" ||
+                        (localStorage.getItem("selected_state") ===
+                          "Karnataka" &&
+                          searchType === "college_code")
+                          ? "text"
+                          : "number"
+                      }
                       onKeyPress={(e) => e.key === "Enter" && handleSearch()}
                     />
                     <Button onClick={handleSearch} disabled={isSearching}>
@@ -2016,9 +2267,16 @@ export const Round2Tab = () => {
                   </Badge>
                 </div>
                 <div className="flex flex-col space-y-1">
-                  <span className="font-medium text-sm">Choice Code:</span>
+                  <span className="font-medium text-sm">
+                    {localStorage.getItem("selected_state") === "Karnataka"
+                      ? "College Code"
+                      : "Choice Code"}
+                    :
+                  </span>
                   <code className="px-2 py-1 bg-muted rounded text-sm w-fit">
-                    {selectedCollege.selectedDepartment.choice_code}
+                    {localStorage.getItem("selected_state") === "Karnataka"
+                      ? selectedCollege.college.College_code
+                      : selectedCollege.selectedDepartment.choice_code}
                   </code>
                 </div>
               </div>

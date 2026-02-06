@@ -45,6 +45,7 @@ export const RecommendationCard = ({
 
   const { user } = useAuth();
   const [localFormData, setLocalFormData] = useState(formData);
+  const isKarnataka = localStorage.getItem("selected_state") === "Karnataka";
 
   useEffect(() => {
     const fetchMissingData = async () => {
@@ -52,6 +53,7 @@ export const RecommendationCard = ({
 
       if (
         !cetPercentile &&
+        !isKarnataka && // Skip fetching AI CAP for Karnataka
         user?.accessToken &&
         user?.email &&
         !sessionStorage.getItem("fetchingMissingData")
@@ -91,11 +93,14 @@ export const RecommendationCard = ({
     };
 
     fetchMissingData();
-  }, [formData.cetPercentile, formData.cet_percentile, user]);
+  }, [formData.cetPercentile, formData.cet_percentile, user, isKarnataka]);
 
   const currentFormData = localFormData || formData;
   const currentCetPercentile =
     currentFormData.cetPercentile || currentFormData.cet_percentile || null;
+  const currentCetRank =
+    currentFormData.cetRank || currentFormData.cet_rank || null;
+
   const currentReservationCategory =
     currentFormData.reservationCategory ||
     currentFormData.reservation_category ||
@@ -177,14 +182,23 @@ export const RecommendationCard = ({
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-2 mb-1">
               <div className="flex-1 min-w-0">
-                <Link
-                  to={`/college/${college.id}`}
-                  onClick={handleCollegeClick}
-                  className="text-sm font-semibold text-gray-900 hover:text-blue-600 transition-colors block leading-tight"
-                  title={college.name}
-                >
-                  {truncateText(college.name, 40)}
-                </Link>
+                {isKarnataka ? (
+                  <span
+                    className="text-sm font-semibold text-gray-900 block leading-tight"
+                    title={college.name}
+                  >
+                    {truncateText(college.name, 40)}
+                  </span>
+                ) : (
+                  <Link
+                    to={`/college/${college.id}`}
+                    onClick={handleCollegeClick}
+                    className="text-sm font-semibold text-gray-900 hover:text-blue-600 transition-colors block leading-tight"
+                    title={college.name}
+                  >
+                    {truncateText(college.name, 40)}
+                  </Link>
+                )}
                 <div className="flex items-center gap-1 mt-1 text-xs text-gray-500">
                   <MapPin size={10} />
                   <span>{truncateText(college.city, 20)}</span>
@@ -224,7 +238,8 @@ export const RecommendationCard = ({
                   )}
                   {cutoff_percentile && (
                     <span className="text-blue-700 bg-blue-100 px-1.5 py-0.5 rounded text-xs">
-                      Previous Year Cutoff: {cutoff_percentile}%ile
+                      Previous Year Cutoff: {cutoff_percentile}
+                      {isKarnataka ? " Rank" : "%ile"}
                     </span>
                   )}
                 </div>
@@ -297,9 +312,13 @@ export const RecommendationCard = ({
             {probability_message && (
               <>
                 <p className="text-xs text-gray-600 break-words">
-                  {currentCetPercentile
-                    ? `Your CET Percentile: ${currentCetPercentile}%`
-                    : ""}{" "}
+                  {isKarnataka
+                    ? currentCetRank
+                      ? `Your CET Rank: ${currentCetRank}`
+                      : ""
+                    : currentCetPercentile
+                      ? `Your CET Percentile: ${currentCetPercentile}%`
+                      : ""}{" "}
                 </p>
                 {/* {currentReservationCategory && (
                   <p className="text-xs text-gray-600 break-words">
@@ -312,17 +331,19 @@ export const RecommendationCard = ({
         </div>
 
         {/* Compact View Details Button - Positioned at top right */}
-        <div className="absolute top-3 right-3">
-          <Link to={`/college/${college?.id}`} onClick={handleCollegeClick}>
-            <Button
-              size="sm"
-              className="h-8 px-3 text-xs font-medium bg-blue-600 hover:bg-blue-700 text-white rounded-md shadow-sm transition-all duration-200 flex items-center gap-1"
-            >
-              {/* <span className="hidden sm:inline">View</span> */}
-              <ExternalLink size={12} />
-            </Button>
-          </Link>
-        </div>
+        {!isKarnataka && (
+          <div className="absolute top-3 right-3">
+            <Link to={`/college/${college?.id}`} onClick={handleCollegeClick}>
+              <Button
+                size="sm"
+                className="h-8 px-3 text-xs font-medium bg-blue-600 hover:bg-blue-700 text-white rounded-md shadow-sm transition-all duration-200 flex items-center gap-1"
+              >
+                {/* <span className="hidden sm:inline">View</span> */}
+                <ExternalLink size={12} />
+              </Button>
+            </Link>
+          </div>
+        )}
       </CardHeader>
     </Card>
   );
