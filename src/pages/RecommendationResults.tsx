@@ -6,7 +6,7 @@ import { RecommendationResults as ResultsComponent } from "@/components/recommen
 import { useAuth } from "@/contexts/AuthContext";
 import { apiService } from "@/services/api";
 
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { recommendationStorage } from "@/services/recommendationStorage";
 import StepLoadingMessages from "@/components/recommendations/StepLoadingMessages";
 import { useRecommendation } from "@/hooks/useRecommendation";
@@ -22,6 +22,7 @@ const RecommendationResults = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const { generateRecommendation } = useRecommendation();
   const { user, isLoggedIn } = useAuth();
   const { showFeedback, handleClose, handleSkipSession } = useFeedbackTimer();
@@ -41,30 +42,43 @@ const RecommendationResults = () => {
             category: category,
             college: {
               id: item.college.SJ_Institute_Code,
-              name: item.college.College_Name,
-              city: item.college.City,
-              logo: item.college.College_Logo,
+              name: item.college.College_Name || item.college.college_name,
+              city: item.college.City || item.college.city,
+              logo: item.college.College_Logo || item.college.college_logo,
               college_code:
                 item.college.College_Code ||
                 item.college.College_code ||
                 item.college.college_code ||
                 item.college.dte_code ||
                 item.college.institute_code,
-              website: item.college.College_Website,
-              type: item.college.College_Type,
+              website:
+                item.college.College_Website || item.college.college_website,
+              type: item.college.College_Type || item.college.college_type,
               nirf_rank: item.college.NIRF_Rank_Min,
-              fees: item.college["Annual_Fees_(INR)"],
+              fees:
+                item.college["Annual_Fees_(INR)"] || item.college.annual_fees,
               placement:
-                item.college.Overall_College_Placement_Percentage || null,
-              Student_Intake: item.college.Student_Intake || null,
-              top_recruiters: item.college.Top_Recruiters || [],
-              rating: item.college.College_Reviews_out_of_5 || null,
+                item.college.Overall_College_Placement_Percentage ||
+                item.college.overall_college_placement_percentage ||
+                null,
+              Student_Intake:
+                item.college.Student_Intake ||
+                item.college.student_intake ||
+                null,
+              top_recruiters:
+                item.college.Top_Recruiters ||
+                item.college.top_recruiters ||
+                [],
+              rating:
+                item.college.College_Reviews_out_of_5 ||
+                item.college.college_reviews_out_of_5 ||
+                null,
             },
             course_name: item.course,
             cutoff_percentile: item.cutoff,
             admission_probability: item.admission_probability,
             probability_message: item.probability_message,
-            cet_percentile: item.cet_percentile,
+            cet_percentile: item.cet_percentile || item.cet_rank,
             reservation_category: item.category,
             choice_code: item.choice_code || null,
           });
@@ -96,10 +110,17 @@ const RecommendationResults = () => {
       }
 
       let currentFormData = recommendationStorage.getFormData();
+      const isKarnataka =
+        localStorage.getItem("selected_state") === "Karnataka";
 
       // Ensure we have form data, if not try to fetch it first
       if (!currentFormData || Object.keys(currentFormData).length === 0) {
-        if (isLoggedIn && user?.accessToken && user?.email) {
+        if (
+          isLoggedIn &&
+          user?.accessToken &&
+          user?.email &&
+          !isKarnataka // Skip for Karnataka
+        ) {
           try {
             const capResponse = await apiService.fetchAICapDetails(
               user.accessToken,
@@ -137,7 +158,7 @@ const RecommendationResults = () => {
 
       currentFormData = recommendationStorage.getFormData();
 
-      if (isLoggedIn && user?.accessToken) {
+      if (isLoggedIn && user?.accessToken && !isKarnataka) {
         try {
           const round1Response = await apiService.getRoundRecommendations(
             1,
@@ -184,6 +205,47 @@ const RecommendationResults = () => {
         } catch (err) {
           console.error("Failed to fetch Round 1 recommendations", err);
         }
+      } else if (isKarnataka) {
+        // Karnataka: Load from local storage or generate
+        const storedRecs = localStorage.getItem("karnataka_recommendations");
+        let loadedFromStorage = false;
+
+        if (storedRecs) {
+          try {
+            const parsed = JSON.parse(storedRecs);
+            // Assuming parsed is raw response, convert if necessary or use directly if mapped
+            // Based on useRecommendation, it stores raw response in karnataka_recommendations
+            let recs: any[] = [];
+            if (parsed.Dream || parsed.Reach || parsed.Match || parsed.Safety) {
+              recs = convertApiResponseToRecommendations(parsed);
+            } else if (Array.isArray(parsed)) {
+              recs = parsed;
+            }
+            setRecommendations(recs);
+            loadedFromStorage = true;
+          } catch (e) {
+            // Fallback to generate
+            console.error("Error parsing stored Karnataka recs", e);
+          }
+        }
+
+        if (
+          !loadedFromStorage &&
+          currentFormData &&
+          Object.keys(currentFormData).length > 0 &&
+          (!recommendations || recommendations.length === 0)
+        ) {
+          // Fallback to generate if nothing stored
+          try {
+            const result = await generateRecommendation(currentFormData);
+            if (result && "recommendations" in result) {
+              // result.recommendations is likely already mapped array from useRecommendation
+              setRecommendations(result.recommendations);
+            }
+          } catch (e) {
+            console.error("Failed to generate Karnataka recommendations", e);
+          }
+        }
       }
     } catch (err) {
       console.error("Error in fetchRound1Data", err);
@@ -210,21 +272,26 @@ const RecommendationResults = () => {
       });
 
       if (isLoggedIn && user?.accessToken) {
+        const isKarnataka =
+          localStorage.getItem("selected_state") === "Karnataka";
+
         // 1. Fetch Form Data if missing
         let currentFormData = recommendationStorage.getFormData();
         if (!currentFormData || Object.keys(currentFormData).length === 0) {
-          try {
-            const capResponse = await apiService.fetchAICapDetails(
-              user.accessToken,
-            );
-            if (capResponse.success && capResponse.data) {
-              const mappedData = mapApiResponseToFormData(capResponse.data);
-              recommendationStorage.saveFormData(mappedData);
-              setFormData(mappedData);
-              currentFormData = mappedData;
+          if (!isKarnataka) {
+            try {
+              const capResponse = await apiService.fetchAICapDetails(
+                user.accessToken,
+              );
+              if (capResponse.success && capResponse.data) {
+                const mappedData = mapApiResponseToFormData(capResponse.data);
+                recommendationStorage.saveFormData(mappedData);
+                setFormData(mappedData);
+                currentFormData = mappedData;
+              }
+            } catch (err) {
+              console.error("Failed to fetch CAP details", err);
             }
-          } catch (err) {
-            console.error("Failed to fetch CAP details", err);
           }
         }
 
@@ -328,6 +395,30 @@ const RecommendationResults = () => {
                 }
                 return undefined;
               })(),
+              selectionData: (() => {
+                try {
+                  const getValue = (key: string) => {
+                    const saved = localStorage.getItem(key);
+                    if (!saved) return null;
+                    return JSON.parse(saved);
+                  };
+
+                  if (currentTab === "round2") {
+                    return (
+                      getValue("round1Selection") || getValue("round2Selection")
+                    );
+                  } else if (currentTab === "round3") {
+                    return (
+                      getValue("round2Selection") || getValue("round3Selection")
+                    );
+                  } else if (currentTab === "round1") {
+                    return getValue("round1Selection");
+                  }
+                } catch (e) {
+                  return undefined;
+                }
+                return undefined;
+              })(),
             }}
           >
             <Button
@@ -345,6 +436,8 @@ const RecommendationResults = () => {
           formData={formData}
           recommendationId={recommendationId}
           onTabChange={handleTabChange}
+          round2Key={`${location.state?.refreshId || ""}-${localStorage.getItem("round2Recommendations")?.length || "r2"}`}
+          round3Key={`${location.state?.refreshId || ""}-${localStorage.getItem("round3Recommendations")?.length || "r3"}`}
         />
 
         {/* Feedback Section */}

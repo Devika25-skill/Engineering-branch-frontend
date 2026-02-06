@@ -20,9 +20,30 @@ import {
 } from "lucide-react";
 import { useEffect } from "react";
 
+interface AcademicInfoProps {
+  reservationCategory?: string;
+  grouping?: string;
+  tenthMarks?: number;
+  twelfthMarks?: number;
+  groupingMarks?: number;
+  cetPercentile?: number;
+  cetRank?: number;
+  jeePercentile?: number;
+  otherExamName?: string;
+  otherExamPercentile?: number;
+  sportsAchievements?: string;
+  certifications?: string;
+  internships?: string;
+  otherAchievements?: string;
+  district?: string;
+  gender?: string;
+  // Allow other fields to pass through if needed, or strictly type all.
+  [key: string]: any;
+}
+
 interface AcademicInfoFormProps {
-  data: any;
-  onUpdate: (data: any) => void;
+  data: AcademicInfoProps;
+  onUpdate: (data: Partial<AcademicInfoProps>) => void;
   validationErrors?: string[];
 }
 
@@ -43,7 +64,7 @@ export const AcademicInfoForm = ({
     if (!data.grouping) {
       onUpdate({ ...defaultData });
     }
-  }, []);
+  }, [data.grouping, onUpdate]);
 
   const handleChange = (field: string, value: any) => {
     onUpdate({ [field]: value });

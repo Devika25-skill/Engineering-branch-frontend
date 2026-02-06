@@ -69,6 +69,8 @@ export interface RecommendationResultsProps {
     accept_payment?: boolean;
   };
   onTabChange?: (tab: string) => void;
+  round2Key?: number | string;
+  round3Key?: number | string;
 }
 
 export const RecommendationResults = ({
@@ -77,6 +79,8 @@ export const RecommendationResults = ({
   recommendationId,
   paymentData,
   onTabChange,
+  round2Key,
+  round3Key,
 }: RecommendationResultsProps) => {
   const [activeCategory, setActiveCategory] = useState<string>("All");
 
@@ -203,11 +207,16 @@ export const RecommendationResults = ({
   };
 
   const initiatePayment = async () => {
+    const isKarnataka = localStorage.getItem("selected_state") === "Karnataka";
+    const productType = isKarnataka
+      ? "karnataka-engineering-recommendations"
+      : "future-bridge";
+
     const payload = {
       full_name: paymentFormData.name,
       email: paymentFormData.email,
       contact: parseInt(paymentFormData.mobile),
-      product_type: "future-bridge",
+      product_type: productType,
       amount: getDiscountedPrice(),
     };
 
@@ -220,7 +229,7 @@ export const RecommendationResults = ({
             "Content-Type": "application/json",
           },
           body: JSON.stringify(payload),
-        }
+        },
       );
 
       if (!response.ok) {
@@ -255,7 +264,7 @@ export const RecommendationResults = ({
             "Content-Type": "application/json",
           },
           body: JSON.stringify(payload),
-        }
+        },
       );
 
       if (!response.ok) {
@@ -302,7 +311,7 @@ export const RecommendationResults = ({
           try {
             const verifyResult = await verifyPayment(
               paymentFormData.email,
-              paymentData.order_id
+              paymentData.order_id,
             );
             if (verifyResult.success) {
               // Payment already completed
@@ -442,7 +451,7 @@ export const RecommendationResults = ({
 
     if (activeCategory !== "All") {
       filtered = recommendations.filter(
-        (rec) => rec.category === activeCategory
+        (rec) => rec.category === activeCategory,
       );
     }
 
@@ -699,13 +708,13 @@ export const RecommendationResults = ({
                                       id="name"
                                       value={
                                         JSON.parse(
-                                          localStorage.getItem("user") || "{}"
+                                          localStorage.getItem("user") || "{}",
                                         ).name || ""
                                       }
                                       onChange={(e) =>
                                         handleInputChange(
                                           "name",
-                                          e.target.value
+                                          e.target.value,
                                         )
                                       }
                                       placeholder="Enter your full name"
@@ -721,13 +730,13 @@ export const RecommendationResults = ({
                                       type="email"
                                       value={
                                         JSON.parse(
-                                          localStorage.getItem("user") || "{}"
+                                          localStorage.getItem("user") || "{}",
                                         ).email || ""
                                       }
                                       onChange={(e) =>
                                         handleInputChange(
                                           "email",
-                                          e.target.value
+                                          e.target.value,
                                         )
                                       }
                                       placeholder="Enter your email"
@@ -746,7 +755,7 @@ export const RecommendationResults = ({
                                       onChange={(e) =>
                                         handleInputChange(
                                           "mobile",
-                                          e.target.value
+                                          e.target.value,
                                         )
                                       }
                                       placeholder="Enter your mobile number"
@@ -763,7 +772,7 @@ export const RecommendationResults = ({
                                       onChange={(e) =>
                                         handleInputChange(
                                           "couponCode",
-                                          e.target.value
+                                          e.target.value,
                                         )
                                       }
                                       placeholder="Enter coupon code"
@@ -796,7 +805,7 @@ export const RecommendationResults = ({
                           {categorizedRecommendations
                             .slice(
                               3,
-                              Math.min(8, categorizedRecommendations.length)
+                              Math.min(8, categorizedRecommendations.length),
                             )
                             .map((recommendation, index) => (
                               <RecommendationCard
@@ -847,11 +856,11 @@ export const RecommendationResults = ({
         </TabsContent>
 
         <TabsContent value="round2" className="mt-4">
-          <Round2Tab />
+          <Round2Tab key={round2Key} />
         </TabsContent>
 
         <TabsContent value="round3" className="space-y-6 mt-4">
-          <Round3Tab />
+          <Round3Tab key={round3Key} />
         </TabsContent>
       </Tabs>
     </div>

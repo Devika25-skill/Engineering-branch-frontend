@@ -13,7 +13,7 @@ export const usePdfDownload = () => {
   const generatePDF = async (
     recommendations: CollegeRecommendation[],
     formData: any,
-    preferenceOverrides?: { branches?: string[]; cities?: string[] }
+    preferenceOverrides?: { branches?: string[]; cities?: string[] },
   ) => {
     setIsGenerating(true);
 
@@ -52,7 +52,7 @@ export const usePdfDownload = () => {
           "College Recommendations Report",
           pageWidth - margin,
           headerYPos + 20,
-          { align: "right" }
+          { align: "right" },
         );
 
         // Header separator line
@@ -88,7 +88,7 @@ export const usePdfDownload = () => {
 
       // Extract user details from localStorage
       const sessionData = JSON.parse(
-        sessionStorage.getItem("recommendationFormData") || "{}"
+        sessionStorage.getItem("recommendationFormData") || "{}",
       );
       const userData = JSON.parse(localStorage.getItem("user") || "{}");
       const userName = userData.name || "Student Name";
@@ -104,14 +104,18 @@ export const usePdfDownload = () => {
         "Not specified";
 
       // Fetch missing details if available
+      const isKarnataka =
+        localStorage.getItem("selected_state") === "Karnataka";
+
       if (
         (category === "Not specified" || cetCutoff === "Not specified") &&
-        user?.email
+        user?.email &&
+        !isKarnataka
       ) {
         try {
           const capDetails = await apiService.fetchAICapDetails(
             user.accessToken,
-            user.email
+            user.email,
           );
           if (capDetails.success && capDetails.data) {
             const data = capDetails.data;
@@ -145,7 +149,7 @@ export const usePdfDownload = () => {
             };
             sessionStorage.setItem(
               "recommendationFormData",
-              JSON.stringify(updatedSession)
+              JSON.stringify(updatedSession),
             );
           }
         } catch (e) {
@@ -173,7 +177,11 @@ export const usePdfDownload = () => {
       pdf.text(`Category: ${category}`, margin + 5, yPosition + 6);
       pdf.text(`Preferred Branches: ${branches}`, margin + 5, yPosition + 12);
       pdf.text(`Preferred Locations: ${locations}`, margin + 5, yPosition + 18);
-      pdf.text(`CET Percentile: ${cetCutoff}`, margin + 5, yPosition + 24);
+      pdf.text(
+        `${isKarnataka ? "CET Rank" : "CET Percentile"}: ${cetCutoff}`,
+        margin + 5,
+        yPosition + 24,
+      );
 
       yPosition += 35;
 
@@ -295,7 +303,7 @@ export const usePdfDownload = () => {
         pdf.text(
           pdf.splitTextToSize(courseText + choiceCode, maxNameWidth)[0],
           margin + 15,
-          yPosition + 14
+          yPosition + 14,
         );
 
         // Location
@@ -332,7 +340,7 @@ export const usePdfDownload = () => {
         pdf.text(
           `${rec.admission_probability || 0}%`,
           margin + 125,
-          yPosition + 16
+          yPosition + 16,
         );
 
         // Cutoff percentile on the right
@@ -341,9 +349,9 @@ export const usePdfDownload = () => {
           pdf.setFont("helvetica", "normal");
           pdf.setTextColor(67, 56, 202);
           pdf.text(
-            `${rec.cutoff_percentile}%ile`,
+            `${rec.cutoff_percentile}${isKarnataka ? " Rank" : "%ile"}`,
             pageWidth - margin - 25,
-            yPosition + 12
+            yPosition + 12,
           );
         }
 
@@ -375,7 +383,7 @@ export const usePdfDownload = () => {
         "These college recommendations are based on previous year's Round 1 cutoffs and your provided information. Please verify all details including current cutoffs, fees, course availability, and admission requirements directly with the respective institutions before submitting your application forms.";
       const disclaimerLines = pdf.splitTextToSize(
         disclaimerText,
-        contentWidth - 10
+        contentWidth - 10,
       );
 
       // Add background for disclaimer
@@ -454,7 +462,7 @@ export const usePdfDownload = () => {
         "By following this recommended order, you're not just filling a form -you're executing a smart strategy for your engineering future. Go ahead, fill your form with confidence!";
       const confidenceLines = pdf.splitTextToSize(
         confidenceText,
-        contentWidth - 10
+        contentWidth - 10,
       );
       const confidenceHeight = confidenceLines.length * 4 + 8;
 
@@ -533,12 +541,12 @@ export const usePdfDownload = () => {
         pdf.setFillColor(
           category.bgColor[0],
           category.bgColor[1],
-          category.bgColor[2]
+          category.bgColor[2],
         );
         pdf.setDrawColor(
           category.borderColor[0],
           category.borderColor[1],
-          category.borderColor[2]
+          category.borderColor[2],
         );
         pdf.rect(margin, yPosition, contentWidth, categoryHeight, "FD");
 
@@ -548,7 +556,7 @@ export const usePdfDownload = () => {
         pdf.setTextColor(
           category.color[0],
           category.color[1],
-          category.color[2]
+          category.color[2],
         );
         pdf.text(category.name, margin + 5, yPosition + 8);
 
@@ -561,7 +569,7 @@ export const usePdfDownload = () => {
         pdf.setTextColor(55, 65, 81);
         const descLines = pdf.splitTextToSize(
           category.description,
-          contentWidth - 90
+          contentWidth - 90,
         );
         pdf.text(descLines, margin + 85, yPosition + 6);
 
@@ -588,7 +596,7 @@ export const usePdfDownload = () => {
         pdf.text(
           "FutureBridge - Powered by SkillJourney | futurebridge.skilljourney.in",
           margin,
-          pageHeight - 8
+          pageHeight - 8,
         );
 
         // Right: Page number
@@ -596,7 +604,7 @@ export const usePdfDownload = () => {
           `Page ${i} of ${totalPages}`,
           pageWidth - margin,
           pageHeight - 8,
-          { align: "right" }
+          { align: "right" },
         );
       }
 

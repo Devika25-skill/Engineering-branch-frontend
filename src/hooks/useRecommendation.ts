@@ -240,24 +240,48 @@ export const useRecommendation = () => {
             }
           }
 
-          const recommendationPayload = {
-            category: formData.reservationCategory,
-            cet_percentile: formData.cetPercentile,
-            cet_course: formData.preferredStreams || [],
-            location:
-              formData.preferredCities && formData.preferredCities.length > 0
-                ? formData.preferredCities
-                : ["ALL"],
-            district: formData.district,
-            gender: formData.gender || "male", // Defaulting to male if not present, but should ideally come from form
-            round: round,
-            last_round_college_choice_code: prevChoiceCode || null,
-          };
+          let recommendationsResponse: any;
 
-          const recommendationsResponse = await apiService.getRecommendations(
-            recommendationPayload,
-            token,
-          );
+          if (isKarnataka) {
+            const karnatakaPayload: any = {
+              category: formData.reservationCategory,
+              cet_rank: Number(formData.cetRank),
+              cet_course: formData.preferredStreams || [],
+              cities:
+                formData.preferredCities && formData.preferredCities.length > 0
+                  ? formData.preferredCities
+                  : ["Bengaluru"],
+              gender: formData.gender || "male",
+              round: round,
+              last_round_choice_college_code: prevChoiceCode || "",
+              last_round_choice_course_name: "",
+            };
+
+            recommendationsResponse =
+              await apiService.karnatakaEngineeringRecommendation(
+                karnatakaPayload,
+                token,
+              );
+          } else {
+            const recommendationPayload = {
+              category: formData.reservationCategory,
+              cet_percentile: formData.cetPercentile,
+              cet_course: formData.preferredStreams || [],
+              location:
+                formData.preferredCities && formData.preferredCities.length > 0
+                  ? formData.preferredCities
+                  : ["ALL"],
+              district: formData.district,
+              gender: formData.gender || "male", // Defaulting to male if not present, but should ideally come from form
+              round: round,
+              last_round_college_choice_code: prevChoiceCode || null,
+            };
+
+            recommendationsResponse = await apiService.getRecommendations(
+              recommendationPayload,
+              token,
+            );
+          }
 
           if (recommendationsResponse.success) {
             if (
@@ -277,24 +301,63 @@ export const useRecommendation = () => {
                   const recommendation: CollegeRecommendation = {
                     college: {
                       id: item.college.SJ_Institute_Code,
-                      name: item.college.College_Name,
-                      logo: item.college.College_Logo || null,
-                      city: item.college.City,
-                      type: item.college.College_Type || "Private",
-                      rating: item.college.College_Reviews_out_of_5 || null,
-                      fees: item.college["Annual_Fees_(INR)"] || null,
+                      name:
+                        item.college.College_Name || item.college.college_name,
+                      logo:
+                        item.college.College_Logo ||
+                        item.college.college_logo ||
+                        null,
+                      city: item.college.City || item.college.city,
+                      type:
+                        item.college.College_Type ||
+                        item.college.college_type ||
+                        "Private",
+                      rating:
+                        item.college.College_Reviews_out_of_5 ||
+                        item.college.college_reviews_out_of_5 ||
+                        null,
+                      fees:
+                        item.college["Annual_Fees_(INR)"] ||
+                        item.college.annual_fees ||
+                        null,
                       placement:
                         item.college.Overall_College_Placement_Percentage ||
+                        item.college.overall_college_placement_percentage ||
                         null,
-                      Student_Intake: item.college.Student_Intake || null,
-                      College_Website: item.college.College_Website || null,
+                      Student_Intake:
+                        item.college.Student_Intake ||
+                        item.college.student_intake ||
+                        null,
+                      College_Website:
+                        item.college.College_Website ||
+                        item.college.college_website ||
+                        null,
                       College_Hostel_Available:
-                        item.college.College_Hostel_Available || "No",
+                        item.college.College_Hostel_Available ||
+                        item.college.college_hostel_available ||
+                        "No",
                       College_Bus_Facility_Available:
-                        item.college.College_Bus_Facility_Available || "No",
-                      Sports_Facilities: item.college.Sports_Facilities || null,
-                      Lab_Facilities: item.college.Lab_Facilities || null,
-                      Top_Recruiters: item.college.Top_Recruiters || [],
+                        item.college.College_Bus_Facility_Available ||
+                        item.college.college_bus_facility_available ||
+                        "No",
+                      Sports_Facilities:
+                        item.college.Sports_Facilities ||
+                        item.college.sports_facilities ||
+                        null,
+                      Lab_Facilities:
+                        item.college.Lab_Facilities ||
+                        item.college.lab_facilities ||
+                        null,
+                      Top_Recruiters:
+                        item.college.Top_Recruiters ||
+                        item.college.top_recruiters ||
+                        [],
+                      college_code:
+                        item.college.College_Code ||
+                        item.college.College_code ||
+                        item.college.college_code ||
+                        item.college.dte_code ||
+                        item.college.institute_code,
                     },
                     course_name: item.course,
                     category: categoryName,
@@ -309,6 +372,7 @@ export const useRecommendation = () => {
                     ],
                     choice_code: item.choice_code,
                     reservation_category: item.category,
+                    cet_percentile: item.cet_percentile || item.cet_rank, // Handle Karnataka rank
                   };
 
                   allRecommendations.push(recommendation);

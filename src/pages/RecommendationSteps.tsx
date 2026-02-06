@@ -496,8 +496,229 @@ const RecommendationSteps = () => {
       let roundNumber = 1;
       let activeRoundTab = "round_1";
       const choiceCode = location.state?.choiceCode;
+      const isKarnataka =
+        localStorage.getItem("selected_state") === "Karnataka";
 
       if (location.state?.activeRound) {
+        // Handle Karnataka specific Round 2/3 logic
+        if (
+          isKarnataka &&
+          (location.state.activeRound === "round2" ||
+            location.state.activeRound === "round3")
+        ) {
+          const targetRound = location.state.activeRound === "round2" ? 2 : 3;
+          const selectionData = location.state.selectionData;
+
+          // 1. Store Config
+          const nestedPayload = {
+            username: user.email || "",
+            gender: formData.gender || "male",
+            reservationCategory: formData.reservationCategory || "GM",
+            academic_credentials: {
+              educationBackground: {
+                educationType: formData.educationType || "12th",
+                stream:
+                  formData.grouping || "PCM (Physics, Chemistry, Mathematics)",
+              },
+              academicMarks: {
+                _10thGradeMarksPercent: formData.tenthMarks || 0,
+                _12thGradeMarksPercent: formData.twelfthMarks || 0,
+                groupingMarksPercent: formData.groupingMarks || 0,
+              },
+              examPercentiles: {
+                CET_Rank: formData.cetRank || 0,
+                JEE: formData.jeePercentile || 0,
+                otherEntranceExam: formData.otherExamName
+                  ? [
+                      {
+                        examName: formData.otherExamName,
+                        percentileOrScore: formData.otherExamPercentile || 0,
+                      },
+                    ]
+                  : [],
+              },
+              achievementsExperience: {
+                sportsAchievements: formData.sportsAchievements,
+                certifications: formData.certifications,
+                internshipsWorkExperience: formData.internships,
+                otherAchievements: formData.otherAchievements,
+              },
+              preferences: {
+                engineeringBranches: formData.preferredStreams || [],
+                preferredCities: formData.preferredCities || [],
+              },
+              campusFacilitiesEnvironment: {
+                hostelFacility: formData.hostelPreference,
+                campusSetting: formData.campusSetting,
+                transportFacility: formData.transportFacility,
+                wifiTechInfrastructure: formData.wifiTechInfrastructure,
+                coCurricularActivities: formData.coCurricularActivities,
+              },
+              annualBudget: formData.maxBudget || 0,
+              collegeTypePreferences: formData.collegeTypes || [],
+              priorityFactors: formData.priorities || [],
+            },
+          };
+
+          await apiService.storeKarnatakaEngineeringConfig(
+            nestedPayload as any,
+          );
+
+          // 2. Prepare Payload
+          const category = formData.reservationCategory || "GM";
+          const cetRank = formData.cetRank || 0;
+          const gender = formData.gender || "male"; // Should likely come from profile if not in form
+
+          // Need to get selected branches and cities from storage as they might not be in the form data
+          // or we assume they are passed/loaded correctly.
+          // Usually branches/cities are in step 2. We should assume formData has them if step 2 was completed.
+          // However, if the user only edited Step 1 (profile), formData will have them if we loaded them.
+
+          // Fallback to reading from storage if missing in formData but present in previous config
+          const savedData = recommendationStorage.getFormData();
+          const selectedBranches =
+            formData.preferredStreams || savedData?.preferredStreams || [];
+          const selectedCities = formData.preferredCities ||
+            savedData?.preferredCities || ["ALL"];
+
+          // Get previous round selection details
+          // Logic: For Round 2, we need Round 1 choice. For Round 3, we need Round 2 choice.
+          // The 'selectionData' passed from Results should be the RELEVANT previous selection.
+          // Round2Tab passed "round1Selection" (or round2Selection context).
+
+          // Extract codes
+          let lastRoundCollegeCode = "";
+          let lastRoundCourseName = "";
+
+          if (selectionData && selectionData.selectedCollege) {
+            lastRoundCollegeCode =
+              selectionData.selectedCollege.college?.College_code?.toString() ||
+              "";
+            lastRoundCourseName =
+              selectionData.selectedCollege.selectedDepartment?.course_name ||
+              "";
+          }
+
+          // Fallback to session/local storage if state data is missing or empty
+          if (!lastRoundCollegeCode) {
+            try {
+              // Keys based on user report and code inspection
+              // For Round 2 (targetRound 2), we need Round 1 choice.
+              // For Round 3 (targetRound 3), we need Round 2 choice.
+
+              let storageKey = "";
+              if (targetRound === 2) {
+                storageKey = "round2SelectedCollege";
+              } else if (targetRound === 3) {
+                storageKey = "round3SelectedCollege";
+              }
+
+              let stored = sessionStorage.getItem(storageKey); // User specified session storage
+
+              // If not found, try alternative keys
+              if (!stored && targetRound === 3) {
+                stored =
+                  sessionStorage.getItem("round2Selection") ||
+                  localStorage.getItem("round2Selection");
+              }
+              if (!stored && targetRound === 2) {
+                stored = localStorage.getItem("round1Selection"); // Round2Tab uses localStorage for round1Selection often
+              }
+
+              if (stored) {
+                const parsed = JSON.parse(stored);
+                // Check structure: selectedCollege -> college -> College_code
+                if (parsed.selectedCollege) {
+                  lastRoundCollegeCode =
+                    parsed.selectedCollege.college?.College_code?.toString() ||
+                    "";
+                  lastRoundCourseName =
+                    parsed.selectedCollege.selectedDepartment?.course_name ||
+                    "";
+                } else if (parsed.college) {
+                  // Possible flat structure in some cases?
+                  lastRoundCollegeCode =
+                    parsed.college?.College_code?.toString() || "";
+                  lastRoundCourseName =
+                    parsed.selectedDepartment?.course_name || "";
+                }
+              }
+            } catch (e) {
+              console.error(
+                "Error reading storage fallback for Karnataka choices",
+                e,
+              );
+            }
+          }
+
+          const payload = {
+            category: category,
+            cet_rank: cetRank,
+            cet_course: selectedBranches,
+            cities: selectedCities,
+            gender: gender,
+            round: targetRound,
+            last_round_choice_college_code: lastRoundCollegeCode,
+            last_round_choice_course_name: lastRoundCourseName,
+          };
+
+          // 3. Call API
+          const response = await apiService.karnatakaEngineeringRecommendation(
+            payload,
+            user.accessToken,
+          );
+
+          if (response.success && response.data) {
+            // 4. Map and Store
+            // Note: karnatakaEngineeringRecommendation returns specific format.
+            // We might need to convert it or store it raw depending on what Result page expects.
+            // The Result page (Round2Tab) expects `round2Recommendations` in local storage.
+
+            const storageKey =
+              targetRound === 2
+                ? "karnataka_round2Recommendations"
+                : "karnataka_round3Recommendations"; // OR "round2Recommendations" ?
+            // Round2Tab checks "round2Recommendations" (generic) OR "karnataka_round2Recommendations" (maybe?).
+            // Let's check Round2Tab uses `localStorage.getItem("round2Recommendations")`.
+
+            // Wait, for Karnataka, `Round2Tab` (standard) uses `response.data` stored in `round2Recommendations`.
+            // Save updated preferences to storage so UI reflects changes
+            recommendationStorage.saveAcademicDetails(formData);
+            recommendationStorage.savePreferences(formData);
+            recommendationStorage.savePriorities(formData);
+
+            // Also update the main formData keys used by Results page
+            localStorage.setItem(
+              "recommendationFormData",
+              JSON.stringify(formData),
+            );
+            sessionStorage.setItem(
+              "recommendationFormData",
+              JSON.stringify(formData),
+            );
+
+            localStorage.setItem(
+              targetRound === 2
+                ? "round2Recommendations"
+                : "round3Recommendations",
+              JSON.stringify(response.data),
+            );
+
+            localStorage.setItem("activeRoundTab", location.state.activeRound);
+            navigate("/recommendations/results", {
+              state: {
+                refreshId: Date.now(),
+                activeRound: location.state.activeRound, // Preserve active round
+              },
+            });
+            return;
+          } else {
+            throw new Error(
+              response.message || "Failed to generate recommendations",
+            );
+          }
+        }
+
         if (location.state.activeRound === "round2") {
           roundNumber = 2;
           activeRoundTab = "round2";
