@@ -26,6 +26,8 @@ import {
 } from "lucide-react";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 
+import { engineeringBranches } from "@/data/engineeringBranches";
+
 interface PreferencesFormProps {
   data: any;
   onUpdate: (data: any) => void;
@@ -53,36 +55,7 @@ export const PreferencesForm = ({
     );
   };
 
-  const availableStreams = [
-    "ALL",
-    "Agricultural",
-    "Artificial Intelligence",
-    "Automobile",
-    "Bio Technology",
-    "Biomedical",
-    "Chemical",
-    "Civil",
-    "Computer",
-    "Cyber Security",
-    "Data Science",
-    "Electrical",
-    "Electronics",
-    "Food Technology",
-    "Information Technology",
-    "Instrumentation",
-    "Internet of Things",
-    "Manufacturing",
-    "Mechanical",
-    "Mechatronics",
-    "Metallurgy and Material Technology",
-    "Mining",
-    "Pharmaceutical Technology",
-    "Polymer",
-    "Production",
-    "Robotics and Automation",
-    "Surface Coating Technology",
-    "Textile Technology",
-  ];
+  const availableStreams = engineeringBranches;
 
   const maharashtraCities = [
     "ALL",

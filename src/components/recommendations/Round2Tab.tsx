@@ -62,6 +62,7 @@ import { usePdfDownload } from "@/hooks/usePdfDownload";
 import { PremiumGate } from "./PremiumGate";
 import ScrollToTop from "../ScrollToTop";
 import { NoResultsState } from "./NoResultsState";
+import { engineeringBranches } from "@/data/engineeringBranches";
 
 interface SelectedCollege {
   college: CollegeSearchResult;
@@ -631,9 +632,26 @@ export const Round2Tab = () => {
           }
         }
 
-        // Call the generic API
-        const response = await apiService.generateRecommendations(
-          2,
+        // Generate Round 2 recommendations
+        const category = formData?.reservationCategory || "GOPENS";
+        const cetPercentile =
+          formData?.cetPercentile || formData?.cet_percentile || 0;
+        const district = formData?.district;
+        const gender = formData?.gender || "male";
+
+        const generateRoundListPayload = {
+          category: category,
+          cet_percentile: cetPercentile,
+          cet_course: selectedBranches,
+          location: selectedCities.length > 0 ? selectedCities : ["ALL"],
+          district: district,
+          gender: gender,
+          round: 2,
+          last_round_college_choice_code: 0,
+        };
+
+        const response = await apiService.getRecommendations(
+          generateRoundListPayload,
           user.accessToken,
         );
 
@@ -1305,36 +1323,7 @@ export const Round2Tab = () => {
 
   const categorizedRecommendations = getCategorizedRecommendations();
 
-  const availableBranches = [
-    "ALL",
-    "Agricultural",
-    "Artificial Intelligence",
-    "Automobile",
-    "Bio Technology",
-    "Biomedical",
-    "Chemical",
-    "Civil",
-    "Computer",
-    "Cyber Security",
-    "Data Science",
-    "Electrical",
-    "Electronics",
-    "Food Technology",
-    "Information Technology",
-    "Instrumentation",
-    "Internet of Things",
-    "Manufacturing",
-    "Mechanical",
-    "Mechatronics",
-    "Metallurgy and Material Technology",
-    "Mining",
-    "Pharmaceutical Technology",
-    "Polymer",
-    "Production",
-    "Robotics and Automation",
-    "Surface Coating Technology",
-    "Textile Technology",
-  ];
+  const availableBranches = engineeringBranches;
 
   // Get selected state from localStorage
   const selectedState = localStorage.getItem("selected_state") || "Maharashtra";

@@ -62,6 +62,7 @@ import { PremiumGate } from "./PremiumGate";
 import { Round3Disclaimer } from "./Round3Disclaimer";
 import ScrollToTop from "../ScrollToTop";
 import { NoResultsState } from "./NoResultsState";
+import { engineeringBranches } from "@/data/engineeringBranches";
 
 interface SelectedCollege {
   college: CollegeSearchResult;
@@ -1355,36 +1356,7 @@ export const Round3Tab = () => {
 
   const categorizedRecommendations = getCategorizedRecommendations();
 
-  const availableBranches = [
-    "ALL",
-    "Agricultural",
-    "Artificial Intelligence",
-    "Automobile",
-    "Bio Technology",
-    "Biomedical",
-    "Chemical",
-    "Civil",
-    "Computer",
-    "Cyber Security",
-    "Data Science",
-    "Electrical",
-    "Electronics",
-    "Food Technology",
-    "Information Technology",
-    "Instrumentation",
-    "Internet of Things",
-    "Manufacturing",
-    "Mechanical",
-    "Mechatronics",
-    "Metallurgy and Material Technology",
-    "Mining",
-    "Pharmaceutical Technology",
-    "Polymer",
-    "Production",
-    "Robotics and Automation",
-    "Surface Coating Technology",
-    "Textile Technology",
-  ];
+  const availableBranches = engineeringBranches;
 
   // Get selected state from localStorage
   const selectedState = localStorage.getItem("selected_state") || "Maharashtra";
