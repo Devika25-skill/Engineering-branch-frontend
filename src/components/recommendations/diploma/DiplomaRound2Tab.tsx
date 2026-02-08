@@ -61,7 +61,7 @@ import { DiplomaCategoryFilter } from "./DiplomaCategoryFilter";
 import { usePdfDownloadDSY } from "@/hooks/usePdfDownloadDSY";
 import { PremiumGate } from "../PremiumGate";
 import ScrollToTop from "../../ScrollToTop";
-import { NoResultsState } from "../NoResultsState";
+import { engineeringBranches } from "@/data/engineeringBranches";
 
 interface SelectedCollege {
   college: CollegeSearchResult;
@@ -381,36 +381,7 @@ export const DiplomaRound2Tab = ({ onLoadComplete }: DiplomaRound2TabProps) => {
   ];
 
   // Diploma branches (different from first year)
-  const availableBranches = [
-    "ALL",
-    "Agricultural",
-    "Artificial Intelligence",
-    "Automobile",
-    "Bio Technology",
-    "Biomedical",
-    "Chemical",
-    "Civil",
-    "Computer",
-    "Cyber Security",
-    "Data Science",
-    "Electrical",
-    "Electronics",
-    "Food Technology",
-    "Information Technology",
-    "Instrumentation",
-    "Internet of Things",
-    "Manufacturing",
-    "Mechanical",
-    "Mechatronics",
-    "Metallurgy and Material Technology",
-    "Mining",
-    "Pharmaceutical Technology",
-    "Polymer",
-    "Production",
-    "Robotics and Automation",
-    "Surface Coating Technology",
-    "Textile Technology",
-  ];
+  const availableBranches = engineeringBranches;
 
   const availableCities = [
     "ALL",
