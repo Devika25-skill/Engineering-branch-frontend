@@ -198,7 +198,13 @@ export const Round3Tab = () => {
       if (cachedRound3Recommendations) {
         try {
           const parsedRecs = JSON.parse(cachedRound3Recommendations);
-          setRound3Recommendations(parsedRecs);
+          // Check if it's already an array (legacy cache) or needs conversion
+          if (Array.isArray(parsedRecs)) {
+            setRound3Recommendations(parsedRecs);
+          } else {
+            const converted = convertApiResponseToRecommendations(parsedRecs);
+            setRound3Recommendations(converted);
+          }
           setHasGeneratedRecommendations(true);
         } catch (error) {
           console.error("Error loading cached Round 3 recommendations:", error);
@@ -1029,8 +1035,27 @@ export const Round3Tab = () => {
       if (isKarnataka) {
         // Get form data
         const formData = recommendationStorage.getFormData();
-        const category = formData?.reservationCategory || "GM";
-        const cetRank = formData?.cetRank || formData?.cet_rank || 0;
+
+        // Try to get updated config from localStorage for accurate CET Rank
+        const storedConfig = localStorage.getItem("engineering_user_config");
+        let configRank = 0;
+        let configCategory = "";
+
+        if (storedConfig) {
+          try {
+            const parsedConfig = JSON.parse(storedConfig);
+            configRank =
+              parsedConfig.academic_credentials?.examPercentiles?.CET_Rank || 0;
+            configCategory = parsedConfig.reservationCategory;
+          } catch (e) {
+            console.error("Error parsing engineering_user_config", e);
+          }
+        }
+
+        const category =
+          configCategory || formData?.reservationCategory || "GM";
+        const cetRank =
+          configRank || formData?.cetRank || formData?.cet_rank || 0;
         const gender = formData?.gender || "male";
 
         const payload = {
@@ -1343,16 +1368,8 @@ export const Round3Tab = () => {
     return sortRecommendationsByCategory(filtered);
   };
 
-  const categoryStats = {
-    Dream:
-      round3Recommendations?.filter((r) => r.category === "Dream").length || 0,
-    Reach:
-      round3Recommendations?.filter((r) => r.category === "Reach").length || 0,
-    Match:
-      round3Recommendations?.filter((r) => r.category === "Match").length || 0,
-    Safety:
-      round3Recommendations?.filter((r) => r.category === "Safety").length || 0,
-  };
+  // I am cancelling this replacement to read the state definition first.
+  // I will use `view_file` to find the state definition.
 
   const categorizedRecommendations = getCategorizedRecommendations();
 

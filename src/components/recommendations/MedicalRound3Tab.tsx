@@ -1353,7 +1353,7 @@ export const MedicalRound3Tab = ({
     "Chhatrapati Sambhajinagar (Aurangabad)",
     "Chinchwad",
     "Deori",
-    "Dharashiv",
+    "Dharashiv (Osmanabad)",
     "Dhule",
     "Dombivali",
     "Gadchiroli",

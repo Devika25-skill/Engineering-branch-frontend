@@ -141,6 +141,7 @@ export const Round2Tab = () => {
               nirf_rank: item.college.NIRF_Rank_Min,
               fees:
                 item.college["Annual_Fees_(INR)"] || item.college.annual_fees,
+              // Dummy replacement
               placement:
                 item.college.Overall_College_Placement_Percentage ||
                 item.college.overall_college_placement_percentage ||
@@ -468,8 +469,27 @@ export const Round2Tab = () => {
       if (isKarnataka) {
         // Get form data
         const formData = recommendationStorage.getFormData();
-        const category = formData?.reservationCategory || "GM";
-        const cetRank = formData?.cetRank || formData?.cet_rank || 0;
+
+        // Try to get updated config from localStorage for accurate CET Rank
+        const storedConfig = localStorage.getItem("engineering_user_config");
+        let configRank = 0;
+        let configCategory = "";
+
+        if (storedConfig) {
+          try {
+            const parsedConfig = JSON.parse(storedConfig);
+            configRank =
+              parsedConfig.academic_credentials?.examPercentiles?.CET_Rank || 0;
+            configCategory = parsedConfig.reservationCategory;
+          } catch (e) {
+            console.error("Error parsing engineering_user_config", e);
+          }
+        }
+
+        const category =
+          configCategory || formData?.reservationCategory || "GM";
+        const cetRank =
+          configRank || formData?.cetRank || formData?.cet_rank || 0;
         const gender = formData?.gender || "male";
 
         const payload = {

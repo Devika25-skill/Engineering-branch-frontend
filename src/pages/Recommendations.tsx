@@ -29,31 +29,170 @@ const Recommendations = () => {
 
         // If user is logged in, check if they have profile details first
         if (isLoggedIn && user?.accessToken) {
-          try {
-            // Call appropriate API based on program type
-            const selectedState = localStorage.getItem("selected_state") || "";
-            const profileResponse = isMedical
-              ? await apiService.fetchMedicalStudentDetails(
-                  user.accessToken,
-                  selectedState,
-                )
-              : await apiService.fetchAICapDetails(user.accessToken);
+          const isKarnataka =
+            localStorage.getItem("selected_state") === "Karnataka";
+          const isFirstYear =
+            localStorage.getItem("recommendation_type") === "first-year";
 
-            if (profileResponse.success && profileResponse.data) {
-              // For medical, check if recommendations exist
-              if (isMedical) {
-                // Check Round 3 recommendations first
+          // Skip this block for Karnataka First Year Engineering (handled below)
+          if (!(isKarnataka && isFirstYear)) {
+            try {
+              // Call appropriate API based on program type
+              const selectedState =
+                localStorage.getItem("selected_state") || "";
+              const profileResponse = isMedical
+                ? await apiService.fetchMedicalStudentDetails(
+                    user.accessToken,
+                    selectedState,
+                  )
+                : await apiService.fetchAICapDetails(user.accessToken);
+
+              if (profileResponse.success && profileResponse.data) {
+                // For medical, check if recommendations exist
+                if (isMedical) {
+                  // Check Round 3 recommendations first
+                  try {
+                    const selectedState =
+                      localStorage.getItem("selected_state") || "";
+                    const round3Response =
+                      await apiService.getMedicalRecommendationsByRound(
+                        3,
+                        user.accessToken,
+                        selectedState,
+                      );
+                    if (round3Response.success && round3Response.data) {
+                      const hasRound3 =
+                        (round3Response.data.Dream &&
+                          round3Response.data.Dream.length > 0) ||
+                        (round3Response.data.Reach &&
+                          round3Response.data.Reach.length > 0) ||
+                        (round3Response.data.Match &&
+                          round3Response.data.Match.length > 0) ||
+                        (round3Response.data.Safety &&
+                          round3Response.data.Safety.length > 0);
+
+                      if (hasRound3) {
+                        // Cache Round 3 recommendations and navigate to results with Round 3 active
+                        sessionStorage.setItem(
+                          "cachedMedicalRecommendations",
+                          JSON.stringify(round3Response.data),
+                        );
+                        sessionStorage.setItem("medicalActiveRound", "3");
+                        navigate("/medical-recommendations/results", {
+                          replace: true,
+                        });
+                        return;
+                      }
+                    }
+                  } catch (error) {
+                    console.error(
+                      "Error checking Round 3 recommendations:",
+                      error,
+                    );
+                  }
+
+                  // Check Round 2 recommendations first
+                  try {
+                    const selectedState =
+                      localStorage.getItem("selected_state") || "";
+                    const round2Response =
+                      await apiService.getMedicalRecommendationsByRound(
+                        2,
+                        user.accessToken,
+                        selectedState,
+                      );
+                    if (round2Response.success && round2Response.data) {
+                      const hasRound2 =
+                        (round2Response.data.Dream &&
+                          round2Response.data.Dream.length > 0) ||
+                        (round2Response.data.Reach &&
+                          round2Response.data.Reach.length > 0) ||
+                        (round2Response.data.Match &&
+                          round2Response.data.Match.length > 0) ||
+                        (round2Response.data.Safety &&
+                          round2Response.data.Safety.length > 0);
+
+                      if (hasRound2) {
+                        // Cache Round 2 recommendations and navigate to results with Round 2 active
+                        sessionStorage.setItem(
+                          "cachedMedicalRecommendations",
+                          JSON.stringify(round2Response.data),
+                        );
+                        sessionStorage.setItem("medicalActiveRound", "2");
+                        navigate("/medical-recommendations/results", {
+                          replace: true,
+                        });
+                        return;
+                      }
+                    }
+                  } catch (error) {
+                    console.error(
+                      "Error checking Round 2 recommendations:",
+                      error,
+                    );
+                  }
+
+                  // Check Round 1 recommendations if Round 2 doesn't exist
+                  try {
+                    const selectedState =
+                      localStorage.getItem("selected_state") || "";
+                    const round1Response =
+                      await apiService.getMedicalRecommendationsByRound(
+                        1,
+                        user.accessToken,
+                        selectedState,
+                      );
+                    if (round1Response.success && round1Response.data) {
+                      const hasRound1 =
+                        (round1Response.data.Dream &&
+                          round1Response.data.Dream.length > 0) ||
+                        (round1Response.data.Reach &&
+                          round1Response.data.Reach.length > 0) ||
+                        (round1Response.data.Match &&
+                          round1Response.data.Match.length > 0) ||
+                        (round1Response.data.Safety &&
+                          round1Response.data.Safety.length > 0);
+
+                      if (hasRound1) {
+                        // Cache Round 1 recommendations and navigate to results with Round 1 active
+                        sessionStorage.setItem(
+                          "cachedMedicalRecommendations",
+                          JSON.stringify(round1Response.data),
+                        );
+                        sessionStorage.setItem("medicalActiveRound", "1");
+                        navigate("/medical-recommendations/results", {
+                          replace: true,
+                        });
+                        return;
+                      }
+                    }
+                  } catch (error) {
+                    console.error(
+                      "Error checking Round 1 recommendations:",
+                      error,
+                    );
+                  }
+
+                  // No recommendations exist, go to steps page
+                  navigate("/recommendations/steps", { replace: true });
+                  return;
+                }
+
+                // For engineering, check for existing recommendations
+
+                // 1. Check Round 3
                 try {
-                  const selectedState =
-                    localStorage.getItem("selected_state") || "";
                   const round3Response =
-                    await apiService.getMedicalRecommendationsByRound(
+                    await apiService.getRoundRecommendations(
                       3,
                       user.accessToken,
-                      selectedState,
                     );
-                  if (round3Response.success && round3Response.data) {
-                    const hasRound3 =
+                  if (
+                    round3Response.success &&
+                    round3Response.data &&
+                    Object.keys(round3Response.data).length > 0
+                  ) {
+                    const hasData =
                       (round3Response.data.Dream &&
                         round3Response.data.Dream.length > 0) ||
                       (round3Response.data.Reach &&
@@ -63,38 +202,37 @@ const Recommendations = () => {
                       (round3Response.data.Safety &&
                         round3Response.data.Safety.length > 0);
 
-                    if (hasRound3) {
-                      // Cache Round 3 recommendations and navigate to results with Round 3 active
+                    if (hasData) {
+                      localStorage.setItem("activeRoundTab", "round3");
                       sessionStorage.setItem(
-                        "cachedMedicalRecommendations",
+                        "cachedRound3Recommendations_v3",
                         JSON.stringify(round3Response.data),
                       );
-                      sessionStorage.setItem("medicalActiveRound", "3");
-                      navigate("/medical-recommendations/results", {
-                        replace: true,
-                      });
+                      localStorage.setItem(
+                        "round3Recommendations",
+                        JSON.stringify(round3Response.data),
+                      );
+                      navigate("/recommendations/results", { replace: true });
                       return;
                     }
                   }
-                } catch (error) {
-                  console.error(
-                    "Error checking Round 3 recommendations:",
-                    error,
-                  );
+                } catch (e) {
+                  console.error("Error checking Round 3:", e);
                 }
 
-                // Check Round 2 recommendations first
+                // 2. Check Round 2
                 try {
-                  const selectedState =
-                    localStorage.getItem("selected_state") || "";
                   const round2Response =
-                    await apiService.getMedicalRecommendationsByRound(
+                    await apiService.getRoundRecommendations(
                       2,
                       user.accessToken,
-                      selectedState,
                     );
-                  if (round2Response.success && round2Response.data) {
-                    const hasRound2 =
+                  if (
+                    round2Response.success &&
+                    round2Response.data &&
+                    Object.keys(round2Response.data).length > 0
+                  ) {
+                    const hasData =
                       (round2Response.data.Dream &&
                         round2Response.data.Dream.length > 0) ||
                       (round2Response.data.Reach &&
@@ -104,104 +242,162 @@ const Recommendations = () => {
                       (round2Response.data.Safety &&
                         round2Response.data.Safety.length > 0);
 
-                    if (hasRound2) {
-                      // Cache Round 2 recommendations and navigate to results with Round 2 active
+                    if (hasData) {
+                      localStorage.setItem("activeRoundTab", "round2");
                       sessionStorage.setItem(
-                        "cachedMedicalRecommendations",
+                        "cachedRound2Recommendations_v3",
                         JSON.stringify(round2Response.data),
                       );
-                      sessionStorage.setItem("medicalActiveRound", "2");
-                      navigate("/medical-recommendations/results", {
-                        replace: true,
-                      });
-                      return;
-                    }
-                  }
-                } catch (error) {
-                  console.error(
-                    "Error checking Round 2 recommendations:",
-                    error,
-                  );
-                }
-
-                // Check Round 1 recommendations if Round 2 doesn't exist
-                try {
-                  const selectedState =
-                    localStorage.getItem("selected_state") || "";
-                  const round1Response =
-                    await apiService.getMedicalRecommendationsByRound(
-                      1,
-                      user.accessToken,
-                      selectedState,
-                    );
-                  if (round1Response.success && round1Response.data) {
-                    const hasRound1 =
-                      (round1Response.data.Dream &&
-                        round1Response.data.Dream.length > 0) ||
-                      (round1Response.data.Reach &&
-                        round1Response.data.Reach.length > 0) ||
-                      (round1Response.data.Match &&
-                        round1Response.data.Match.length > 0) ||
-                      (round1Response.data.Safety &&
-                        round1Response.data.Safety.length > 0);
-
-                    if (hasRound1) {
-                      // Cache Round 1 recommendations and navigate to results with Round 1 active
-                      sessionStorage.setItem(
-                        "cachedMedicalRecommendations",
-                        JSON.stringify(round1Response.data),
+                      localStorage.setItem(
+                        "round2Recommendations",
+                        JSON.stringify(round2Response.data),
                       );
-                      sessionStorage.setItem("medicalActiveRound", "1");
-                      navigate("/medical-recommendations/results", {
-                        replace: true,
-                      });
+                      navigate("/recommendations/results", { replace: true });
                       return;
                     }
                   }
-                } catch (error) {
-                  console.error(
-                    "Error checking Round 1 recommendations:",
-                    error,
-                  );
+                } catch (e) {
+                  console.error("Error checking Round 2:", e);
                 }
 
-                // No recommendations exist, go to steps page
+                // 3. Fallback to existing logic (Round 1)
+                const response = await apiService.getExistingRecommendations(
+                  user.accessToken,
+                );
+                if (response.success && response.data) {
+                  // Check if any recommendations exist (Dream, Reach, Match, Safety)
+                  const hasRecommendations =
+                    (response.data.Dream && response.data.Dream.length > 0) ||
+                    (response.data.Reach && response.data.Reach.length > 0) ||
+                    (response.data.Match && response.data.Match.length > 0) ||
+                    (response.data.Safety && response.data.Safety.length > 0);
+
+                  if (hasRecommendations) {
+                    // Cache the recommendations and navigate to results
+                    localStorage.setItem("activeRoundTab", "round1");
+                    sessionStorage.setItem(
+                      "cachedRecommendations",
+                      JSON.stringify(response.data),
+                    );
+                    navigate("/recommendations/results", { replace: true });
+                    return;
+                  }
+                }
+                // User has profile details but no recommendations, go to steps
                 navigate("/recommendations/steps", { replace: true });
                 return;
               }
-
-              // For engineering, check for existing recommendations
-              const response = await apiService.getExistingRecommendations(
-                user.accessToken,
+            } catch (error) {
+              // If API call fails, fall back to steps page
+              console.error(
+                "Failed to fetch profile details or recommendations:",
+                error,
               );
-              if (response.success && response.data) {
-                // Check if any recommendations exist (Dream, Reach, Match, Safety)
-                const hasRecommendations =
-                  (response.data.Dream && response.data.Dream.length > 0) ||
-                  (response.data.Reach && response.data.Reach.length > 0) ||
-                  (response.data.Match && response.data.Match.length > 0) ||
-                  (response.data.Safety && response.data.Safety.length > 0);
+            }
+          }
 
-                if (hasRecommendations) {
-                  // Cache the recommendations and navigate to results
-                  sessionStorage.setItem(
-                    "cachedRecommendations",
-                    JSON.stringify(response.data),
+          // Handle Karnataka First Year Engineering specifically
+          if (isKarnataka && isFirstYear) {
+            try {
+              // 1. Fetch User Config and Store it
+              try {
+                const configResponse =
+                  await apiService.fetchKarnatakaEngineeringConfig(
+                    user.accessToken,
                   );
+                if (configResponse.success && configResponse.data) {
+                  localStorage.setItem(
+                    "engineering_user_config",
+                    JSON.stringify(configResponse.data),
+                  );
+                }
+              } catch (e) {
+                console.log(
+                  "Config fetch failed, continuing to check rounds...",
+                  e,
+                );
+              }
+
+              // 2. Check Round 3
+              try {
+                const round3Response = await apiService.getRoundRecommendations(
+                  3,
+                  user.accessToken,
+                );
+                if (
+                  round3Response.success &&
+                  round3Response.data &&
+                  Object.keys(round3Response.data).length > 0 &&
+                  ((round3Response.data.Dream &&
+                    round3Response.data.Dream.length > 0) ||
+                    (round3Response.data.Reach &&
+                      round3Response.data.Reach.length > 0) ||
+                    (round3Response.data.Match &&
+                      round3Response.data.Match.length > 0) ||
+                    (round3Response.data.Safety &&
+                      round3Response.data.Safety.length > 0))
+                ) {
+                  if (round3Response.data.is_payment === true) {
+                    localStorage.setItem("recommendationUnlocked", "true");
+                    localStorage.setItem("isPayment", "true");
+                  }
+                  localStorage.setItem("activeRoundTab", "round3");
+                  localStorage.setItem(
+                    "round3Recommendations",
+                    JSON.stringify(round3Response.data),
+                  );
+                  sessionStorage.setItem(
+                    "cachedRound3Recommendations_v3",
+                    JSON.stringify(round3Response.data),
+                  );
+
                   navigate("/recommendations/results", { replace: true });
                   return;
                 }
+              } catch (e) {
+                console.log("Round 3 check failed or no data", e);
               }
-              // User has profile details but no recommendations, go to steps
+
+              // 3. Check Round 2
+              try {
+                const round2Response =
+                  await apiService.getKarnatakaEngineeringRoundDetails(
+                    2,
+                    user.accessToken,
+                  );
+                if (round2Response.success && round2Response.data) {
+                  localStorage.setItem("activeRoundTab", "round2");
+                  navigate("/recommendations/results", { replace: true });
+                  return;
+                }
+              } catch (e) {
+                console.log("Round 2 check failed or no data", e);
+              }
+
+              // 4. Check Round 1
+              try {
+                const round1Response =
+                  await apiService.getKarnatakaEngineeringRoundDetails(
+                    1,
+                    user.accessToken,
+                  );
+                if (round1Response.success && round1Response.data) {
+                  localStorage.setItem("activeRoundTab", "round1");
+                  navigate("/recommendations/results", { replace: true });
+                  return;
+                }
+              } catch (e) {
+                console.log("Round 1 check failed or no data", e);
+              }
+
+              // 5. If data not present for any round, redirect to Form
+              navigate("/recommendations/steps", { replace: true });
+              return;
+            } catch (error) {
+              console.error("Error in Karnataka Engineering check:", error);
               navigate("/recommendations/steps", { replace: true });
               return;
             }
-          } catch (error) {
-            // If API call fails, fall back to steps page
-            console.error(
-              "Failed to fetch profile details or recommendations:",
-              error,
-            );
           }
         }
 

@@ -206,44 +206,69 @@ const RecommendationResults = () => {
           console.error("Failed to fetch Round 1 recommendations", err);
         }
       } else if (isKarnataka) {
-        // Karnataka: Load from local storage or generate
-        const storedRecs = localStorage.getItem("karnataka_recommendations");
+        // Karnataka: Check local storage first
+        let storedRecs = localStorage.getItem("round1Recommendations");
+        if (!storedRecs) {
+          storedRecs = localStorage.getItem("karnataka_recommendations");
+        }
+
         let loadedFromStorage = false;
 
         if (storedRecs) {
           try {
             const parsed = JSON.parse(storedRecs);
-            // Assuming parsed is raw response, convert if necessary or use directly if mapped
-            // Based on useRecommendation, it stores raw response in karnataka_recommendations
             let recs: any[] = [];
+            // Check if it's the object format (Dream/Reach etc) or array
             if (parsed.Dream || parsed.Reach || parsed.Match || parsed.Safety) {
               recs = convertApiResponseToRecommendations(parsed);
             } else if (Array.isArray(parsed)) {
               recs = parsed;
             }
-            setRecommendations(recs);
-            loadedFromStorage = true;
+            if (recs.length > 0) {
+              setRecommendations(recs);
+              loadedFromStorage = true;
+            }
           } catch (e) {
-            // Fallback to generate
             console.error("Error parsing stored Karnataka recs", e);
           }
         }
 
-        if (
-          !loadedFromStorage &&
-          currentFormData &&
-          Object.keys(currentFormData).length > 0 &&
-          (!recommendations || recommendations.length === 0)
-        ) {
-          // Fallback to generate if nothing stored
+        if (!loadedFromStorage) {
+          // Fetch from API
           try {
-            const result = await generateRecommendation(currentFormData);
-            if (result && "recommendations" in result) {
-              // result.recommendations is likely already mapped array from useRecommendation
-              setRecommendations(result.recommendations);
+            const response = await apiService.getRoundRecommendations(
+              1,
+              user.accessToken,
+            );
+            if (response.success && response.data) {
+              let recs: any[] = [];
+              // API response is likely the object format
+              if (
+                response.data.Dream ||
+                response.data.Reach ||
+                response.data.Match ||
+                response.data.Safety
+              ) {
+                recs = convertApiResponseToRecommendations(response.data);
+              } else if (Array.isArray(response.data)) {
+                recs = response.data;
+              }
+
+              setRecommendations(recs);
+
+              // Store in localStorage for future use
+              localStorage.setItem(
+                "round1Recommendations",
+                JSON.stringify(response.data),
+              );
+              // Also update generic key if needed
+              localStorage.setItem(
+                "karnataka_recommendations",
+                JSON.stringify(response.data),
+              );
             }
           } catch (e) {
-            console.error("Failed to generate Karnataka recommendations", e);
+            console.error("Failed to fetch Round 1 data", e);
           }
         }
       }

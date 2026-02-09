@@ -201,6 +201,10 @@ export const AcademicInfoForm = ({
       label: "Persons with Disabilities – Other Backward Class (OBC)",
     },
     { code: "PWDROBC", label: "Persons with Disabilities – Reserved OBC" },
+    {
+      code: "PWDSTS",
+      label: "Persons with Disabilities – Scheduled Tribe",
+    },
     { code: "TFWS", label: "Tuition Fee Waiver Scheme" },
   ];
 
