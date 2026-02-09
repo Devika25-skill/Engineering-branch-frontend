@@ -100,6 +100,15 @@ const Index = () => {
     localStorage.setItem("recommendation_type", type);
 
     if (type === "first-year") {
+      const selectedState = localStorage.getItem("selected_state");
+
+      // For Karnataka First Year Engineering, always go to /recommendations first
+      // to let the round checking logic run.
+      if (selectedState === "Karnataka") {
+        navigate("/recommendations");
+        return;
+      }
+
       const hasExistingData = sessionStorage.getItem("recommendationFormData");
       navigate(
         hasExistingData ? "/recommendations/results" : "/recommendations/steps",

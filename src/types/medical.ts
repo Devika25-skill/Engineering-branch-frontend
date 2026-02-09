@@ -268,7 +268,7 @@ export type MaharashtraCity =
   | "Chhatrapati Sambhajinagar (Aurangabad)"
   | "Chinchwad"
   | "Deori"
-  | "Dharashiv"
+  | "Dharashiv (Osmanabad)"
   | "Dhule"
   | "Dombivali"
   | "Gadchiroli"

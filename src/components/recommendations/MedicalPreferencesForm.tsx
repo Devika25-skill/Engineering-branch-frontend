@@ -83,7 +83,7 @@ export const MedicalPreferencesForm = ({
     "Chhatrapati Sambhajinagar (Aurangabad)",
     "Chinchwad",
     "Deori",
-    "Dharashiv",
+    "Dharashiv (Osmanabad)",
     "Dhule",
     "Dombivali",
     "Gadchiroli",
