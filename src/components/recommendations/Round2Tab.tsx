@@ -1357,6 +1357,7 @@ export const Round2Tab = () => {
     "ALL",
     "Adgaon",
     "Ahmednagar",
+    "Akkalkuwa",
     "Akluj",
     "Akola",
     "Almala",
@@ -1407,6 +1408,7 @@ export const Round2Tab = () => {
     "Kalamb (Walchandnagar)",
     "Kalmeshwar",
     "Kalyan",
+    "Kaman, Vasai East",
     "Kamshet",
     "Karad",
     "Karjat",
@@ -1488,7 +1490,7 @@ export const Round2Tab = () => {
 
   const karnatakaCities = [
     "ALL",
-    "Bagalkote",
+    "Bagalkot",
     "Ballari",
     "Belagavi",
     "Bengaluru",

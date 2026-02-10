@@ -85,8 +85,6 @@ export const DiplomaAcademicInfoForm = ({
     },
     { code: "DEF-O", label: "Defence – Open" },
     { code: "DEF-OBC", label: "Defence – Other Backward Class (OBC)" },
-    { code: "DEFR-NTA", label: "Defence – Reserved – Nomadic Tribe A (NT-A)" },
-    { code: "DEFR-NTB", label: "Defence – Reserved – Nomadic Tribe B (NT-B)" },
     {
       code: "DEFR-OBC",
       label: "Defence – Reserved – Other Backward Class (OBC)",
@@ -97,7 +95,6 @@ export const DiplomaAcademicInfoForm = ({
       label:
         "Defence – Reserved – Socially and Educationally Backward Class (SEBC)",
     },
-    { code: "DEFR-ST", label: "Defence – Reserved – Scheduled Tribe (ST)" },
     { code: "EWS", label: "Economically Weaker Sections" },
     { code: "LST", label: "Ladies – Scheduled Tribe (ST)" },
     { code: "MI", label: "Minority" },
@@ -113,6 +110,10 @@ export const DiplomaAcademicInfoForm = ({
       label: "Persons with Disabilities – Reserved – Scheduled Caste (SC)",
     },
     { code: "PWDR-SEBC", label: "Persons with Disabilities – Reserved – SEBC" },
+    {
+      code: "PWDR-ST",
+      label: "Persons with Disabilities – Reserved – Scheduled Tribe (ST)",
+    },
   ];
 
   return (
