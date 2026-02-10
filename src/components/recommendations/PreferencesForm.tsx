@@ -61,6 +61,7 @@ export const PreferencesForm = ({
     "ALL",
     "Adgaon",
     "Ahmednagar",
+    "Akkalkuwa",
     "Akluj",
     "Akola",
     "Almala",
@@ -111,6 +112,7 @@ export const PreferencesForm = ({
     "Kalamb (Walchandnagar)",
     "Kalmeshwar",
     "Kalyan",
+    "Kaman, Vasai East",
     "Kamshet",
     "Karad",
     "Karjat",
@@ -192,7 +194,7 @@ export const PreferencesForm = ({
 
   const karnatakaCities = [
     "ALL",
-    "Bagalkote",
+    "Bagalkot",
     "Ballari",
     "Belagavi",
     "Bengaluru",

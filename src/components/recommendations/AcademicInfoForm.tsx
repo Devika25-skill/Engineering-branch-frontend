@@ -152,7 +152,26 @@ export const AcademicInfoForm = ({
 
   // Updated reservation categories to match API codes
   const reservationCategories = [
-    { code: "DEFRNT3S", label: "Defence – Nomadic Tribe 3 (NT3)" },
+    {
+      code: "DEFRNT1S",
+      label: "Defence – Reserved – Nomadic Tribe 1 (NT1)",
+    },
+    {
+      code: "DEFRNT2S",
+      label: "Defence – Reserved – Nomadic Tribe 2 (NT2)",
+    },
+    {
+      code: "DEFRNT3S",
+      label: "Defence – Reserved – Nomadic Tribe 3 (NT3)",
+    },
+    {
+      code: "DEFRSTS",
+      label: "Defence – Reserved – Scheduled Tribe (ST)",
+    },
+    {
+      code: "DEFRVJS",
+      label: "Defence – Reserved – Vimukta Jati / De-notified Tribes (VJ/DT)",
+    },
     { code: "DEFOPENS", label: "Defence – Open" },
     { code: "DEFOBCS", label: "Defence – Other Backward Class (OBC)" },
     { code: "DEFRSEBCS", label: "Defence – Reserved SEBC" },
@@ -195,6 +214,23 @@ export const AcademicInfoForm = ({
       code: "PWDRNT3S",
       label: "Persons with Disabilities – Nomadic Tribe 3 (NT3)",
     },
+    {
+      code: "PWDRSEBCS",
+      label: "Persons with Disabilities – Reserved – SEBC",
+    },
+    {
+      code: "PWDRVJS",
+      label:
+        "Persons with Disabilities – Reserved-Vimukta Jati / De-notified Tribes (VJ/DT)",
+    },
+    {
+      code: "PWDSCS",
+      label: "Persons with Disabilities – Scheduled Caste (SC)",
+    },
+    {
+      code: "PWDSEBCS",
+      label: "Persons with Disabilities – SEBC",
+    },
     { code: "PWDOPENS", label: "Persons with Disabilities – Open" },
     {
       code: "PWDOBCS",
@@ -203,7 +239,7 @@ export const AcademicInfoForm = ({
     { code: "PWDROBC", label: "Persons with Disabilities – Reserved OBC" },
     {
       code: "PWDSTS",
-      label: "Persons with Disabilities – Scheduled Tribe",
+      label: "Persons with Disabilities – Scheduled Tribe (ST)",
     },
     { code: "TFWS", label: "Tuition Fee Waiver Scheme" },
   ];
