@@ -118,7 +118,7 @@ const Index = () => {
       if (!isLoggedIn) {
         // If not logged in, just check local cache or go to steps
         const hasExistingData = sessionStorage.getItem(
-          "cachedDiplomaRecommendations",
+          "cachedDiplomaRecommendations_v3",
         );
         navigate(
           hasExistingData
@@ -148,7 +148,7 @@ const Index = () => {
             round2Response.data,
           );
           sessionStorage.setItem(
-            "cachedDiplomaRound2Recommendations",
+            "cachedDiplomaRound2Recommendations_v3",
             JSON.stringify(converted),
           );
           if (round2Response.data.is_payment) {
@@ -162,7 +162,7 @@ const Index = () => {
             round1Response.data,
           );
           sessionStorage.setItem(
-            "cachedDiplomaRecommendations",
+            "cachedDiplomaRecommendations_v3",
             JSON.stringify(converted),
           );
           if (round1Response.data.is_payment) {

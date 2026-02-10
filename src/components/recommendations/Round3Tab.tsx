@@ -222,7 +222,10 @@ export const Round3Tab = () => {
         let apiData = null;
         if (storedRecommendations) {
           apiData = JSON.parse(storedRecommendations);
-        } else if (user?.accessToken) {
+        } else if (
+          user?.accessToken &&
+          sessionStorage.getItem("user_cleared_recommendations_r3") !== "true"
+        ) {
           // Fetch from API if not in local storage
           try {
             const response = await apiService.getRoundRecommendations(
@@ -585,7 +588,8 @@ export const Round3Tab = () => {
   const handleRecommendationConfirmEdit = () => {
     setRound3Recommendations([]);
     localStorage.removeItem("round3Recommendations");
-    sessionStorage.removeItem("cachedRound3Recommendations");
+    sessionStorage.removeItem("cachedRound3Recommendations_v3");
+    sessionStorage.setItem("user_cleared_recommendations_r3", "true");
     setHasGeneratedRecommendations(false);
     toast({
       title: "Selection Reset",
@@ -1082,6 +1086,7 @@ export const Round3Tab = () => {
           );
           setRound3Recommendations(convertedRecs);
           setHasGeneratedRecommendations(true);
+          sessionStorage.removeItem("user_cleared_recommendations_r3");
 
           if (response.data.is_payment === true) {
             localStorage.setItem("recommendationUnlocked", "true");

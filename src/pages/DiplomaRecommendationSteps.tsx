@@ -246,7 +246,7 @@ const DiplomaRecommendationSteps = () => {
       "diplomaRecommendationFormData",
       JSON.stringify(formData),
     );
-    sessionStorage.removeItem("cachedDiplomaRecommendations");
+    sessionStorage.removeItem("cachedDiplomaRecommendations_v3");
     navigate("/diploma-recommendations/results");
   };
 
