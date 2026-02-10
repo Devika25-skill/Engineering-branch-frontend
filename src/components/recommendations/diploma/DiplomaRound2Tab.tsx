@@ -61,6 +61,7 @@ import { DiplomaCategoryFilter } from "./DiplomaCategoryFilter";
 import { usePdfDownloadDSY } from "@/hooks/usePdfDownloadDSY";
 import { PremiumGate } from "../PremiumGate";
 import ScrollToTop from "../../ScrollToTop";
+import { NoResultsState } from "../NoResultsState";
 import { engineeringBranches } from "@/data/engineeringBranches";
 
 interface SelectedCollege {

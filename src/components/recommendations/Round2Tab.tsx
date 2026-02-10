@@ -217,7 +217,10 @@ export const Round2Tab = () => {
         let apiData = null;
         if (storedRecommendations) {
           apiData = JSON.parse(storedRecommendations);
-        } else if (user?.accessToken) {
+        } else if (
+          user?.accessToken &&
+          sessionStorage.getItem("user_cleared_recommendations_r2") !== "true"
+        ) {
           // Fetch from API if not in local storage
           try {
             const response = await apiService.getRoundRecommendations(
@@ -681,6 +684,7 @@ export const Round2Tab = () => {
           );
           setRound2Recommendations(convertedRecs);
           setHasGeneratedRecommendations(true);
+          sessionStorage.removeItem("user_cleared_recommendations_r2");
 
           if (response.data.is_payment === true) {
             localStorage.setItem("recommendationUnlocked", "true");
@@ -878,8 +882,9 @@ export const Round2Tab = () => {
     // Clear localStorage and reset state
     setRound2Recommendations([]);
     localStorage.removeItem("round2Recommendations");
-    sessionStorage.removeItem("cachedRound2Recommendations");
+    sessionStorage.removeItem("cachedRound2Recommendations_v3");
     localStorage.removeItem("round2Selection");
+    sessionStorage.setItem("user_cleared_recommendations_r2", "true");
     setHasGeneratedRecommendations(false);
     toast({
       title: "Selection Reset",
@@ -891,7 +896,7 @@ export const Round2Tab = () => {
     // Clear localStorage and reset state
     setRound2Recommendations([]);
     localStorage.removeItem("round2Recommendations");
-    sessionStorage.removeItem("cachedRound2Recommendations");
+    sessionStorage.removeItem("cachedRound2Recommendations_v3");
     localStorage.removeItem("round2Selection");
     setHasGeneratedRecommendations(false);
     setSelectedCollege(null);
