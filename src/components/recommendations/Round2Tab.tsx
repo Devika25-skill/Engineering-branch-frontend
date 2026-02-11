@@ -199,7 +199,12 @@ export const Round2Tab = () => {
       if (cachedRound2Recommendations) {
         try {
           const parsedRecs = JSON.parse(cachedRound2Recommendations);
-          setRound2Recommendations(parsedRecs);
+          if (Array.isArray(parsedRecs)) {
+            setRound2Recommendations(parsedRecs);
+          } else {
+            const converted = convertApiResponseToRecommendations(parsedRecs);
+            setRound2Recommendations(converted);
+          }
           setHasGeneratedRecommendations(true);
         } catch (error) {
           console.error("Error loading cached Round 2 recommendations:", error);
@@ -304,7 +309,10 @@ export const Round2Tab = () => {
               const selectedCollege: SelectedCollege = {
                 college: {
                   College_Name: apiData.college_name,
-                  College_code: apiData.college_code.toString(),
+                  College_code:
+                    apiData.college_code?.toString() ||
+                    apiData.College_code?.toString() ||
+                    "",
                   City: apiData.city,
                   College_Website: "", // Default empty values for missing fields
                   department: [], // Default empty array
@@ -325,6 +333,32 @@ export const Round2Tab = () => {
                 "round2Selection",
                 JSON.stringify(storageData),
               );
+            } else {
+              // Fallback: Try loading Round 1 selection if API fails (as this is the starting point for R2)
+              const r1Selection =
+                localStorage.getItem("round1Selection") ||
+                sessionStorage.getItem("round2SelectedCollege"); // R1 choice helper
+              if (r1Selection) {
+                try {
+                  const parsed = JSON.parse(r1Selection);
+                  // Handle different storage formats
+                  let college = null;
+                  if (parsed.selectedCollege) college = parsed.selectedCollege;
+                  else if (parsed.college)
+                    college = {
+                      college: parsed.college,
+                      selectedDepartment: parsed.selectedDepartment,
+                    };
+
+                  if (college) {
+                    setSelectedCollege(college);
+                    setIsConfirmed(true);
+                    setShowPreferences(true);
+                  }
+                } catch (e) {
+                  console.error("Error loading R1 fallback", e);
+                }
+              }
             }
           } else {
             const response = await apiService.getUserRoundDetails(
@@ -948,12 +982,50 @@ export const Round2Tab = () => {
       };
       localStorage.setItem("round2Selection", JSON.stringify(storageData));
 
-      // Get form data from session storage for category and CET percentile
+      // Get form data from session storage
       const formData = recommendationStorage.getFormData();
-      const category = formData?.reservationCategory || "";
+
+      // Get persistent config from local storage (fallback)
+      let storedConfig = null;
+      try {
+        const configStr = localStorage.getItem("engineering_user_config");
+        if (configStr) storedConfig = JSON.parse(configStr);
+      } catch (e) {
+        console.error("Error parsing engineering_user_config", e);
+      }
+
+      // Get data from existing recommendations (fallback)
+      let recCategory = "";
+      let recRank = 0;
+      if (
+        round2Recommendations &&
+        Array.isArray(round2Recommendations) &&
+        round2Recommendations.length > 0
+      ) {
+        recCategory = round2Recommendations[0].reservation_category;
+        recRank = round2Recommendations[0].cet_percentile;
+      }
+
+      // Resolve Category
+      const category =
+        formData?.reservationCategory ||
+        storedConfig?.reservationCategory || // Correct path from API response
+        storedConfig?.category ||
+        recCategory;
+
+      // Resolve CET Rank (Use specific rank field if available, else percentile)
+      // Rank should be retrieved directly without defaulting to 0
+      const cetRank =
+        parseInt(formData?.cetRank || formData?.cet_rank) ||
+        storedConfig?.academic_credentials?.examPercentiles?.CET_Rank || // Correct path from API response
+        storedConfig?.cet_rank ||
+        recRank;
+
+      // Resolve CET Percentile
       const cetPercentile =
-        formData?.cetPercentile || formData?.cet_percentile || 0;
-      const cetRank = formData?.cetRank || formData?.cet_rank || 0;
+        parseInt(formData?.cetPercentile || formData?.cet_percentile) ||
+        storedConfig?.academic_credentials?.examPercentiles?.CET ||
+        storedConfig?.cet_percentile;
 
       const isKarnataka =
         localStorage.getItem("selected_state") === "Karnataka";
@@ -1304,7 +1376,9 @@ export const Round2Tab = () => {
   };
 
   const sortRecommendationsByCategory = (recs: any[]) => {
-    return recs.sort((a, b) => {
+    if (!Array.isArray(recs)) return [];
+
+    return [...recs].sort((a, b) => {
       const categoryOrder = { Dream: 0, Reach: 1, Match: 2, Safety: 3 };
       const categoryA =
         categoryOrder[a.category as keyof typeof categoryOrder] ?? 4;
@@ -1320,7 +1394,10 @@ export const Round2Tab = () => {
   };
 
   const getCategorizedRecommendations = () => {
-    if (!round2Recommendations || round2Recommendations.length === 0) {
+    if (
+      !Array.isArray(round2Recommendations) ||
+      round2Recommendations.length === 0
+    ) {
       return [];
     }
 
@@ -1336,14 +1413,18 @@ export const Round2Tab = () => {
   };
 
   const categoryStats = {
-    Dream:
-      round2Recommendations?.filter((r) => r.category === "Dream").length || 0,
-    Reach:
-      round2Recommendations?.filter((r) => r.category === "Reach").length || 0,
-    Match:
-      round2Recommendations?.filter((r) => r.category === "Match").length || 0,
-    Safety:
-      round2Recommendations?.filter((r) => r.category === "Safety").length || 0,
+    Dream: Array.isArray(round2Recommendations)
+      ? round2Recommendations.filter((r) => r.category === "Dream").length
+      : 0,
+    Reach: Array.isArray(round2Recommendations)
+      ? round2Recommendations.filter((r) => r.category === "Reach").length
+      : 0,
+    Match: Array.isArray(round2Recommendations)
+      ? round2Recommendations.filter((r) => r.category === "Match").length
+      : 0,
+    Safety: Array.isArray(round2Recommendations)
+      ? round2Recommendations.filter((r) => r.category === "Safety").length
+      : 0,
   };
 
   const categorizedRecommendations = getCategorizedRecommendations();
