@@ -318,6 +318,17 @@ const Recommendations = () => {
                 );
               }
 
+              // Helper function to check if round data exists
+              const hasRoundData = (data: any) => {
+                return (
+                  data &&
+                  ((data.Dream && data.Dream.length > 0) ||
+                    (data.Reach && data.Reach.length > 0) ||
+                    (data.Match && data.Match.length > 0) ||
+                    (data.Safety && data.Safety.length > 0))
+                );
+              };
+
               // 2. Check Round 3
               try {
                 const round3Response = await apiService.getRoundRecommendations(
@@ -327,15 +338,7 @@ const Recommendations = () => {
                 if (
                   round3Response.success &&
                   round3Response.data &&
-                  Object.keys(round3Response.data).length > 0 &&
-                  ((round3Response.data.Dream &&
-                    round3Response.data.Dream.length > 0) ||
-                    (round3Response.data.Reach &&
-                      round3Response.data.Reach.length > 0) ||
-                    (round3Response.data.Match &&
-                      round3Response.data.Match.length > 0) ||
-                    (round3Response.data.Safety &&
-                      round3Response.data.Safety.length > 0))
+                  hasRoundData(round3Response.data)
                 ) {
                   if (round3Response.data.is_payment === true) {
                     localStorage.setItem("recommendationUnlocked", "true");
@@ -360,13 +363,24 @@ const Recommendations = () => {
 
               // 3. Check Round 2
               try {
-                const round2Response =
-                  await apiService.getKarnatakaEngineeringRoundDetails(
-                    2,
-                    user.accessToken,
-                  );
-                if (round2Response.success && round2Response.data) {
+                const round2Response = await apiService.getRoundRecommendations(
+                  2,
+                  user.accessToken,
+                );
+                if (
+                  round2Response.success &&
+                  round2Response.data &&
+                  hasRoundData(round2Response.data)
+                ) {
                   localStorage.setItem("activeRoundTab", "round2");
+                  localStorage.setItem(
+                    "round2Recommendations",
+                    JSON.stringify(round2Response.data),
+                  );
+                  sessionStorage.setItem(
+                    "cachedRound2Recommendations_v3",
+                    JSON.stringify(round2Response.data),
+                  );
                   navigate("/recommendations/results", { replace: true });
                   return;
                 }
@@ -376,13 +390,24 @@ const Recommendations = () => {
 
               // 4. Check Round 1
               try {
-                const round1Response =
-                  await apiService.getKarnatakaEngineeringRoundDetails(
-                    1,
-                    user.accessToken,
-                  );
-                if (round1Response.success && round1Response.data) {
+                const round1Response = await apiService.getRoundRecommendations(
+                  1,
+                  user.accessToken,
+                );
+                if (
+                  round1Response.success &&
+                  round1Response.data &&
+                  hasRoundData(round1Response.data)
+                ) {
                   localStorage.setItem("activeRoundTab", "round1");
+                  localStorage.setItem(
+                    "round1Recommendations",
+                    JSON.stringify(round1Response.data),
+                  );
+                  sessionStorage.setItem(
+                    "cachedRound1Recommendations_v3",
+                    JSON.stringify(round1Response.data),
+                  );
                   navigate("/recommendations/results", { replace: true });
                   return;
                 }
@@ -390,7 +415,7 @@ const Recommendations = () => {
                 console.log("Round 1 check failed or no data", e);
               }
 
-              // 5. If data not present for any round, redirect to Form
+              // 5. If data not present for any round, redirect to Steps
               navigate("/recommendations/steps", { replace: true });
               return;
             } catch (error) {

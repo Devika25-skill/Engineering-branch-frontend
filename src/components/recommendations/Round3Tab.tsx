@@ -632,12 +632,49 @@ export const Round3Tab = () => {
       };
       localStorage.setItem("round3Selection", JSON.stringify(storageData));
 
-      // Get form data from session storage for category and CET percentile
+      // Get form data from session storage
       const formData = recommendationStorage.getFormData();
-      const category = formData?.reservationCategory || "";
+
+      // Get persistent config from local storage (fallback)
+      let storedConfig = null;
+      try {
+        const configStr = localStorage.getItem("engineering_user_config");
+        if (configStr) storedConfig = JSON.parse(configStr);
+      } catch (e) {
+        console.error("Error parsing engineering_user_config", e);
+      }
+
+      // Get data from existing recommendations (fallback)
+      let recCategory = "";
+      let recRank = 0;
+      if (
+        round3Recommendations &&
+        Array.isArray(round3Recommendations) &&
+        round3Recommendations.length > 0
+      ) {
+        recCategory = round3Recommendations[0].reservation_category;
+        recRank = round3Recommendations[0].cet_percentile;
+      }
+
+      // Resolve Category
+      const category =
+        formData?.reservationCategory ||
+        storedConfig?.reservationCategory || // Correct path from API response
+        storedConfig?.category ||
+        recCategory;
+
+      // Resolve CET Rank
+      const cetRank =
+        parseInt(formData?.cetRank || formData?.cet_rank) ||
+        storedConfig?.academic_credentials?.examPercentiles?.CET_Rank || // Correct path from API response
+        storedConfig?.cet_rank ||
+        recRank;
+
+      // Resolve CET Percentile
       const cetPercentile =
-        formData?.cetPercentile || formData?.cet_percentile || 0;
-      const cetRank = formData?.cetRank || formData?.cet_rank || 0;
+        parseInt(formData?.cetPercentile || formData?.cet_percentile) ||
+        storedConfig?.academic_credentials?.examPercentiles?.CET ||
+        storedConfig?.cet_percentile;
 
       const isKarnataka =
         localStorage.getItem("selected_state") === "Karnataka";

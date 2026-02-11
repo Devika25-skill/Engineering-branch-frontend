@@ -486,7 +486,13 @@ const RecommendationSteps = () => {
 
     // Clear cached recommendations
     sessionStorage.removeItem("cachedRecommendations");
+    sessionStorage.removeItem("cachedRecommendations_v3");
     sessionStorage.removeItem("cachedMedicalRecommendations");
+    sessionStorage.removeItem("cachedRound3Recommendations_v3");
+    sessionStorage.removeItem("cachedRound2Recommendations_v3");
+    sessionStorage.removeItem("cachedRound1Recommendations_v3");
+    localStorage.removeItem("round2Preferences");
+    localStorage.removeItem("round3Preferences");
 
     // Show loading state
     setIsLoading(true);
@@ -590,7 +596,44 @@ const RecommendationSteps = () => {
           let lastRoundCollegeCode = "";
           let lastRoundCourseName = "";
 
-          if (selectionData && selectionData.selectedCollege) {
+          // Prioritize Session Storage (User reported source of truth)
+          // Prioritize Session Storage (User reported source of truth)
+          // Analysis: roundNSelectedCollege seems to hold the 'Last Round Choice' for Round N
+          // i.e., round3SelectedCollege holds the choice from Round 2 (input to Round 3).
+          let sessionValue = null;
+          if (targetRound === 3) {
+            sessionValue = sessionStorage.getItem("round3SelectedCollege");
+          } else if (targetRound === 2) {
+            sessionValue = sessionStorage.getItem("round2SelectedCollege");
+          }
+
+          if (sessionValue) {
+            try {
+              const parsed = JSON.parse(sessionValue);
+              // Handle both formats: wrapped { selectedCollege: ... } and direct { college: ... }
+              if (parsed.selectedCollege) {
+                lastRoundCollegeCode =
+                  parsed.selectedCollege.college?.College_code?.toString() ||
+                  "";
+                lastRoundCourseName =
+                  parsed.selectedCollege.selectedDepartment?.course_name || "";
+              } else if (parsed.college) {
+                lastRoundCollegeCode =
+                  parsed.college?.College_code?.toString() || "";
+                lastRoundCourseName =
+                  parsed.selectedDepartment?.course_name || "";
+              }
+            } catch (e) {
+              console.error("Error parsing session storage value", e);
+            }
+          }
+
+          // Fallback to passed selectionData if session storage empty
+          if (
+            !lastRoundCollegeCode &&
+            selectionData &&
+            selectionData.selectedCollege
+          ) {
             lastRoundCollegeCode =
               selectionData.selectedCollege.college?.College_code?.toString() ||
               "";
@@ -613,16 +656,18 @@ const RecommendationSteps = () => {
                 storageKey = "round3SelectedCollege";
               }
 
-              let stored = sessionStorage.getItem(storageKey); // User specified session storage
+              let stored = sessionStorage.getItem(storageKey); // User specified session storage key
 
               // If not found, try alternative keys
               if (!stored && targetRound === 3) {
                 stored =
-                  sessionStorage.getItem("round2Selection") ||
-                  localStorage.getItem("round2Selection");
+                  sessionStorage.getItem("round3Selection") ||
+                  localStorage.getItem("round3Selection"); // Round3Tab stores 'round3Selection'
               }
               if (!stored && targetRound === 2) {
-                stored = localStorage.getItem("round1Selection"); // Round2Tab uses localStorage for round1Selection often
+                stored =
+                  sessionStorage.getItem("round2Selection") ||
+                  localStorage.getItem("round2Selection"); // Round2Tab uses localStorage for round2Selection
               }
 
               if (stored) {
@@ -705,6 +750,25 @@ const RecommendationSteps = () => {
             );
 
             localStorage.setItem("activeRoundTab", location.state.activeRound);
+
+            // Create base preference object from form data
+            const basePreferences = {
+              branches: selectedBranches,
+              cities: selectedCities,
+              timestamp: Date.now(),
+            };
+
+            // Update round specific preferences in localStorage to ensure UI reflects changes immediately
+            // This fixes the issue where Tabs show old preferences despite new form data
+            localStorage.setItem(
+              "round2Preferences",
+              JSON.stringify(basePreferences),
+            );
+            localStorage.setItem(
+              "round3Preferences",
+              JSON.stringify(basePreferences),
+            );
+
             navigate("/recommendations/results", {
               state: {
                 refreshId: Date.now(),
