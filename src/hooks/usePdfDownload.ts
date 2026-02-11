@@ -93,19 +93,61 @@ export const usePdfDownload = () => {
       const userData = JSON.parse(localStorage.getItem("user") || "{}");
       const userName = userData.name || "Student Name";
 
+      // Fetch state info
+      const isKarnataka =
+        localStorage.getItem("selected_state") === "Karnataka";
+
+      // Get persistent config from local storage (fallback)
+      let storedConfig = null;
+      try {
+        const configStr = localStorage.getItem("engineering_user_config");
+        if (configStr) storedConfig = JSON.parse(configStr);
+      } catch (e) {
+        console.error("Error parsing engineering_user_config", e);
+      }
+
       let category =
         sessionData.reservationCategory ||
         formData?.reservationCategory ||
+        storedConfig?.reservationCategory || // Correct path from API response
+        storedConfig?.category ||
         "Not specified";
+
       let cetCutoff =
         sessionData.cetPercentile ||
         formData?.cetPercentile ||
-        formData?.cet_percentile ||
-        "Not specified";
+        formData?.cet_percentile;
 
-      // Fetch missing details if available
-      const isKarnataka =
-        localStorage.getItem("selected_state") === "Karnataka";
+      // If cetCutoff is missing, try to get it from stored config
+      if (!cetCutoff || cetCutoff === "Not specified") {
+        if (isKarnataka) {
+          cetCutoff =
+            storedConfig?.academic_credentials?.examPercentiles?.CET_Rank ||
+            storedConfig?.cet_rank;
+        } else {
+          cetCutoff =
+            storedConfig?.academic_credentials?.examPercentiles?.CET ||
+            storedConfig?.cet_percentile;
+        }
+      }
+
+      // If still not specified, try to get from first recommendation
+      if (
+        (category === "Not specified" ||
+          !cetCutoff ||
+          cetCutoff === "Not specified") &&
+        recommendations &&
+        recommendations.length > 0
+      ) {
+        if (category === "Not specified") {
+          category = recommendations[0].reservation_category || "Not specified";
+        }
+        if (!cetCutoff || cetCutoff === "Not specified") {
+          cetCutoff = recommendations[0].cet_percentile || "Not specified";
+        }
+      }
+
+      if (!cetCutoff) cetCutoff = "Not specified";
 
       if (
         (category === "Not specified" || cetCutoff === "Not specified") &&
@@ -162,14 +204,24 @@ export const usePdfDownload = () => {
           ? preferenceOverrides.branches.slice(0, 3).join(", ")
           : sessionData.preferredStreams?.length > 0
             ? sessionData.preferredStreams.slice(0, 3).join(", ")
-            : "Not specified";
+            : storedConfig?.academic_credentials?.preferences
+                  ?.engineeringBranches?.length > 0
+              ? storedConfig.academic_credentials.preferences.engineeringBranches
+                  .slice(0, 3)
+                  .join(", ")
+              : "Not specified";
 
       const locations =
         preferenceOverrides?.cities && preferenceOverrides.cities.length > 0
           ? preferenceOverrides.cities.slice(0, 3).join(", ")
           : sessionData.preferredCities?.length > 0
             ? sessionData.preferredCities.slice(0, 3).join(", ")
-            : "Not specified";
+            : storedConfig?.academic_credentials?.preferences?.preferredCities
+                  ?.length > 0
+              ? storedConfig.academic_credentials.preferences.preferredCities
+                  .slice(0, 3)
+                  .join(", ")
+              : "Not specified";
       ("Not specified");
 
       // Display user details
