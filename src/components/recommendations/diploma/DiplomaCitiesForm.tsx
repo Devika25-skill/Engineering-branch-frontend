@@ -30,14 +30,14 @@ export const DiplomaCitiesForm = ({
 
   const availableCities = [
     "ALL",
-    "Ahmednagar",
+    "Ahilyanagar (Ahmednagar)",
     "Akola",
     "Amravati",
     "Beed",
     "Bhandara",
     "Buldhana",
     "Chandrapur",
-    "Chh. Sambhaji Nagar (Aurangabad)",
+    "Chhatrapati Sambhajinagar (Aurangabad)",
     "Chikhli",
     "Dharashiv (Osmanabad)",
     "Dhule",
