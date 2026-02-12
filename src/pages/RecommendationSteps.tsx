@@ -197,6 +197,107 @@ const RecommendationSteps = () => {
                 }
               } else {
                 // Existing General Logic
+                // Helper to validate recommendation data
+                const isValidRecommendation = (data: any) => {
+                  if (!data) return false;
+                  if (Array.isArray(data)) return data.length > 0;
+
+                  // Check if any of the category arrays have items
+                  const categories = ["Dream", "Reach", "Match", "Safety"];
+                  for (const category of categories) {
+                    const value = data[category];
+                    if (Array.isArray(value) && value.length > 0) {
+                      return true;
+                    }
+                  }
+
+                  // Fallback for "colleges" key if it exists and has length (future proofing)
+                  if (
+                    Array.isArray(data.colleges) &&
+                    data.colleges.length > 0
+                  ) {
+                    return true;
+                  }
+
+                  return false;
+                };
+
+                // Check active round tab first to prioritize user's last session
+                const activeRoundTab = localStorage.getItem("activeRoundTab");
+
+                if (activeRoundTab) {
+                  // Strict Priority Logic:
+                  // 1. If activeRoundTab is set, check THAT round.
+                  // 2. If valid data exists -> Redirect there.
+                  // 3. If NO valid data exists -> Fallback to default hierarchy (Round 3 -> 2 -> 1).
+
+                  if (activeRoundTab === "round3") {
+                    const round3Response =
+                      await apiService.getRoundRecommendations(
+                        3,
+                        user.accessToken,
+                      );
+
+                    if (
+                      round3Response.success &&
+                      round3Response.data &&
+                      isValidRecommendation(round3Response.data)
+                    ) {
+                      localStorage.setItem(
+                        "round3Recommendations",
+                        JSON.stringify(round3Response.data),
+                      );
+                      localStorage.setItem("activeRoundTab", "round3");
+                      navigate("/recommendations/results");
+                      return; // Don't turn off loading
+                    }
+                  } else if (activeRoundTab === "round2") {
+                    const round2Response =
+                      await apiService.getRoundRecommendations(
+                        2,
+                        user.accessToken,
+                      );
+
+                    if (
+                      round2Response.success &&
+                      round2Response.data &&
+                      isValidRecommendation(round2Response.data)
+                    ) {
+                      localStorage.setItem(
+                        "round2Recommendations",
+                        JSON.stringify(round2Response.data),
+                      );
+                      localStorage.setItem("activeRoundTab", "round2");
+                      navigate("/recommendations/results");
+                      return; // Don't turn off loading
+                    }
+                  } else if (activeRoundTab === "round1") {
+                    const round1Response =
+                      await apiService.getRoundRecommendations(
+                        1,
+                        user.accessToken,
+                      );
+
+                    if (
+                      round1Response.success &&
+                      round1Response.data &&
+                      isValidRecommendation(round1Response.data)
+                    ) {
+                      sessionStorage.setItem(
+                        "cachedRecommendations",
+                        JSON.stringify(round1Response.data),
+                      );
+                      localStorage.setItem("activeRoundTab", "round1");
+                      navigate("/recommendations/results");
+                      return; // Don't turn off loading
+                    }
+                  }
+                  // If we are here, the activeRoundTab was set but didn't have valid data.
+                  // Fall through to default hierarchy checks.
+                }
+
+                // Default Hierarchy: Check R3 -> R2 -> R1
+
                 // Check Round 3
                 const round3Response = await apiService.getRoundRecommendations(
                   3,
@@ -205,7 +306,7 @@ const RecommendationSteps = () => {
                 if (
                   round3Response.success &&
                   round3Response.data &&
-                  Object.keys(round3Response.data).length > 0
+                  isValidRecommendation(round3Response.data)
                 ) {
                   // If round 3 data exists, save it and redirect
                   localStorage.setItem(
@@ -213,7 +314,6 @@ const RecommendationSteps = () => {
                     JSON.stringify(round3Response.data),
                   );
                   localStorage.setItem("activeRoundTab", "round3");
-                  // Also cache converted if possible but Round3Tab handles conversion from raw
                   navigate("/recommendations/results");
                   return; // Don't turn off loading
                 }
@@ -226,7 +326,7 @@ const RecommendationSteps = () => {
                 if (
                   round2Response.success &&
                   round2Response.data &&
-                  Object.keys(round2Response.data).length > 0
+                  isValidRecommendation(round2Response.data)
                 ) {
                   localStorage.setItem(
                     "round2Recommendations",
@@ -242,12 +342,11 @@ const RecommendationSteps = () => {
                   1,
                   user.accessToken,
                 );
+
                 if (
                   round1Response.success &&
                   round1Response.data &&
-                  (Array.isArray(round1Response.data)
-                    ? round1Response.data.length > 0
-                    : Object.keys(round1Response.data).length > 0)
+                  isValidRecommendation(round1Response.data)
                 ) {
                   // Round 1 usually uses 'cachedRecommendations' and 'recommendations'
                   sessionStorage.setItem(

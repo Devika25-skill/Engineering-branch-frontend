@@ -180,6 +180,85 @@ const Recommendations = () => {
 
                 // For engineering, check for existing recommendations
 
+                // 0. Check Active Round Tab First
+                const activeRoundTab = localStorage.getItem("activeRoundTab");
+                if (activeRoundTab) {
+                  try {
+                    let activeRoundResponse = null;
+                    let activeRoundNum = 0;
+
+                    if (activeRoundTab === "round1") activeRoundNum = 1;
+                    else if (activeRoundTab === "round2") activeRoundNum = 2;
+                    else if (activeRoundTab === "round3") activeRoundNum = 3;
+
+                    if (activeRoundNum > 0) {
+                      activeRoundResponse =
+                        await apiService.getRoundRecommendations(
+                          activeRoundNum,
+                          user.accessToken,
+                        );
+
+                      if (
+                        activeRoundResponse.success &&
+                        activeRoundResponse.data &&
+                        Object.keys(activeRoundResponse.data).length > 0
+                      ) {
+                        const hasData =
+                          (activeRoundResponse.data.Dream &&
+                            activeRoundResponse.data.Dream.length > 0) ||
+                          (activeRoundResponse.data.Reach &&
+                            activeRoundResponse.data.Reach.length > 0) ||
+                          (activeRoundResponse.data.Match &&
+                            activeRoundResponse.data.Match.length > 0) ||
+                          (activeRoundResponse.data.Safety &&
+                            activeRoundResponse.data.Safety.length > 0);
+
+                        if (hasData) {
+                          localStorage.setItem(
+                            "activeRoundTab",
+                            activeRoundTab,
+                          );
+                          if (activeRoundNum === 3) {
+                            sessionStorage.setItem(
+                              "cachedRound3Recommendations_v3",
+                              JSON.stringify(activeRoundResponse.data),
+                            );
+                            localStorage.setItem(
+                              "round3Recommendations",
+                              JSON.stringify(activeRoundResponse.data),
+                            );
+                          } else if (activeRoundNum === 2) {
+                            sessionStorage.setItem(
+                              "cachedRound2Recommendations_v3",
+                              JSON.stringify(activeRoundResponse.data),
+                            );
+                            localStorage.setItem(
+                              "round2Recommendations",
+                              JSON.stringify(activeRoundResponse.data),
+                            );
+                          } else {
+                            sessionStorage.setItem(
+                              "cachedRecommendations",
+                              JSON.stringify(activeRoundResponse.data),
+                            );
+                            localStorage.setItem(
+                              "round1Recommendations",
+                              JSON.stringify(activeRoundResponse.data),
+                            );
+                          }
+
+                          navigate("/recommendations/results", {
+                            replace: true,
+                          });
+                          return;
+                        }
+                      }
+                    }
+                  } catch (e) {
+                    console.error("Error checking active round:", e);
+                  }
+                }
+
                 // 1. Check Round 3
                 try {
                   const round3Response =
@@ -328,6 +407,71 @@ const Recommendations = () => {
                     (data.Safety && data.Safety.length > 0))
                 );
               };
+
+              // 0. Check Active Round Tab First
+              const activeRoundTab = localStorage.getItem("activeRoundTab");
+              if (activeRoundTab) {
+                try {
+                  let activeRoundNum = 0;
+                  if (activeRoundTab === "round1") activeRoundNum = 1;
+                  else if (activeRoundTab === "round2") activeRoundNum = 2;
+                  else if (activeRoundTab === "round3") activeRoundNum = 3;
+
+                  if (activeRoundNum > 0) {
+                    const activeRoundResponse =
+                      await apiService.getRoundRecommendations(
+                        activeRoundNum,
+                        user.accessToken,
+                      );
+
+                    if (
+                      activeRoundResponse.success &&
+                      activeRoundResponse.data &&
+                      hasRoundData(activeRoundResponse.data)
+                    ) {
+                      if (activeRoundResponse.data.is_payment === true) {
+                        localStorage.setItem("recommendationUnlocked", "true");
+                        localStorage.setItem("isPayment", "true");
+                      }
+                      localStorage.setItem("activeRoundTab", activeRoundTab);
+
+                      if (activeRoundNum === 3) {
+                        localStorage.setItem(
+                          "round3Recommendations",
+                          JSON.stringify(activeRoundResponse.data),
+                        );
+                        sessionStorage.setItem(
+                          "cachedRound3Recommendations_v3",
+                          JSON.stringify(activeRoundResponse.data),
+                        );
+                      } else if (activeRoundNum === 2) {
+                        localStorage.setItem(
+                          "round2Recommendations",
+                          JSON.stringify(activeRoundResponse.data),
+                        );
+                        sessionStorage.setItem(
+                          "cachedRound2Recommendations_v3",
+                          JSON.stringify(activeRoundResponse.data),
+                        );
+                      } else {
+                        localStorage.setItem(
+                          "round1Recommendations",
+                          JSON.stringify(activeRoundResponse.data),
+                        );
+                        sessionStorage.setItem(
+                          "cachedRound1Recommendations_v3",
+                          JSON.stringify(activeRoundResponse.data),
+                        );
+                      }
+
+                      navigate("/recommendations/results", { replace: true });
+                      return;
+                    }
+                  }
+                } catch (e) {
+                  console.log("Active round check failed", e);
+                }
+              }
 
               // 2. Check Round 3
               try {
