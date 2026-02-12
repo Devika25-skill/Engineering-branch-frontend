@@ -1064,6 +1064,12 @@ export const Round3Tab = () => {
     }
 
     setIsGeneratingRecommendations(true);
+    setRound3Recommendations([]);
+    setHasGeneratedRecommendations(false);
+
+    // Clear existing storage to prevent stale data
+    localStorage.removeItem("round3Recommendations");
+    sessionStorage.removeItem("cachedRound3Recommendations_v3");
 
     try {
       // Update preferences first
@@ -1132,6 +1138,10 @@ export const Round3Tab = () => {
 
           sessionStorage.setItem(
             "cachedRound3Recommendations_v3",
+            JSON.stringify(convertedRecs),
+          );
+          sessionStorage.setItem(
+            "cachedRound3Recommendations",
             JSON.stringify(convertedRecs),
           );
 
@@ -1221,7 +1231,10 @@ export const Round3Tab = () => {
                   credentials.preferences?.engineeringBranches || [],
                 preferredCities: credentials.preferences?.preferredCities || [],
                 district:
-                  credentials.preferences?.preferredDistrict || undefined,
+                  credentials.preferences?.preferredDistrict ||
+                  (apiData as any).Location?.District ||
+                  (apiData as any).district ||
+                  undefined,
                 hostelPreference:
                   credentials.campusFacilitiesEnvironment?.hostelFacility ||
                   undefined,

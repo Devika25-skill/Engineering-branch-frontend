@@ -494,6 +494,12 @@ export const Round2Tab = () => {
     }
 
     setIsGeneratingRecommendations(true);
+    setRound2Recommendations([]);
+    setHasGeneratedRecommendations(false);
+
+    // Clear existing storage to prevent stale data
+    localStorage.removeItem("round2Recommendations");
+    sessionStorage.removeItem("cachedRound2Recommendations_v3");
 
     try {
       // Update preferences first
@@ -650,7 +656,10 @@ export const Round2Tab = () => {
                   credentials.preferences?.engineeringBranches || [],
                 preferredCities: credentials.preferences?.preferredCities || [],
                 district:
-                  credentials.preferences?.preferredDistrict || undefined,
+                  credentials.preferences?.preferredDistrict ||
+                  (apiData as any).Location?.District ||
+                  (apiData as any).district ||
+                  undefined,
                 hostelPreference:
                   credentials.campusFacilitiesEnvironment?.hostelFacility ||
                   undefined,
@@ -704,7 +713,10 @@ export const Round2Tab = () => {
           district: district,
           gender: gender,
           round: 2,
-          last_round_college_choice_code: 0,
+          last_round_college_choice_code:
+            Number(selectedCollege?.selectedDepartment.choice_code) ||
+            Number(selectedCollege?.college.College_code) ||
+            0,
         };
 
         const response = await apiService.getRecommendations(
@@ -727,6 +739,10 @@ export const Round2Tab = () => {
 
           sessionStorage.setItem(
             "cachedRound2Recommendations_v3",
+            JSON.stringify(convertedRecs),
+          );
+          sessionStorage.setItem(
+            "cachedRound2Recommendations",
             JSON.stringify(convertedRecs),
           );
 

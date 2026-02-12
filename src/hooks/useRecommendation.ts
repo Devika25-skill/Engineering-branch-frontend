@@ -380,103 +380,111 @@ export const useRecommendation = () => {
               }
             });
 
-            if (allRecommendations.length > 0) {
-              // Save to localStorage and sessionStorage
-              recommendationStorage.saveRecommendation(
-                formData,
-                allRecommendations,
-                recommendationId,
-              );
+            // Save to localStorage and sessionStorage
+            recommendationStorage.saveRecommendation(
+              formData,
+              allRecommendations,
+              recommendationId,
+            );
 
-              // Store in sessionStorage for immediate access
-              sessionStorage.setItem(
-                "recommendationFormData",
-                JSON.stringify(formData),
-              );
-              // Store in appropriate storage based on round
-              const dataString = JSON.stringify(recommendationsResponse.data);
-              const mappedDataString = JSON.stringify(allRecommendations);
+            // Store in sessionStorage for immediate access
+            sessionStorage.setItem(
+              "recommendationFormData",
+              JSON.stringify(formData),
+            );
+            // Store in appropriate storage based on round
+            const dataString = JSON.stringify(recommendationsResponse.data);
+            const mappedDataString = JSON.stringify(allRecommendations);
 
-              if (round === 2) {
-                const sessionKey = isKarnataka
-                  ? "karnataka_cachedRound2Recommendations"
-                  : "cachedRound2Recommendations";
-                const localKey = isKarnataka
-                  ? "karnataka_round2Recommendations"
-                  : "round2Recommendations";
-                const prefKey = isKarnataka
-                  ? "karnataka_round2Preferences"
-                  : "round2Preferences";
+            if (round === 2) {
+              const sessionKey = isKarnataka
+                ? "karnataka_cachedRound2Recommendations"
+                : "cachedRound2Recommendations";
+              const localKey = isKarnataka
+                ? "karnataka_round2Recommendations"
+                : "round2Recommendations";
+              const prefKey = isKarnataka
+                ? "karnataka_round2Preferences"
+                : "round2Preferences";
 
-                // Session storage expects mapped array
-                sessionStorage.setItem(sessionKey, mappedDataString);
-                // Local storage expects raw API response object
-                localStorage.setItem(localKey, dataString);
-
-                // Also update preferences for Round 2
-                localStorage.setItem(
-                  prefKey,
-                  JSON.stringify({
-                    branches: formData.preferredStreams || [],
-                    cities: formData.preferredCities || [],
-                    timestamp: Date.now(),
-                  }),
+              // Session storage expects mapped array
+              sessionStorage.setItem(sessionKey, mappedDataString);
+              // Also update legacy key as per recent fixes
+              if (!isKarnataka) {
+                sessionStorage.setItem(
+                  "cachedRound2Recommendations_v3",
+                  mappedDataString,
                 );
-              } else if (round === 3) {
-                const sessionKey = isKarnataka
-                  ? "karnataka_cachedRound3Recommendations"
-                  : "cachedRound3Recommendations";
-                const localKey = isKarnataka
-                  ? "karnataka_round3Recommendations"
-                  : "round3Recommendations";
-                const prefKey = isKarnataka
-                  ? "karnataka_round3Preferences"
-                  : "round3Preferences";
-
-                // Session storage expects mapped array
-                sessionStorage.setItem(sessionKey, mappedDataString);
-                // Local storage expects raw API response object
-                localStorage.setItem(localKey, dataString);
-
-                // Also update preferences for Round 3
-                localStorage.setItem(
-                  prefKey,
-                  JSON.stringify({
-                    branches: formData.preferredStreams || [],
-                    cities: formData.preferredCities || [],
-                    timestamp: Date.now(),
-                  }),
-                );
-              } else {
-                const sessionKey = isKarnataka
-                  ? "karnataka_cachedRecommendations"
-                  : "cachedRecommendations";
-                const localKey = isKarnataka
-                  ? "karnataka_recommendations"
-                  : "recommendations";
-
-                // Session storage expects mapped array
-                sessionStorage.setItem(sessionKey, mappedDataString);
-                // Round 1 might not strictly use this local key, but if it does, it likely expects raw or mapped.
-                // Given R2/R3 pattern, local is usually raw. But R1 is legacy.
-                // Let's store raw for consistency with other rounds, but R1 component loads from API or Session mainly.
-                localStorage.setItem(localKey, dataString);
               }
 
-              // setRecommendations(allRecommendations); // This line was removed as it's not in the provided snippet and might be handled elsewhere.
+              // Local storage expects raw API response object
+              localStorage.setItem(localKey, dataString);
 
-              return {
-                ...response.data,
-                recommendations: allRecommendations,
-                success: true,
-              };
+              // Also update preferences for Round 2
+              localStorage.setItem(
+                prefKey,
+                JSON.stringify({
+                  branches: formData.preferredStreams || [],
+                  cities: formData.preferredCities || [],
+                  timestamp: Date.now(),
+                }),
+              );
+            } else if (round === 3) {
+              const sessionKey = isKarnataka
+                ? "karnataka_cachedRound3Recommendations"
+                : "cachedRound3Recommendations";
+              const localKey = isKarnataka
+                ? "karnataka_round3Recommendations"
+                : "round3Recommendations";
+              const prefKey = isKarnataka
+                ? "karnataka_round3Preferences"
+                : "round3Preferences";
+
+              // Session storage expects mapped array
+              sessionStorage.setItem(sessionKey, mappedDataString);
+              // Also update legacy key as per recent fixes
+              if (!isKarnataka) {
+                sessionStorage.setItem(
+                  "cachedRound3Recommendations_v3",
+                  mappedDataString,
+                );
+              }
+
+              // Local storage expects raw API response object
+              localStorage.setItem(localKey, dataString);
+
+              // Also update preferences for Round 3
+              localStorage.setItem(
+                prefKey,
+                JSON.stringify({
+                  branches: formData.preferredStreams || [],
+                  cities: formData.preferredCities || [],
+                  timestamp: Date.now(),
+                }),
+              );
             } else {
-              return {
-                ...response.data,
-                recommendations: [],
-                success: false,
-              };
+              const sessionKey = isKarnataka
+                ? "karnataka_cachedRecommendations"
+                : "cachedRecommendations";
+              const localKey = isKarnataka
+                ? "karnataka_recommendations"
+                : "recommendations";
+
+              // Session storage expects mapped array
+              sessionStorage.setItem(sessionKey, mappedDataString);
+              // Round 1 might not strictly use this local key, but if it does, it likely expects raw or mapped.
+              // Given R2/R3 pattern, local is usually raw. But R1 is legacy.
+              // Let's store raw for consistency with other rounds, but R1 component loads from API or Session mainly.
+              localStorage.setItem(localKey, dataString);
             }
+
+            // setRecommendations(allRecommendations); // This line was removed as it's not in the provided snippet and might be handled elsewhere.
+
+            return {
+              ...response.data,
+              recommendations: allRecommendations,
+              success: true,
+            };
           } else {
             throw new Error(
               recommendationsResponse.message ||
