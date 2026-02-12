@@ -83,7 +83,7 @@ const RecommendationSteps = () => {
   const { isLoggedIn, user } = useAuth();
   const { toast: toastHook } = useToast();
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const totalSteps = 3;
 
@@ -150,6 +150,7 @@ const RecommendationSteps = () => {
   // Load saved form data on mount and fetch existing details if user is logged in
   useEffect(() => {
     const loadFormData = async () => {
+      setIsLoading(true);
       const savedFormData = recommendationStorage.getFormData();
       if (savedFormData) {
         setFormData((prev) => ({ ...prev, ...savedFormData }));
@@ -172,7 +173,7 @@ const RecommendationSteps = () => {
                 if (round3Data) {
                   localStorage.setItem("activeRoundTab", "round3");
                   navigate("/recommendations/results");
-                  return;
+                  return; // Don't turn off loading
                 }
 
                 // Check Round 2
@@ -182,7 +183,7 @@ const RecommendationSteps = () => {
                 if (round2Data) {
                   localStorage.setItem("activeRoundTab", "round2");
                   navigate("/recommendations/results");
-                  return;
+                  return; // Don't turn off loading
                 }
 
                 // Check Round 1
@@ -192,7 +193,7 @@ const RecommendationSteps = () => {
                 if (round1Data) {
                   localStorage.setItem("activeRoundTab", "round1");
                   navigate("/recommendations/results");
-                  return;
+                  return; // Don't turn off loading
                 }
               } else {
                 // Existing General Logic
@@ -214,7 +215,7 @@ const RecommendationSteps = () => {
                   localStorage.setItem("activeRoundTab", "round3");
                   // Also cache converted if possible but Round3Tab handles conversion from raw
                   navigate("/recommendations/results");
-                  return;
+                  return; // Don't turn off loading
                 }
 
                 // Check Round 2
@@ -233,7 +234,7 @@ const RecommendationSteps = () => {
                   );
                   localStorage.setItem("activeRoundTab", "round2");
                   navigate("/recommendations/results");
-                  return;
+                  return; // Don't turn off loading
                 }
 
                 // Check Round 1
@@ -255,7 +256,7 @@ const RecommendationSteps = () => {
                   );
                   localStorage.setItem("activeRoundTab", "round1");
                   navigate("/recommendations/results");
-                  return;
+                  return; // Don't turn off loading
                 }
               }
             } catch (checkError) {
@@ -313,6 +314,7 @@ const RecommendationSteps = () => {
           );
         }
       }
+      setIsLoading(false);
     };
 
     loadFormData();
