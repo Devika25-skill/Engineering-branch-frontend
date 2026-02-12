@@ -634,6 +634,12 @@ export const DiplomaRound2Tab = ({ onLoadComplete }: DiplomaRound2TabProps) => {
     }
 
     setIsGeneratingRecommendations(true);
+    setRound2Recommendations([]);
+    setHasGeneratedRecommendations(false);
+
+    // Clear existing storage to prevent stale data
+    localStorage.removeItem("diplomaRound2Recommendations_v3");
+    sessionStorage.removeItem("cachedDiplomaRound2Recommendations_v3");
 
     try {
       // Get form data for payload - check Round 2 specific data first
