@@ -2100,7 +2100,7 @@ export const MedicalRound3Tab = ({
                           </Badge>
                           <span className="text-gray-400">•</span>
                           <span className="font-medium">
-                            Code: {recommendation.college.college_code}
+                            College Code: {recommendation.college.college_code}
                           </span>
                         </div>
                       </div>

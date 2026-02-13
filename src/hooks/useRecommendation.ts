@@ -429,6 +429,15 @@ export const useRecommendation = () => {
                   timestamp: Date.now(),
                 }),
               );
+
+              // Standardize: ALways set the generic round2Recommendations key (for Karnataka too)
+              if (isKarnataka) {
+                localStorage.setItem("round2Recommendations", dataString);
+                sessionStorage.setItem(
+                  "cachedRound2Recommendations_v3",
+                  mappedDataString,
+                );
+              }
             } else if (round === 3) {
               const sessionKey = isKarnataka
                 ? "karnataka_cachedRound3Recommendations"
@@ -462,6 +471,15 @@ export const useRecommendation = () => {
                   timestamp: Date.now(),
                 }),
               );
+
+              // Standardize: ALways set the generic round3Recommendations key (for Karnataka too)
+              if (isKarnataka) {
+                localStorage.setItem("round3Recommendations", dataString);
+                sessionStorage.setItem(
+                  "cachedRound3Recommendations_v3",
+                  mappedDataString,
+                );
+              }
             } else {
               const sessionKey = isKarnataka
                 ? "karnataka_cachedRecommendations"
