@@ -585,10 +585,51 @@ export const MedicalRound2Tab = ({
 
       // Get form data for additional fields
       const formData = recommendationStorage.getFormData();
+      const selectedState = localStorage.getItem("selected_state") || "";
 
       // Call API to store medical college details
       try {
-        const selectedState = localStorage.getItem("selected_state") || "";
+        // First, check if there are existing details to "delete" (soft delete)
+        let existingCollegeData: any = null;
+        try {
+          const response = await apiService.getMedicalUserRoundDetails(
+            1,
+            user.accessToken,
+            selectedState,
+          );
+          if (response.success && response.data && response.data.collegeName) {
+            existingCollegeData = {
+              college_name: response.data.collegeName,
+              college_code: response.data.collegeCode,
+              course_type: response.data.courseName,
+              city: response.data.city,
+            };
+          }
+        } catch (fetchError) {
+          console.error("Error fetching existing round details:", fetchError);
+        }
+
+        // If existing data found, mark it as deleted
+        if (existingCollegeData && existingCollegeData.college_name) {
+          const deletePayload = {
+            collegeName: existingCollegeData.college_name,
+            collegeCode: existingCollegeData.college_code || 0,
+            courseName: existingCollegeData.course_type || "MBBS",
+            round: 1,
+            city: existingCollegeData.city || "",
+            state: selectedState,
+            category: formData?.reservationCategory || "OPEN",
+            NEETAllIndiaRank: formData?.neetAllIndiaRank || 0,
+            isDeleted: true,
+          };
+          console.log("Marking existing record as deleted:", deletePayload);
+          await apiService.storeMedicalCollegeDetails(
+            deletePayload,
+            user.accessToken,
+          );
+        }
+
+        // Now save the NEW selection
         const apiPayload = {
           collegeName: selectedCollege.college.college_name,
           collegeCode: selectedCollege.college.college_code,
