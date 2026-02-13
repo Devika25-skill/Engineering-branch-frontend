@@ -303,7 +303,11 @@ export const Round2Tab = () => {
                 user.accessToken,
               );
 
-            if (response.success && response.data) {
+            if (
+              response.success &&
+              response.data &&
+              Object.keys(response.data).length > 0
+            ) {
               const apiData = response.data;
               // Convert API response to selectedCollege format
               const selectedCollege: SelectedCollege = {
@@ -334,30 +338,17 @@ export const Round2Tab = () => {
                 JSON.stringify(storageData),
               );
             } else {
-              // Fallback: Try loading Round 1 selection if API fails (as this is the starting point for R2)
-              const r1Selection =
-                localStorage.getItem("round1Selection") ||
-                sessionStorage.getItem("round2SelectedCollege"); // R1 choice helper
-              if (r1Selection) {
-                try {
-                  const parsed = JSON.parse(r1Selection);
-                  // Handle different storage formats
-                  let college = null;
-                  if (parsed.selectedCollege) college = parsed.selectedCollege;
-                  else if (parsed.college)
-                    college = {
-                      college: parsed.college,
-                      selectedDepartment: parsed.selectedDepartment,
-                    };
-
-                  if (college) {
-                    setSelectedCollege(college);
-                    setIsConfirmed(true);
-                    setShowPreferences(true);
-                  }
-                } catch (e) {
-                  console.error("Error loading R1 fallback", e);
-                }
+              // If no API data found, fallback to form data
+              await loadPreferencesFromFormData();
+              // Check if we have valid form data to show
+              const formData = recommendationStorage.getFormData();
+              if (
+                formData &&
+                (formData.preferredStreams?.length > 0 ||
+                  formData.preferredCities?.length > 0)
+              ) {
+                setShowPreferences(true);
+                setSkipRound1Selection(true); // Fix: Explicitly set skip logic for new lists
               }
             }
           } else {
@@ -396,10 +387,34 @@ export const Round2Tab = () => {
                 "round2Selection",
                 JSON.stringify(storageData),
               );
+            } else {
+              // If no API data found (Maharashtra), fallback to form data
+              await loadPreferencesFromFormData();
+              // Check if we have valid form data to show
+              const formData = recommendationStorage.getFormData();
+              if (
+                formData &&
+                (formData.preferredStreams?.length > 0 ||
+                  formData.preferredCities?.length > 0)
+              ) {
+                setShowPreferences(true);
+                setSkipRound1Selection(true); // Fix: Explicitly set skip logic for new lists
+              }
             }
           }
         } catch (error) {
           console.error("Error loading user round details:", error);
+          // On error, also try to fallback
+          await loadPreferencesFromFormData();
+          const formData = recommendationStorage.getFormData();
+          if (
+            formData &&
+            (formData.preferredStreams?.length > 0 ||
+              formData.preferredCities?.length > 0)
+          ) {
+            setShowPreferences(true);
+            setSkipRound1Selection(true); // Fix: Explicitly set skip logic for new lists
+          }
         }
       }
     };
@@ -478,16 +493,18 @@ export const Round2Tab = () => {
     }
 
     // For Karnataka, ensure college is selected (even if choice_code is missing)
+    // Only check if selectedCollege exists - if it's null, we assume "New List" behavior
     if (
       isKarnataka &&
       !skipRound1Selection &&
-      (!selectedCollege?.college?.College_code ||
-        !selectedCollege?.selectedDepartment?.course_name)
+      selectedCollege &&
+      (!selectedCollege.college.College_code ||
+        !selectedCollege.selectedDepartment.course_name)
     ) {
       toast({
         title: "Missing College Selection",
         description:
-          "Please select your Round 1 college before generating recommendations",
+          "Please select your Round 1 college or ensure all details are present.",
         variant: "destructive",
       });
       return;

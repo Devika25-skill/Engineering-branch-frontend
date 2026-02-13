@@ -290,9 +290,38 @@ export const Round3Tab = () => {
       // Always load preferences immediately for faster access
       await loadPreferencesFromFormData();
 
-      // If no localStorage data and user is logged in, try API
       if (user?.accessToken) {
         try {
+          // Check for existing recommendations
+          const savedRecs = localStorage.getItem("round3Recommendations");
+          if (savedRecs) {
+            const parsedRecs = JSON.parse(savedRecs);
+            if (Array.isArray(parsedRecs)) {
+              setRound3Recommendations(parsedRecs);
+              setHasGeneratedRecommendations(true);
+            } else if (parsedRecs && typeof parsedRecs === "object") {
+              // Handle legacy format (raw API response)
+              const converted = convertApiResponseToRecommendations(parsedRecs);
+              setRound3Recommendations(converted);
+              setHasGeneratedRecommendations(true);
+            }
+          } else {
+            // Check session storage
+            const sessionRecs = sessionStorage.getItem(
+              "cachedRound3Recommendations_v3",
+            );
+            if (sessionRecs) {
+              const parsedSessionRecs = JSON.parse(sessionRecs);
+              if (Array.isArray(parsedSessionRecs)) {
+                setRound3Recommendations(parsedSessionRecs);
+                setHasGeneratedRecommendations(true);
+              }
+            }
+          }
+
+          let collegeFound = false;
+
+          // Check for existing Round 3 selection
           const isKarnataka =
             localStorage.getItem("selected_state") === "Karnataka";
 
@@ -323,6 +352,7 @@ export const Round3Tab = () => {
               setSelectedCollege(selectedCollege);
               setIsConfirmed(true);
               setShowPreferences(true);
+              collegeFound = true;
 
               // Also save to localStorage for future use
               const storageData = { selectedCollege, isConfirmed: true };
@@ -360,6 +390,7 @@ export const Round3Tab = () => {
               setSelectedCollege(selectedCollege);
               setIsConfirmed(true);
               setShowPreferences(true);
+              collegeFound = true;
 
               // Also save to localStorage for future use
               const storageData = { selectedCollege, isConfirmed: true };
@@ -367,6 +398,90 @@ export const Round3Tab = () => {
                 "round3Selection",
                 JSON.stringify(storageData),
               );
+            }
+          }
+
+          // Load preferences (Round 3)
+          let hasData = false;
+          let branches: string[] = [];
+          let cities: string[] = [];
+
+          if (isKarnataka) {
+            const configResponse =
+              await apiService.fetchKarnatakaEngineeringConfig(
+                user.accessToken,
+              );
+            if (configResponse.success && configResponse.data) {
+              const prefs =
+                configResponse.data.academic_credentials?.preferences;
+              if (
+                prefs?.engineeringBranches?.length > 0 ||
+                prefs?.preferredCities?.length > 0
+              ) {
+                branches = prefs.engineeringBranches || [];
+                cities = prefs.preferredCities || [];
+                hasData = true;
+              }
+            }
+          } else {
+            const response = await apiService.getUserRoundPreferences(
+              3,
+              user.accessToken,
+            );
+            if (
+              response.success &&
+              response.data &&
+              (response.data.branches?.length > 0 ||
+                response.data.cities?.length > 0)
+            ) {
+              branches = response.data.branches || [];
+              cities = response.data.cities || [];
+              hasData = true;
+            }
+          }
+
+          if (hasData) {
+            setSelectedBranches(branches);
+            setSelectedCities(cities);
+            setShowPreferences(true); // Show preferences when loaded from API
+
+            // Fix applied: If preferences exist but no college found, assume user skipped Round 2 selection
+            if (!collegeFound) {
+              setSkipRound2Selection(true);
+            }
+
+            // Store in localStorage for future use
+            localStorage.setItem(
+              "round3Preferences",
+              JSON.stringify({
+                branches,
+                cities,
+                timestamp: Date.now(),
+              }),
+            );
+            return;
+          } else {
+            // If no API data found, still try to load from form data (previous rounds)
+            // This ensures "Create New List" mode is active with pre-filled data
+            await loadPreferencesFromFormData();
+
+            // Check if we have data after loading from form data
+            // We need to check state here, but since state updates are async,
+            // we rely on the implementation of loadPreferencesFromFormData to set state
+            // We can check if we should show preferences based on default assumptions for flow
+            if (!collegeFound) {
+              // Default to "Create New List" view if no college selected
+              setSkipRound2Selection(true);
+
+              // Check if form data exists in storage to confirm we should show preferences
+              const formData = recommendationStorage.getFormData();
+              if (
+                formData &&
+                (formData.preferredStreams?.length > 0 ||
+                  formData.preferredCities?.length > 0)
+              ) {
+                setShowPreferences(true);
+              }
             }
           }
         } catch (error) {
@@ -440,21 +555,18 @@ export const Round3Tab = () => {
         localStorage.getItem("selected_state") === "Karnataka";
 
       switch (searchType) {
-        case "choice_code":
-          const choiceCode = parseInt(searchValue);
-          if (isNaN(choiceCode)) {
-            toast({
-              title: "Invalid Choice Code",
-              description: "Choice code must be a number",
-              variant: "destructive",
-            });
-            return;
-          }
+        case "choice_code": {
+          // Check if the value is purely numeric or alphanumeric
+          const isNumericOnly = /^\d+$/.test(searchValue.trim());
+          const choiceCodeValue = isNumericOnly
+            ? parseInt(searchValue.trim())
+            : searchValue.trim();
           response = await apiService.searchCollegeByChoiceCode(
-            { choice_code: choiceCode },
+            { choice_code: choiceCodeValue },
             user.accessToken,
           );
           break;
+        }
 
         case "college_name":
           if (isKarnataka) {
@@ -1051,13 +1163,14 @@ export const Round3Tab = () => {
     if (
       isKarnataka &&
       !skipRound2Selection &&
-      (!selectedCollege?.college?.College_code ||
-        !selectedCollege?.selectedDepartment?.course_name)
+      selectedCollege &&
+      (!selectedCollege.college.College_code ||
+        !selectedCollege.selectedDepartment.course_name)
     ) {
       toast({
         title: "Missing College Selection",
         description:
-          "Please select your Round 2 college before generating recommendations",
+          "Please select your Round 2 college or ensure all details are present.",
         variant: "destructive",
       });
       return;
@@ -1112,10 +1225,12 @@ export const Round3Tab = () => {
           cities: selectedCities,
           gender: gender,
           round: 3,
-          last_round_choice_college_code:
-            selectedCollege?.college?.College_code?.toString() || "",
-          last_round_choice_course_name:
-            selectedCollege?.selectedDepartment?.course_name || "",
+          last_round_choice_college_code: skipRound2Selection
+            ? "0"
+            : selectedCollege?.college?.College_code?.toString() || "",
+          last_round_choice_course_name: skipRound2Selection
+            ? ""
+            : selectedCollege?.selectedDepartment?.course_name || "",
         };
 
         const response = await apiService.karnatakaEngineeringRecommendation(
@@ -1392,7 +1507,11 @@ export const Round3Tab = () => {
   };
 
   const sortRecommendationsByCategory = (recs: any[]) => {
-    return recs.sort((a, b) => {
+    if (!Array.isArray(recs)) {
+      console.error("Invalid recommendations format:", recs);
+      return [];
+    }
+    return [...recs].sort((a, b) => {
       const categoryOrder = { Dream: 0, Reach: 1, Match: 2, Safety: 3 };
       const categoryA =
         categoryOrder[a.category as keyof typeof categoryOrder] ?? 4;
@@ -1408,7 +1527,11 @@ export const Round3Tab = () => {
   };
 
   const getCategorizedRecommendations = () => {
-    if (!round3Recommendations || round3Recommendations.length === 0) {
+    if (
+      !round3Recommendations ||
+      !Array.isArray(round3Recommendations) ||
+      round3Recommendations.length === 0
+    ) {
       return [];
     }
 
@@ -2316,7 +2439,7 @@ export const Round3Tab = () => {
                       onChange={(e) => setSearchValue(e.target.value)}
                       placeholder={
                         searchType === "choice_code"
-                          ? "Enter choice code (e.g., 211626310)"
+                          ? "Enter choice code (e.g., 211626310 or 1234U)"
                           : searchType === "college_name"
                             ? "Enter college name"
                             : localStorage.getItem("selected_state") ===
