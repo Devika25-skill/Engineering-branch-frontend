@@ -434,7 +434,7 @@ export const MedicalRecommendationResults = ({
               </Badge>
               <span className="text-gray-400">•</span>
               <span className="font-medium">
-                Code: {rec.college.college_code}
+                College Code: {rec.college.college_code}
               </span>
             </div>
           </div>
