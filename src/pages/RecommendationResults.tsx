@@ -461,8 +461,8 @@ const RecommendationResults = () => {
           formData={formData}
           recommendationId={recommendationId}
           onTabChange={handleTabChange}
-          round2Key={`${location.state?.refreshId || ""}-${localStorage.getItem("round2Recommendations")?.length || "r2"}`}
-          round3Key={`${location.state?.refreshId || ""}-${localStorage.getItem("round3Recommendations")?.length || "r3"}`}
+          round2Key="round2-tab"
+          round3Key="round3-tab"
         />
 
         {/* Feedback Section */}
