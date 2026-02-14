@@ -423,9 +423,12 @@ export const RecommendationResults = ({
   useEffect(() => {}, [recommendations, formData, recommendationId]);
 
   const sortRecommendationsByCategory = (recs: CollegeRecommendation[]) => {
+    if (!Array.isArray(recs)) return [];
+
     // Sort to maintain category order: Dream, Reach, Match, Safety
     // Within each category, sort by cutoff percentile in descending order
-    return recs.sort((a, b) => {
+    // Use spread to avoid mutating original array
+    return [...recs].sort((a, b) => {
       // First sort by category order
       const categoryOrder = { Dream: 0, Reach: 1, Match: 2, Safety: 3 };
       const categoryA =
@@ -443,7 +446,11 @@ export const RecommendationResults = ({
   };
 
   const getCategorizedRecommendations = () => {
-    if (!recommendations || recommendations.length === 0) {
+    if (
+      !recommendations ||
+      !Array.isArray(recommendations) ||
+      recommendations.length === 0
+    ) {
       return [];
     }
 
@@ -459,10 +466,18 @@ export const RecommendationResults = ({
   };
 
   const categoryStats = {
-    Dream: recommendations?.filter((r) => r.category === "Dream").length || 0,
-    Reach: recommendations?.filter((r) => r.category === "Reach").length || 0,
-    Match: recommendations?.filter((r) => r.category === "Match").length || 0,
-    Safety: recommendations?.filter((r) => r.category === "Safety").length || 0,
+    Dream: Array.isArray(recommendations)
+      ? recommendations.filter((r) => r.category === "Dream").length
+      : 0,
+    Reach: Array.isArray(recommendations)
+      ? recommendations.filter((r) => r.category === "Reach").length
+      : 0,
+    Match: Array.isArray(recommendations)
+      ? recommendations.filter((r) => r.category === "Match").length
+      : 0,
+    Safety: Array.isArray(recommendations)
+      ? recommendations.filter((r) => r.category === "Safety").length
+      : 0,
   };
 
   const categorizedRecommendations = getCategorizedRecommendations();

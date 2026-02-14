@@ -52,8 +52,10 @@ import {
   ChevronUp,
   Sparkles,
   Lock,
+  Brain,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import StepLoadingMessages from "./StepLoadingMessages";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { Round2Disclaimer } from "./Round2Disclaimer";
 import { RecommendationCard } from "./RecommendationCard";
@@ -97,6 +99,7 @@ export const Round2Tab = () => {
   const [isStoring, setIsStoring] = useState(false);
   const [showPreferences, setShowPreferences] = useState(false);
   const [editingPreferences, setEditingPreferences] = useState(false);
+  const [isLoading, setIsLoading] = useState(true); // Add loading state
   const [selectedBranches, setSelectedBranches] = useState<string[]>([]);
   const [selectedCities, setSelectedCities] = useState<string[]>([]);
   const [isUpdatingPreferences, setIsUpdatingPreferences] = useState(false);
@@ -206,6 +209,7 @@ export const Round2Tab = () => {
             setRound2Recommendations(converted);
           }
           setHasGeneratedRecommendations(true);
+          setShowPreferences(true); // Show preferences if recommendations exist
         } catch (error) {
           console.error("Error loading cached Round 2 recommendations:", error);
           sessionStorage.removeItem("cachedRound2Recommendations_v3");
@@ -254,6 +258,7 @@ export const Round2Tab = () => {
             const convertedRecs = convertApiResponseToRecommendations(apiData);
             setRound2Recommendations(convertedRecs);
             setHasGeneratedRecommendations(true);
+            setShowPreferences(true); // Show preferences if recommendations exist
 
             // Check if these recommendations were paid and should unlock
             if (apiData.is_payment === true) {
@@ -341,15 +346,16 @@ export const Round2Tab = () => {
               // If no API data found, fallback to form data
               await loadPreferencesFromFormData();
               // Check if we have valid form data to show
-              const formData = recommendationStorage.getFormData();
-              if (
-                formData &&
-                (formData.preferredStreams?.length > 0 ||
-                  formData.preferredCities?.length > 0)
-              ) {
-                setShowPreferences(true);
-                setSkipRound1Selection(true); // Fix: Explicitly set skip logic for new lists
-              }
+              // Don't auto-show preferences or skip selection
+              // const formData = recommendationStorage.getFormData();
+              // if (
+              //   formData &&
+              //   (formData.preferredStreams?.length > 0 ||
+              //     formData.preferredCities?.length > 0)
+              // ) {
+              //   setShowPreferences(true);
+              //   setSkipRound1Selection(true); // Fix: Explicitly set skip logic for new lists
+              // }
             }
           } else {
             const response = await apiService.getUserRoundDetails(
@@ -391,30 +397,24 @@ export const Round2Tab = () => {
               // If no API data found (Maharashtra), fallback to form data
               await loadPreferencesFromFormData();
               // Check if we have valid form data to show
-              const formData = recommendationStorage.getFormData();
-              if (
-                formData &&
-                (formData.preferredStreams?.length > 0 ||
-                  formData.preferredCities?.length > 0)
-              ) {
-                setShowPreferences(true);
-                setSkipRound1Selection(true); // Fix: Explicitly set skip logic for new lists
-              }
+              // Don't auto-show preferences or skip selection
+              // const formData = recommendationStorage.getFormData();
+              // if (
+              //   formData &&
+              //   (formData.preferredStreams?.length > 0 ||
+              //     formData.preferredCities?.length > 0)
+              // ) {
+              //   setShowPreferences(true);
+              //   setSkipRound1Selection(true); // Fix: Explicitly set skip logic for new lists
+              // }
             }
           }
         } catch (error) {
           console.error("Error loading user round details:", error);
           // On error, also try to fallback
           await loadPreferencesFromFormData();
-          const formData = recommendationStorage.getFormData();
-          if (
-            formData &&
-            (formData.preferredStreams?.length > 0 ||
-              formData.preferredCities?.length > 0)
-          ) {
-            setShowPreferences(true);
-            setSkipRound1Selection(true); // Fix: Explicitly set skip logic for new lists
-          }
+        } finally {
+          setIsLoading(false); // Ensure loading stops
         }
       }
     };
@@ -478,37 +478,8 @@ export const Round2Tab = () => {
     // Check local storage for Karnataka state
     const isKarnataka = localStorage.getItem("selected_state") === "Karnataka";
 
-    if (
-      !skipRound1Selection &&
-      !selectedCollege?.selectedDepartment?.choice_code &&
-      !isKarnataka // Skip choice_code check for Karnataka
-    ) {
-      toast({
-        title: "Missing College Selection",
-        description:
-          "Please select your Round 1 college before generating recommendations",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // For Karnataka, ensure college is selected (even if choice_code is missing)
-    // Only check if selectedCollege exists - if it's null, we assume "New List" behavior
-    if (
-      isKarnataka &&
-      !skipRound1Selection &&
-      selectedCollege &&
-      (!selectedCollege.college.College_code ||
-        !selectedCollege.selectedDepartment.course_name)
-    ) {
-      toast({
-        title: "Missing College Selection",
-        description:
-          "Please select your Round 1 college or ensure all details are present.",
-        variant: "destructive",
-      });
-      return;
-    }
+    // Validation removed as per request: Round 1 college selection is now optional.
+    // If data is present, it will be passed. If not, it will be skipped.
 
     setIsGeneratingRecommendations(true);
     setRound2Recommendations([]);
@@ -731,8 +702,8 @@ export const Round2Tab = () => {
           gender: gender,
           round: 2,
           last_round_college_choice_code:
-            Number(selectedCollege?.selectedDepartment.choice_code) ||
-            Number(selectedCollege?.college.College_code) ||
+            Number(selectedCollege?.selectedDepartment?.choice_code) ||
+            Number(selectedCollege?.college?.College_code) ||
             0,
         };
 
@@ -936,9 +907,28 @@ export const Round2Tab = () => {
   };
 
   const handleCreateNewList = () => {
+    // 1. Force the UI switch immediately
     setSkipRound1Selection(true);
     setShowPreferences(true);
-    loadPreferencesFromFormData();
+    setIsPreferencesCardCollapsed(false);
+
+    // 2. Decide View Mode based on synchronous check of local storage/state
+    const hasData =
+      selectedBranches.length > 0 ||
+      !!localStorage.getItem("round2Preferences");
+
+    if (hasData) {
+      setEditingPreferences(false);
+      // Trigger load in background
+      loadPreferencesFromFormData();
+    } else {
+      setEditingPreferences(true);
+      // Try background load just in case
+      loadPreferencesFromFormData().then((loaded) => {
+        if (loaded) setEditingPreferences(false);
+      });
+    }
+
     toast({
       title: "Creating New List",
       description:
@@ -950,13 +940,26 @@ export const Round2Tab = () => {
     setRound2Recommendations([]);
     localStorage.removeItem("round2Recommendations");
     sessionStorage.removeItem("cachedRound2Recommendations_v3");
-    localStorage.removeItem("round2Selection");
-    sessionStorage.setItem("user_cleared_recommendations_r2", "true");
+    // Do NOT set user_cleared flag, as we want to keep/fetch the selection
+    sessionStorage.removeItem("user_cleared_recommendations_r2");
+
+    // We only clear the output (recommendations)
+    setShowPreferences(true);
+    setEditingPreferences(false);
+
+    // Explicitly re-save selection to localStorage to ensure persistence
+    if (selectedCollege) {
+      localStorage.setItem(
+        "round2Selection",
+        JSON.stringify({ selectedCollege, isConfirmed: true }),
+      );
+    }
+
     setHasGeneratedRecommendations(false);
     toast({
-      title: "Selection Reset",
+      title: "Recommendations Cleared",
       description:
-        "You can now make a new selection for Round 2 recommendations.",
+        "You can now edit your preferences and generate new recommendations.",
     });
   };
   const handleConfirmEdit = () => {
@@ -1141,15 +1144,16 @@ export const Round2Tab = () => {
     }
   };
 
-  const loadPreferencesFromFormData = async () => {
+  const loadPreferencesFromFormData = async (): Promise<boolean> => {
     // First try to get preferences from localStorage
     const storedPreferences = localStorage.getItem("round2Preferences");
     if (storedPreferences) {
       try {
         const parsed = JSON.parse(storedPreferences);
-        setSelectedBranches(parsed.branches || []);
+        const branches = parsed.branches || [];
+        setSelectedBranches(branches);
         setSelectedCities(parsed.cities || []);
-        return;
+        return branches.length > 0;
       } catch (error) {
         console.error("Error parsing stored preferences, continuing...");
       }
@@ -1194,7 +1198,7 @@ export const Round2Tab = () => {
         if (hasData) {
           setSelectedBranches(branches);
           setSelectedCities(cities);
-          setShowPreferences(true); // Show preferences when loaded from API
+          // setShowPreferences(true); // Show preferences when loaded from API
 
           // Store in localStorage for future use
           localStorage.setItem(
@@ -1205,7 +1209,7 @@ export const Round2Tab = () => {
               timestamp: Date.now(),
             }),
           );
-          return;
+          return branches.length > 0;
         }
       } catch (error) {
         console.error(
@@ -1222,18 +1226,11 @@ export const Round2Tab = () => {
 
       setSelectedBranches(branches);
       setSelectedCities(cities);
-      setShowPreferences(true); // Show preferences when loaded from form data
 
-      // Store in localStorage for consistency
-      localStorage.setItem(
-        "round2Preferences",
-        JSON.stringify({
-          branches,
-          cities,
-          timestamp: Date.now(),
-        }),
-      );
+      return branches.length > 0;
     }
+
+    return false;
   };
 
   const handleUpdatePreferences = async () => {
@@ -1705,893 +1702,927 @@ export const Round2Tab = () => {
 
   return (
     <div className="space-y-6">
-      {/* Round 2 Disclaimer */}
-      {showPreferences && <Round2Disclaimer />}
+      {isLoading ? (
+        <div className="flex flex-col items-center justify-center py-12">
+          <StepLoadingMessages />
+        </div>
+      ) : (
+        <>
+          {/* Round 2 Disclaimer */}
+          {showPreferences && <Round2Disclaimer />}
 
-      {/* Confirmed Selection Display - Collapsible */}
-      {isConfirmed && selectedCollege && (
-        <Card className="border-green-200 bg-green-50">
-          <CardHeader
-            className="cursor-pointer hover:bg-green-100/50 transition-colors"
-            onClick={() => setIsCollegeCardCollapsed(!isCollegeCardCollapsed)}
-          >
-            <CardTitle className="text-lg text-green-800 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Check className="w-5 h-5" />
-                Round 1 College Selected
-              </div>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleEditSelection();
-                  }}
-                  disabled={
-                    hasGeneratedRecommendations &&
-                    round2Recommendations.length > 0
-                  }
-                  className="text-orange-600 border-orange-300 hover:bg-orange-50"
-                >
-                  Edit Selection
-                </Button>
-                {isCollegeCardCollapsed ? (
-                  <ChevronDown className="w-5 h-5 text-green-600" />
-                ) : (
-                  <ChevronUp className="w-5 h-5 text-green-600" />
-                )}
-              </div>
-            </CardTitle>
-          </CardHeader>
-          {!isCollegeCardCollapsed && (
-            <CardContent className="space-y-3">
-              <div className="space-y-2">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
-                  <span className="font-medium text-sm">College:</span>
-                  <span className="text-sm text-green-700 sm:text-right">
-                    {selectedCollege.college.College_Name}
-                  </span>
-                </div>
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
-                  <span className="font-medium text-sm">City:</span>
-                  <span className="text-sm text-green-700">
-                    {selectedCollege.college.City}
-                  </span>
-                </div>
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
-                  <span className="font-medium text-sm">Department:</span>
-                  <Badge variant="secondary" className="w-fit">
-                    {selectedCollege.selectedDepartment.course_name}
-                  </Badge>
-                </div>
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
-                  <span className="font-medium text-sm">
-                    {localStorage.getItem("selected_state") === "Karnataka"
-                      ? "College Code:"
-                      : "Choice Code:"}
-                  </span>
-                  <code className="px-2 py-1 bg-green-100 rounded text-sm w-fit">
-                    {localStorage.getItem("selected_state") === "Karnataka"
-                      ? selectedCollege.college.College_code
-                      : selectedCollege.selectedDepartment.choice_code}
-                  </code>
-                </div>
-              </div>
-            </CardContent>
-          )}
-        </Card>
-      )}
-
-      {/* Preferences Section - Collapsible */}
-      {showPreferences && (
-        <Card className="border-blue-200 bg-blue-50">
-          <CardHeader
-            className="cursor-pointer hover:bg-blue-100/50 transition-colors"
-            onClick={() =>
-              setIsPreferencesCardCollapsed(!isPreferencesCardCollapsed)
-            }
-          >
-            <CardTitle className="text-lg text-blue-800 flex items-center justify-between">
-              <span>Round 2 Preferences</span>
-              <div className="flex items-center gap-2">
-                {!editingPreferences && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setEditingPreferences(true);
-                      if (isPreferencesCardCollapsed) {
-                        setIsPreferencesCardCollapsed(false);
-                      }
-                    }}
-                    disabled={
-                      hasGeneratedRecommendations &&
-                      round2Recommendations.length > 0
-                    }
-                    className="text-blue-600 border-blue-300 hover:bg-blue-100"
-                  >
-                    Edit Preferences
-                  </Button>
-                )}
-                {isPreferencesCardCollapsed ? (
-                  <ChevronDown className="w-5 h-5 text-blue-600" />
-                ) : (
-                  <ChevronUp className="w-5 h-5 text-blue-600" />
-                )}
-              </div>
-            </CardTitle>
-          </CardHeader>
-          {!isPreferencesCardCollapsed && (
-            <CardContent className="space-y-4">
-              {editingPreferences ? (
-                <div className="space-y-6">
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    <Card className="border-0 shadow-lg bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl">
-                      <CardHeader className="pb-6">
-                        <CardTitle className="text-xl font-bold text-slate-800 flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center">
-                            <BookOpen className="text-white" size={20} />
-                          </div>
-                          Engineering Branches
-                          <span className="text-red-500">*</span>
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-6">
-                        <SearchableSelect
-                          options={availableBranches
-                            .filter(
-                              (branch) => !selectedBranches.includes(branch),
-                            )
-                            .map((branch) => ({
-                              value: branch,
-                              label: branch,
-                            }))}
-                          value=""
-                          onValueChange={addBranch}
-                          placeholder="Add your favorite engineering branches"
-                          searchPlaceholder="Search branches..."
-                          className="w-full"
-                          disabled={selectedBranches.includes("ALL")}
-                        />
-
-                        {selectedBranches.length > 0 ? (
-                          <div className="space-y-3">
-                            <p className="text-sm font-medium text-slate-600 flex items-center gap-2">
-                              🎯 Your Preferences (drag to reorder by priority):
-                            </p>
-                            <div
-                              className={`border-2 rounded-xl p-3 bg-white ${selectedBranches.length > 5 ? "max-h-80 overflow-y-auto" : ""}`}
-                            >
-                              <DragDropContext onDragEnd={handleBranchDragEnd}>
-                                <Droppable droppableId="branches">
-                                  {(provided) => (
-                                    <div
-                                      {...provided.droppableProps}
-                                      ref={provided.innerRef}
-                                      className="space-y-2"
-                                    >
-                                      {selectedBranches.map((branch, index) => (
-                                        <Draggable
-                                          key={branch}
-                                          draggableId={branch}
-                                          index={index}
-                                        >
-                                          {(provided) => (
-                                            <div
-                                              ref={provided.innerRef}
-                                              {...provided.draggableProps}
-                                              className="flex items-center gap-3 p-3 bg-gradient-to-r from-purple-100 to-pink-100 rounded-xl border shadow-sm hover:shadow-md transition-all"
-                                            >
-                                              <div
-                                                {...provided.dragHandleProps}
-                                              >
-                                                <GripVertical
-                                                  size={16}
-                                                  className="text-slate-400 hover:text-slate-600"
-                                                />
-                                              </div>
-                                              <span className="text-sm font-bold text-purple-700 bg-white px-2 py-1 rounded-full">
-                                                #{index + 1}
-                                              </span>
-                                              <span className="flex-1 text-sm font-medium text-slate-700">
-                                                {branch}
-                                              </span>
-                                              <Button
-                                                type="button"
-                                                size="sm"
-                                                variant="ghost"
-                                                onClick={() =>
-                                                  removeBranch(branch)
-                                                }
-                                                className="h-8 w-8 p-0 text-red-500 hover:bg-red-100 rounded-full"
-                                              >
-                                                <X size={14} />
-                                              </Button>
-                                            </div>
-                                          )}
-                                        </Draggable>
-                                      ))}
-                                      {provided.placeholder}
-                                    </div>
-                                  )}
-                                </Droppable>
-                              </DragDropContext>
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="text-center py-8 text-slate-500">
-                            <BookOpen
-                              size={32}
-                              className="mx-auto mb-2 opacity-50"
-                            />
-                            <p>Select your dream engineering branches!</p>
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-
-                    <Card className="border-0 shadow-lg bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl">
-                      <CardHeader className="pb-6">
-                        <CardTitle className="text-xl font-bold text-slate-800 flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-green-500 to-emerald-500 flex items-center justify-center">
-                            <MapPin className="text-white" size={20} />
-                          </div>
-                          Preferred Cities
-                          <span className="text-xs text-slate-500 font-normal ml-2">
-                            (Optional)
-                          </span>
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-6">
-                        <SearchableSelect
-                          options={availableCities
-                            .filter((city) => !selectedCities.includes(city))
-                            .map((city) => ({ value: city, label: city }))}
-                          value=""
-                          onValueChange={addCity}
-                          placeholder="Add cities you'd love to study in"
-                          searchPlaceholder="Search cities..."
-                          className="w-full"
-                          disabled={selectedCities.includes("ALL")}
-                        />
-
-                        {selectedCities.length > 0 ? (
-                          <div className="space-y-3">
-                            <p className="text-sm font-medium text-slate-600 flex items-center gap-2">
-                              🗺️ Your Preferences (drag to reorder by priority):
-                            </p>
-                            <div
-                              className={`border-2 rounded-xl p-3 bg-white ${selectedCities.length > 5 ? "max-h-80 overflow-y-auto" : ""}`}
-                            >
-                              <DragDropContext onDragEnd={handleCityDragEnd}>
-                                <Droppable droppableId="cities">
-                                  {(provided) => (
-                                    <div
-                                      {...provided.droppableProps}
-                                      ref={provided.innerRef}
-                                      className="space-y-2"
-                                    >
-                                      {selectedCities.map((city, index) => (
-                                        <Draggable
-                                          key={city}
-                                          draggableId={city}
-                                          index={index}
-                                        >
-                                          {(provided) => (
-                                            <div
-                                              ref={provided.innerRef}
-                                              {...provided.draggableProps}
-                                              className="flex items-center gap-3 p-3 bg-gradient-to-r from-green-100 to-emerald-100 rounded-xl border shadow-sm hover:shadow-md transition-all"
-                                            >
-                                              <div
-                                                {...provided.dragHandleProps}
-                                              >
-                                                <GripVertical
-                                                  size={16}
-                                                  className="text-slate-400 hover:text-slate-600"
-                                                />
-                                              </div>
-                                              <span className="text-sm font-bold text-green-700 bg-white px-2 py-1 rounded-full">
-                                                #{index + 1}
-                                              </span>
-                                              <span className="flex-1 text-sm font-medium text-slate-700">
-                                                {city}
-                                              </span>
-                                              <Button
-                                                type="button"
-                                                size="sm"
-                                                variant="ghost"
-                                                onClick={() => removeCity(city)}
-                                                className="h-8 w-8 p-0 text-red-500 hover:bg-red-100 rounded-full"
-                                              >
-                                                <X size={14} />
-                                              </Button>
-                                            </div>
-                                          )}
-                                        </Draggable>
-                                      ))}
-                                      {provided.placeholder}
-                                    </div>
-                                  )}
-                                </Droppable>
-                              </DragDropContext>
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="text-center py-8 text-slate-500">
-                            <MapPin
-                              size={32}
-                              className="mx-auto mb-2 opacity-50"
-                            />
-                            <p>Pick your favorite cities!</p>
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
+          {/* Confirmed Selection Display - Collapsible */}
+          {isConfirmed && selectedCollege && (
+            <Card className="border-green-200 bg-green-50">
+              <CardHeader
+                className="cursor-pointer hover:bg-green-100/50 transition-colors"
+                onClick={() =>
+                  setIsCollegeCardCollapsed(!isCollegeCardCollapsed)
+                }
+              >
+                <CardTitle className="text-lg text-green-800 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Check className="w-5 h-5" />
+                    Round 1 College Selected
                   </div>
-
-                  {/* Action Buttons for editing */}
-                  <div className="flex gap-2 pt-4 border-t border-blue-200">
-                    <Button
-                      onClick={handleUpdatePreferences}
-                      disabled={isUpdatingPreferences}
-                      className="bg-blue-600 hover:bg-blue-700"
-                    >
-                      {isUpdatingPreferences
-                        ? "Updating..."
-                        : "Update Preferences"}
-                    </Button>
+                  <div className="flex items-center gap-2">
                     <Button
                       variant="outline"
-                      onClick={() => {
-                        setEditingPreferences(false);
-                        loadPreferencesFromFormData(); // Reset to original values
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEditSelection();
                       }}
+                      disabled={
+                        hasGeneratedRecommendations &&
+                        round2Recommendations.length > 0
+                      }
+                      className="text-orange-600 border-orange-300 hover:bg-orange-50"
                     >
-                      Cancel
+                      Edit Selection
                     </Button>
+                    {isCollegeCardCollapsed ? (
+                      <ChevronDown className="w-5 h-5 text-green-600" />
+                    ) : (
+                      <ChevronUp className="w-5 h-5 text-green-600" />
+                    )}
                   </div>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  <div>
-                    <Label className="text-sm font-medium text-blue-800">
-                      Selected Engineering Branches:
-                    </Label>
-                    <div className="flex flex-wrap gap-1 mt-1">
-                      {selectedBranches.length > 0 ? (
-                        selectedBranches.map((branch) => (
-                          <Badge
-                            key={branch}
-                            variant="secondary"
-                            className="text-xs"
-                          >
-                            {branch}
-                          </Badge>
-                        ))
-                      ) : (
-                        <span className="text-sm text-blue-600 italic">
-                          No branches selected
-                        </span>
-                      )}
+                </CardTitle>
+              </CardHeader>
+              {!isCollegeCardCollapsed && (
+                <CardContent className="space-y-3">
+                  <div className="space-y-2">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+                      <span className="font-medium text-sm">College:</span>
+                      <span className="text-sm text-green-700 sm:text-right">
+                        {selectedCollege.college.College_Name}
+                      </span>
+                    </div>
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+                      <span className="font-medium text-sm">City:</span>
+                      <span className="text-sm text-green-700">
+                        {selectedCollege.college.City}
+                      </span>
+                    </div>
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+                      <span className="font-medium text-sm">Department:</span>
+                      <Badge variant="secondary" className="w-fit">
+                        {selectedCollege.selectedDepartment.course_name}
+                      </Badge>
+                    </div>
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+                      <span className="font-medium text-sm">
+                        {localStorage.getItem("selected_state") === "Karnataka"
+                          ? "College Code:"
+                          : "Choice Code:"}
+                      </span>
+                      <code className="px-2 py-1 bg-green-100 rounded text-sm w-fit">
+                        {localStorage.getItem("selected_state") === "Karnataka"
+                          ? selectedCollege.college.College_code
+                          : selectedCollege.selectedDepartment.choice_code}
+                      </code>
                     </div>
                   </div>
-
-                  <div>
-                    <Label className="text-sm font-medium text-blue-800">
-                      Preferred Cities:
-                    </Label>
-                    <div className="flex flex-wrap gap-1 mt-1">
-                      {selectedCities.length > 0 ? (
-                        selectedCities.map((city) => (
-                          <Badge
-                            key={city}
-                            variant="secondary"
-                            className="text-xs"
-                          >
-                            {city}
-                          </Badge>
-                        ))
-                      ) : (
-                        <Badge variant="secondary" className="text-xs">
-                          ALL
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-                </div>
+                </CardContent>
               )}
-            </CardContent>
+            </Card>
           )}
-        </Card>
-      )}
 
-      {/* Generate Round 2 Recommendations Button - Only show if no recommendations generated */}
-      {showPreferences &&
-        !editingPreferences &&
-        selectedBranches.length > 0 &&
-        (!hasGeneratedRecommendations ||
-          round2Recommendations.length === 0) && (
-          <div className="flex justify-center pt-6">
-            <Button
-              onClick={handleGenerateRecommendations}
-              disabled={isGeneratingRecommendations}
-              className="px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 hover:shadow-xl transition-all duration-200 text-white font-bold text-base rounded-xl min-w-[200px]"
-              size="default"
-            >
-              <Sparkles className="w-5 h-5 mr-2" />
-              {isGeneratingRecommendations
-                ? "Generating..."
-                : "Generate Round 2 Recommendations"}
-            </Button>
-          </div>
-        )}
-
-      {/* Round 2 Recommendations Display */}
-      {hasGeneratedRecommendations && round2Recommendations.length > 0 && (
-        <div className="space-y-6">
-          {/* Generate New Recommendations Button */}
-          <div className="flex justify-center pt-6">
-            <Button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleRestRecommendation();
-              }}
-              variant="outline"
-              className="px-6 py-2"
-            >
-              Generate New Recommendations
-            </Button>
-          </div>
-          <div className="text-center">
-            <h3 className="text-2xl font-bold text-foreground mb-2">
-              Round 2 College Recommendations
-            </h3>
-            <p className="text-muted-foreground">
-              Based on your Round 1 selection and preferences, here are your
-              Round 2 options
-            </p>
-          </div>
-
-          {/* Results Summary and Download */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
-            <div className="text-center sm:text-left">
-              <p className="text-lg text-gray-600">
-                Found{" "}
-                <span className="font-semibold text-blue-600">
-                  {categorizedRecommendations.length}
-                </span>{" "}
-                college recommendations
-                {activeCategory !== "All" && ` in ${activeCategory} category`}
-              </p>
-            </div>
-
-            <Button
-              onClick={handleDownloadPDF}
-              disabled={!isUnlocked || isPdfGenerating}
-              className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg min-h-[44px] touch-manipulation"
-            >
-              <span className="text-sm font-medium">
-                {isPdfGenerating
-                  ? "Generating..."
-                  : isUnlocked
-                    ? "Download PDF"
-                    : "Unlock to Download"}
-              </span>
-            </Button>
-          </div>
-
-          {/* Recommendations List */}
-          {isUnlocked ? (
-            <div className="space-y-4">
-              {categorizedRecommendations.map((recommendation, index) => {
-                // Add debugging and safety checks
-                if (
-                  !recommendation ||
-                  !recommendation.college ||
-                  !recommendation.college.name
-                ) {
-                  console.error("Invalid recommendation data:", recommendation);
-                  return null;
+          {/* Preferences Section - Collapsible */}
+          {showPreferences && (
+            <Card className="border-blue-200 bg-blue-50">
+              <CardHeader
+                className="cursor-pointer hover:bg-blue-100/50 transition-colors"
+                onClick={() =>
+                  setIsPreferencesCardCollapsed(!isPreferencesCardCollapsed)
                 }
+              >
+                <CardTitle className="text-lg text-blue-800 flex items-center justify-between">
+                  <span>Round 2 Preferences</span>
+                  <div className="flex items-center gap-2">
+                    {!editingPreferences && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setEditingPreferences(true);
+                          if (isPreferencesCardCollapsed) {
+                            setIsPreferencesCardCollapsed(false);
+                          }
+                        }}
+                        disabled={
+                          hasGeneratedRecommendations &&
+                          round2Recommendations.length > 0
+                        }
+                        className="text-blue-600 border-blue-300 hover:bg-blue-100"
+                      >
+                        Edit Preferences
+                      </Button>
+                    )}
+                    {isPreferencesCardCollapsed ? (
+                      <ChevronDown className="w-5 h-5 text-blue-600" />
+                    ) : (
+                      <ChevronUp className="w-5 h-5 text-blue-600" />
+                    )}
+                  </div>
+                </CardTitle>
+              </CardHeader>
+              {!isPreferencesCardCollapsed && (
+                <CardContent className="space-y-4">
+                  {editingPreferences ? (
+                    <div className="space-y-6">
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <Card className="border-0 shadow-lg bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl">
+                          <CardHeader className="pb-6">
+                            <CardTitle className="text-xl font-bold text-slate-800 flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center">
+                                <BookOpen className="text-white" size={20} />
+                              </div>
+                              Engineering Branches
+                              <span className="text-red-500">*</span>
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent className="space-y-6">
+                            <SearchableSelect
+                              options={availableBranches
+                                .filter(
+                                  (branch) =>
+                                    !selectedBranches.includes(branch),
+                                )
+                                .map((branch) => ({
+                                  value: branch,
+                                  label: branch,
+                                }))}
+                              value=""
+                              onValueChange={addBranch}
+                              placeholder="Add your favorite engineering branches"
+                              searchPlaceholder="Search branches..."
+                              className="w-full"
+                              disabled={selectedBranches.includes("ALL")}
+                            />
 
-                return (
-                  <RecommendationCard
-                    key={`${recommendation.college?.SJ_Institute_Code || recommendation.college?.id}-${recommendation.course_name}-${index}`}
-                    recommendation={recommendation}
-                    index={index + 1}
-                  />
-                );
-              })}
-            </div>
-          ) : (
-            <div className="relative">
-              {/* Blurred preview cards */}
-              <div className="space-y-4 opacity-30 blur-sm pointer-events-none">
-                {categorizedRecommendations
-                  .slice(0, 3)
-                  .map((recommendation, index) => {
+                            {selectedBranches.length > 0 ? (
+                              <div className="space-y-3">
+                                <p className="text-sm font-medium text-slate-600 flex items-center gap-2">
+                                  🎯 Your Preferences (drag to reorder by
+                                  priority):
+                                </p>
+                                <div
+                                  className={`border-2 rounded-xl p-3 bg-white ${selectedBranches.length > 5 ? "max-h-80 overflow-y-auto" : ""}`}
+                                >
+                                  <DragDropContext
+                                    onDragEnd={handleBranchDragEnd}
+                                  >
+                                    <Droppable droppableId="branches">
+                                      {(provided) => (
+                                        <div
+                                          {...provided.droppableProps}
+                                          ref={provided.innerRef}
+                                          className="space-y-2"
+                                        >
+                                          {selectedBranches.map(
+                                            (branch, index) => (
+                                              <Draggable
+                                                key={branch}
+                                                draggableId={branch}
+                                                index={index}
+                                              >
+                                                {(provided) => (
+                                                  <div
+                                                    ref={provided.innerRef}
+                                                    {...provided.draggableProps}
+                                                    className="flex items-center gap-3 p-3 bg-gradient-to-r from-purple-100 to-pink-100 rounded-xl border shadow-sm hover:shadow-md transition-all"
+                                                  >
+                                                    <div
+                                                      {...provided.dragHandleProps}
+                                                    >
+                                                      <GripVertical
+                                                        size={16}
+                                                        className="text-slate-400 hover:text-slate-600"
+                                                      />
+                                                    </div>
+                                                    <span className="text-sm font-bold text-purple-700 bg-white px-2 py-1 rounded-full">
+                                                      #{index + 1}
+                                                    </span>
+                                                    <span className="flex-1 text-sm font-medium text-slate-700">
+                                                      {branch}
+                                                    </span>
+                                                    <Button
+                                                      type="button"
+                                                      size="sm"
+                                                      variant="ghost"
+                                                      onClick={() =>
+                                                        removeBranch(branch)
+                                                      }
+                                                      className="h-8 w-8 p-0 text-red-500 hover:bg-red-100 rounded-full"
+                                                    >
+                                                      <X size={14} />
+                                                    </Button>
+                                                  </div>
+                                                )}
+                                              </Draggable>
+                                            ),
+                                          )}
+                                          {provided.placeholder}
+                                        </div>
+                                      )}
+                                    </Droppable>
+                                  </DragDropContext>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="text-center py-8 text-slate-500">
+                                <BookOpen
+                                  size={32}
+                                  className="mx-auto mb-2 opacity-50"
+                                />
+                                <p>Select your dream engineering branches!</p>
+                              </div>
+                            )}
+                          </CardContent>
+                        </Card>
+
+                        <Card className="border-0 shadow-lg bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl">
+                          <CardHeader className="pb-6">
+                            <CardTitle className="text-xl font-bold text-slate-800 flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-green-500 to-emerald-500 flex items-center justify-center">
+                                <MapPin className="text-white" size={20} />
+                              </div>
+                              Preferred Cities
+                              <span className="text-xs text-slate-500 font-normal ml-2">
+                                (Optional)
+                              </span>
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent className="space-y-6">
+                            <SearchableSelect
+                              options={availableCities
+                                .filter(
+                                  (city) => !selectedCities.includes(city),
+                                )
+                                .map((city) => ({ value: city, label: city }))}
+                              value=""
+                              onValueChange={addCity}
+                              placeholder="Add cities you'd love to study in"
+                              searchPlaceholder="Search cities..."
+                              className="w-full"
+                              disabled={selectedCities.includes("ALL")}
+                            />
+
+                            {selectedCities.length > 0 ? (
+                              <div className="space-y-3">
+                                <p className="text-sm font-medium text-slate-600 flex items-center gap-2">
+                                  🗺️ Your Preferences (drag to reorder by
+                                  priority):
+                                </p>
+                                <div
+                                  className={`border-2 rounded-xl p-3 bg-white ${selectedCities.length > 5 ? "max-h-80 overflow-y-auto" : ""}`}
+                                >
+                                  <DragDropContext
+                                    onDragEnd={handleCityDragEnd}
+                                  >
+                                    <Droppable droppableId="cities">
+                                      {(provided) => (
+                                        <div
+                                          {...provided.droppableProps}
+                                          ref={provided.innerRef}
+                                          className="space-y-2"
+                                        >
+                                          {selectedCities.map((city, index) => (
+                                            <Draggable
+                                              key={city}
+                                              draggableId={city}
+                                              index={index}
+                                            >
+                                              {(provided) => (
+                                                <div
+                                                  ref={provided.innerRef}
+                                                  {...provided.draggableProps}
+                                                  className="flex items-center gap-3 p-3 bg-gradient-to-r from-green-100 to-emerald-100 rounded-xl border shadow-sm hover:shadow-md transition-all"
+                                                >
+                                                  <div
+                                                    {...provided.dragHandleProps}
+                                                  >
+                                                    <GripVertical
+                                                      size={16}
+                                                      className="text-slate-400 hover:text-slate-600"
+                                                    />
+                                                  </div>
+                                                  <span className="text-sm font-bold text-green-700 bg-white px-2 py-1 rounded-full">
+                                                    #{index + 1}
+                                                  </span>
+                                                  <span className="flex-1 text-sm font-medium text-slate-700">
+                                                    {city}
+                                                  </span>
+                                                  <Button
+                                                    type="button"
+                                                    size="sm"
+                                                    variant="ghost"
+                                                    onClick={() =>
+                                                      removeCity(city)
+                                                    }
+                                                    className="h-8 w-8 p-0 text-red-500 hover:bg-red-100 rounded-full"
+                                                  >
+                                                    <X size={14} />
+                                                  </Button>
+                                                </div>
+                                              )}
+                                            </Draggable>
+                                          ))}
+                                          {provided.placeholder}
+                                        </div>
+                                      )}
+                                    </Droppable>
+                                  </DragDropContext>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="text-center py-8 text-slate-500">
+                                <MapPin
+                                  size={32}
+                                  className="mx-auto mb-2 opacity-50"
+                                />
+                                <p>Pick your favorite cities!</p>
+                              </div>
+                            )}
+                          </CardContent>
+                        </Card>
+                      </div>
+
+                      {/* Action Buttons for editing */}
+                      <div className="flex gap-2 pt-4 border-t border-blue-200">
+                        <Button
+                          onClick={handleUpdatePreferences}
+                          disabled={isUpdatingPreferences}
+                          className="bg-blue-600 hover:bg-blue-700"
+                        >
+                          {isUpdatingPreferences
+                            ? "Updating..."
+                            : "Update Preferences"}
+                        </Button>
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            setEditingPreferences(false);
+                            loadPreferencesFromFormData(); // Reset to original values
+                          }}
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      <div>
+                        <Label className="text-sm font-medium text-blue-800">
+                          Selected Engineering Branches:
+                        </Label>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {selectedBranches.length > 0 ? (
+                            selectedBranches.map((branch) => (
+                              <Badge
+                                key={branch}
+                                variant="secondary"
+                                className="text-xs"
+                              >
+                                {branch}
+                              </Badge>
+                            ))
+                          ) : (
+                            <span className="text-sm text-blue-600 italic">
+                              No branches selected
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div>
+                        <Label className="text-sm font-medium text-blue-800">
+                          Preferred Cities:
+                        </Label>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {selectedCities.length > 0 ? (
+                            selectedCities.map((city) => (
+                              <Badge
+                                key={city}
+                                variant="secondary"
+                                className="text-xs"
+                              >
+                                {city}
+                              </Badge>
+                            ))
+                          ) : (
+                            <Badge variant="secondary" className="text-xs">
+                              ALL
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              )}
+            </Card>
+          )}
+
+          {/* Generate Round 2 Recommendations Button - Only show if no recommendations generated */}
+          {showPreferences &&
+            !editingPreferences &&
+            selectedBranches.length > 0 &&
+            (!hasGeneratedRecommendations ||
+              round2Recommendations.length === 0) && (
+              <div className="flex justify-center pt-6">
+                <Button
+                  onClick={handleGenerateRecommendations}
+                  disabled={isGeneratingRecommendations}
+                  className="px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 hover:shadow-xl transition-all duration-200 text-white font-bold text-base rounded-xl min-w-[200px]"
+                  size="default"
+                >
+                  <Sparkles className="w-5 h-5 mr-2" />
+                  {isGeneratingRecommendations
+                    ? "Generating..."
+                    : "Generate Round 2 Recommendations"}
+                </Button>
+              </div>
+            )}
+
+          {/* Round 2 Recommendations Display */}
+          {hasGeneratedRecommendations && round2Recommendations.length > 0 && (
+            <div className="space-y-6">
+              {/* Generate New Recommendations Button */}
+              <div className="flex justify-center pt-6">
+                <Button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleRestRecommendation();
+                  }}
+                  variant="outline"
+                  className="px-6 py-2"
+                >
+                  Generate New Recommendations
+                </Button>
+              </div>
+              <div className="text-center">
+                <h3 className="text-2xl font-bold text-foreground mb-2">
+                  Round 2 College Recommendations
+                </h3>
+                <p className="text-muted-foreground">
+                  Based on your Round 1 selection and preferences, here are your
+                  Round 2 options
+                </p>
+              </div>
+
+              {/* Results Summary and Download */}
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
+                <div className="text-center sm:text-left">
+                  <p className="text-lg text-gray-600">
+                    Found{" "}
+                    <span className="font-semibold text-blue-600">
+                      {categorizedRecommendations.length}
+                    </span>{" "}
+                    college recommendations
+                    {activeCategory !== "All" &&
+                      ` in ${activeCategory} category`}
+                  </p>
+                </div>
+
+                <Button
+                  onClick={handleDownloadPDF}
+                  disabled={!isUnlocked || isPdfGenerating}
+                  className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg min-h-[44px] touch-manipulation"
+                >
+                  <span className="text-sm font-medium">
+                    {isPdfGenerating
+                      ? "Generating..."
+                      : isUnlocked
+                        ? "Download PDF"
+                        : "Unlock to Download"}
+                  </span>
+                </Button>
+              </div>
+
+              {/* Recommendations List */}
+              {isUnlocked ? (
+                <div className="space-y-4">
+                  {categorizedRecommendations.map((recommendation, index) => {
+                    // Add debugging and safety checks
                     if (
                       !recommendation ||
                       !recommendation.college ||
                       !recommendation.college.name
                     ) {
+                      console.error(
+                        "Invalid recommendation data:",
+                        recommendation,
+                      );
                       return null;
                     }
 
                     return (
                       <RecommendationCard
-                        key={`preview-${recommendation.college?.College_Code || recommendation.college?.id}-${index}`}
+                        key={`${recommendation.college?.SJ_Institute_Code || recommendation.college?.id}-${recommendation.course_name}-${index}`}
                         recommendation={recommendation}
                         index={index + 1}
                       />
                     );
                   })}
-              </div>
-
-              {/* Premium Gate for Round 2 */}
-              <div className="absolute inset-0 flex items-center justify-center">
-                <PremiumGate
-                  onUnlock={() => setIsUnlocked(true)}
-                  storageKey="recommendationUnlocked"
-                  productType={
-                    localStorage.getItem("selected_state") === "Karnataka"
-                      ? "karnataka-engineering-recommendations"
-                      : "future-bridge"
-                  }
-                  title="Unlock Round 2 Recommendations"
-                  description="Get access to all round recommendations including Round 2 counselling guidance."
-                />
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Round 2 Recommendations Display */}
-      {hasGeneratedRecommendations && round2Recommendations.length <= 0 && (
-        <>
-          <NoResultsState />
-        </>
-      )}
-
-      {/* Header - Only show if not confirmed */}
-      {!isConfirmed && (
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-foreground mb-2">
-            Round 2 College Selection
-          </h2>
-          <p className="text-muted-foreground">
-            Search and select the college you received in Round 1 for Round 2
-            counselling
-          </p>
-        </div>
-      )}
-
-      {/* Search Section - Only show if not confirmed */}
-      {!isConfirmed && !skipRound1Selection && (
-        <>
-          <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
-            <CardContent className="p-6 text-center">
-              <div className="space-y-4">
-                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
-                  <Plus className="w-6 h-6 text-blue-600" />
                 </div>
-                <div className="space-y-2">
-                  <h3 className="text-lg font-semibold text-gray-800">
-                    Create New Round 2 List
-                  </h3>
-                  <p className="text-sm text-gray-600 max-w-md mx-auto">
-                    Don't have Round 1 details? Start fresh with a new Round 2
-                    recommendation list based on your preferences.
-                  </p>
-                </div>
-                <Button
-                  onClick={handleCreateNewList}
-                  className="bg-blue-600 hover:bg-blue-700"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Create New List
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-          {/* OR Create New List Option */}
-          <div className="flex items-center gap-4">
-            <div className="flex-1 h-px bg-border"></div>
-            <span className="text-sm text-muted-foreground bg-background px-3">
-              OR
-            </span>
-            <div className="flex-1 h-px bg-border"></div>
-          </div>
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">
-                Search Your Round 1 College
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="search-type">Search Type</Label>
-                  <Select
-                    value={searchType}
-                    onValueChange={(value: any) => setSearchType(value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select search type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {searchTypeOptions.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+              ) : (
+                <div className="relative">
+                  {/* Blurred preview cards */}
+                  <div className="space-y-4 opacity-30 blur-sm pointer-events-none">
+                    {categorizedRecommendations
+                      .slice(0, 3)
+                      .map((recommendation, index) => {
+                        if (
+                          !recommendation ||
+                          !recommendation.college ||
+                          !recommendation.college.name
+                        ) {
+                          return null;
+                        }
 
-                <div className="space-y-2">
-                  <Label htmlFor="search-value">
-                    {searchType === "choice_code"
-                      ? "Choice Code"
-                      : searchType === "college_name"
-                        ? "College Name"
-                        : "College Code"}
-                  </Label>
-                  <div className="flex gap-2">
-                    <Input
-                      id="search-value"
-                      value={searchValue}
-                      onChange={(e) => setSearchValue(e.target.value)}
-                      placeholder={
-                        searchType === "choice_code"
-                          ? "Enter choice code (e.g., 211626310 or 1234U)"
-                          : searchType === "college_name"
-                            ? "Enter college name"
-                            : localStorage.getItem("selected_state") ===
-                                "Karnataka"
-                              ? "Enter college code (e.g., E184)"
-                              : "Enter college code (e.g., 1146)"
+                        return (
+                          <RecommendationCard
+                            key={`preview-${recommendation.college?.College_Code || recommendation.college?.id}-${index}`}
+                            recommendation={recommendation}
+                            index={index + 1}
+                          />
+                        );
+                      })}
+                  </div>
+
+                  {/* Premium Gate for Round 2 */}
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <PremiumGate
+                      onUnlock={() => setIsUnlocked(true)}
+                      storageKey="recommendationUnlocked"
+                      productType={
+                        localStorage.getItem("selected_state") === "Karnataka"
+                          ? "karnataka-engineering-recommendations"
+                          : "future-bridge"
                       }
-                      type={
-                        searchType === "college_name" ||
-                        (localStorage.getItem("selected_state") ===
-                          "Karnataka" &&
-                          searchType === "college_code")
-                          ? "text"
-                          : "number"
-                      }
-                      onKeyPress={(e) => e.key === "Enter" && handleSearch()}
+                      title="Unlock Round 2 Recommendations"
+                      description="Get access to all round recommendations including Round 2 counselling guidance."
                     />
-                    <Button onClick={handleSearch} disabled={isSearching}>
-                      <Search className="w-4 h-4 mr-2" />
-                      {isSearching ? "Searching..." : "Search"}
-                    </Button>
                   </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              )}
+            </div>
+          )}
 
-          {/* Search Results */}
-          {searchResults.length > 0 && (
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Search Results</h3>
-              {searchResults.map((college, index) => (
-                <Card
-                  key={`${college.College_code}-${index}`}
-                  className="hover:shadow-md transition-shadow"
-                >
-                  <CardContent className="p-6">
-                    <div className="space-y-4">
-                      {/* College Info */}
-                      <div className="space-y-2">
-                        <div className="flex items-start justify-between gap-4">
-                          <div className="flex-1">
-                            <h4 className="text-lg font-semibold text-foreground">
-                              {college.College_Name}
-                            </h4>
-                            <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
-                              <div className="flex items-center gap-1">
-                                <MapPin className="w-4 h-4" />
-                                {college.City}
+          {/* Round 2 Recommendations Display */}
+          {hasGeneratedRecommendations && round2Recommendations.length <= 0 && (
+            <>
+              <NoResultsState />
+            </>
+          )}
+
+          {/* Header - Only show if not confirmed */}
+          {!isConfirmed && (
+            <div className="text-center">
+              <h2 className="text-2xl font-bold text-foreground mb-2">
+                Round 2 College Selection
+              </h2>
+              <p className="text-muted-foreground">
+                Search and select the college you received in Round 1 for Round
+                2 counselling
+              </p>
+            </div>
+          )}
+
+          {/* Search Section - Only show if not confirmed */}
+          {!isConfirmed && !skipRound1Selection && (
+            <>
+              <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
+                <CardContent className="p-6 text-center">
+                  <div className="space-y-4">
+                    <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
+                      <Plus className="w-6 h-6 text-blue-600" />
+                    </div>
+                    <div className="space-y-2">
+                      <h3 className="text-lg font-semibold text-gray-800">
+                        Create New Round 2 List
+                      </h3>
+                      <p className="text-sm text-gray-600 max-w-md mx-auto">
+                        Don't have Round 1 details? Start fresh with a new Round
+                        2 recommendation list based on your preferences.
+                      </p>
+                    </div>
+                    <Button
+                      onClick={handleCreateNewList}
+                      className="bg-blue-600 hover:bg-blue-700"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Create New List
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+              {/* OR Create New List Option */}
+              <div className="flex items-center gap-4">
+                <div className="flex-1 h-px bg-border"></div>
+                <span className="text-sm text-muted-foreground bg-background px-3">
+                  OR
+                </span>
+                <div className="flex-1 h-px bg-border"></div>
+              </div>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">
+                    Search Your Round 1 College
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label htmlFor="search-type">Search Type</Label>
+                      <Select
+                        value={searchType}
+                        onValueChange={(value: any) => setSearchType(value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select search type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {searchTypeOptions.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="search-value">
+                        {searchType === "choice_code"
+                          ? "Choice Code"
+                          : searchType === "college_name"
+                            ? "College Name"
+                            : "College Code"}
+                      </Label>
+                      <div className="flex gap-2">
+                        <Input
+                          id="search-value"
+                          value={searchValue}
+                          onChange={(e) => setSearchValue(e.target.value)}
+                          placeholder={
+                            searchType === "choice_code"
+                              ? "Enter choice code (e.g., 211626310 or 1234U)"
+                              : searchType === "college_name"
+                                ? "Enter college name"
+                                : localStorage.getItem("selected_state") ===
+                                    "Karnataka"
+                                  ? "Enter college code (e.g., E184)"
+                                  : "Enter college code (e.g., 1146)"
+                          }
+                          type={
+                            searchType === "college_name" ||
+                            (localStorage.getItem("selected_state") ===
+                              "Karnataka" &&
+                              searchType === "college_code")
+                              ? "text"
+                              : "number"
+                          }
+                          onKeyPress={(e) =>
+                            e.key === "Enter" && handleSearch()
+                          }
+                        />
+                        <Button onClick={handleSearch} disabled={isSearching}>
+                          <Search className="w-4 h-4 mr-2" />
+                          {isSearching ? "Searching..." : "Search"}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Search Results */}
+              {searchResults.length > 0 && (
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold">Search Results</h3>
+                  {searchResults.map((college, index) => (
+                    <Card
+                      key={`${college.College_code}-${index}`}
+                      className="hover:shadow-md transition-shadow"
+                    >
+                      <CardContent className="p-6">
+                        <div className="space-y-4">
+                          {/* College Info */}
+                          <div className="space-y-2">
+                            <div className="flex items-start justify-between gap-4">
+                              <div className="flex-1">
+                                <h4 className="text-lg font-semibold text-foreground">
+                                  {college.College_Name}
+                                </h4>
+                                <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
+                                  <div className="flex items-center gap-1">
+                                    <MapPin className="w-4 h-4" />
+                                    {college.City}
+                                  </div>
+                                  <div className="flex items-center gap-1">
+                                    <Building2 className="w-4 h-4" />
+                                    Code: {college.College_code}
+                                  </div>
+                                  {college.College_Website && (
+                                    <a
+                                      href={college.College_Website}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="flex items-center gap-1 text-blue-600 hover:text-blue-800"
+                                    >
+                                      <Globe className="w-4 h-4" />
+                                      Website
+                                    </a>
+                                  )}
+                                </div>
                               </div>
-                              <div className="flex items-center gap-1">
-                                <Building2 className="w-4 h-4" />
-                                Code: {college.College_code}
-                              </div>
-                              {college.College_Website && (
-                                <a
-                                  href={college.College_Website}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="flex items-center gap-1 text-blue-600 hover:text-blue-800"
-                                >
-                                  <Globe className="w-4 h-4" />
-                                  Website
-                                </a>
-                              )}
                             </div>
                           </div>
+
+                          <Separator />
+
+                          {/* Departments */}
+                          {renderDepartments(college)}
                         </div>
-                      </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
 
-                      <Separator />
-
-                      {/* Departments */}
-                      {renderDepartments(college)}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+              {/* Help Text */}
+              <Card className="bg-blue-50 border-blue-200">
+                <CardContent className="p-4">
+                  <div className="text-sm text-blue-800">
+                    <p className="font-medium mb-2">💡 Tips for searching:</p>
+                    <ul className="space-y-1 list-disc list-inside text-blue-700">
+                      <li>
+                        <strong>Choice Code:</strong> Use the exact choice code
+                        from your Round 1 allotment
+                      </li>
+                      <li>
+                        <strong>College Name:</strong> You can search with
+                        partial names
+                      </li>
+                      <li>
+                        <strong>College Code:</strong> Use the official college
+                        code from your documents
+                      </li>
+                    </ul>
+                  </div>
+                </CardContent>
+              </Card>
+            </>
           )}
 
-          {/* Help Text */}
-          <Card className="bg-blue-50 border-blue-200">
-            <CardContent className="p-4">
-              <div className="text-sm text-blue-800">
-                <p className="font-medium mb-2">💡 Tips for searching:</p>
-                <ul className="space-y-1 list-disc list-inside text-blue-700">
-                  <li>
-                    <strong>Choice Code:</strong> Use the exact choice code from
-                    your Round 1 allotment
-                  </li>
-                  <li>
-                    <strong>College Name:</strong> You can search with partial
-                    names
-                  </li>
-                  <li>
-                    <strong>College Code:</strong> Use the official college code
-                    from your documents
-                  </li>
-                </ul>
-              </div>
-            </CardContent>
-          </Card>
+          {/* Selection Dialog */}
+          <Dialog
+            open={showSelectionDialog}
+            onOpenChange={setShowSelectionDialog}
+          >
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>Confirm Your Selection</DialogTitle>
+                <DialogDescription>
+                  Please review your Round 1 college selection details.
+                </DialogDescription>
+              </DialogHeader>
+
+              {selectedCollege && (
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <div className="flex flex-col space-y-1">
+                      <span className="font-medium text-sm">College:</span>
+                      <span className="text-sm text-muted-foreground">
+                        {selectedCollege.college.College_Name}
+                      </span>
+                    </div>
+                    <div className="flex flex-col space-y-1">
+                      <span className="font-medium text-sm">City:</span>
+                      <span className="text-sm text-muted-foreground">
+                        {selectedCollege.college.City}
+                      </span>
+                    </div>
+                    <div className="flex flex-col space-y-1">
+                      <span className="font-medium text-sm">Department:</span>
+                      <Badge variant="secondary" className="w-fit">
+                        {selectedCollege.selectedDepartment.course_name}
+                      </Badge>
+                    </div>
+                    <div className="flex flex-col space-y-1">
+                      <span className="font-medium text-sm">
+                        {localStorage.getItem("selected_state") === "Karnataka"
+                          ? "College Code"
+                          : "Choice Code"}
+                        :
+                      </span>
+                      <code className="px-2 py-1 bg-muted rounded text-sm w-fit">
+                        {localStorage.getItem("selected_state") === "Karnataka"
+                          ? selectedCollege.college.College_code
+                          : selectedCollege.selectedDepartment.choice_code}
+                      </code>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowSelectionDialog(false)}
+                >
+                  Cancel
+                </Button>
+                <Button onClick={handleConfirmSelection}>
+                  Confirm Selection
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          {/* Final Confirmation Dialog */}
+          <AlertDialog
+            open={showFinalConfirmation}
+            onOpenChange={setShowFinalConfirmation}
+          >
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>
+                  Confirm Round 1 College Details?
+                </AlertDialogTitle>
+                <AlertDialogDescription>
+                  Based on this selection, your Round 2 recommendation list will
+                  be generated when you complete the preference settings. This
+                  will help you find the best available options for your next
+                  round of counselling.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleFinalConfirm}>
+                  Confirm Details
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+
+          {/* Edit Confirmation Dialog */}
+          <AlertDialog
+            open={showEditConfirmation}
+            onOpenChange={setShowEditConfirmation}
+          >
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Edit Selection?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Are you sure you want to edit your college selection? This
+                  will reset your current selection and any generated Round 2
+                  recommendation list will be affected.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={handleConfirmEdit}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  Yes, Edit Selection
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+
+          {/* Edit Confirmation Dialog */}
+          <AlertDialog
+            open={showEditConfirmationRecommendation}
+            onOpenChange={setShowEditConfirmationRecommendation}
+          >
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Edit Selection?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Are you sure you want to edit your Round 2 Recommendation?
+                  This will reset your current Round 2 Recommendation list and
+                  any generated Round 2 Recommendation list will be affected.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={handleRecommendationConfirmEdit}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  Yes, Edit Round 2 Recommendation
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </>
       )}
-
-      {/* Selection Dialog */}
-      <Dialog open={showSelectionDialog} onOpenChange={setShowSelectionDialog}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Confirm Your Selection</DialogTitle>
-            <DialogDescription>
-              Please review your Round 1 college selection details.
-            </DialogDescription>
-          </DialogHeader>
-
-          {selectedCollege && (
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <div className="flex flex-col space-y-1">
-                  <span className="font-medium text-sm">College:</span>
-                  <span className="text-sm text-muted-foreground">
-                    {selectedCollege.college.College_Name}
-                  </span>
-                </div>
-                <div className="flex flex-col space-y-1">
-                  <span className="font-medium text-sm">City:</span>
-                  <span className="text-sm text-muted-foreground">
-                    {selectedCollege.college.City}
-                  </span>
-                </div>
-                <div className="flex flex-col space-y-1">
-                  <span className="font-medium text-sm">Department:</span>
-                  <Badge variant="secondary" className="w-fit">
-                    {selectedCollege.selectedDepartment.course_name}
-                  </Badge>
-                </div>
-                <div className="flex flex-col space-y-1">
-                  <span className="font-medium text-sm">
-                    {localStorage.getItem("selected_state") === "Karnataka"
-                      ? "College Code"
-                      : "Choice Code"}
-                    :
-                  </span>
-                  <code className="px-2 py-1 bg-muted rounded text-sm w-fit">
-                    {localStorage.getItem("selected_state") === "Karnataka"
-                      ? selectedCollege.college.College_code
-                      : selectedCollege.selectedDepartment.choice_code}
-                  </code>
-                </div>
-              </div>
-            </div>
-          )}
-
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setShowSelectionDialog(false)}
-            >
-              Cancel
-            </Button>
-            <Button onClick={handleConfirmSelection}>Confirm Selection</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Final Confirmation Dialog */}
-      <AlertDialog
-        open={showFinalConfirmation}
-        onOpenChange={setShowFinalConfirmation}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              Confirm Round 1 College Details?
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              Based on this selection, your Round 2 recommendation list will be
-              generated when you complete the preference settings. This will
-              help you find the best available options for your next round of
-              counselling.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleFinalConfirm}>
-              Confirm Details
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      {/* Edit Confirmation Dialog */}
-      <AlertDialog
-        open={showEditConfirmation}
-        onOpenChange={setShowEditConfirmation}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Edit Selection?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to edit your college selection? This will
-              reset your current selection and any generated Round 2
-              recommendation list will be affected.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleConfirmEdit}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              Yes, Edit Selection
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      {/* Edit Confirmation Dialog */}
-      <AlertDialog
-        open={showEditConfirmationRecommendation}
-        onOpenChange={setShowEditConfirmationRecommendation}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Edit Selection?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to edit your Round 2 Recommendation? This
-              will reset your current Round 2 Recommendation list and any
-              generated Round 2 Recommendation list will be affected.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleRecommendationConfirmEdit}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              Yes, Edit Round 2 Recommendation
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 };
