@@ -228,6 +228,43 @@ const DiplomaRecommendationResults = () => {
     loadRecommendations();
   }, []);
 
+  // Effect to ensure Round 1 data is synced from API if missing locally
+  useEffect(() => {
+    const syncRound1Data = async () => {
+      // Only proceed if logged in and Round 1 data is missing
+      if (isLoggedIn && !localStorage.getItem("diploma_form_data_round_1")) {
+        try {
+          const response = await apiService.getDiplomaConfig(1);
+          if (response.success && response.data) {
+            const data = response.data as any;
+            const config =
+              data.diploma_user_config || data.configuration || data;
+
+            // Construct form data from config
+            const round1FormData = {
+              diplomaPercentage: config.cet_percentile,
+              reservationCategory: config.category,
+              gender: config.gender,
+              selectedBranches: config.cet_course,
+              selectedCities: config.location,
+            };
+
+            // Save to round-specific key
+            localStorage.setItem(
+              "diploma_form_data_round_1",
+              JSON.stringify(round1FormData),
+            );
+            console.log("Synced Round 1 data from API");
+          }
+        } catch (error) {
+          console.error("Failed to sync Round 1 data:", error);
+        }
+      }
+    };
+
+    syncRound1Data();
+  }, [isLoggedIn]);
+
   // Handle Round switching - update recommendations from cache
   useEffect(() => {
     const updateRecommendationsForRound = () => {
@@ -285,6 +322,13 @@ const DiplomaRecommendationResults = () => {
           "diplomaRecommendationFormData",
           JSON.stringify(formData),
         );
+        // Also save to persistent round-specific storage
+        if (payload.round === 1) {
+          localStorage.setItem(
+            "diploma_form_data_round_1",
+            JSON.stringify(formData),
+          );
+        }
         if (response.data.is_payment) {
           localStorage.setItem("diplomaRecommendationUnlocked", "true");
         }

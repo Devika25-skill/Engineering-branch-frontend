@@ -77,6 +77,20 @@ export const DiplomaRound2Tab = ({ onLoadComplete }: DiplomaRound2TabProps) => {
   const { user, isLoggedIn } = useAuth();
   const { toast } = useToast();
 
+  // Helper to validate selection data robustness
+  const isValidSelection = (selection: SelectedCollege | null): boolean => {
+    if (!selection) return false;
+    if (
+      !selection.college ||
+      !selection.college.College_Name ||
+      !selection.selectedDepartment ||
+      !selection.selectedDepartment.course_name
+    ) {
+      return false;
+    }
+    return true;
+  };
+
   const [searchType, setSearchType] = useState<
     "choice_code" | "college_name" | "college_code"
   >("choice_code");
@@ -230,15 +244,34 @@ export const DiplomaRound2Tab = ({ onLoadComplete }: DiplomaRound2TabProps) => {
         }
       }
 
+      // Always load preferences immediately for faster access
+      const loadedBranches = await loadPreferencesFromFormData();
+
       // Load Round 2 selection data
       const stored = localStorage.getItem("diplomaRound2Selection");
       if (stored) {
         try {
           const parsedData = JSON.parse(stored);
           setSelectedCollege(parsedData.selectedCollege);
-          setIsConfirmed(parsedData.isConfirmed);
-          if (parsedData.isConfirmed) {
-            setShowPreferences(true);
+
+          const valid = isValidSelection(parsedData.selectedCollege);
+          if (!valid) {
+            // Clean up invalid data
+            localStorage.removeItem("diplomaRound2Selection");
+            setSelectedCollege(null);
+            setIsConfirmed(false);
+          } else if (
+            parsedData.isConfirmed &&
+            (!loadedBranches || loadedBranches.length === 0)
+          ) {
+            // Valid college but no preferences -> Revert to unconfirmed/search state
+            setIsConfirmed(false);
+            setShowPreferences(false);
+          } else {
+            setIsConfirmed(parsedData.isConfirmed);
+            if (parsedData.isConfirmed) {
+              setShowPreferences(true);
+            }
           }
         } catch (error) {
           console.error("Error loading stored selection data:", error);
@@ -246,7 +279,8 @@ export const DiplomaRound2Tab = ({ onLoadComplete }: DiplomaRound2TabProps) => {
       }
 
       // Always load preferences immediately for faster access
-      await loadPreferencesFromFormData();
+      // Note: We already called loadPreferencesFromFormData at the start of this function
+      // loadedBranches contains the result.
 
       // If no localStorage data and user is logged in, try API
       if (user?.accessToken) {
@@ -279,16 +313,31 @@ export const DiplomaRound2Tab = ({ onLoadComplete }: DiplomaRound2TabProps) => {
               },
             };
 
+            // Determine if we have preferences for this API user
+            // We need to check if we found valid branches from the config load earlier
+            // Note: Api call to getDiplomaConfig(2) inside loadPreferencesFromFormData should have handled this
+            // We reuse loadedBranches from the beginning of this function scope
+
+            const hasApiPreferences =
+              loadedBranches && loadedBranches.length > 0;
+
             setSelectedCollege(fetchedSelection);
-            setIsConfirmed(true);
-            setShowPreferences(true);
+
+            if (hasApiPreferences) {
+              setIsConfirmed(true);
+              setShowPreferences(true);
+            } else {
+              // If no preferences, stay unconfirmed to show Search UI per requirement
+              setIsConfirmed(false);
+              setShowPreferences(false);
+            }
 
             // Sync to local storage
             localStorage.setItem(
               "diplomaRound2Selection",
               JSON.stringify({
                 selectedCollege: fetchedSelection,
-                isConfirmed: true,
+                isConfirmed: hasApiPreferences, // Only verify if preferences exist
               }),
             );
           }
@@ -426,6 +475,7 @@ export const DiplomaRound2Tab = ({ onLoadComplete }: DiplomaRound2TabProps) => {
   ];
 
   const loadPreferencesFromFormData = async () => {
+    let branches: string[] = [];
     try {
       // First try to get from API if user is logged in
       if (user?.accessToken) {
@@ -436,13 +486,14 @@ export const DiplomaRound2Tab = ({ onLoadComplete }: DiplomaRound2TabProps) => {
             const data = response.data as any;
             const config =
               data.diploma_user_config || data.configuration || data;
-            const branches = config.cet_course || [];
+
+            branches = config.cet_course || [];
             const cities = config.location || [];
 
             setSelectedBranches(Array.isArray(branches) ? branches : []);
             setSelectedCities(Array.isArray(cities) ? cities : []);
             setDiplomaConfig(response.data); // Save full config for later use
-            return;
+            return branches;
           }
         } catch (error) {
           console.error(
@@ -455,15 +506,18 @@ export const DiplomaRound2Tab = ({ onLoadComplete }: DiplomaRound2TabProps) => {
       const formData = recommendationStorage.getFormData();
       if (formData) {
         // For diploma, these might be different field names
-        const branches = formData.selectedBranches || [];
+        const storedBranches = formData.selectedBranches || [];
         const cities = formData.selectedCities || [];
 
-        setSelectedBranches(Array.isArray(branches) ? branches : []);
+        branches = Array.isArray(storedBranches) ? storedBranches : [];
+
+        setSelectedBranches(branches);
         setSelectedCities(Array.isArray(cities) ? cities : []);
       }
     } catch (error) {
       console.error("Error loading preferences:", error);
     }
+    return branches;
   };
 
   const handleUpdatePreferences = async () => {
@@ -498,7 +552,7 @@ export const DiplomaRound2Tab = ({ onLoadComplete }: DiplomaRound2TabProps) => {
         round: 2,
         last_round_college_choice_code:
           selectedCollege?.selectedDepartment?.choice_code || 0,
-      };
+      } as any;
 
       const response = await apiService.storeDiplomaUserConfig(payload);
 
@@ -673,6 +727,9 @@ export const DiplomaRound2Tab = ({ onLoadComplete }: DiplomaRound2TabProps) => {
           ? 0
           : selectedCollege?.selectedDepartment.choice_code || 0,
       };
+
+      // Store user config first
+      await apiService.storeDiplomaUserConfig(payload);
 
       const response = await apiService.generateDiplomaRound2List(payload);
 
@@ -1032,7 +1089,7 @@ export const DiplomaRound2Tab = ({ onLoadComplete }: DiplomaRound2TabProps) => {
       {showPreferences && <Round2Disclaimer />}
 
       {/* Confirmed Selection Display - Collapsible */}
-      {isConfirmed && selectedCollege && (
+      {isConfirmed && isValidSelection(selectedCollege) && (
         <Card className="border-green-200 bg-green-50">
           <CardHeader
             className="cursor-pointer hover:bg-green-100/50 transition-colors"
@@ -1536,7 +1593,34 @@ export const DiplomaRound2Tab = ({ onLoadComplete }: DiplomaRound2TabProps) => {
             </div>
 
             <Button
-              onClick={() => handleDownloadPDF(round2Recommendations, {})}
+              onClick={() => {
+                // Get form data for PDF details
+                let storedFormData = JSON.parse(
+                  localStorage.getItem("diploma_form_data_round_2") || "null",
+                );
+                if (!storedFormData) {
+                  storedFormData = JSON.parse(
+                    localStorage.getItem("diploma_form_data") || "{}",
+                  );
+                }
+
+                // Construct form data from current state for PDF
+                const pdfFormData = {
+                  selectedBranches: selectedBranches,
+                  selectedCities: selectedCities,
+                  diplomaPercentage:
+                    diplomaConfig?.cet_percentile ||
+                    storedFormData?.diplomaPercentage ||
+                    0,
+                  reservationCategory:
+                    diplomaConfig?.category ||
+                    storedFormData?.reservationCategory ||
+                    "GOPEN",
+                  gender:
+                    diplomaConfig?.gender || storedFormData?.gender || "male",
+                };
+                handleDownloadPDF(round2Recommendations, pdfFormData);
+              }}
               disabled={!isUnlocked || isPdfGenerating}
               className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg min-h-[44px] touch-manipulation"
             >
@@ -1620,192 +1704,194 @@ export const DiplomaRound2Tab = ({ onLoadComplete }: DiplomaRound2TabProps) => {
       )}
 
       {/* Header - Only show if not confirmed */}
-      {!isConfirmed && (
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-foreground mb-2">
-            Round 2 College Selection
-          </h2>
-          <p className="text-muted-foreground">
-            Search and select the college you received in Round 1 for Round 2
-            counselling
-          </p>
-        </div>
-      )}
+      {(!isConfirmed || !isValidSelection(selectedCollege)) &&
+        !skipRound1Selection && (
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-foreground mb-2">
+              Round 2 College Selection
+            </h2>
+            <p className="text-muted-foreground">
+              Search and select the college you received in Round 1 for Round 2
+              counselling
+            </p>
+          </div>
+        )}
 
       {/* Search Section - Only show if not confirmed */}
-      {!isConfirmed && !skipRound1Selection && (
-        <>
-          <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
-            <CardContent className="p-6 text-center">
-              <div className="space-y-4">
-                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
-                  <Plus className="w-6 h-6 text-blue-600" />
-                </div>
-                <div className="space-y-2">
-                  <h3 className="text-lg font-semibold text-gray-800">
-                    Create New Round 2 List
-                  </h3>
-                  <p className="text-sm text-gray-600 max-w-md mx-auto">
-                    Don't have Round 1 details? Start fresh with a new Round 2
-                    recommendation list based on your preferences.
-                  </p>
-                </div>
-                <Button
-                  onClick={handleCreateNewList}
-                  className="bg-blue-600 hover:bg-blue-700"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Create New List
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-          {/* OR Create New List Option */}
-          <div className="flex items-center gap-4">
-            <div className="flex-1 h-px bg-border"></div>
-            <span className="text-sm text-muted-foreground bg-background px-3">
-              OR
-            </span>
-            <div className="flex-1 h-px bg-border"></div>
-          </div>
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">
-                Search Your Round 1 College
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="search-type">Search Type</Label>
-                  <Select
-                    value={searchType}
-                    onValueChange={(value: any) => setSearchType(value)}
+      {(!isConfirmed || !isValidSelection(selectedCollege)) &&
+        !skipRound1Selection && (
+          <>
+            <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
+              <CardContent className="p-6 text-center">
+                <div className="space-y-4">
+                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
+                    <Plus className="w-6 h-6 text-blue-600" />
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="text-lg font-semibold text-gray-800">
+                      Create New Round 2 List
+                    </h3>
+                    <p className="text-sm text-gray-600 max-w-md mx-auto">
+                      Don't have Round 1 details? Start fresh with a new Round 2
+                      recommendation list based on your preferences.
+                    </p>
+                  </div>
+                  <Button
+                    onClick={handleCreateNewList}
+                    className="bg-blue-600 hover:bg-blue-700"
                   >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select search type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {searchTypeOptions.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Create New List
+                  </Button>
                 </div>
+              </CardContent>
+            </Card>
+            {/* OR Create New List Option */}
+            <div className="flex items-center gap-4">
+              <div className="flex-1 h-px bg-border"></div>
+              <span className="text-sm text-muted-foreground bg-background px-3">
+                OR
+              </span>
+              <div className="flex-1 h-px bg-border"></div>
+            </div>
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">
+                  Search Your Round 1 College
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="search-type">Search Type</Label>
+                    <Select
+                      value={searchType}
+                      onValueChange={(value: any) => setSearchType(value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select search type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {searchTypeOptions.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="search-value">
-                    {searchType === "choice_code"
-                      ? "Choice Code"
-                      : searchType === "college_name"
-                        ? "College Name"
-                        : "College Code"}
-                  </Label>
-                  <div className="flex gap-2">
-                    <Input
-                      id="search-value"
-                      value={searchValue}
-                      onChange={(e) => setSearchValue(e.target.value)}
-                      placeholder={
-                        searchType === "choice_code"
-                          ? "Enter choice code (e.g., 211626310 or 1234U)"
-                          : searchType === "college_name"
-                            ? "Enter college name"
-                            : "Enter college code (e.g., 1146)"
-                      }
-                      type={searchType === "college_code" ? "number" : "text"}
-                      onKeyPress={(e) => e.key === "Enter" && handleSearch()}
-                    />
-                    <Button onClick={handleSearch} disabled={isSearching}>
-                      <Search className="w-4 h-4 mr-2" />
-                      {isSearching ? "Searching..." : "Search"}
-                    </Button>
+                  <div className="space-y-2">
+                    <Label htmlFor="search-value">
+                      {searchType === "choice_code"
+                        ? "Choice Code"
+                        : searchType === "college_name"
+                          ? "College Name"
+                          : "College Code"}
+                    </Label>
+                    <div className="flex gap-2">
+                      <Input
+                        id="search-value"
+                        value={searchValue}
+                        onChange={(e) => setSearchValue(e.target.value)}
+                        placeholder={
+                          searchType === "choice_code"
+                            ? "Enter choice code (e.g., 211626310 or 1234U)"
+                            : searchType === "college_name"
+                              ? "Enter college name"
+                              : "Enter college code (e.g., 1146)"
+                        }
+                        type={searchType === "college_code" ? "number" : "text"}
+                        onKeyPress={(e) => e.key === "Enter" && handleSearch()}
+                      />
+                      <Button onClick={handleSearch} disabled={isSearching}>
+                        <Search className="w-4 h-4 mr-2" />
+                        {isSearching ? "Searching..." : "Search"}
+                      </Button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
 
-          {/* Search Results */}
-          {searchResults.length > 0 && (
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Search Results</h3>
-              {searchResults.map((college, index) => (
-                <Card
-                  key={`${college.College_code}-${index}`}
-                  className="hover:shadow-md transition-shadow"
-                >
-                  <CardContent className="p-6">
-                    <div className="space-y-4">
-                      {/* College Info */}
-                      <div className="space-y-2">
-                        <div className="flex items-start justify-between gap-4">
-                          <div className="flex-1">
-                            <h4 className="text-lg font-semibold text-foreground">
-                              {college.College_Name}
-                            </h4>
-                            <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
-                              <div className="flex items-center gap-1">
-                                <MapPin className="w-4 h-4" />
-                                {college.City}
+            {/* Search Results */}
+            {searchResults.length > 0 && (
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Search Results</h3>
+                {searchResults.map((college, index) => (
+                  <Card
+                    key={`${college.College_code}-${index}`}
+                    className="hover:shadow-md transition-shadow"
+                  >
+                    <CardContent className="p-6">
+                      <div className="space-y-4">
+                        {/* College Info */}
+                        <div className="space-y-2">
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex-1">
+                              <h4 className="text-lg font-semibold text-foreground">
+                                {college.College_Name}
+                              </h4>
+                              <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
+                                <div className="flex items-center gap-1">
+                                  <MapPin className="w-4 h-4" />
+                                  {college.City}
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <Building2 className="w-4 h-4" />
+                                  Code: {college.College_code}
+                                </div>
+                                {college.College_Website && (
+                                  <a
+                                    href={college.College_Website}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center gap-1 text-blue-600 hover:text-blue-800"
+                                  >
+                                    <Globe className="w-4 h-4" />
+                                    Website
+                                  </a>
+                                )}
                               </div>
-                              <div className="flex items-center gap-1">
-                                <Building2 className="w-4 h-4" />
-                                Code: {college.College_code}
-                              </div>
-                              {college.College_Website && (
-                                <a
-                                  href={college.College_Website}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="flex items-center gap-1 text-blue-600 hover:text-blue-800"
-                                >
-                                  <Globe className="w-4 h-4" />
-                                  Website
-                                </a>
-                              )}
                             </div>
                           </div>
                         </div>
+
+                        <Separator />
+
+                        {/* Departments */}
+                        {renderDepartments(college)}
                       </div>
-
-                      <Separator />
-
-                      {/* Departments */}
-                      {renderDepartments(college)}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-
-          {/* Help Text */}
-          <Card className="bg-blue-50 border-blue-200">
-            <CardContent className="p-4">
-              <div className="text-sm text-blue-800">
-                <p className="font-medium mb-2">💡 Tips for searching:</p>
-                <ul className="space-y-1 list-disc list-inside text-blue-700">
-                  <li>
-                    <strong>Choice Code:</strong> Use the exact choice code from
-                    your Round 1 allotment
-                  </li>
-                  <li>
-                    <strong>College Name:</strong> You can search with partial
-                    names
-                  </li>
-                  <li>
-                    <strong>College Code:</strong> Use the official college code
-                    from your documents
-                  </li>
-                </ul>
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
-            </CardContent>
-          </Card>
-        </>
-      )}
+            )}
+
+            {/* Help Text */}
+            <Card className="bg-blue-50 border-blue-200">
+              <CardContent className="p-4">
+                <div className="text-sm text-blue-800">
+                  <p className="font-medium mb-2">💡 Tips for searching:</p>
+                  <ul className="space-y-1 list-disc list-inside text-blue-700">
+                    <li>
+                      <strong>Choice Code:</strong> Use the exact choice code
+                      from your Round 1 allotment
+                    </li>
+                    <li>
+                      <strong>College Name:</strong> You can search with partial
+                      names
+                    </li>
+                    <li>
+                      <strong>College Code:</strong> Use the official college
+                      code from your documents
+                    </li>
+                  </ul>
+                </div>
+              </CardContent>
+            </Card>
+          </>
+        )}
 
       {/* Selection Dialog */}
       <Dialog open={showSelectionDialog} onOpenChange={setShowSelectionDialog}>
