@@ -131,133 +131,151 @@ const Index = () => {
       setIsProcessingDSE(true);
 
       try {
-        const lastActiveRound = localStorage.getItem("diploma_active_round");
+        // Sequentially check rounds as per requirement:
+        // 1. Check Round 2 Recommendations
+        // 2. If valid, navigate to Round 2
+        // 3. If not, Check Round 1 Recommendations
+        // 4. If valid, navigate to Round 1
+        // 5. If neither, navigate to Form
 
         // 1. Check Round 2 Data
-        const round2Response = await apiService.getDiplomaRoundList(2);
+        try {
+          const round2Response = await apiService.getDiplomaRoundList(2);
+          if (
+            round2Response.success &&
+            round2Response.data &&
+            (round2Response.data.Dream?.length > 0 ||
+              round2Response.data.Reach?.length > 0 ||
+              round2Response.data.Match?.length > 0 ||
+              round2Response.data.Safety?.length > 0)
+          ) {
+            console.log("Found Round 2 data, navigating to Round 2 results");
+            const converted = convertApiResponseToRecommendations(
+              round2Response.data,
+            );
+            sessionStorage.setItem(
+              "cachedDiplomaRound2Recommendations_v3",
+              JSON.stringify(converted),
+            );
+            if (round2Response.data.is_payment) {
+              localStorage.setItem("diplomaRecommendationUnlocked", "true");
+            }
 
-        // 2. Check Round 1 Data
-        const round1Response = await apiService.getDiplomaRoundList(1);
-
-        const hasRound2 = round2Response.success && round2Response.data;
-        const hasRound1 = round1Response.success && round1Response.data;
-
-        // Process Round 2 Data if available
-        if (hasRound2) {
-          const converted = convertApiResponseToRecommendations(
-            round2Response.data,
-          );
-          sessionStorage.setItem(
-            "cachedDiplomaRound2Recommendations_v3",
-            JSON.stringify(converted),
-          );
-          if (round2Response.data.is_payment) {
-            localStorage.setItem("diplomaRecommendationUnlocked", "true");
-          }
-        }
-
-        // Process Round 1 Data if available
-        if (hasRound1) {
-          const converted = convertApiResponseToRecommendations(
-            round1Response.data,
-          );
-          sessionStorage.setItem(
-            "cachedDiplomaRecommendations_v3",
-            JSON.stringify(converted),
-          );
-          if (round1Response.data.is_payment) {
-            localStorage.setItem("diplomaRecommendationUnlocked", "true");
-          }
-        }
-
-        // Determine where to navigate
-        if (hasRound2 || hasRound1) {
-          // Fetch and store config data (try Round 2 then Round 1)
-          try {
-            let configData = null;
+            // Also fetch and store config for Round 2 to have form data ready
             try {
               const c2 = await apiService.getDiplomaConfig(2);
               if (c2.success && c2.data) {
                 const data = c2.data as any;
-                configData =
+                const configData =
                   data.diploma_user_config || data.configuration || data;
-              }
-            } catch (e) {}
 
-            if (!configData) {
+                if (configData) {
+                  const formData = {
+                    diplomaPercentage:
+                      configData.cet_percentile ||
+                      configData.diploma_percentage,
+                    reservationCategory: configData.category,
+                    gender: configData.gender || "male",
+                    selectedBranches: configData.cet_course,
+                    selectedCities: configData.location,
+                  };
+                  // Store in generic and round-specific keys
+                  sessionStorage.setItem(
+                    "diplomaRecommendationFormData",
+                    JSON.stringify(formData),
+                  );
+                  localStorage.setItem(
+                    "diploma_form_data",
+                    JSON.stringify(formData),
+                  );
+                  localStorage.setItem(
+                    "diploma_form_data_round_2",
+                    JSON.stringify(formData),
+                  );
+                }
+              }
+            } catch (configErr) {
+              console.error("Failed to fetch Round 2 config", configErr);
+            }
+
+            navigate("/diploma-recommendations/results?round=2");
+            return;
+          }
+        } catch (r2Error) {
+          console.error("Error checking Round 2:", r2Error);
+          // Continue to check Round 1
+        }
+
+        // 2. Check Round 1 Data (only if Round 2 didn't return valid data)
+        try {
+          const round1Response = await apiService.getDiplomaRoundList(1);
+          if (
+            round1Response.success &&
+            round1Response.data &&
+            (round1Response.data.Dream?.length > 0 ||
+              round1Response.data.Reach?.length > 0 ||
+              round1Response.data.Match?.length > 0 ||
+              round1Response.data.Safety?.length > 0)
+          ) {
+            console.log("Found Round 1 data, navigating to Round 1 results");
+            const converted = convertApiResponseToRecommendations(
+              round1Response.data,
+            );
+            sessionStorage.setItem(
+              "cachedDiplomaRecommendations_v3",
+              JSON.stringify(converted),
+            );
+            if (round1Response.data.is_payment) {
+              localStorage.setItem("diplomaRecommendationUnlocked", "true");
+            }
+
+            // Also fetch and store config for Round 1
+            try {
               const c1 = await apiService.getDiplomaConfig(1);
               if (c1.success && c1.data) {
                 const data = c1.data as any;
-                configData =
+                const configData =
                   data.diploma_user_config || data.configuration || data;
+
+                if (configData) {
+                  const formData = {
+                    diplomaPercentage:
+                      configData.cet_percentile ||
+                      configData.diploma_percentage,
+                    reservationCategory: configData.category,
+                    gender: configData.gender || "male",
+                    selectedBranches: configData.cet_course,
+                    selectedCities: configData.location,
+                  };
+                  // Store in generic and round-specific keys
+                  sessionStorage.setItem(
+                    "diplomaRecommendationFormData",
+                    JSON.stringify(formData),
+                  );
+                  localStorage.setItem(
+                    "diploma_form_data",
+                    JSON.stringify(formData),
+                  );
+                  localStorage.setItem(
+                    "diploma_form_data_round_1",
+                    JSON.stringify(formData),
+                  );
+                }
               }
+            } catch (configErr) {
+              console.error("Failed to fetch Round 1 config", configErr);
             }
 
-            if (configData) {
-              const formData = {
-                diplomaPercentage:
-                  configData.cet_percentile || configData.diploma_percentage,
-                reservationCategory: configData.category,
-                gender: configData.gender || "male",
-                selectedBranches: configData.cet_course,
-                selectedCities: configData.location,
-              };
-              sessionStorage.setItem(
-                "diplomaRecommendationFormData",
-                JSON.stringify(formData),
-              );
-              localStorage.setItem(
-                "diploma_form_data",
-                JSON.stringify(formData),
-              );
-
-              // Also store in round-specific key if we can determine the round
-              // configData comes from data.diploma_user_config, so it might not have 'Round'
-              // But 'c2' or 'c1' response 'data' has 'Round'. We need access to that.
-
-              // However, we are inside 'if (hasRound2 || hasRound1)'.
-              // If we are navigating to round 2, use round 2 key.
-              if (lastActiveRound === "round2" && hasRound2) {
-                localStorage.setItem(
-                  "diploma_form_data_round_2",
-                  JSON.stringify(formData),
-                );
-              } else if (lastActiveRound === "round1" && hasRound1) {
-                localStorage.setItem(
-                  "diploma_form_data_round_1",
-                  JSON.stringify(formData),
-                );
-              } else if (hasRound2) {
-                localStorage.setItem(
-                  "diploma_form_data_round_2",
-                  JSON.stringify(formData),
-                );
-              } else {
-                localStorage.setItem(
-                  "diploma_form_data_round_1",
-                  JSON.stringify(formData),
-                );
-              }
-            }
-          } catch (e) {
-            console.error("Config fetch error", e);
-          }
-
-          // Navigation Logic
-          if (lastActiveRound === "round2" && hasRound2) {
-            navigate("/diploma-recommendations/results?round=2");
-          } else if (lastActiveRound === "round1" && hasRound1) {
             navigate("/diploma-recommendations/results?round=1");
-          } else if (hasRound2) {
-            navigate("/diploma-recommendations/results?round=2");
-          } else {
-            navigate("/diploma-recommendations/results?round=1");
+            return;
           }
-          return;
+        } catch (r1Error) {
+          console.error("Error checking Round 1:", r1Error);
+          // Continue to fallback
         }
 
         // 3. Fallback to Form
-        // Fetch Config and Pre-fill Form (Fallback)
+        // We'll try to fetch ANY config to pre-fill the form, starting with Round 2, then Round 1
         let configData = null;
         let roundForConfig = 2;
 
@@ -268,7 +286,7 @@ const Index = () => {
             configData = data.diploma_user_config || data.configuration || data;
           }
         } catch (e) {
-          // Ignore error and try Round 1
+          // Ignore
         }
 
         if (!configData) {
@@ -281,7 +299,7 @@ const Index = () => {
                 data.diploma_user_config || data.configuration || data;
             }
           } catch (e) {
-            // Ignore error
+            // Ignore
           }
         }
 
@@ -305,11 +323,12 @@ const Index = () => {
 
           navigate(`/diploma-recommendations/steps?round=${roundForConfig}`);
         } else {
+          // No config found, just go to steps (defaulting to Round 2 usually, or let steps decide)
           navigate("/diploma-recommendations/steps");
         }
       } catch (error) {
-        console.error("Error fetching DSE data:", error);
-        // Fallback to steps on error
+        console.error("Error in DSE navigation flow:", error);
+        // Fallback to steps on critical error
         navigate("/diploma-recommendations/steps");
       } finally {
         setIsProcessingDSE(false);

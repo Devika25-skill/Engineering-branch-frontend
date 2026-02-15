@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { CollegeRecommendation } from "@/services/cutoffService";
 import { DiplomaRecommendationCard } from "./DiplomaRecommendationCard";
 import { DiplomaCategoryFilter } from "./DiplomaCategoryFilter";
@@ -127,6 +127,7 @@ export const DiplomaRecommendationResults = ({
   const [activeCategory, setActiveCategory] = useState<string>("All");
   const [internalActiveRound, setInternalActiveRound] =
     useState<string>("round2");
+  const hasAttemptedRound1Fetch = useRef(false);
 
   const [isTabLoading, setIsTabLoading] = useState(false);
 
@@ -169,8 +170,12 @@ export const DiplomaRecommendationResults = ({
       if (
         activeRound === "round1" &&
         recommendations.length === 0 &&
-        !isRound1Loading
+        !isRound1Loading &&
+        !hasAttemptedRound1Fetch.current
       ) {
+        // Mark as attempted immediately
+        hasAttemptedRound1Fetch.current = true;
+
         // Check session storage first
         const cached = sessionStorage.getItem(
           "cachedDiplomaRecommendations_v3",
@@ -179,13 +184,16 @@ export const DiplomaRecommendationResults = ({
           localStorage.getItem("diplomaRecommendationUnlocked") === "true";
 
         if (cached) {
-          setRecommendations(JSON.parse(cached));
-          // If already unlocked, no need to refetch just for lock status
-          if (isUnlockedLocal) {
-            setIsTabLoading(false);
-            return;
+          const parsedData = JSON.parse(cached);
+          if (parsedData && parsedData.length > 0) {
+            setRecommendations(parsedData);
+            // If already unlocked, no need to refetch just for lock status
+            if (isUnlockedLocal) {
+              setIsTabLoading(false);
+              return;
+            }
+            // If cached but locked, continue to fetch to check is_payment status
           }
-          // If cached but locked, continue to fetch to check is_payment status
         }
 
         setIsRound1Loading(true);
@@ -198,14 +206,19 @@ export const DiplomaRecommendationResults = ({
             const converted = convertApiResponseToRecommendations(
               response.data,
             );
-            setRecommendations(converted);
-            sessionStorage.setItem(
-              "cachedDiplomaRecommendations_v3",
-              JSON.stringify(converted),
-            );
-            if (response.data.is_payment) {
-              localStorage.setItem("diplomaRecommendationUnlocked", "true");
-              setIsUnlocked(true);
+
+            if (converted.length > 0) {
+              setRecommendations(converted);
+              sessionStorage.setItem(
+                "cachedDiplomaRecommendations_v3",
+                JSON.stringify(converted),
+              );
+              if (response.data.is_payment) {
+                localStorage.setItem("diplomaRecommendationUnlocked", "true");
+                setIsUnlocked(true);
+              }
+            } else {
+              console.log("Round 1 returned empty data");
             }
           } else {
             console.error("Failed to fetch Round 1 data", response);
@@ -220,7 +233,8 @@ export const DiplomaRecommendationResults = ({
     };
 
     fetchRound1Data();
-  }, [activeRound, recommendations.length, isRound1Loading]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeRound, isRound1Loading]);
 
   const userFromStorage = JSON.parse(localStorage.getItem("user") || "{}");
   const { generatePDF, isGenerating } = usePdfDownloadDSY();
@@ -249,7 +263,39 @@ export const DiplomaRecommendationResults = ({
       return;
     }
 
-    generatePDF(recommendations, formData);
+    // Ensure we have valid form data for the PDF
+    let pdfFormData = null;
+
+    // 1. Try to fetch specific round data from storage first (highest priority for accuracy)
+    if (activeRound === "round1") {
+      const storedRound1 = localStorage.getItem("diploma_form_data_round_1");
+      if (storedRound1) {
+        pdfFormData = JSON.parse(storedRound1);
+      }
+    } else {
+      // For Round 2 (or others), try round 2 key
+      const storedRound2 = localStorage.getItem("diploma_form_data_round_2");
+      if (storedRound2) {
+        pdfFormData = JSON.parse(storedRound2);
+      }
+    }
+
+    // 2. Fallback to props formData if specific storage failed
+    if (!pdfFormData || Object.keys(pdfFormData).length === 0) {
+      if (formData && Object.keys(formData).length > 0) {
+        pdfFormData = formData;
+      }
+    }
+
+    // 3. Final fallback to generic key
+    if (!pdfFormData || Object.keys(pdfFormData).length === 0) {
+      const storedGeneric = localStorage.getItem("diploma_form_data");
+      if (storedGeneric) {
+        pdfFormData = JSON.parse(storedGeneric);
+      }
+    }
+
+    generatePDF(recommendations, pdfFormData || {});
   };
 
   // Load user data from localStorage
