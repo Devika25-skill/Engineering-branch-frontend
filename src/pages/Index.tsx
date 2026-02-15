@@ -344,6 +344,12 @@ const Index = () => {
     );
 
     if (savedRecommendationType === "direct-second-year") {
+      const activeRound = localStorage.getItem("diploma_active_round");
+      if (activeRound) {
+        const roundNum = activeRound.replace("round", "");
+        navigate(`/diploma-recommendations/results?round=${roundNum}`);
+        return;
+      }
       const hasExistingData = sessionStorage.getItem(
         "cachedDiplomaRecommendations",
       );
