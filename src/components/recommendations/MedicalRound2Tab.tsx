@@ -2426,7 +2426,10 @@ export const MedicalRound2Tab = ({
                   <Label htmlFor="search-type">Search Type</Label>
                   <Select
                     value={searchType}
-                    onValueChange={(value: any) => setSearchType(value)}
+                    onValueChange={(value: any) => {
+                      setSearchType(value);
+                      setSearchValue("");
+                    }}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select search type" />
