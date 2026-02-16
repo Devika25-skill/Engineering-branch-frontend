@@ -18,34 +18,93 @@ import {
   AlertCircle,
   ChevronDown,
 } from "lucide-react";
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 
-interface AcademicInfoProps {
-  reservationCategory?: string;
-  grouping?: string;
-  tenthMarks?: number;
-  twelfthMarks?: number;
-  groupingMarks?: number;
-  cetPercentile?: number;
-  cetRank?: number;
-  jeePercentile?: number;
-  otherExamName?: string;
-  otherExamPercentile?: number;
-  sportsAchievements?: string;
-  certifications?: string;
-  internships?: string;
-  otherAchievements?: string;
-  district?: string;
-  gender?: string;
-  // Allow other fields to pass through if needed, or strictly type all.
-  [key: string]: any;
-}
+// Internal NumberInput component for strict 2-decimal validation
+const NumberInput = ({
+  value,
+  onChange,
+  placeholder,
+  className,
+  min = 0,
+  max,
+}: {
+  value: number | undefined;
+  onChange: (val: number | undefined) => void;
+  placeholder?: string;
+  className?: string;
+  min?: number;
+  max?: number;
+}) => {
+  const [localValue, setLocalValue] = useState<string>(
+    value !== undefined ? value.toString() : "",
+  );
 
-interface AcademicInfoFormProps {
-  data: AcademicInfoProps;
-  onUpdate: (data: Partial<AcademicInfoProps>) => void;
-  validationErrors?: string[];
-}
+  // Sync local value with prop value when it changes externally
+  useEffect(() => {
+    if (value === undefined) {
+      setLocalValue("");
+    } else {
+      // Only update if number representation differs (avoids cursor jumps on valid inputs like "10.")
+      // But we must respect the number value.
+      // If user typed "10.0", parseFloat("10.0") is 10.
+      // value will be 10. localValue is "10.0". We should NOT overwrite localValue with "10".
+      // We only overwrite if the semantic number value has changed significantly or is completely different.
+      const parsedLocal = parseFloat(localValue);
+      if (isNaN(parsedLocal) || parsedLocal !== value) {
+        setLocalValue(value.toString());
+      }
+    }
+  }, [value]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newVal = e.target.value;
+
+    // Allow empty
+    if (newVal === "") {
+      setLocalValue("");
+      onChange(undefined);
+      return;
+    }
+
+    // Validate regex: allow digits and one dot, max 2 decimals
+    // ^\d*(\.\d{0,2})?$ matches:
+    // "" (handled above), "12", "12.", "12.3", "12.34"
+    const validPattern = /^\d*(\.\d{0,2})?$/;
+    if (!validPattern.test(newVal)) {
+      return; // Reject invalid chars or too many decimals
+    }
+
+    // RANGE check
+    // "12." shouldn't be parsed for range check yet, but standard parseFloat handles it as 12.
+    const parsed = parseFloat(newVal);
+    if (!isNaN(parsed)) {
+      if (parsed < min || (max !== undefined && parsed > max)) {
+        return; // Reject out of range
+      }
+      setLocalValue(newVal);
+      onChange(parsed);
+    }
+  };
+
+  const preventInvalidChars = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (["e", "E", "+", "-"].includes(e.key)) {
+      e.preventDefault();
+    }
+  };
+
+  return (
+    <Input
+      type="text"
+      inputMode="decimal"
+      value={localValue}
+      onChange={handleChange}
+      onKeyDown={preventInvalidChars}
+      placeholder={placeholder}
+      className={className}
+    />
+  );
+};
 
 export const AcademicInfoForm = ({
   data,
@@ -68,13 +127,6 @@ export const AcademicInfoForm = ({
 
   const handleChange = (field: string, value: any) => {
     onUpdate({ [field]: value });
-  };
-
-  const handlePercentageChange = (field: string, value: string) => {
-    const numValue = parseFloat(value);
-    if (value === "" || (numValue >= 0 && numValue <= 100)) {
-      onUpdate({ [field]: numValue || undefined });
-    }
   };
 
   const isFieldError = (fieldName: string) => {
@@ -446,19 +498,16 @@ export const AcademicInfoForm = ({
                   <AlertCircle size={14} className="text-red-500" />
                 )}
               </Label>
-              <Input
-                type="number"
+              <NumberInput
                 placeholder="Enter your 10th percentage"
-                value={data.tenthMarks || ""}
-                onChange={(e) =>
-                  handlePercentageChange("tenthMarks", e.target.value)
-                }
+                value={data.tenthMarks}
+                onChange={(val) => handleChange("tenthMarks", val)}
                 className={getFieldClassName(
                   "10th Grade Marks",
-                  "h-10 rounded-xl border-2 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none",
+                  "h-10 rounded-xl border-2 bg-white",
                 )}
-                min="0"
-                max="100"
+                min={0}
+                max={100}
               />
             </div>
 
@@ -470,19 +519,16 @@ export const AcademicInfoForm = ({
                   <AlertCircle size={14} className="text-red-500" />
                 )}
               </Label>
-              <Input
-                type="number"
+              <NumberInput
                 placeholder="Enter your 12th percentage"
-                value={data.twelfthMarks || ""}
-                onChange={(e) =>
-                  handlePercentageChange("twelfthMarks", e.target.value)
-                }
+                value={data.twelfthMarks}
+                onChange={(val) => handleChange("twelfthMarks", val)}
                 className={getFieldClassName(
                   "12th Grade Marks",
-                  "h-10 rounded-xl border-2 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none",
+                  "h-10 rounded-xl border-2 bg-white",
                 )}
-                min="0"
-                max="100"
+                min={0}
+                max={100}
               />
             </div>
 
@@ -494,19 +540,16 @@ export const AcademicInfoForm = ({
                   <AlertCircle size={14} className="text-red-500" />
                 )}
               </Label>
-              <Input
-                type="number"
+              <NumberInput
                 placeholder="Enter your grouping marks"
-                value={data.groupingMarks || ""}
-                onChange={(e) =>
-                  handlePercentageChange("groupingMarks", e.target.value)
-                }
+                value={data.groupingMarks}
+                onChange={(val) => handleChange("groupingMarks", val)}
                 className={getFieldClassName(
                   "Grouping Marks",
-                  "h-10 rounded-xl border-2 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none",
+                  "h-10 rounded-xl border-2 bg-white",
                 )}
-                min="0"
-                max="100"
+                min={0}
+                max={100}
               />
             </div>
           </div>
@@ -530,33 +573,27 @@ export const AcademicInfoForm = ({
                       )}
                 </Label>
                 {isKarnataka ? (
-                  <Input
-                    type="number"
+                  <NumberInput
                     placeholder="Your CET Rank"
-                    value={data.cetRank || ""}
-                    onChange={(e) =>
-                      handleChange("cetRank", parseFloat(e.target.value))
-                    }
+                    value={data.cetRank}
+                    onChange={(val) => handleChange("cetRank", val)}
                     className={getFieldClassName(
                       "CET Rank",
-                      "h-10 rounded-xl border-2 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none",
+                      "h-10 rounded-xl border-2 bg-white",
                     )}
-                    min="1"
+                    min={1}
                   />
                 ) : (
-                  <Input
-                    type="number"
+                  <NumberInput
                     placeholder="Your CET percentile (0-100)"
-                    value={data.cetPercentile || ""}
-                    onChange={(e) =>
-                      handlePercentageChange("cetPercentile", e.target.value)
-                    }
+                    value={data.cetPercentile}
+                    onChange={(val) => handleChange("cetPercentile", val)}
                     className={getFieldClassName(
                       "CET Percentile",
-                      "h-10 rounded-xl border-2 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none",
+                      "h-10 rounded-xl border-2 bg-white",
                     )}
-                    min="0"
-                    max="100"
+                    min={0}
+                    max={100}
                   />
                 )}
               </div>
@@ -566,16 +603,13 @@ export const AcademicInfoForm = ({
                   JEE Percentile{" "}
                   <span className="text-xs text-slate-500">(Optional)</span>
                 </Label>
-                <Input
-                  type="number"
+                <NumberInput
                   placeholder="Your JEE percentile (0-100)"
-                  value={data.jeePercentile || ""}
-                  onChange={(e) =>
-                    handlePercentageChange("jeePercentile", e.target.value)
-                  }
-                  className="h-10 rounded-xl border-2 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                  min="0"
-                  max="100"
+                  value={data.jeePercentile}
+                  onChange={(val) => handleChange("jeePercentile", val)}
+                  className="h-10 rounded-xl border-2 bg-white"
+                  min={0}
+                  max={100}
                 />
               </div>
 
@@ -599,17 +633,11 @@ export const AcademicInfoForm = ({
                   Other Exam Score{" "}
                   <span className="text-xs text-slate-500">(Optional)</span>
                 </Label>
-                <Input
-                  type="number"
+                <NumberInput
                   placeholder="Your score/percentile"
-                  value={data.otherExamPercentile || ""}
-                  onChange={(e) =>
-                    handleChange(
-                      "otherExamPercentile",
-                      parseFloat(e.target.value) || undefined,
-                    )
-                  }
-                  className="h-10 rounded-xl border-2 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  value={data.otherExamPercentile}
+                  onChange={(val) => handleChange("otherExamPercentile", val)}
+                  className="h-10 rounded-xl border-2 bg-white"
                 />
               </div>
             </div>

@@ -277,6 +277,9 @@ export const Round2Tab = () => {
         }
       }
 
+      let collegeFound = false;
+      let localSelectionFound = false;
+
       // Load Round 2 selection data
       const stored = localStorage.getItem("round2Selection");
       if (stored) {
@@ -286,6 +289,7 @@ export const Round2Tab = () => {
           setIsConfirmed(parsedData.isConfirmed);
           if (parsedData.isConfirmed) {
             setShowPreferences(true);
+            localSelectionFound = true;
           }
         } catch (error) {
           console.error("Error loading stored selection data:", error);
@@ -296,7 +300,7 @@ export const Round2Tab = () => {
       await loadPreferencesFromFormData();
 
       // If no localStorage data and user is logged in, try API
-      if (user?.accessToken) {
+      if (user?.accessToken && !localSelectionFound) {
         try {
           const isKarnataka =
             localStorage.getItem("selected_state") === "Karnataka";
@@ -335,6 +339,7 @@ export const Round2Tab = () => {
               setSelectedCollege(selectedCollege);
               setIsConfirmed(true);
               setShowPreferences(true);
+              collegeFound = true; // Mark as found from API
 
               // Also save to localStorage for future use
               const storageData = { selectedCollege, isConfirmed: true };
@@ -343,19 +348,9 @@ export const Round2Tab = () => {
                 JSON.stringify(storageData),
               );
             } else {
-              // If no API data found, fallback to form data
-              await loadPreferencesFromFormData();
-              // Check if we have valid form data to show
-              // Don't auto-show preferences or skip selection
-              // const formData = recommendationStorage.getFormData();
-              // if (
-              //   formData &&
-              //   (formData.preferredStreams?.length > 0 ||
-              //     formData.preferredCities?.length > 0)
-              // ) {
-              //   setShowPreferences(true);
-              //   setSkipRound1Selection(true); // Fix: Explicitly set skip logic for new lists
-              // }
+              // If no API data found, fallback to form data.
+              // Logic remains: check if we should skip selection?
+              // Only if we ALSO didn't find it in localStorage (localSelectionFound)
             }
           } else {
             const response = await apiService.getUserRoundDetails(
@@ -386,6 +381,7 @@ export const Round2Tab = () => {
               setSelectedCollege(selectedCollege);
               setIsConfirmed(true);
               setShowPreferences(true);
+              collegeFound = true; // Mark as found from API
 
               // Also save to localStorage for future use
               const storageData = { selectedCollege, isConfirmed: true };
@@ -393,30 +389,50 @@ export const Round2Tab = () => {
                 "round2Selection",
                 JSON.stringify(storageData),
               );
-            } else {
-              // If no API data found (Maharashtra), fallback to form data
-              await loadPreferencesFromFormData();
-              // Check if we have valid form data to show
-              // Don't auto-show preferences or skip selection
-              // const formData = recommendationStorage.getFormData();
-              // if (
-              //   formData &&
-              //   (formData.preferredStreams?.length > 0 ||
-              //     formData.preferredCities?.length > 0)
-              // ) {
-              //   setShowPreferences(true);
-              //   setSkipRound1Selection(true); // Fix: Explicitly set skip logic for new lists
-              // }
             }
           }
         } catch (error) {
           console.error("Error loading user round details:", error);
-          // On error, also try to fallback
-          await loadPreferencesFromFormData();
         } finally {
           setIsLoading(false); // Ensure loading stops
         }
       }
+
+      // Final check: If no college found in API AND no college found in localStorage,
+      // AND we have preferences (meaning user is in "Create List" mode or has existing input),
+      // THEN and ONLY THEN skip the selection step.
+      // But we must also check if user hasn't explicitly cleared recommendations.
+
+      const currentPreferences =
+        localStorage.getItem("round2Preferences") ||
+        (await loadPreferencesFromFormData()); // helper returns boolean or you can check storage
+
+      // Helper returns void but sets state. Let's check state or storage.
+      const hasPreferences =
+        selectedBranches.length > 0 ||
+        !!localStorage.getItem("round2Preferences");
+
+      // Fix applied: If preferences exist but no college found (neither in API nor LocalStorage),
+      // assume user skipped Round 1 selection.
+      if (
+        hasPreferences &&
+        !collegeFound &&
+        !localSelectionFound &&
+        sessionStorage.getItem("user_cleared_recommendations_r2") !== "true"
+      ) {
+        setSkipRound1Selection(true);
+        setShowPreferences(true);
+      } else if (
+        !collegeFound &&
+        !localSelectionFound &&
+        sessionStorage.getItem("round2CreateListActive") === "true"
+      ) {
+        // Explicit "Create New List" mode
+        setSkipRound1Selection(true);
+        setShowPreferences(true);
+      }
+
+      setIsLoading(false);
     };
 
     loadExistingData();
@@ -953,6 +969,8 @@ export const Round2Tab = () => {
         "round2Selection",
         JSON.stringify({ selectedCollege, isConfirmed: true }),
       );
+    } else {
+      setSkipRound1Selection(false);
     }
 
     setHasGeneratedRecommendations(false);

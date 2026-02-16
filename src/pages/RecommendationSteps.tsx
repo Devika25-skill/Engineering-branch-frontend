@@ -761,48 +761,78 @@ const RecommendationSteps = () => {
           // Fallback to session/local storage if state data is missing or empty
           if (!lastRoundCollegeCode) {
             try {
-              // Keys based on user report and code inspection
-              // For Round 2 (targetRound 2), we need Round 1 choice.
-              // For Round 3 (targetRound 3), we need Round 2 choice.
+              // Helper to try extraction from a key
+              const tryExtract = (jsonStr: string | null) => {
+                if (!jsonStr) return null;
+                try {
+                  const parsed = JSON.parse(jsonStr);
+                  // Check standard structure - Try College_code first
+                  if (parsed.selectedCollege?.college?.College_code) {
+                    return {
+                      code: parsed.selectedCollege.college.College_code.toString(),
+                      name:
+                        parsed.selectedCollege.selectedDepartment
+                          ?.course_name || "",
+                    };
+                  }
 
-              let storageKey = "";
-              if (targetRound === 2) {
-                storageKey = "round2SelectedCollege";
-              } else if (targetRound === 3) {
-                storageKey = "round3SelectedCollege";
-              }
+                  // Check standard structure - Try choice_code (User confirmed data availability)
+                  if (parsed.selectedCollege?.selectedDepartment?.choice_code) {
+                    return {
+                      code: parsed.selectedCollege.selectedDepartment.choice_code.toString(),
+                      name:
+                        parsed.selectedCollege.selectedDepartment
+                          ?.course_name || "",
+                    };
+                  }
 
-              let stored = sessionStorage.getItem(storageKey); // User specified session storage key
+                  // Check flat structure
+                  if (parsed.college?.College_code) {
+                    return {
+                      code: parsed.college.College_code.toString(),
+                      name: parsed.selectedDepartment?.course_name || "",
+                    };
+                  }
 
-              // If not found, try alternative keys
-              if (!stored && targetRound === 3) {
-                stored =
-                  sessionStorage.getItem("round3Selection") ||
-                  localStorage.getItem("round3Selection"); // Round3Tab stores 'round3Selection'
-              }
-              if (!stored && targetRound === 2) {
-                stored =
-                  sessionStorage.getItem("round2Selection") ||
-                  localStorage.getItem("round2Selection"); // Round2Tab uses localStorage for round2Selection
-              }
-
-              if (stored) {
-                const parsed = JSON.parse(stored);
-                // Check structure: selectedCollege -> college -> College_code
-                if (parsed.selectedCollege) {
-                  lastRoundCollegeCode =
-                    parsed.selectedCollege.college?.College_code?.toString() ||
-                    "";
-                  lastRoundCourseName =
-                    parsed.selectedCollege.selectedDepartment?.course_name ||
-                    "";
-                } else if (parsed.college) {
-                  // Possible flat structure in some cases?
-                  lastRoundCollegeCode =
-                    parsed.college?.College_code?.toString() || "";
-                  lastRoundCourseName =
-                    parsed.selectedDepartment?.course_name || "";
+                  // Check flat structure choice_code fallback
+                  if (parsed.selectedDepartment?.choice_code) {
+                    return {
+                      code: parsed.selectedDepartment.choice_code.toString(),
+                      name: parsed.selectedDepartment?.course_name || "",
+                    };
+                  }
+                } catch (e) {
+                  // ignore parse errors
                 }
+                return null;
+              };
+
+              // Define keys
+              // For Target Round 2, we need Round 1 choice (stored in 'round2Selection' in Round2Tab)
+              // For Target Round 3, we need Round 2 choice (stored in 'round3Selection' in Round3Tab)
+              const primaryKey =
+                targetRound === 2 ? "round2Selection" : "round3Selection";
+              const secondaryKey =
+                targetRound === 2
+                  ? "round2SelectedCollege"
+                  : "round3SelectedCollege";
+
+              // 1. Check LocalStorage for Primary Key (Most reliable based on fixes)
+              let extracted = tryExtract(localStorage.getItem(primaryKey));
+
+              // 2. Check SessionStorage for Primary Key
+              if (!extracted) {
+                extracted = tryExtract(sessionStorage.getItem(primaryKey));
+              }
+
+              // 3. Check SessionStorage for Secondary Key (Legacy/Alternative)
+              if (!extracted) {
+                extracted = tryExtract(sessionStorage.getItem(secondaryKey));
+              }
+
+              if (extracted) {
+                lastRoundCollegeCode = extracted.code;
+                lastRoundCourseName = extracted.name;
               }
             } catch (e) {
               console.error(
@@ -926,7 +956,7 @@ const RecommendationSteps = () => {
 
         const prevRound = roundNumber - 1;
 
-        // 1. Try Session Storage
+        // 1. Try Session Storage (Legacy key)
         const storageKey = `round${prevRound}SelectedCollege`;
         const savedSelection = sessionStorage.getItem(storageKey);
 
@@ -939,7 +969,39 @@ const RecommendationSteps = () => {
           }
         }
 
-        // 2. If still missing, try API
+        // 2. Try LocalStorage (Robust key from Round Tabs)
+        if (!resolvedChoiceCode) {
+          try {
+            // Round 3 needs Round 2 choice -> stored in 'round3Selection' by Round3Tab
+            // Round 2 needs Round 1 choice -> stored in 'round2Selection' by Round2Tab
+            // Note: Round3Tab saves *Selected Round 2 College* into 'round3Selection'.
+            // So if we are in Round 3 (roundNumber=3), we look at 'round3Selection'.
+            const robustKey = `round${roundNumber}Selection`;
+            const robustStored =
+              localStorage.getItem(robustKey) ||
+              sessionStorage.getItem(robustKey);
+
+            if (robustStored) {
+              const parsed = JSON.parse(robustStored);
+              // Check standard structure
+              if (parsed.selectedCollege?.selectedDepartment?.choice_code) {
+                resolvedChoiceCode =
+                  parsed.selectedCollege.selectedDepartment.choice_code;
+              } else if (parsed.selectedCollege?.college?.College_code) {
+                // Fallback to college code if choice code missing (though user said choice_code is there)
+                resolvedChoiceCode =
+                  parsed.selectedCollege.college.College_code; // This might be wrong type if API expects choice_code
+              } else if (parsed.selectedDepartment?.choice_code) {
+                // Flat structure
+                resolvedChoiceCode = parsed.selectedDepartment.choice_code;
+              }
+            }
+          } catch (e) {
+            console.error("Error reading robust storage for choice code", e);
+          }
+        }
+
+        // 3. If still missing, try API
         if (!resolvedChoiceCode && user.accessToken) {
           try {
             const detailsResponse = await apiService.getUserRoundDetails(
@@ -950,7 +1012,11 @@ const RecommendationSteps = () => {
               // Assuming data has choice_code or similar structure
               // Adjust based on UserRoundDetailsResponse definition
               const data = detailsResponse.data as any;
-              resolvedChoiceCode = data.choice_code;
+              resolvedChoiceCode =
+                data.choice_code ||
+                data.Choice_Code ||
+                data.college_code ||
+                data.College_code;
             }
           } catch (apiError) {
             console.error("Failed to fetch previous round details", apiError);
