@@ -2372,33 +2372,53 @@ export const MedicalRound3Tab = ({
                       onChange={(e) => {
                         const selectedState =
                           localStorage.getItem("selected_state") || "";
-                        if (
-                          searchType === "college_code" &&
-                          selectedState !== "Karnataka"
-                        ) {
-                          const value = e.target.value.replace(/[^0-9]/g, "");
-                          if (value.length <= 4) {
-                            setSearchValue(value);
+                        const value = e.target.value;
+
+                        if (searchType === "college_code") {
+                          if (selectedState === "Karnataka") {
+                            // Allow alphanumeric for Karnataka
+                            if (/^[a-zA-Z0-9]*$/.test(value)) {
+                              setSearchValue(value.toUpperCase());
+                            }
+                          } else {
+                            // Only allow numeric input and limit to 4 digits for non-Karnataka states
+                            const numericValue = value.replace(/[^0-9]/g, "");
+                            if (numericValue.length <= 4) {
+                              setSearchValue(numericValue);
+                            }
                           }
                         } else {
-                          setSearchValue(e.target.value);
+                          // For college_name, allow any input
+                          setSearchValue(value);
                         }
                       }}
                       onKeyDown={(e) => {
                         const selectedState =
                           localStorage.getItem("selected_state") || "";
-                        if (
-                          searchType === "college_code" &&
-                          selectedState !== "Karnataka"
-                        ) {
-                          if (
-                            e.key === "-" ||
-                            e.key === "+" ||
-                            e.key === "e" ||
-                            e.key === "E" ||
-                            e.key === "."
-                          ) {
-                            e.preventDefault();
+
+                        if (searchType === "college_code") {
+                          if (selectedState !== "Karnataka") {
+                            // Prevent -, +, e, E and other non-numeric keys for non-Karnataka states
+                            if (
+                              e.key === "-" ||
+                              e.key === "+" ||
+                              e.key === "e" ||
+                              e.key === "E" ||
+                              e.key === "."
+                            ) {
+                              e.preventDefault();
+                            }
+                          } else {
+                            // For Karnataka, prevent special characters (allow alphanumeric)
+                            if (
+                              !/^[a-zA-Z0-9]$/.test(e.key) &&
+                              e.key.length === 1 &&
+                              !e.ctrlKey &&
+                              !e.metaKey &&
+                              !e.altKey
+                            ) {
+                              e.preventDefault();
+                            }
                           }
                         }
                         if (e.key === "Enter") {
@@ -2408,18 +2428,27 @@ export const MedicalRound3Tab = ({
                       onPaste={(e) => {
                         const selectedState =
                           localStorage.getItem("selected_state") || "";
-                        if (
-                          searchType === "college_code" &&
-                          selectedState !== "Karnataka"
-                        ) {
+
+                        if (searchType === "college_code") {
                           e.preventDefault();
                           const pastedText = e.clipboardData.getData("text");
-                          const numericValue = pastedText.replace(
-                            /[^0-9]/g,
-                            "",
-                          );
-                          if (numericValue.length <= 4) {
-                            setSearchValue(numericValue);
+
+                          if (selectedState === "Karnataka") {
+                            // Allow alphanumeric
+                            const alphanumericValue = pastedText.replace(
+                              /[^a-zA-Z0-9]/g,
+                              "",
+                            );
+                            setSearchValue(alphanumericValue.toUpperCase());
+                          } else {
+                            // Numeric only
+                            const numericValue = pastedText.replace(
+                              /[^0-9]/g,
+                              "",
+                            );
+                            if (numericValue.length <= 4) {
+                              setSearchValue(numericValue);
+                            }
                           }
                         }
                       }}
