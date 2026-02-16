@@ -2416,6 +2416,11 @@ export const Round2Tab = () => {
                                   setSearchValue(value);
                                 }
                               }
+                            } else if (searchType === "choice_code") {
+                              // Only allow alphanumeric for choice code
+                              if (/^[a-zA-Z0-9]*$/.test(value)) {
+                                setSearchValue(value);
+                              }
                             } else {
                               setSearchValue(value);
                             }
