@@ -31,6 +31,86 @@ interface MedicalAcademicInfoFormProps {
   validationErrors?: string[];
 }
 
+// Internal NumberInput component for strict 2-decimal validation
+const NumberInput = ({
+  value,
+  onChange,
+  placeholder,
+  className,
+  min = 0,
+  max,
+}: {
+  value: number | undefined;
+  onChange: (val: number | undefined) => void;
+  placeholder?: string;
+  className?: string;
+  min?: number;
+  max?: number;
+}) => {
+  const [localValue, setLocalValue] = useState<string>(
+    value !== undefined ? value.toString() : "",
+  );
+
+  // Sync local value with prop value when it changes externally
+  useEffect(() => {
+    if (value === undefined) {
+      setLocalValue("");
+    } else {
+      // Only update if number representation differs (avoids cursor jumps on valid inputs like "10.")
+      const parsedLocal = parseFloat(localValue);
+      if (isNaN(parsedLocal) || parsedLocal !== value) {
+        setLocalValue(value.toString());
+      }
+    }
+  }, [value]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newVal = e.target.value;
+
+    // Allow empty
+    if (newVal === "") {
+      setLocalValue("");
+      onChange(undefined);
+      return;
+    }
+
+    // Validate regex: allow digits and one dot, max 2 decimals
+    // ^\d*(\.\d{0,2})?$ matches: "12", "12.", "12.3", "12.34"
+    const validPattern = /^\d*(\.\d{0,2})?$/;
+    if (!validPattern.test(newVal)) {
+      return; // Reject invalid chars or too many decimals
+    }
+
+    // RANGE check
+    const parsed = parseFloat(newVal);
+    if (!isNaN(parsed)) {
+      if (parsed < min || (max !== undefined && parsed > max)) {
+        return; // Reject out of range
+      }
+      setLocalValue(newVal);
+      onChange(parsed);
+    }
+  };
+
+  const preventInvalidChars = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (["e", "E", "+", "-"].includes(e.key)) {
+      e.preventDefault();
+    }
+  };
+
+  return (
+    <Input
+      type="text"
+      inputMode="decimal"
+      value={localValue}
+      onChange={handleChange}
+      onKeyDown={preventInvalidChars}
+      placeholder={placeholder}
+      className={className}
+    />
+  );
+};
+
 export const MedicalAcademicInfoForm = ({
   data,
   onUpdate,
@@ -58,34 +138,6 @@ export const MedicalAcademicInfoForm = ({
     onUpdate({ [field]: value });
   };
 
-  const handlePercentageChange = (field: string, value: string) => {
-    // Allow empty string
-    if (value === "") {
-      onUpdate({ [field]: undefined });
-      return;
-    }
-
-    // Validate input: only digits and one optional decimal point
-    // Reject multiple dots, special characters like --, ++, etc.
-    const validPattern = /^\d*\.?\d*$/;
-    if (!validPattern.test(value)) {
-      return; // Reject invalid input
-    }
-
-    const numValue = parseFloat(value);
-    // Validate 0-100 range
-    if (numValue >= 0 && numValue <= 100) {
-      // Check for max 2 decimal places
-      const decimalParts = value.split(".");
-      if (
-        decimalParts.length === 1 ||
-        (decimalParts[1] && decimalParts[1].length <= 2)
-      ) {
-        onUpdate({ [field]: numValue });
-      }
-    }
-  };
-
   const handleRankChange = (field: string, value: string) => {
     // Allow empty string
     if (value === "") {
@@ -98,6 +150,11 @@ export const MedicalAcademicInfoForm = ({
     const validPattern = /^\d+$/;
     if (!validPattern.test(value)) {
       return; // Reject invalid input
+    }
+
+    // Restrict to maximum 7 digits
+    if (value.length > 7) {
+      return;
     }
 
     const numValue = parseInt(value);
@@ -145,29 +202,12 @@ export const MedicalAcademicInfoForm = ({
       : baseClass;
   };
 
-  // Prevent invalid characters for percentage fields (allows digits and decimal point)
-  const preventInvalidChars = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    const invalidChars = ["e", "E", "+", "-"];
-    if (invalidChars.includes(e.key)) {
-      e.preventDefault();
-    }
-  };
-
   // Prevent invalid characters for integer fields (only digits allowed)
   const preventInvalidCharsInteger = (
     e: React.KeyboardEvent<HTMLInputElement>,
   ) => {
     const invalidChars = ["e", "E", "+", "-", "."];
     if (invalidChars.includes(e.key)) {
-      e.preventDefault();
-    }
-  };
-
-  // Prevent invalid paste for percentage fields
-  const preventInvalidPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
-    const pastedText = e.clipboardData.getData("text");
-    const validPattern = /^\d*\.?\d*$/;
-    if (!validPattern.test(pastedText)) {
       e.preventDefault();
     }
   };
@@ -184,129 +224,452 @@ export const MedicalAcademicInfoForm = ({
   };
 
   // Maharashtra reservation categories from medical.ts enum
-  const maharashtraReservationCategories: ReservationCategory[] = [
-    "DEF1",
-    "DEF1-(W)",
-    "DEF2",
-    "DEF2-(W)",
-    "DEF3",
-    "DEF3-(W)",
-    "EMNTB",
-    "EMNTB-(W)",
-    "EMNTC",
-    "EMNTC-(W)",
-    "EMNTD",
-    "EMNTD-(W)",
-    "EMOBC",
-    "EMOBC-(W)",
-    "EMSC",
-    "EMSC-(W)",
-    "EMSEBC",
-    "EMSEBC-(W)",
-    "EMST",
-    "EMST-(W)",
-    "EMVJA",
-    "EMVJA-(W)",
-    "EWS",
-    "EWS-(W)",
-    "HEM-OBC",
-    "HEM-OBC-(W)",
-    "HEWS",
-    "HEWS-(W)",
-    "HNTB",
-    "HNTB-(W)",
-    "HNTC",
-    "HNTC-(W)",
-    "HNTD",
-    "HNTD-(W)",
-    "HOBC",
-    "HOBC-(W)",
-    "HOPEN",
-    "HOPEN-(W)",
-    "HSC",
-    "HSC-(W)",
-    "HSEBC",
-    "HSEBC-(W)",
-    "HST",
-    "HST-(W)",
-    "HVJA",
-    "HVJA-(W)",
-    "I.Q",
-    "I.Q-MINO",
-    "MKB",
-    "MKB-(W)",
-    "NTB",
-    "NTB-(W)",
-    "NTC",
-    "NTC-(W)",
-    "NTD",
-    "NTD-(W)",
-    "OBC",
-    "OBC-(W)",
-    "OPEN",
-    "OPEN-(W)",
-    "OPEN-(W)-MINO",
-    "OPEN-MINO",
-    "ORPHAN",
-    "ORPHAN-EWS",
-    "ORPHAN-NTC",
-    "ORPHAN-NTD",
-    "ORPHAN-OBC",
-    "ORPHAN-SC",
-    "ORPHAN-SEB",
-    "ORPHAN-ST",
-    "ORPHAN-VJA",
-    "ORPHANC",
-    "ORPHANC-EW",
-    "ORPHANC-NT",
-    "ORPHANC-OB",
-    "ORPHANC-SC",
-    "ORPHANC-SE",
-    "ORPHANC-ST",
-    "ORPHANC-VJ",
-    "PEM-NTC-PH",
-    "PEM-OBC",
-    "PEM-OBC-PH",
-    "PEM-SC-PH",
-    "PEM-SEBC",
-    "PEM-SEBC-PH",
-    "PWD",
-    "PWD-EWS",
-    "PWD-EWS-PH",
-    "PWD-EWS-PHEWS",
-    "PWD-NTB",
-    "PWD-NTB-PH",
-    "PWD-NTB-PHNT1",
-    "PWD-NTC",
-    "PWD-NTC-PH",
-    "PWD-NTC-PHNT2",
-    "PWD-NTD-PH",
-    "PWD-NTD-PHNT3",
-    "PWD-OBC",
-    "PWD-OBC-PH",
-    "PWD-OBC-PHOBC",
-    "PWD-OPEN",
-    "PWD-OPEN-PH",
-    "PWD-PH",
-    "PWD-SC",
-    "PWD-SC-PH",
-    "PWD-SEB",
-    "PWD-SEB-PHSEBC",
-    "PWD-SEBC",
-    "PWD-SEBC-PH",
-    "PWD-ST",
-    "PWD-ST-PH",
-    "PWD-VJA",
-    "PWD-VJA-PH",
-    "PWD-VJA-PHVJ",
-    "SC",
-    "SC-(W)",
-    "SEBC",
-    "SEBC-(W)",
-    "ST",
-    "ST-(W)",
-    "VJA",
-    "VJA-(W)",
+  const maharashtraReservationCategories: {
+    value: ReservationCategory;
+    label: string;
+  }[] = [
+    {
+      value: "DEF1",
+      label: "DEF1 - Defence Category 1 (Ward of Ex-Servicemen)",
+    },
+    {
+      value: "DEF1-(W)",
+      label: "DEF1-(W) - Defence Category 1 (Ward of Ex-Servicemen) – Women",
+    },
+    {
+      value: "DEF2",
+      label: "DEF2 - Defence Category 2 (Ward of Serving Defence Personnel)",
+    },
+    {
+      value: "DEF2-(W)",
+      label:
+        "DEF2-(W) - Defence Category 2 (Ward of Serving Defence Personnel) – Women",
+    },
+    {
+      value: "DEF3",
+      label:
+        "DEF3 - Defence Category 3 (Ward of Defence Personnel Killed/Disabled in Action)",
+    },
+    {
+      value: "DEF3-(W)",
+      label:
+        "DEF3-(W) - Defence Category 3 (Ward of Defence Personnel Killed/Disabled in Action) – Women",
+    },
+    {
+      value: "EMNTB",
+      label: "EMNTB - Economically Backward – Nomadic Tribe Category B",
+    },
+    {
+      value: "EMNTB-(W)",
+      label:
+        "EMNTB-(W) - Economically Backward – Nomadic Tribe Category B – Women",
+    },
+    {
+      value: "EMNTC",
+      label: "EMNTC - Economically Backward – Nomadic Tribe Category C",
+    },
+    {
+      value: "EMNTC-(W)",
+      label:
+        "EMNTC-(W) - Economically Backward – Nomadic Tribe Category C – Women",
+    },
+    {
+      value: "EMNTD",
+      label: "EMNTD - Economically Backward – Nomadic Tribe Category D",
+    },
+    {
+      value: "EMNTD-(W)",
+      label:
+        "EMNTD-(W) - Economically Backward – Nomadic Tribe Category D – Women",
+    },
+    {
+      value: "EMOBC",
+      label: "EMOBC - Economically Backward – Other Backward Class",
+    },
+    {
+      value: "EMOBC-(W)",
+      label: "EMOBC-(W) - Economically Backward – Other Backward Class – Women",
+    },
+    { value: "EMSC", label: "EMSC - Economically Backward – Scheduled Caste" },
+    {
+      value: "EMSC-(W)",
+      label: "EMSC-(W) - Economically Backward – Scheduled Caste – Women",
+    },
+    {
+      value: "EMSEBC",
+      label:
+        "EMSEBC - Economically Backward – Socially and Educationally Backward Class",
+    },
+    {
+      value: "EMSEBC-(W)",
+      label:
+        "EMSEBC-(W) - Economically Backward – Socially and Educationally Backward Class – Women",
+    },
+    { value: "EMST", label: "EMST - Economically Backward – Scheduled Tribe" },
+    {
+      value: "EMST-(W)",
+      label: "EMST-(W) - Economically Backward – Scheduled Tribe – Women",
+    },
+    {
+      value: "EMVJA",
+      label:
+        "EMVJA - Economically Backward – Vimukta Jati (Denotified Tribes – NT-A)",
+    },
+    {
+      value: "EMVJA-(W)",
+      label:
+        "EMVJA-(W) - Economically Backward – Vimukta Jati (Denotified Tribes – NT-A) – Women",
+    },
+    { value: "EWS", label: "EWS - Economically Weaker Section" },
+    {
+      value: "EWS-(W)",
+      label: "EWS-(W) - Economically Weaker Section – Women",
+    },
+    {
+      value: "HEM-OBC",
+      label:
+        "HEM-OBC - Home University – Economically Backward – Other Backward Class",
+    },
+    {
+      value: "HEM-OBC-(W)",
+      label:
+        "HEM-OBC-(W) - Home University – Economically Backward – Other Backward Class – Women",
+    },
+    {
+      value: "HEWS",
+      label: "HEWS - Home University – Economically Weaker Section",
+    },
+    {
+      value: "HEWS-(W)",
+      label: "HEWS-(W) - Home University – Economically Weaker Section – Women",
+    },
+    {
+      value: "HNTB",
+      label: "HNTB - Home University – Nomadic Tribe Category B",
+    },
+    {
+      value: "HNTB-(W)",
+      label: "HNTB-(W) - Home University – Nomadic Tribe Category B – Women",
+    },
+    {
+      value: "HNTC",
+      label: "HNTC - Home University – Nomadic Tribe Category C",
+    },
+    {
+      value: "HNTC-(W)",
+      label: "HNTC-(W) - Home University – Nomadic Tribe Category C – Women",
+    },
+    {
+      value: "HNTD",
+      label: "HNTD - Home University – Nomadic Tribe Category D",
+    },
+    {
+      value: "HNTD-(W)",
+      label: "HNTD-(W) - Home University – Nomadic Tribe Category D – Women",
+    },
+    { value: "HOBC", label: "HOBC - Home University – Other Backward Class" },
+    {
+      value: "HOBC-(W)",
+      label: "HOBC-(W) - Home University – Other Backward Class – Women",
+    },
+    {
+      value: "HOPEN",
+      label: "HOPEN - Home University – Open Category (General)",
+    },
+    {
+      value: "HOPEN-(W)",
+      label: "HOPEN-(W) - Home University – Open Category – Women",
+    },
+    { value: "HSC", label: "HSC - Home University – Scheduled Caste" },
+    {
+      value: "HSC-(W)",
+      label: "HSC-(W) - Home University – Scheduled Caste – Women",
+    },
+    {
+      value: "HSEBC",
+      label:
+        "HSEBC - Home University – Socially and Educationally Backward Class",
+    },
+    {
+      value: "HSEBC-(W)",
+      label:
+        "HSEBC-(W) - Home University – Socially and Educationally Backward Class – Women",
+    },
+    { value: "HST", label: "HST - Home University – Scheduled Tribe" },
+    {
+      value: "HST-(W)",
+      label: "HST-(W) - Home University – Scheduled Tribe – Women",
+    },
+    {
+      value: "HVJA",
+      label: "HVJA - Home University – Vimukta Jati (Denotified Tribes – NT-A)",
+    },
+    {
+      value: "HVJA-(W)",
+      label: "HVJA-(W) - Home University – Vimukta Jati – Women",
+    },
+    { value: "I.Q", label: "I.Q - Institutional Quota" },
+    { value: "I.Q-MINO", label: "I.Q-MINO - Institutional Quota – Minority" },
+    { value: "MKB", label: "MKB - Maharashtra Karnataka Border Candidate" },
+    {
+      value: "MKB-(W)",
+      label: "MKB-(W) - Maharashtra Karnataka Border Candidate – Women",
+    },
+    { value: "NTB", label: "NTB - Nomadic Tribe Category B" },
+    { value: "NTB-(W)", label: "NTB-(W) - Nomadic Tribe Category B – Women" },
+    { value: "NTC", label: "NTC - Nomadic Tribe Category C" },
+    { value: "NTC-(W)", label: "NTC-(W) - Nomadic Tribe Category C – Women" },
+    { value: "NTD", label: "NTD - Nomadic Tribe Category D" },
+    { value: "NTD-(W)", label: "NTD-(W) - Nomadic Tribe Category D – Women" },
+    { value: "OBC", label: "OBC - Other Backward Class" },
+    { value: "OBC-(W)", label: "OBC-(W) - Other Backward Class – Women" },
+    { value: "OPEN", label: "OPEN - Open Category (General)" },
+    { value: "OPEN-(W)", label: "OPEN-(W) - Open Category (General) – Women" },
+    {
+      value: "OPEN-(W)-MINO",
+      label: "OPEN-(W)-MINO - Open Category – Minority – Women",
+    },
+    { value: "OPEN-MINO", label: "OPEN-MINO - Open Category – Minority" },
+    { value: "ORPHAN", label: "ORPHAN - Orphan (Open Category)" },
+    {
+      value: "ORPHAN-EWS",
+      label: "ORPHAN-EWS - Orphan – Economically Weaker Section",
+    },
+    {
+      value: "ORPHAN-NTC",
+      label: "ORPHAN-NTC - Orphan – Nomadic Tribe Category C",
+    },
+    {
+      value: "ORPHAN-NTD",
+      label: "ORPHAN-NTD - Orphan – Nomadic Tribe Category D",
+    },
+    {
+      value: "ORPHAN-OBC",
+      label: "ORPHAN-OBC - Orphan – Other Backward Class",
+    },
+    { value: "ORPHAN-SC", label: "ORPHAN-SC - Orphan – Scheduled Caste" },
+    {
+      value: "ORPHAN-SEB",
+      label: "ORPHAN-SEB - Orphan – Socially and Educationally Backward Class",
+    },
+    { value: "ORPHAN-ST", label: "ORPHAN-ST - Orphan – Scheduled Tribe" },
+    { value: "ORPHAN-VJA", label: "ORPHAN-VJA - Orphan – Vimukta Jati" },
+    {
+      value: "ORPHANC",
+      label: "ORPHANC - Orphan Category (CAP Round Specific – Open)",
+    },
+    {
+      value: "ORPHANC-EW",
+      label:
+        "ORPHANC-EW - Orphan Category (CAP Round Specific – Economically Weaker Section)",
+    },
+    {
+      value: "ORPHANC-NT",
+      label:
+        "ORPHANC-NT - Orphan Category (CAP Round Specific – Nomadic Tribe)",
+    },
+    {
+      value: "ORPHANC-OB",
+      label:
+        "ORPHANC-OB - Orphan Category (CAP Round Specific – Other Backward Class)",
+    },
+    {
+      value: "ORPHANC-SC",
+      label:
+        "ORPHANC-SC - Orphan Category (CAP Round Specific – Scheduled Caste)",
+    },
+    {
+      value: "ORPHANC-SE",
+      label:
+        "ORPHANC-SE - Orphan Category (CAP Round Specific – Socially and Educationally Backward Class)",
+    },
+    {
+      value: "ORPHANC-ST",
+      label:
+        "ORPHANC-ST - Orphan Category (CAP Round Specific – Scheduled Tribe)",
+    },
+    {
+      value: "ORPHANC-VJ",
+      label: "ORPHANC-VJ - Orphan Category (CAP Round Specific – Vimukta Jati)",
+    },
+    {
+      value: "PEM-NTC-PH",
+      label:
+        "PEM-NTC-PH - Project Affected – Nomadic Tribe Category C – Physical Disability",
+    },
+    {
+      value: "PEM-OBC",
+      label: "PEM-OBC - Project Affected – Other Backward Class",
+    },
+    {
+      value: "PEM-OBC-PH",
+      label:
+        "PEM-OBC-PH - Project Affected – Other Backward Class – Physical Disability",
+    },
+    {
+      value: "PEM-SC-PH",
+      label:
+        "PEM-SC-PH - Project Affected – Scheduled Caste – Physical Disability",
+    },
+    {
+      value: "PEM-SEBC",
+      label:
+        "PEM-SEBC - Project Affected – Socially and Educationally Backward Class",
+    },
+    {
+      value: "PEM-SEBC-PH",
+      label:
+        "PEM-SEBC-PH - Project Affected – Socially and Educationally Backward Class – Physical Disability",
+    },
+    { value: "PWD", label: "PWD - Persons with Disability (Open Category)" },
+    {
+      value: "PWD-EWS",
+      label: "PWD-EWS - Persons with Disability – Economically Weaker Section",
+    },
+    {
+      value: "PWD-EWS-PH",
+      label:
+        "PWD-EWS-PH - Persons with Disability – Economically Weaker Section – Physical Handicap",
+    },
+    {
+      value: "PWD-EWS-PHEWS",
+      label:
+        "PWD-EWS-PHEWS - Persons with Disability – Economically Weaker Section – Physical Handicap (EWS)",
+    },
+    {
+      value: "PWD-NTB",
+      label: "PWD-NTB - Persons with Disability – Nomadic Tribe Category B",
+    },
+    {
+      value: "PWD-NTB-PH",
+      label:
+        "PWD-NTB-PH - Persons with Disability – Nomadic Tribe Category B – Physical Handicap",
+    },
+    {
+      value: "PWD-NTB-PHNT1",
+      label:
+        "PWD-NTB-PHNT1 - Persons with Disability – Nomadic Tribe Category B – Physical Handicap (NT1)",
+    },
+    {
+      value: "PWD-NTC",
+      label: "PWD-NTC - Persons with Disability – Nomadic Tribe Category C",
+    },
+    {
+      value: "PWD-NTC-PH",
+      label:
+        "PWD-NTC-PH - Persons with Disability – Nomadic Tribe Category C – Physical Handicap",
+    },
+    {
+      value: "PWD-NTC-PHNT2",
+      label:
+        "PWD-NTC-PHNT2 - Persons with Disability – Nomadic Tribe Category C – Physical Handicap (NT2)",
+    },
+    {
+      value: "PWD-NTD-PH",
+      label:
+        "PWD-NTD-PH - Persons with Disability – Nomadic Tribe Category D – Physical Handicap",
+    },
+    {
+      value: "PWD-NTD-PHNT3",
+      label:
+        "PWD-NTD-PHNT3 - Persons with Disability – Nomadic Tribe Category D – Physical Handicap (NT3)",
+    },
+    {
+      value: "PWD-OBC",
+      label: "PWD-OBC - Persons with Disability – Other Backward Class",
+    },
+    {
+      value: "PWD-OBC-PH",
+      label:
+        "PWD-OBC-PH - Persons with Disability – Other Backward Class – Physical Handicap",
+    },
+    {
+      value: "PWD-OBC-PHOBC",
+      label:
+        "PWD-OBC-PHOBC - Persons with Disability – Other Backward Class – Physical Handicap (OBC)",
+    },
+    {
+      value: "PWD-OPEN",
+      label: "PWD-OPEN - Persons with Disability – Open Category",
+    },
+    {
+      value: "PWD-OPEN-PH",
+      label:
+        "PWD-OPEN-PH - Persons with Disability – Open Category – Physical Handicap",
+    },
+    {
+      value: "PWD-PH",
+      label: "PWD-PH - Persons with Disability – Physical Handicap",
+    },
+    {
+      value: "PWD-SC",
+      label: "PWD-SC - Persons with Disability – Scheduled Caste",
+    },
+    {
+      value: "PWD-SC-PH",
+      label:
+        "PWD-SC-PH - Persons with Disability – Scheduled Caste – Physical Handicap",
+    },
+    {
+      value: "PWD-SEB",
+      label:
+        "PWD-SEB - Persons with Disability – Socially and Educationally Backward Class",
+    },
+    {
+      value: "PWD-SEB-PHSEBC",
+      label:
+        "PWD-SEB-PHSEBC - Persons with Disability – Socially and Educationally Backward Class – Physical Handicap (SEBC)",
+    },
+    {
+      value: "PWD-SEBC",
+      label:
+        "PWD-SEBC - Persons with Disability – Socially and Educationally Backward Class",
+    },
+    {
+      value: "PWD-SEBC-PH",
+      label:
+        "PWD-SEBC-PH - Persons with Disability – Socially and Educationally Backward Class – Physical Handicap",
+    },
+    {
+      value: "PWD-ST",
+      label: "PWD-ST - Persons with Disability – Scheduled Tribe",
+    },
+    {
+      value: "PWD-ST-PH",
+      label:
+        "PWD-ST-PH - Persons with Disability – Scheduled Tribe – Physical Handicap",
+    },
+    {
+      value: "PWD-VJA",
+      label: "PWD-VJA - Persons with Disability – Vimukta Jati",
+    },
+    {
+      value: "PWD-VJA-PH",
+      label:
+        "PWD-VJA-PH - Persons with Disability – Vimukta Jati – Physical Handicap",
+    },
+    {
+      value: "PWD-VJA-PHVJ",
+      label:
+        "PWD-VJA-PHVJ - Persons with Disability – Vimukta Jati – Physical Handicap (VJ)",
+    },
+    { value: "SC", label: "SC - Scheduled Caste" },
+    { value: "SC-(W)", label: "SC-(W) - Scheduled Caste – Women" },
+    {
+      value: "SEBC",
+      label: "SEBC - Socially and Educationally Backward Class",
+    },
+    {
+      value: "SEBC-(W)",
+      label: "SEBC-(W) - Socially and Educationally Backward Class – Women",
+    },
+    { value: "ST", label: "ST - Scheduled Tribe" },
+    { value: "ST-(W)", label: "ST-(W) - Scheduled Tribe – Women" },
+    { value: "VJA", label: "VJA - Vimukta Jati (Denotified Tribes – NT-A)" },
+    {
+      value: "VJA-(W)",
+      label: "VJA-(W) - Vimukta Jati (Denotified Tribes – NT-A) – Women",
+    },
   ];
 
   // Karnataka First-Year Medical quota categories
@@ -414,10 +777,7 @@ export const MedicalAcademicInfoForm = ({
   const isKarnataka = selectedState === "Karnataka";
   const reservationCategoryOptions = isKarnataka
     ? karnatakaReservationCategories
-    : maharashtraReservationCategories.map((category) => ({
-        value: category,
-        label: category,
-      }));
+    : maharashtraReservationCategories;
 
   // Stream options from medical.ts Stream type
   const streamOptions: Stream[] = [
@@ -555,21 +915,16 @@ export const MedicalAcademicInfoForm = ({
                   <AlertCircle size={14} className="text-red-500" />
                 )}
               </Label>
-              <Input
-                type="number"
+              <NumberInput
                 placeholder="Enter your 10th percentage"
-                value={data.tenthMarks || ""}
-                onChange={(e) =>
-                  handlePercentageChange("tenthMarks", e.target.value)
-                }
-                onKeyDown={preventInvalidChars}
-                onPaste={preventInvalidPaste}
+                value={data.tenthMarks}
+                onChange={(val) => onUpdate({ tenthMarks: val })}
                 className={getFieldClassName(
                   "10th Grade Marks",
-                  "h-10 rounded-xl border-2 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none",
+                  "h-10 rounded-xl border-2 bg-white",
                 )}
-                min="0"
-                max="100"
+                min={0}
+                max={100}
               />
             </div>
 
@@ -581,21 +936,16 @@ export const MedicalAcademicInfoForm = ({
                   <AlertCircle size={14} className="text-red-500" />
                 )}
               </Label>
-              <Input
-                type="number"
+              <NumberInput
                 placeholder="Enter your 12th percentage"
-                value={data.twelfthMarks || ""}
-                onChange={(e) =>
-                  handlePercentageChange("twelfthMarks", e.target.value)
-                }
-                onKeyDown={preventInvalidChars}
-                onPaste={preventInvalidPaste}
+                value={data.twelfthMarks}
+                onChange={(val) => onUpdate({ twelfthMarks: val })}
                 className={getFieldClassName(
                   "12th Grade Marks",
-                  "h-10 rounded-xl border-2 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none",
+                  "h-10 rounded-xl border-2 bg-white",
                 )}
-                min="0"
-                max="100"
+                min={0}
+                max={100}
               />
             </div>
 
@@ -607,21 +957,16 @@ export const MedicalAcademicInfoForm = ({
                   <AlertCircle size={14} className="text-red-500" />
                 )}
               </Label>
-              <Input
-                type="number"
+              <NumberInput
                 placeholder="Enter PCB marks"
-                value={data.groupingMarks || ""}
-                onChange={(e) =>
-                  handlePercentageChange("groupingMarks", e.target.value)
-                }
-                onKeyDown={preventInvalidChars}
-                onPaste={preventInvalidPaste}
+                value={data.groupingMarks}
+                onChange={(val) => onUpdate({ groupingMarks: val })}
                 className={getFieldClassName(
                   "Grouping Marks",
-                  "h-10 rounded-xl border-2 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none",
+                  "h-10 rounded-xl border-2 bg-white",
                 )}
-                min="0"
-                max="100"
+                min={0}
+                max={100}
               />
             </div>
           </div>
@@ -640,21 +985,16 @@ export const MedicalAcademicInfoForm = ({
                     <AlertCircle size={14} className="text-red-500" />
                   )}
                 </Label>
-                <Input
-                  type="number"
+                <NumberInput
                   placeholder="Your NEET percentile (0-100)"
-                  value={data.neetPercentile || ""}
-                  onChange={(e) =>
-                    handlePercentageChange("neetPercentile", e.target.value)
-                  }
-                  onKeyDown={preventInvalidChars}
-                  onPaste={preventInvalidPaste}
+                  value={data.neetPercentile}
+                  onChange={(val) => onUpdate({ neetPercentile: val })}
                   className={getFieldClassName(
                     "NEET Percentile",
-                    "h-10 rounded-xl border-2 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none",
+                    "h-10 rounded-xl border-2 bg-white",
                   )}
-                  min="0"
-                  max="100"
+                  min={0}
+                  max={100}
                 />
               </div>
 
@@ -680,6 +1020,7 @@ export const MedicalAcademicInfoForm = ({
                     "h-10 rounded-xl border-2 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none",
                   )}
                   min="1"
+                  max="9999999"
                 />
               </div>
 
