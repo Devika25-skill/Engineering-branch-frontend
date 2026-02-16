@@ -648,7 +648,14 @@ export const Round3Tab = () => {
           break;
       }
 
-      if (response.success && response.data) {
+      const hasData =
+        response.success &&
+        response.data &&
+        (Array.isArray(response.data)
+          ? response.data.length > 0
+          : Object.keys(response.data).length > 0);
+
+      if (hasData) {
         // Handle different response structures
         if (isKarnataka) {
           const apiData = Array.isArray(response.data)
@@ -1464,10 +1471,11 @@ export const Round3Tab = () => {
           round: 3,
           last_round_college_choice_code: skipRound2Selection
             ? 0
-            : typeof selectedCollege?.selectedDepartment?.choice_code ===
-                "string"
-              ? parseInt(selectedCollege.selectedDepartment.choice_code)
-              : selectedCollege?.selectedDepartment?.choice_code || 0,
+            : (() => {
+                const code = selectedCollege?.selectedDepartment?.choice_code;
+                if (!code) return 0;
+                return /^\d+$/.test(String(code)) ? Number(code) : String(code);
+              })(),
         };
 
         const response = await apiService.getRecommendations(
@@ -2484,7 +2492,10 @@ export const Round3Tab = () => {
                       <Label htmlFor="search-type">Search Type</Label>
                       <Select
                         value={searchType}
-                        onValueChange={(value: any) => setSearchType(value)}
+                        onValueChange={(value: any) => {
+                          setSearchType(value);
+                          setSearchValue("");
+                        }}
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Select search type" />
@@ -2511,7 +2522,26 @@ export const Round3Tab = () => {
                         <Input
                           id="search-value"
                           value={searchValue}
-                          onChange={(e) => setSearchValue(e.target.value)}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            if (searchType === "college_code") {
+                              const isKarnataka =
+                                localStorage.getItem("selected_state") ===
+                                "Karnataka";
+
+                              if (isKarnataka) {
+                                // Allow alphanumeric for Karnataka
+                                setSearchValue(value.toUpperCase());
+                              } else {
+                                // Only allow digits for college code and max 4 chars for others
+                                if (/^\d*$/.test(value) && value.length <= 4) {
+                                  setSearchValue(value);
+                                }
+                              }
+                            } else {
+                              setSearchValue(value);
+                            }
+                          }}
                           placeholder={
                             searchType === "choice_code"
                               ? "Enter choice code (e.g., 211626310 or 1234U)"
@@ -2524,11 +2554,12 @@ export const Round3Tab = () => {
                           }
                           type={
                             searchType === "college_name" ||
+                            searchType === "choice_code" ||
                             (localStorage.getItem("selected_state") ===
                               "Karnataka" &&
                               searchType === "college_code")
                               ? "text"
-                              : "number"
+                              : "text" // Changed to text to better control input validation via regex
                           }
                           onKeyPress={(e) =>
                             e.key === "Enter" && handleSearch()
