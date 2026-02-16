@@ -2401,15 +2401,16 @@ export const Round2Tab = () => {
                           id="search-value"
                           value={searchValue}
                           onChange={(e) => {
+                            const selectedState =
+                              localStorage.getItem("selected_state") || "";
                             const value = e.target.value;
-                            if (searchType === "college_code") {
-                              const isKarnataka =
-                                localStorage.getItem("selected_state") ===
-                                "Karnataka";
 
-                              if (isKarnataka) {
+                            if (searchType === "college_code") {
+                              if (selectedState === "Karnataka") {
                                 // Allow alphanumeric for Karnataka
-                                setSearchValue(value.toUpperCase());
+                                if (/^[a-zA-Z0-9]*$/.test(value)) {
+                                  setSearchValue(value.toUpperCase());
+                                }
                               } else {
                                 // Only allow digits for college code and max 4 chars for others
                                 if (/^\d*$/.test(value) && value.length <= 4) {
@@ -2419,10 +2420,92 @@ export const Round2Tab = () => {
                             } else if (searchType === "choice_code") {
                               // Only allow alphanumeric for choice code
                               if (/^[a-zA-Z0-9]*$/.test(value)) {
-                                setSearchValue(value);
+                                setSearchValue(value.toUpperCase());
                               }
                             } else {
                               setSearchValue(value);
+                            }
+                          }}
+                          onKeyDown={(e) => {
+                            const selectedState =
+                              localStorage.getItem("selected_state") || "";
+
+                            if (searchType === "college_code") {
+                              if (selectedState !== "Karnataka") {
+                                // Prevent -, +, e, E and other non-numeric keys for non-Karnataka states
+                                if (
+                                  e.key === "-" ||
+                                  e.key === "+" ||
+                                  e.key === "e" ||
+                                  e.key === "E" ||
+                                  e.key === "."
+                                ) {
+                                  e.preventDefault();
+                                }
+                              } else {
+                                // For Karnataka, prevent special characters (allow alphanumeric)
+                                if (
+                                  !/^[a-zA-Z0-9]$/.test(e.key) &&
+                                  e.key.length === 1 &&
+                                  !e.ctrlKey &&
+                                  !e.metaKey &&
+                                  !e.altKey
+                                ) {
+                                  e.preventDefault();
+                                }
+                              }
+                            } else if (searchType === "choice_code") {
+                              // Prevent special characters (allow alphanumeric)
+                              if (
+                                !/^[a-zA-Z0-9]$/.test(e.key) &&
+                                e.key.length === 1 &&
+                                !e.ctrlKey &&
+                                !e.metaKey &&
+                                !e.altKey
+                              ) {
+                                e.preventDefault();
+                              }
+                            }
+                            if (e.key === "Enter") {
+                              handleSearch();
+                            }
+                          }}
+                          onPaste={(e) => {
+                            const selectedState =
+                              localStorage.getItem("selected_state") || "";
+
+                            if (searchType === "college_code") {
+                              e.preventDefault();
+                              const pastedText =
+                                e.clipboardData.getData("text");
+
+                              if (selectedState === "Karnataka") {
+                                // Allow alphanumeric
+                                const alphanumericValue = pastedText.replace(
+                                  /[^a-zA-Z0-9]/g,
+                                  "",
+                                );
+                                setSearchValue(alphanumericValue.toUpperCase());
+                              } else {
+                                // Numeric only
+                                const numericValue = pastedText.replace(
+                                  /[^0-9]/g,
+                                  "",
+                                );
+                                if (numericValue.length <= 4) {
+                                  setSearchValue(numericValue);
+                                }
+                              }
+                            } else if (searchType === "choice_code") {
+                              e.preventDefault();
+                              const pastedText =
+                                e.clipboardData.getData("text");
+                              // Allow alphanumeric
+                              const alphanumericValue = pastedText.replace(
+                                /[^a-zA-Z0-9]/g,
+                                "",
+                              );
+                              setSearchValue(alphanumericValue.toUpperCase());
                             }
                           }}
                           placeholder={
