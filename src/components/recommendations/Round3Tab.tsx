@@ -325,95 +325,117 @@ export const Round3Tab = () => {
           }
 
           let collegeFound = false;
+          let localSelectionFound = false;
 
-          // Check for existing Round 3 selection
-          const isKarnataka =
-            localStorage.getItem("selected_state") === "Karnataka";
+          // 1. Try loading from LocalStorage FIRST (Prioritize user's local state)
+          const stored = localStorage.getItem("round3Selection");
+          if (stored) {
+            try {
+              const parsedData = JSON.parse(stored);
+              setSelectedCollege(parsedData.selectedCollege);
+              setIsConfirmed(parsedData.isConfirmed);
+              if (parsedData.isConfirmed) {
+                setShowPreferences(true);
+                localSelectionFound = true;
+              }
+            } catch (error) {
+              console.error("Error loading stored selection data:", error);
+            }
+          }
 
-          if (isKarnataka) {
-            // Only fetch if not cleared by user
-            if (
-              sessionStorage.getItem("user_cleared_recommendations_r3") !==
-              "true"
-            ) {
-              const response =
-                await apiService.getKarnatakaEngineeringRoundDetails(
-                  2, // Karnataka Round 3 uses round=2 query param
+          // 2. If no local selection, try API
+          if (!localSelectionFound) {
+            // Check for existing Round 3 selection
+            const isKarnataka =
+              localStorage.getItem("selected_state") === "Karnataka";
+
+            if (isKarnataka) {
+              // Only fetch if not cleared by user
+              if (
+                sessionStorage.getItem("user_cleared_recommendations_r3") !==
+                "true"
+              ) {
+                const response =
+                  await apiService.getKarnatakaEngineeringRoundDetails(
+                    2, // Karnataka Round 3 uses round=2 query param
+                    user.accessToken,
+                  );
+
+                if (response.success && response.data) {
+                  const apiData = response.data;
+                  // Convert API response to selectedCollege format
+                  const selectedCollege: SelectedCollege = {
+                    college: {
+                      College_Name: apiData.college_name,
+                      College_code: apiData.college_code.toString(),
+                      City: apiData.city,
+                      College_Website: "",
+                      department: [],
+                    } as CollegeSearchResult,
+                    selectedDepartment: {
+                      course_name: apiData.course_name,
+                      course_code: 0,
+                      choice_code: 0, // Placeholder
+                    } as unknown as CollegeDepartment,
+                  };
+                  setSelectedCollege(selectedCollege);
+                  setIsConfirmed(true);
+                  setShowPreferences(true);
+                  collegeFound = true;
+
+                  // Also save to localStorage for future use
+                  const storageData = { selectedCollege, isConfirmed: true };
+                  localStorage.setItem(
+                    "round3Selection",
+                    JSON.stringify(storageData),
+                  );
+                }
+              }
+            } else {
+              // Only fetch if not cleared by user
+              if (
+                sessionStorage.getItem("user_cleared_recommendations_r3") !==
+                "true"
+              ) {
+                const response = await apiService.getUserRoundDetails(
+                  3,
                   user.accessToken,
                 );
+                if (
+                  response.success &&
+                  response.data &&
+                  Object.keys(response.data).length > 0
+                ) {
+                  const apiData = response.data;
+                  // Convert API response to selectedCollege format
+                  const selectedCollege: SelectedCollege = {
+                    college: {
+                      College_Name: apiData.College_Name,
+                      College_code: apiData.College_code,
+                      City: apiData.City,
+                      College_Website: "",
+                      department: [], // Default empty values for missing fields
+                    } as CollegeSearchResult,
+                    selectedDepartment: {
+                      course_name: apiData.Course_Name,
+                      course_code: apiData.Course_Code,
+                      choice_code: apiData.Choice_Code,
+                      // The API might return 0 if not set, but we just use what we get.
+                      // If it's 0, it's 0. But if we had local, we wouldn't be here.
+                    } as CollegeDepartment,
+                  };
+                  setSelectedCollege(selectedCollege);
+                  setIsConfirmed(true);
+                  setShowPreferences(true);
+                  collegeFound = true;
 
-              if (response.success && response.data) {
-                const apiData = response.data;
-                // Convert API response to selectedCollege format
-                const selectedCollege: SelectedCollege = {
-                  college: {
-                    College_Name: apiData.college_name,
-                    College_code: apiData.college_code.toString(),
-                    City: apiData.city,
-                    College_Website: "",
-                    department: [],
-                  } as CollegeSearchResult,
-                  selectedDepartment: {
-                    course_name: apiData.course_name,
-                    course_code: 0,
-                    choice_code: 0, // Placeholder
-                  } as unknown as CollegeDepartment,
-                };
-                setSelectedCollege(selectedCollege);
-                setIsConfirmed(true);
-                setShowPreferences(true);
-                collegeFound = true;
-
-                // Also save to localStorage for future use
-                const storageData = { selectedCollege, isConfirmed: true };
-                localStorage.setItem(
-                  "round3Selection",
-                  JSON.stringify(storageData),
-                );
-              }
-            }
-          } else {
-            // Only fetch if not cleared by user
-            if (
-              sessionStorage.getItem("user_cleared_recommendations_r3") !==
-              "true"
-            ) {
-              const response = await apiService.getUserRoundDetails(
-                3,
-                user.accessToken,
-              );
-              if (
-                response.success &&
-                response.data &&
-                Object.keys(response.data).length > 0
-              ) {
-                const apiData = response.data;
-                // Convert API response to selectedCollege format
-                const selectedCollege: SelectedCollege = {
-                  college: {
-                    College_Name: apiData.College_Name,
-                    College_code: apiData.College_code,
-                    City: apiData.City,
-                    College_Website: "",
-                    department: [], // Default empty values for missing fields
-                  } as CollegeSearchResult,
-                  selectedDepartment: {
-                    course_name: apiData.Course_Name,
-                    course_code: apiData.Course_Code,
-                    choice_code: apiData.Choice_Code,
-                  } as CollegeDepartment,
-                };
-                setSelectedCollege(selectedCollege);
-                setIsConfirmed(true);
-                setShowPreferences(true);
-                collegeFound = true;
-
-                // Also save to localStorage for future use
-                const storageData = { selectedCollege, isConfirmed: true };
-                localStorage.setItem(
-                  "round3Selection",
-                  JSON.stringify(storageData),
-                );
+                  // Also save to localStorage for future use
+                  const storageData = { selectedCollege, isConfirmed: true };
+                  localStorage.setItem(
+                    "round3Selection",
+                    JSON.stringify(storageData),
+                  );
+                }
               }
             }
           }
@@ -462,10 +484,12 @@ export const Round3Tab = () => {
             setSelectedCities(cities);
             // setShowPreferences(true); // Show preferences when loaded from API
 
-            // Fix applied: If preferences exist but no college found, assume user skipped Round 2 selection
+            // Fix applied: If preferences exist but no college found (neither in API nor LocalStorage),
+            // assume user skipped Round 2 selection.
             // ONLY if user hasn't explicitly cleared recommendations
             if (
               !collegeFound &&
+              !localSelectionFound &&
               sessionStorage.getItem("user_cleared_recommendations_r3") !==
                 "true"
             ) {
@@ -488,7 +512,11 @@ export const Round3Tab = () => {
             await loadPreferencesFromFormData();
 
             // Check for persisted "Create New List" state
-            if (sessionStorage.getItem("round3CreateListActive") === "true") {
+            if (
+              !collegeFound &&
+              !localSelectionFound &&
+              sessionStorage.getItem("round3CreateListActive") === "true"
+            ) {
               setSkipRound2Selection(true);
               setShowPreferences(true);
             }
@@ -500,6 +528,7 @@ export const Round3Tab = () => {
           setIsLoading(false); // Ensure loading stops
         }
       }
+      setIsLoading(false);
     };
 
     loadExistingData();
@@ -749,6 +778,8 @@ export const Round3Tab = () => {
         "round3Selection",
         JSON.stringify({ selectedCollege, isConfirmed: true }),
       );
+    } else {
+      setSkipRound2Selection(false);
     }
 
     setHasGeneratedRecommendations(false);
