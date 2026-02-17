@@ -1340,6 +1340,27 @@ export const Round2Tab = () => {
           const storeResponse =
             await apiService.storeKarnatakaEngineeringConfig(updatedPayload);
           isSuccess = storeResponse.success;
+
+          // After storing, fetch the latest config to update engineering_user_config key in sync
+          if (isSuccess) {
+            try {
+              const latestConfig =
+                await apiService.fetchKarnatakaEngineeringConfig(
+                  user.accessToken,
+                );
+              if (latestConfig.success && latestConfig.data) {
+                localStorage.setItem(
+                  "engineering_user_config",
+                  JSON.stringify(latestConfig.data),
+                );
+              }
+            } catch (fetchError) {
+              console.error(
+                "Failed to sync engineering_user_config after store (Round 2 Tab):",
+                fetchError,
+              );
+            }
+          }
         }
       } else {
         // Existing logic for other states (Maharashtra)
