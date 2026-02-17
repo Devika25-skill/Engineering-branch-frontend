@@ -210,34 +210,8 @@ export const usePdfDownloadMedical = () => {
 
       yPosition += 12;
 
-      // Sort recommendations by category order, then by admission_probability ascending,
-      // then by abs(closing_rank - neet_rank) smallest first
-      const categoryOrder = ["Dream", "Reach", "Match", "Safety"];
-      const sortedRecommendations = [...recommendations].sort((a, b) => {
-        const categoryA = categoryOrder.indexOf(a.category);
-        const categoryB = categoryOrder.indexOf(b.category);
-
-        // First: sort by category order
-        if (categoryA !== categoryB) {
-          return categoryA - categoryB;
-        }
-
-        // Second: sort by admission_probability ascending (lowest first)
-        const probA = a.admission_probability || 0;
-        const probB = b.admission_probability || 0;
-        if (probA !== probB) {
-          return probA - probB;
-        }
-
-        // Third: sort by abs(closing_rank - neet_rank) smallest first
-        const neetRankA = a.neet_rank || 0;
-        const neetRankB = b.neet_rank || 0;
-        const closingRankA = a.closing_rank || 0;
-        const closingRankB = b.closing_rank || 0;
-        const diffA = Math.abs(closingRankA - neetRankA);
-        const diffB = Math.abs(closingRankB - neetRankB);
-        return diffA - diffB;
-      });
+      // Use recommendations as-is without any sorting
+      const sortedRecommendations = [...recommendations];
 
       let globalIndex = 1;
       let collegesOnCurrentPage = 0;
