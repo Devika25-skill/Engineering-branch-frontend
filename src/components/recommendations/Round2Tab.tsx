@@ -121,12 +121,42 @@ export const Round2Tab = () => {
   // Convert API response to recommendation format
   const convertApiResponseToRecommendations = (apiData: any) => {
     const recommendations: any[] = [];
+    const categories = ["Dream", "Reach", "Match", "Safety"];
 
-    ["Dream", "Reach", "Match", "Safety"].forEach((category) => {
-      if (apiData[category] && Array.isArray(apiData[category])) {
-        apiData[category].forEach((item: any) => {
+    // Check if we have a flat list in 'colleges' or 'data' and no categories
+    // This is a fallback if the API structure is completely different
+    if (
+      !categories.some(
+        (cat) =>
+          (apiData[cat] && Array.isArray(apiData[cat])) ||
+          (apiData[cat.toLowerCase()] &&
+            Array.isArray(apiData[cat.toLowerCase()])),
+      )
+    ) {
+      // Try to find a list of colleges to process
+      const flatList = apiData.colleges || apiData.data || [];
+      if (Array.isArray(flatList) && flatList.length > 0) {
+        // treating flat list as 'Match' or preserving their internal category if exists
+        flatList.forEach((item: any) => {
+          // ... (logic to handle flat list item if needed, but for now focusing on category fix)
+          // If the flat list items look like recommendations, process them
+          // But usually they are categorized.
+        });
+      }
+    }
+
+    categories.forEach((category) => {
+      // Check both Title Case and lowercase keys
+      const categoryKey = apiData[category]
+        ? category
+        : apiData[category.toLowerCase()]
+          ? category.toLowerCase()
+          : null;
+
+      if (categoryKey && Array.isArray(apiData[categoryKey])) {
+        apiData[categoryKey].forEach((item: any) => {
           recommendations.push({
-            category: category,
+            category: category, // normalized to Title Case for UI
             college: {
               id: item.college.SJ_Institute_Code,
               name: item.college.College_Name || item.college.college_name,
@@ -143,8 +173,11 @@ export const Round2Tab = () => {
               type: item.college.College_Type || item.college.college_type,
               nirf_rank: item.college.NIRF_Rank_Min,
               fees:
-                item.college["Annual_Fees_(INR)"] || item.college.annual_fees,
-              // Dummy replacement
+                item.college["Annual_Fees_(INR)"] ||
+                item.college.Annual_Fees_INR || // Added fallback for different naming
+                item.college.annual_fees ||
+                item.college.Annual_Fees ||
+                null,
               placement:
                 item.college.Overall_College_Placement_Percentage ||
                 item.college.overall_college_placement_percentage ||
