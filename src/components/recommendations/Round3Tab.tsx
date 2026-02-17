@@ -1624,6 +1624,13 @@ export const Round3Tab = () => {
       console.error("Invalid recommendations format:", recs);
       return [];
     }
+
+    // Skip sorting for Karnataka
+    const isKarnataka = localStorage.getItem("selected_state") === "Karnataka";
+    if (isKarnataka) {
+      return [...recs];
+    }
+
     return [...recs].sort((a, b) => {
       const categoryOrder = { Dream: 0, Reach: 1, Match: 2, Safety: 3 };
       const categoryA =

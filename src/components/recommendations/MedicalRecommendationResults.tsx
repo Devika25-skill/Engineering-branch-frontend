@@ -166,28 +166,8 @@ export const MedicalRecommendationResults = ({
       return [];
     }
 
-    const categoryOrder = { Dream: 1, Reach: 2, Match: 3, Safety: 4 };
-    return [...recs].sort((a, b) => {
-      // First: sort by category order
-      const categoryDiff =
-        categoryOrder[a.category as keyof typeof categoryOrder] -
-        categoryOrder[b.category as keyof typeof categoryOrder];
-      if (categoryDiff !== 0) return categoryDiff;
-
-      // Second: sort by admission_probability ascending (lowest first)
-      const probA = a.admission_probability || 0;
-      const probB = b.admission_probability || 0;
-      if (probA !== probB) return probA - probB;
-
-      // Third: sort by abs(closing_rank - neet_rank) smallest first
-      const neetRankA = a.neet_rank || 0;
-      const neetRankB = b.neet_rank || 0;
-      const closingRankA = a.closing_rank || 0;
-      const closingRankB = b.closing_rank || 0;
-      const diffA = Math.abs(closingRankA - neetRankA);
-      const diffB = Math.abs(closingRankB - neetRankB);
-      return diffA - diffB;
-    });
+    // Use API response data directly without any sorting
+    return [...recs];
   };
 
   const getCategorizedRecommendations = () => {

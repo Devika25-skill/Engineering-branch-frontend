@@ -425,6 +425,12 @@ export const RecommendationResults = ({
   const sortRecommendationsByCategory = (recs: CollegeRecommendation[]) => {
     if (!Array.isArray(recs)) return [];
 
+    // Skip sorting for Karnataka
+    const isKarnataka = localStorage.getItem("selected_state") === "Karnataka";
+    if (isKarnataka) {
+      return [...recs];
+    }
+
     // Sort to maintain category order: Dream, Reach, Match, Safety
     // Within each category, sort by cutoff percentile in descending order
     // Use spread to avoid mutating original array

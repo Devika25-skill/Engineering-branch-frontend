@@ -1375,34 +1375,8 @@ export const MedicalRound2Tab = ({
   };
 
   const sortRecommendationsByCategory = (recs: any[]) => {
-    return [...recs].sort((a, b) => {
-      const categoryOrder = { Dream: 0, Reach: 1, Match: 2, Safety: 3 };
-      const categoryA =
-        categoryOrder[a.category as keyof typeof categoryOrder] ?? 4;
-      const categoryB =
-        categoryOrder[b.category as keyof typeof categoryOrder] ?? 4;
-
-      // First: sort by category order
-      if (categoryA !== categoryB) {
-        return categoryA - categoryB;
-      }
-
-      // Second: sort by admission_probability ascending (lowest first)
-      const probA = a.admission_probability || 0;
-      const probB = b.admission_probability || 0;
-      if (probA !== probB) {
-        return probA - probB;
-      }
-
-      // Third: sort by abs(closing_rank - neet_rank) smallest first
-      const neetRankA = a.neet_rank || 0;
-      const neetRankB = b.neet_rank || 0;
-      const closingRankA = a.closing_rank || 0;
-      const closingRankB = b.closing_rank || 0;
-      const diffA = Math.abs(closingRankA - neetRankA);
-      const diffB = Math.abs(closingRankB - neetRankB);
-      return diffA - diffB;
-    });
+    // Use API response data directly without any sorting
+    return [...recs];
   };
 
   const categorizedRecommendations = sortRecommendationsByCategory(

@@ -295,16 +295,18 @@ export const usePdfDownload = () => {
 
       // Sort recommendations by category order and maintain continuous numbering
       const categoryOrder = ["Dream", "Reach", "Match", "Safety"];
-      const sortedRecommendations = recommendations.sort((a, b) => {
-        const categoryA = categoryOrder.indexOf(a.category);
-        const categoryB = categoryOrder.indexOf(b.category);
+      const sortedRecommendations = isKarnataka
+        ? [...recommendations]
+        : recommendations.sort((a, b) => {
+            const categoryA = categoryOrder.indexOf(a.category);
+            const categoryB = categoryOrder.indexOf(b.category);
 
-        if (categoryA !== categoryB) {
-          return categoryA - categoryB;
-        }
+            if (categoryA !== categoryB) {
+              return categoryA - categoryB;
+            }
 
-        return (b.cutoff_percentile || 0) - (a.cutoff_percentile || 0);
-      });
+            return (b.cutoff_percentile || 0) - (a.cutoff_percentile || 0);
+          });
 
       let globalIndex = 1;
       let collegesOnCurrentPage = 0;

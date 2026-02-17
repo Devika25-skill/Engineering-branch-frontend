@@ -1492,6 +1492,12 @@ export const Round2Tab = () => {
   const sortRecommendationsByCategory = (recs: any[]) => {
     if (!Array.isArray(recs)) return [];
 
+    // Skip sorting for Karnataka
+    const isKarnataka = localStorage.getItem("selected_state") === "Karnataka";
+    if (isKarnataka) {
+      return [...recs];
+    }
+
     return [...recs].sort((a, b) => {
       const categoryOrder = { Dream: 0, Reach: 1, Match: 2, Safety: 3 };
       const categoryA =
