@@ -217,10 +217,7 @@ export const MedicalPreferencesForm = ({
       if (selectedPrograms.includes("ALL")) {
         // If ALL is already selected, remove it and add the new program
         setSelectedPrograms([program]);
-      } else if (
-        selectedPrograms.length < 3 &&
-        !selectedPrograms.includes(program)
-      ) {
+      } else if (!selectedPrograms.includes(program)) {
         // Normal add logic
         setSelectedPrograms([...selectedPrograms, program]);
       }
@@ -240,7 +237,7 @@ export const MedicalPreferencesForm = ({
       if (selectedCities.includes("ALL")) {
         // If ALL is already selected, remove it and add the new city
         setSelectedCities([city]);
-      } else if (selectedCities.length < 3 && !selectedCities.includes(city)) {
+      } else if (!selectedCities.includes(city)) {
         // Normal add logic
         setSelectedCities([...selectedCities, city]);
       }
@@ -285,15 +282,13 @@ export const MedicalPreferencesForm = ({
               <span className="text-red-500">*</span>
             </CardTitle>
             <p className="text-sm text-slate-600 mt-2">
-              Select up to 3 programs
+              Select your preferred programs
             </p>
           </CardHeader>
           <CardContent className="space-y-6">
             <Select
               onValueChange={addProgram}
-              disabled={
-                selectedPrograms.length >= 3 || selectedPrograms.includes("ALL")
-              }
+              disabled={selectedPrograms.includes("ALL")}
             >
               <SelectTrigger className="h-12 rounded-xl border-2 bg-white">
                 <div className="flex items-center gap-2">
@@ -302,9 +297,7 @@ export const MedicalPreferencesForm = ({
                     placeholder={
                       selectedPrograms.includes("ALL")
                         ? "ALL programs selected"
-                        : selectedPrograms.length >= 3
-                          ? "Maximum 3 programs selected"
-                          : "Add your preferred medical programs"
+                        : "Add your preferred medical programs"
                     }
                   />
                 </div>
@@ -323,10 +316,10 @@ export const MedicalPreferencesForm = ({
             {selectedPrograms.length > 0 ? (
               <div className="space-y-3">
                 <p className="text-sm font-medium text-slate-600 flex items-center gap-2">
-                  🎯 Your Preferences ({selectedPrograms.length}/3 - drag to
+                  🎯 Your Preferences ({selectedPrograms.length} - drag to
                   reorder by priority):
                 </p>
-                <div className="border-2 rounded-xl p-3 bg-white">
+                <div className="border-2 rounded-xl p-3 bg-white max-h-96 overflow-y-auto">
                   <DragDropContext onDragEnd={handleProgramDragEnd}>
                     <Droppable droppableId="programs">
                       {(provided) => (
@@ -399,7 +392,9 @@ export const MedicalPreferencesForm = ({
                 (Optional)
               </span>
             </CardTitle>
-            <p className="text-sm text-slate-600 mt-2">Select up to 3 cities</p>
+            <p className="text-sm text-slate-600 mt-2">
+              Select as many cities as you like
+            </p>
           </CardHeader>
           <CardContent className="space-y-6">
             {availableCities.length > 10 ? (
@@ -417,23 +412,17 @@ export const MedicalPreferencesForm = ({
                   placeholder={
                     selectedCities.includes("ALL")
                       ? "ALL cities selected"
-                      : selectedCities.length >= 3
-                        ? "Maximum 3 cities selected"
-                        : "Add cities you'd love to study in"
+                      : "Add cities you'd love to study in"
                   }
                   searchPlaceholder="Search cities..."
                   className="pl-10"
-                  disabled={
-                    selectedCities.length >= 3 || selectedCities.includes("ALL")
-                  }
+                  disabled={selectedCities.includes("ALL")}
                 />
               </div>
             ) : (
               <Select
                 onValueChange={addCity}
-                disabled={
-                  selectedCities.length >= 3 || selectedCities.includes("ALL")
-                }
+                disabled={selectedCities.includes("ALL")}
               >
                 <SelectTrigger className="h-12 rounded-xl border-2 bg-white">
                   <div className="flex items-center gap-2">
@@ -442,9 +431,7 @@ export const MedicalPreferencesForm = ({
                       placeholder={
                         selectedCities.includes("ALL")
                           ? "ALL cities selected"
-                          : selectedCities.length >= 3
-                            ? "Maximum 3 cities selected"
-                            : "Add cities you'd love to study in"
+                          : "Add cities you'd love to study in"
                       }
                     />
                   </div>
@@ -464,10 +451,10 @@ export const MedicalPreferencesForm = ({
             {selectedCities.length > 0 ? (
               <div className="space-y-3">
                 <p className="text-sm font-medium text-slate-600 flex items-center gap-2">
-                  🗺️ Your Preferences ({selectedCities.length}/3 - drag to
-                  reorder by priority):
+                  🗺️ Your Preferences ({selectedCities.length} - drag to reorder
+                  by priority):
                 </p>
-                <div className="border-2 rounded-xl p-3 bg-white">
+                <div className="border-2 rounded-xl p-3 bg-white max-h-96 overflow-y-auto">
                   <DragDropContext onDragEnd={handleCityDragEnd}>
                     <Droppable droppableId="cities">
                       {(provided) => (
