@@ -50,6 +50,7 @@ import {
   X,
   GripVertical,
   Building2,
+  Building,
   GraduationCap,
   Tag,
 } from "lucide-react";
@@ -2009,11 +2010,7 @@ export const MedicalRound3Tab = ({
                         </div>
                         <div className="flex-shrink-0">
                           <div className="w-10 h-10 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg flex items-center justify-center border border-gray-100">
-                            <span className="text-gray-600 text-xs font-bold">
-                              {recommendation.college?.college_name?.charAt(
-                                0,
-                              ) || "C"}
-                            </span>
+                            <Building className="w-6 h-6 text-purple-600" />
                           </div>
                         </div>
                         <div className="flex-1 min-w-0">
@@ -2193,11 +2190,7 @@ export const MedicalRound3Tab = ({
                             </div>
                             <div className="flex-shrink-0">
                               <div className="w-10 h-10 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg flex items-center justify-center border border-gray-100">
-                                <span className="text-gray-600 text-xs font-bold">
-                                  {recommendation.college?.college_name?.charAt(
-                                    0,
-                                  ) || "C"}
-                                </span>
+                                <Building className="w-6 h-6 text-purple-600" />
                               </div>
                             </div>
                             <div className="flex-1 min-w-0">
