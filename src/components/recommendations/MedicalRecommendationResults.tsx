@@ -8,6 +8,7 @@ import {
   TrendingUp,
   Loader2,
   Download,
+  Building,
   Tag,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -313,12 +314,9 @@ export const MedicalRecommendationResults = ({
             {index + 1}
           </div>
 
-          {/* College Logo */}
           <div className="flex-shrink-0">
             <div className="w-10 h-10 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg flex items-center justify-center border border-gray-100">
-              <span className="text-gray-600 text-xs font-bold">
-                {rec.college.college_name.charAt(0)}
-              </span>
+              <Building className="w-6 h-6 text-purple-600" />
             </div>
           </div>
 
@@ -592,9 +590,7 @@ export const MedicalRecommendationResults = ({
                                   </div>
                                   <div className="flex-shrink-0">
                                     <div className="w-10 h-10 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg flex items-center justify-center border border-gray-100">
-                                      <span className="text-gray-600 text-xs font-bold">
-                                        {rec.college.college_name.charAt(0)}
-                                      </span>
+                                      <Building className="w-6 h-6 text-purple-600" />
                                     </div>
                                   </div>
                                   <div className="flex-1 min-w-0">
