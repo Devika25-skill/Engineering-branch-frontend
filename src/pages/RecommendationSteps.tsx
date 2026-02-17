@@ -590,7 +590,7 @@ const RecommendationSteps = () => {
     sessionStorage.removeItem("cachedRecommendations_v3");
     sessionStorage.removeItem("cachedMedicalRecommendations");
 
-    // Clear Round 2 & 3 caches (Generic & Karnataka)
+    // Clear Round 1, 2 & 3 caches (Generic & Karnataka)
     sessionStorage.removeItem("cachedRound3Recommendations_v3");
     sessionStorage.removeItem("cachedRound2Recommendations_v3");
     sessionStorage.removeItem("cachedRound1Recommendations_v3");
@@ -599,14 +599,17 @@ const RecommendationSteps = () => {
     sessionStorage.removeItem("karnataka_cachedRound2Recommendations");
     sessionStorage.removeItem("karnataka_cachedRound3Recommendations");
     sessionStorage.removeItem("karnataka_cachedRecommendations");
+    sessionStorage.removeItem("karnataka_cachedRound1Recommendations_v3");
 
-    // Local Storage Keys
+    // Local Storage Keys - Clear all possible round data to prevent stale results
+    localStorage.removeItem("round1Recommendations");
     localStorage.removeItem("round2Recommendations");
     localStorage.removeItem("round3Recommendations");
     localStorage.removeItem("karnataka_round2Recommendations");
     localStorage.removeItem("karnataka_round3Recommendations");
     localStorage.removeItem("karnataka_recommendations");
 
+    localStorage.removeItem("round1Preferences");
     localStorage.removeItem("round2Preferences");
     localStorage.removeItem("round3Preferences");
 

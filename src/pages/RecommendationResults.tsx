@@ -35,11 +35,20 @@ const RecommendationResults = () => {
   // Convert API response to recommendation format (Same as Round2/3 Tabs)
   const convertApiResponseToRecommendations = useCallback((apiData: any) => {
     const recommendations: any[] = [];
-    ["Dream", "Reach", "Match", "Safety"].forEach((category) => {
-      if (apiData[category] && Array.isArray(apiData[category])) {
-        apiData[category].forEach((item: any) => {
+    const categories = ["Dream", "Reach", "Match", "Safety"];
+
+    categories.forEach((category) => {
+      // Check both Title Case and lowercase keys
+      const categoryKey = apiData[category]
+        ? category
+        : apiData[category.toLowerCase()]
+          ? category.toLowerCase()
+          : null;
+
+      if (categoryKey && Array.isArray(apiData[categoryKey])) {
+        apiData[categoryKey].forEach((item: any) => {
           recommendations.push({
-            category: category,
+            category: category, // normalized to Title Case for UI
             college: {
               id: item.college.SJ_Institute_Code,
               name: item.college.College_Name || item.college.college_name,
@@ -56,7 +65,11 @@ const RecommendationResults = () => {
               type: item.college.College_Type || item.college.college_type,
               nirf_rank: item.college.NIRF_Rank_Min,
               fees:
-                item.college["Annual_Fees_(INR)"] || item.college.annual_fees,
+                item.college["Annual_Fees_(INR)"] ||
+                item.college.Annual_Fees_INR || // Added fallback for different naming
+                item.college.annual_fees ||
+                item.college.Annual_Fees ||
+                null,
               placement:
                 item.college.Overall_College_Placement_Percentage ||
                 item.college.overall_college_placement_percentage ||
@@ -85,6 +98,7 @@ const RecommendationResults = () => {
         });
       }
     });
+
     return recommendations;
   }, []);
 
