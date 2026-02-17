@@ -83,6 +83,9 @@ export const RecommendationCard = ({
             );
 
             setLocalFormData(mappedFormData);
+
+            // Dispatch event to notify other instances
+            window.dispatchEvent(new Event("recommendationDataUpdated"));
           }
         } catch (error) {
           console.error("Failed to fetch missing CAP details in card", error);
@@ -95,11 +98,56 @@ export const RecommendationCard = ({
     fetchMissingData();
   }, [formData.cetPercentile, formData.cet_percentile, user, isKarnataka]);
 
-  const currentFormData = localFormData || formData;
+  // Listen for data updates from other card instances
+  useEffect(() => {
+    const handleDataUpdate = () => {
+      const updatedFormData = JSON.parse(
+        sessionStorage.getItem("recommendationFormData") ||
+          sessionStorage.getItem("recommendation_form_data") ||
+          localStorage.getItem("recommendationFormData") ||
+          localStorage.getItem("engineering_user_config") ||
+          "{}",
+      );
+      if (updatedFormData && Object.keys(updatedFormData).length > 0) {
+        setLocalFormData(updatedFormData);
+      }
+    };
+
+    window.addEventListener("recommendationDataUpdated", handleDataUpdate);
+    return () => {
+      window.removeEventListener("recommendationDataUpdated", handleDataUpdate);
+    };
+  }, []);
+
+  // Merge local form data with recommendation storage data to ensure we have all fields
+  const storageFormData = recommendationStorage.getFormData() || {};
+
+  // Try to read engineering config directly as synchronous backup
+  let engineeringConfig = {};
+  if (typeof localStorage !== "undefined") {
+    try {
+      engineeringConfig = JSON.parse(
+        localStorage.getItem("engineering_user_config") || "{}",
+      );
+    } catch (e) {
+      console.error("Failed to parse engineering_user_config", e);
+    }
+  }
+
+  const currentFormData = {
+    ...storageFormData,
+    ...engineeringConfig,
+    ...(localFormData || formData),
+  };
+
   const currentCetPercentile =
     currentFormData.cetPercentile || currentFormData.cet_percentile || null;
   const currentCetRank =
-    currentFormData.cetRank || currentFormData.cet_rank || null;
+    currentFormData.cetRank ||
+    currentFormData.cet_rank ||
+    currentFormData.examPercentiles?.CET_Rank ||
+    currentFormData.academic_credentials?.examPercentiles?.CET_Rank ||
+    null;
 
   const currentReservationCategory =
     currentFormData.reservationCategory ||
@@ -224,11 +272,19 @@ export const RecommendationCard = ({
             {/* Course Info - More compact */}
             <div className="bg-blue-50 rounded-lg p-2 mb-2">
               <div className="text-xs">
+                {/* Mobile view - truncated */}
                 <div
-                  className="font-medium text-blue-900 mb-1"
+                  className="font-medium text-blue-900 mb-1 md:hidden"
                   title={course_name}
                 >
                   {truncateText(course_name, 45)}
+                </div>
+                {/* Desktop view - full */}
+                <div
+                  className="font-medium text-blue-900 mb-1 hidden md:block"
+                  title={course_name}
+                >
+                  {course_name}
                 </div>
                 <div className="flex flex-wrap gap-1 mt-1">
                   {choice_code && (
@@ -309,24 +365,19 @@ export const RecommendationCard = ({
                 {admission_probability}%
               </span>
             </div>
-            {probability_message && (
-              <>
-                <p className="text-xs text-gray-600 break-words">
-                  {isKarnataka
-                    ? currentCetRank
-                      ? `Your CET Rank: ${currentCetRank}`
-                      : ""
-                    : currentCetPercentile
-                      ? `Your CET Percentile: ${currentCetPercentile}%`
-                      : ""}{" "}
-                </p>
-                {/* {currentReservationCategory && (
-                  <p className="text-xs text-gray-600 break-words">
-                    Reservation Category: {currentReservationCategory}
-                  </p>
-                )} */}
-              </>
-            )}
+            {/* {probability_message && (
+              <p className="text-xs text-gray-600 break-words mb-1">
+                {probability_message}
+              </p>
+            )} */}
+            <p className="text-xs text-gray-600 break-words">
+              {isKarnataka && currentCetRank
+                ? `Your CET Rank: ${currentCetRank}`
+                : ""}
+              {!isKarnataka && currentCetPercentile
+                ? `Your CET Percentile: ${currentCetPercentile}%`
+                : ""}
+            </p>
           </div>
         </div>
 

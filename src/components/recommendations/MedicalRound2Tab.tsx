@@ -51,6 +51,7 @@ import {
   GripVertical,
   Building2,
   GraduationCap,
+  Tag,
 } from "lucide-react";
 import { Round2Disclaimer } from "./Round2Disclaimer";
 import { usePdfDownloadMedical } from "@/hooks/usePdfDownloadMedical";
@@ -127,6 +128,7 @@ export const MedicalRound2Tab = ({
           if (item?.college) {
             recommendations.push({
               category: category,
+              quotaCategory: item.category,
               college: {
                 college_name: item.college.college_name || "Unknown College",
                 college_code: item.college.college_code || "",
@@ -1005,10 +1007,7 @@ export const MedicalRound2Tab = ({
       if (selectedPrograms.includes("ALL")) {
         // If ALL is already selected, remove it and add the new program
         setSelectedPrograms([program]);
-      } else if (
-        selectedPrograms.length < 3 &&
-        !selectedPrograms.includes(program)
-      ) {
+      } else if (!selectedPrograms.includes(program)) {
         // Normal add logic
         setSelectedPrograms([...selectedPrograms, program]);
       }
@@ -1028,7 +1027,7 @@ export const MedicalRound2Tab = ({
       if (selectedCities.includes("ALL")) {
         // If ALL is already selected, remove it and add the new city
         setSelectedCities([city]);
-      } else if (selectedCities.length < 3 && !selectedCities.includes(city)) {
+      } else if (!selectedCities.includes(city)) {
         // Normal add logic
         setSelectedCities([...selectedCities, city]);
       }
@@ -1732,22 +1731,18 @@ export const MedicalRound2Tab = ({
                           placeholder={
                             selectedPrograms.includes("ALL")
                               ? "ALL programs selected"
-                              : selectedPrograms.length >= 3
-                                ? "Maximum 3 programs selected"
-                                : "Add your preferred medical programs"
+                              : "Add your preferred medical programs"
                           }
                           searchPlaceholder="Search programs..."
                           className="w-full"
-                          disabled={
-                            selectedPrograms.length >= 3 ||
-                            selectedPrograms.includes("ALL")
-                          }
+                          disabled={selectedPrograms.includes("ALL")}
                         />
 
                         {selectedPrograms.length > 0 ? (
                           <div className="space-y-3">
                             <p className="text-sm font-medium text-slate-600 flex items-center gap-2">
-                              🎯 Your Preferences (drag to reorder by priority):
+                              🎯 Your Preferences ({selectedPrograms.length} -
+                              drag to reorder by priority):
                             </p>
                             <div
                               className={`border-2 rounded-xl p-3 bg-white ${selectedPrograms.length > 5 ? "max-h-80 overflow-y-auto" : ""}`}
@@ -1844,25 +1839,21 @@ export const MedicalRound2Tab = ({
                           placeholder={
                             selectedCities.includes("ALL")
                               ? "ALL cities selected"
-                              : selectedCities.length >= 3
-                                ? "Maximum 3 cities selected"
-                                : "Add cities you'd love to study in"
+                              : "Add cities you'd love to study in"
                           }
                           searchPlaceholder="Search cities..."
                           className="w-full"
-                          disabled={
-                            selectedCities.length >= 3 ||
-                            selectedCities.includes("ALL")
-                          }
+                          disabled={selectedCities.includes("ALL")}
                         />
 
                         {selectedCities.length > 0 ? (
                           <div className="space-y-3">
                             <p className="text-sm font-medium text-slate-600 flex items-center gap-2">
-                              🗺️ Your Preferences (drag to reorder by priority):
+                              🗺️ Your Preferences ({selectedCities.length} -
+                              drag to reorder by priority):
                             </p>
                             <div
-                              className={`border-2 rounded-xl p-3 bg-white ${selectedCities.length > 5 ? "max-h-80 overflow-y-auto" : ""}`}
+                              className={`border-2 rounded-xl p-3 bg-white max-h-96 overflow-y-auto`}
                             >
                               <DragDropContext onDragEnd={handleCityDragEnd}>
                                 <Droppable droppableId="cities">
@@ -2142,27 +2133,43 @@ export const MedicalRound2Tab = ({
                               {recommendation.category}
                             </Badge>
                           </div>
-                          <div className="mt-2">
-                            <p className="text-xs font-medium text-gray-700 leading-snug">
-                              {truncateText(recommendation.program, 60)}
-                            </p>
+                          <div className="mt-2 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-1">
+                            <div className="flex items-center gap-1 text-xs text-blue-600">
+                              <Badge
+                                variant="outline"
+                                className="bg-blue-50 text-xs text-blue-600"
+                              >
+                                {recommendation.college.course_type}
+                              </Badge>
+                              <span className="text-gray-400">•</span>
+                              <span className="font-medium">
+                                College Code:{" "}
+                                {recommendation.college.college_code}
+                              </span>
+                            </div>
+                            <Badge
+                              variant="outline"
+                              className="bg-blue-50 text-xs text-blue-600"
+                            >
+                              Category: {recommendation.quotaCategory}
+                            </Badge>
                           </div>
                         </div>
                       </div>
                     </CardHeader>
                     <CardContent className="pt-2 pb-3">
                       <div className="grid grid-cols-2 gap-2 sm:gap-3 mb-3">
-                        <div className="bg-gray-50 rounded-lg p-2">
+                        <div className="bg-blue-50 rounded-lg p-2">
                           <div className="flex items-start gap-1">
                             <TrendingUp
                               size={14}
                               className="text-blue-600 mt-0.5 flex-shrink-0"
                             />
                             <div className="min-w-0">
-                              <p className="text-xs text-gray-600 leading-tight">
+                              <p className="text-xs text-blue-600 leading-tight">
                                 Closing Rank
                               </p>
-                              <p className="text-sm font-bold text-gray-900 truncate">
+                              <p className="text-sm font-bold text-blue-900 truncate">
                                 {recommendation.closing_rank
                                   ? recommendation.closing_rank.toLocaleString()
                                   : "N/A"}
@@ -2170,14 +2177,14 @@ export const MedicalRound2Tab = ({
                             </div>
                           </div>
                         </div>
-                        <div className="bg-gray-50 rounded-lg p-2">
+                        <div className="bg-green-50 rounded-lg p-2">
                           <div className="flex items-start gap-1">
                             <Users
                               size={14}
                               className="text-green-600 mt-0.5 flex-shrink-0"
                             />
                             <div className="min-w-0">
-                              <p className="text-xs text-gray-600 leading-tight">
+                              <p className="text-xs text-green-600 leading-tight">
                                 Admission Chance
                               </p>
                               <p
@@ -2188,17 +2195,17 @@ export const MedicalRound2Tab = ({
                             </div>
                           </div>
                         </div>
-                        <div className="bg-gray-50 rounded-lg p-2">
+                        <div className="bg-purple-50 rounded-lg p-2">
                           <div className="flex items-start gap-1">
                             <Users
                               size={14}
                               className="text-purple-600 mt-0.5 flex-shrink-0"
                             />
                             <div className="min-w-0">
-                              <p className="text-xs text-gray-600 leading-tight">
+                              <p className="text-xs text-purple-600 leading-tight">
                                 Your Rank
                               </p>
-                              <p className="text-sm font-bold text-gray-900 truncate">
+                              <p className="text-sm font-bold text-purple-900 truncate">
                                 {recommendation.neet_rank
                                   ? recommendation.neet_rank.toLocaleString()
                                   : "N/A"}
@@ -2206,24 +2213,24 @@ export const MedicalRound2Tab = ({
                             </div>
                           </div>
                         </div>
-                        <div className="bg-gray-50 rounded-lg p-2">
+                        <div className="bg-orange-50 rounded-lg p-2">
                           <div className="flex items-start gap-1">
                             <Users
                               size={14}
                               className="text-orange-600 mt-0.5 flex-shrink-0"
                             />
                             <div className="min-w-0">
-                              <p className="text-xs text-gray-600 leading-tight">
+                              <p className="text-xs text-orange-600 leading-tight">
                                 College Type
                               </p>
-                              <p className="text-sm font-bold text-gray-900 truncate">
+                              <p className="text-sm font-bold text-orange-900 truncate">
                                 {recommendation.college.college_type || "N/A"}
                               </p>
                             </div>
                           </div>
                         </div>
                       </div>
-                      <div className="mt-2 p-2 bg-blue-50 rounded-lg border border-blue-100">
+                      {/* <div className="mt-2 p-2 bg-blue-50 rounded-lg border border-blue-100">
                         <div className="flex items-center gap-1 text-xs text-blue-700">
                           <Badge variant="outline" className="text-xs">
                             {recommendation.college.course_type}
@@ -2233,7 +2240,12 @@ export const MedicalRound2Tab = ({
                             College Code: {recommendation.college.college_code}
                           </span>
                         </div>
-                      </div>
+                        <div className="bg-blue-50 rounded-lg p-2">
+                          <p className="text-xs font-medium text-blue-600 leading-tight">
+                            Category: {recommendation.quotaCategory}
+                          </p>
+                        </div>
+                      </div> */}
                     </CardContent>
                   </Card>
                 );
@@ -2602,11 +2614,27 @@ export const MedicalRound2Tab = ({
                       {/* Select College Button */}
                       <Button
                         onClick={() => handleCollegeSelect(college)}
-                        variant="outline"
-                        className="shrink-0 bg-white hover:bg-accent"
+                        variant={
+                          selectedCollege?.college?.college_code ===
+                            college.college_code &&
+                          selectedCollege?.college?.course_type ===
+                            college.course_type
+                            ? "default"
+                            : "outline"
+                        }
+                        className="shrink-0"
                       >
-                        <Check className="w-4 h-4 mr-2" />
-                        Select
+                        {selectedCollege?.college?.college_code ===
+                          college.college_code &&
+                        selectedCollege?.college?.course_type ===
+                          college.course_type ? (
+                          <>
+                            <Check className="w-4 h-4 mr-2" />
+                            Selected
+                          </>
+                        ) : (
+                          "Select"
+                        )}
                       </Button>
                     </div>
                   </CardContent>

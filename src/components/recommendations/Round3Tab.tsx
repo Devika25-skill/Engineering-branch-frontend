@@ -1826,15 +1826,25 @@ export const Round3Tab = () => {
                 size="sm"
                 onClick={() => handleDepartmentSelect(college, dept)}
                 variant={
-                  selectedCollege?.selectedDepartment.choice_code ===
-                  dept.choice_code
+                  selectedCollege?.college?.College_code ===
+                    college.College_code &&
+                  (dept.choice_code
+                    ? selectedCollege?.selectedDepartment.choice_code ===
+                      dept.choice_code
+                    : selectedCollege?.selectedDepartment.course_name ===
+                      dept.course_name)
                     ? "default"
                     : "outline"
                 }
                 className="ml-2"
               >
-                {selectedCollege?.selectedDepartment.choice_code ===
-                dept.choice_code ? (
+                {selectedCollege?.college?.College_code ===
+                  college.College_code &&
+                (dept.choice_code
+                  ? selectedCollege?.selectedDepartment.choice_code ===
+                    dept.choice_code
+                  : selectedCollege?.selectedDepartment.course_name ===
+                    dept.course_name) ? (
                   <>
                     <Check className="w-4 h-4 mr-1" />
                     Selected

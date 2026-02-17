@@ -8,6 +8,7 @@ import {
   TrendingUp,
   Loader2,
   Download,
+  Tag,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -195,7 +196,11 @@ export const MedicalRecommendationResults = ({
           console.error(`Category ${category} has non-array data:`, recs);
           return [];
         }
-        return recs.map((rec) => ({ ...rec, category }));
+        return recs.map((rec) => ({
+          ...rec,
+          quotaCategory: rec.category,
+          category,
+        }));
       },
     );
     return sortRecommendationsByCategory(allRecs);
@@ -291,157 +296,158 @@ export const MedicalRecommendationResults = ({
   };
 
   const renderRecommendationCard = (
-    rec: MedicalCollegeRecommendation & { category: string },
+    rec: MedicalCollegeRecommendation & {
+      category: string;
+      quotaCategory?: string;
+    },
     index: number,
-  ) => {
-    return (
-      <Card
-        key={index}
-        className="hover:shadow-lg transition-all duration-300 border border-gray-200 bg-white relative w-full overflow-hidden"
-      >
-        <CardHeader className="pb-2">
-          <div className="flex items-start gap-3 pr-16 sm:pr-20 min-w-0">
-            {/* Index Number */}
-            <div className="flex-shrink-0 w-7 h-7 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-full flex items-center justify-center font-bold text-xs">
-              {index + 1}
+  ) => (
+    <Card
+      key={index}
+      className="hover:shadow-lg transition-all duration-300 border border-gray-200 bg-white relative w-full overflow-hidden"
+    >
+      <CardHeader className="pb-2">
+        <div className="flex items-start gap-3 pr-16 sm:pr-20 min-w-0">
+          {/* Index Number */}
+          <div className="flex-shrink-0 w-7 h-7 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-full flex items-center justify-center font-bold text-xs">
+            {index + 1}
+          </div>
+
+          {/* College Logo */}
+          <div className="flex-shrink-0">
+            <div className="w-10 h-10 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg flex items-center justify-center border border-gray-100">
+              <span className="text-gray-600 text-xs font-bold">
+                {rec.college.college_name.charAt(0)}
+              </span>
+            </div>
+          </div>
+
+          {/* Main Content */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-start justify-between gap-2 mb-1">
+              <div className="flex-1 min-w-0">
+                <h3
+                  className="text-sm font-semibold text-gray-900 leading-tight"
+                  title={rec.college.college_name}
+                >
+                  {truncateText(rec.college.college_name, 40)}
+                </h3>
+                <div className="flex items-center gap-1 mt-1 text-xs text-gray-500">
+                  <MapPin size={12} className="flex-shrink-0" />
+                  <span className="truncate">
+                    {rec.college.city}
+                    {rec.college.state ? `, ${rec.college.state}` : ""}
+                  </span>
+                </div>
+              </div>
+              <Badge
+                className={`${getCategoryColor(rec.category)} px-2 py-0.5 text-xs font-medium flex-shrink-0`}
+              >
+                {rec.category}
+              </Badge>
             </div>
 
-            {/* College Logo */}
-            <div className="flex-shrink-0">
-              <div className="w-10 h-10 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg flex items-center justify-center border border-gray-100">
-                <span className="text-gray-600 text-xs font-bold">
-                  {rec.college.college_name.charAt(0)}
+            {/* Course Name */}
+            <div className="mt-2 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-1">
+              <div className="flex items-center gap-1 text-xs text-blue-600">
+                <Badge
+                  variant="outline"
+                  className="bg-blue-50 text-xs text-blue-600"
+                >
+                  {rec.college.course_type}
+                </Badge>
+                <span className="text-gray-400">•</span>
+                <span className="font-medium">
+                  College Code: {rec.college.college_code}
                 </span>
               </div>
+              <Badge
+                variant="outline"
+                className="bg-blue-50 text-xs text-blue-600"
+              >
+                Category: {rec.quotaCategory}
+              </Badge>
             </div>
+          </div>
+        </div>
+      </CardHeader>
 
-            {/* Main Content */}
-            <div className="flex-1 min-w-0">
-              <div className="flex items-start justify-between gap-2 mb-1">
-                <div className="flex-1 min-w-0">
-                  <h3
-                    className="text-sm font-semibold text-gray-900 leading-tight"
-                    title={rec.college.college_name}
-                  >
-                    {truncateText(rec.college.college_name, 40)}
-                  </h3>
-                  <div className="flex items-center gap-1 mt-1 text-xs text-gray-500">
-                    <MapPin size={12} className="flex-shrink-0" />
-                    <span className="truncate">
-                      {rec.college.city}
-                      {rec.college.state ? `, ${rec.college.state}` : ""}
-                    </span>
-                  </div>
-                </div>
-                <Badge
-                  className={`${getCategoryColor(rec.category)} px-2 py-0.5 text-xs font-medium flex-shrink-0`}
-                >
-                  {rec.category}
-                </Badge>
-              </div>
-
-              {/* Course Name */}
-              <div className="mt-2">
-                <p className="text-xs font-medium text-gray-700 leading-snug">
-                  {truncateText(rec.program, 60)}
+      <CardContent className="pt-2 pb-3">
+        {/* Stats Grid */}
+        <div className="grid grid-cols-2 gap-2 sm:gap-3 mb-3">
+          <div className="bg-blue-50 rounded-lg p-2">
+            <div className="flex items-start gap-1">
+              <TrendingUp
+                size={14}
+                className="text-blue-600 mt-0.5 flex-shrink-0"
+              />
+              <div className="min-w-0">
+                <p className="text-xs text-blue-600 leading-tight">
+                  Closing Rank
+                </p>
+                <p className="text-sm font-bold text-blue-900 truncate">
+                  {rec.closing_rank ? rec.closing_rank.toLocaleString() : "N/A"}
                 </p>
               </div>
             </div>
           </div>
-        </CardHeader>
 
-        <CardContent className="pt-2 pb-3">
-          {/* Stats Grid */}
-          <div className="grid grid-cols-2 gap-2 sm:gap-3 mb-3">
-            <div className="bg-gray-50 rounded-lg p-2">
-              <div className="flex items-start gap-1">
-                <TrendingUp
-                  size={14}
-                  className="text-blue-600 mt-0.5 flex-shrink-0"
-                />
-                <div className="min-w-0">
-                  <p className="text-xs text-gray-600 leading-tight">
-                    Closing Rank
-                  </p>
-                  <p className="text-sm font-bold text-gray-900 truncate">
-                    {rec.closing_rank
-                      ? rec.closing_rank.toLocaleString()
-                      : "N/A"}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-gray-50 rounded-lg p-2">
-              <div className="flex items-start gap-1">
-                <Users
-                  size={14}
-                  className="text-green-600 mt-0.5 flex-shrink-0"
-                />
-                <div className="min-w-0">
-                  <p className="text-xs text-gray-600 leading-tight">
-                    Admission Chance
-                  </p>
-                  <p
-                    className={`text-sm font-bold truncate ${getProbabilityColor(rec.admission_probability)}`}
-                  >
-                    {rec.admission_probability}%
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-gray-50 rounded-lg p-2">
-              <div className="flex items-start gap-1">
-                <Users
-                  size={14}
-                  className="text-purple-600 mt-0.5 flex-shrink-0"
-                />
-                <div className="min-w-0">
-                  <p className="text-xs text-gray-600 leading-tight">
-                    Your Rank
-                  </p>
-                  <p className="text-sm font-bold text-gray-900 truncate">
-                    {rec.neet_rank ? rec.neet_rank.toLocaleString() : "N/A"}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-gray-50 rounded-lg p-2">
-              <div className="flex items-start gap-1">
-                <Users
-                  size={14}
-                  className="text-orange-600 mt-0.5 flex-shrink-0"
-                />
-                <div className="min-w-0">
-                  <p className="text-xs text-gray-600 leading-tight">
-                    College Type
-                  </p>
-                  <p className="text-sm font-bold text-gray-900 truncate">
-                    {rec.college.college_type || "N/A"}
-                  </p>
-                </div>
+          <div className="bg-green-50 rounded-lg p-2">
+            <div className="flex items-start gap-1">
+              <Users
+                size={14}
+                className="text-green-600 mt-0.5 flex-shrink-0"
+              />
+              <div className="min-w-0">
+                <p className="text-xs text-green-600 leading-tight">
+                  Admission Chance
+                </p>
+                <p
+                  className={`text-sm font-bold truncate ${getProbabilityColor(rec.admission_probability)}`}
+                >
+                  {rec.admission_probability}%
+                </p>
               </div>
             </div>
           </div>
 
-          {/* College Info */}
-          <div className="mt-2 p-2 bg-blue-50 rounded-lg border border-blue-100">
-            <div className="flex items-center gap-1 text-xs text-blue-700">
-              <Badge variant="outline" className="text-xs">
-                {rec.college.course_type}
-              </Badge>
-              <span className="text-gray-400">•</span>
-              <span className="font-medium">
-                College Code: {rec.college.college_code}
-              </span>
+          <div className="bg-purple-50 rounded-lg p-2">
+            <div className="flex items-start gap-1">
+              <Users
+                size={14}
+                className="text-purple-600 mt-0.5 flex-shrink-0"
+              />
+              <div className="min-w-0">
+                <p className="text-xs text-purple-600 leading-tight">
+                  Your Rank
+                </p>
+                <p className="text-sm font-bold text-purple-900 truncate">
+                  {rec.neet_rank ? rec.neet_rank.toLocaleString() : "N/A"}
+                </p>
+              </div>
             </div>
           </div>
-        </CardContent>
-      </Card>
-    );
-  };
+
+          <div className="bg-orange-50 rounded-lg p-2">
+            <div className="flex items-start gap-1">
+              <Users
+                size={14}
+                className="text-orange-600 mt-0.5 flex-shrink-0"
+              />
+              <div className="min-w-0">
+                <p className="text-xs text-orange-600 leading-tight">
+                  College Type
+                </p>
+                <p className="text-sm font-bold text-orange-900 truncate">
+                  {rec.college.college_type || "N/A"}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
 
   return (
     <div className="space-y-6">
