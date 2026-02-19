@@ -68,6 +68,10 @@ import type {
   PriorityFactor,
 } from "@/types/medical";
 import { State } from "@/types/state";
+import {
+  MAHARASHTRA_MEDICAL_PROGRAMS,
+  KARNATAKA_MEDICAL_PROGRAMS,
+} from "@/constants/medicalPrograms";
 
 interface SelectedCollege {
   college: any;
@@ -1380,24 +1384,10 @@ export const MedicalRound3Tab = ({
 
   const selectedState = localStorage.getItem("selected_state") || "Maharashtra";
 
-  const maharashtraPrograms = [
-    "ALL",
-    "BAMS",
-    "BASLP",
-    "BDS",
-    "BHMS",
-    "BNYS",
-    "BOTH",
-    "BPO",
-    "BPTH",
-    "BUMS",
-    "MBBS",
-  ];
-
-  const karnatakaPrograms = ["ALL", "BAMS", "BDS", "BHMS", "BUMS", "MBBS"];
-
   const availablePrograms =
-    selectedState === "Karnataka" ? karnatakaPrograms : maharashtraPrograms;
+    selectedState === "Karnataka"
+      ? KARNATAKA_MEDICAL_PROGRAMS
+      : MAHARASHTRA_MEDICAL_PROGRAMS;
 
   const maharashtraCities = [
     "ALL",
@@ -1655,11 +1645,12 @@ export const MedicalRound3Tab = ({
                         <SearchableSelect
                           options={availablePrograms
                             .filter(
-                              (program) => !selectedPrograms.includes(program),
+                              (program) =>
+                                !selectedPrograms.includes(program.code),
                             )
                             .map((program) => ({
-                              value: program,
-                              label: program,
+                              value: program.code,
+                              label: program.label,
                             }))}
                           value=""
                           onValueChange={addProgram}
@@ -1691,47 +1682,53 @@ export const MedicalRound3Tab = ({
                                       className="space-y-2"
                                     >
                                       {selectedPrograms.map(
-                                        (program, index) => (
-                                          <Draggable
-                                            key={program}
-                                            draggableId={`r3-${program}`}
-                                            index={index}
-                                          >
-                                            {(provided) => (
-                                              <div
-                                                ref={provided.innerRef}
-                                                {...provided.draggableProps}
-                                                className="flex items-center gap-3 p-3 bg-gradient-to-r from-purple-100 to-pink-100 rounded-xl border shadow-sm hover:shadow-md transition-all"
-                                              >
+                                        (programCode, index) => {
+                                          const programLabel =
+                                            availablePrograms.find(
+                                              (p) => p.code === programCode,
+                                            )?.label || programCode;
+                                          return (
+                                            <Draggable
+                                              key={programCode}
+                                              draggableId={`r3-${programCode}`}
+                                              index={index}
+                                            >
+                                              {(provided) => (
                                                 <div
-                                                  {...provided.dragHandleProps}
+                                                  ref={provided.innerRef}
+                                                  {...provided.draggableProps}
+                                                  className="flex items-center gap-3 p-3 bg-gradient-to-r from-purple-100 to-pink-100 rounded-xl border shadow-sm hover:shadow-md transition-all"
                                                 >
-                                                  <GripVertical
-                                                    size={16}
-                                                    className="text-slate-400 hover:text-slate-600"
-                                                  />
+                                                  <div
+                                                    {...provided.dragHandleProps}
+                                                  >
+                                                    <GripVertical
+                                                      size={16}
+                                                      className="text-slate-400 hover:text-slate-600"
+                                                    />
+                                                  </div>
+                                                  <span className="text-sm font-bold text-purple-700 bg-white px-2 py-1 rounded-full">
+                                                    #{index + 1}
+                                                  </span>
+                                                  <span className="flex-1 text-sm font-medium text-slate-700">
+                                                    {programLabel}
+                                                  </span>
+                                                  <Button
+                                                    type="button"
+                                                    size="sm"
+                                                    variant="ghost"
+                                                    onClick={() =>
+                                                      removeProgram(programCode)
+                                                    }
+                                                    className="h-8 w-8 p-0 text-red-500 hover:bg-red-100 rounded-full"
+                                                  >
+                                                    <X size={14} />
+                                                  </Button>
                                                 </div>
-                                                <span className="text-sm font-bold text-purple-700 bg-white px-2 py-1 rounded-full">
-                                                  #{index + 1}
-                                                </span>
-                                                <span className="flex-1 text-sm font-medium text-slate-700">
-                                                  {program}
-                                                </span>
-                                                <Button
-                                                  type="button"
-                                                  size="sm"
-                                                  variant="ghost"
-                                                  onClick={() =>
-                                                    removeProgram(program)
-                                                  }
-                                                  className="h-8 w-8 p-0 text-red-500 hover:bg-red-100 rounded-full"
-                                                >
-                                                  <X size={14} />
-                                                </Button>
-                                              </div>
-                                            )}
-                                          </Draggable>
-                                        ),
+                                              )}
+                                            </Draggable>
+                                          );
+                                        },
                                       )}
                                       {provided.placeholder}
                                     </div>
