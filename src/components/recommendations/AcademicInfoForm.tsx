@@ -28,6 +28,7 @@ const NumberInput = ({
   className,
   min = 0,
   max,
+  precision = 2,
 }: {
   value: number | undefined;
   onChange: (val: number | undefined) => void;
@@ -35,6 +36,7 @@ const NumberInput = ({
   className?: string;
   min?: number;
   max?: number;
+  precision?: number;
 }) => {
   const [localValue, setLocalValue] = useState<string>(
     value !== undefined ? value.toString() : "",
@@ -67,10 +69,10 @@ const NumberInput = ({
       return;
     }
 
-    // Validate regex: allow digits and one dot, max 2 decimals
-    // ^\d*(\.\d{0,2})?$ matches:
-    // "" (handled above), "12", "12.", "12.3", "12.34"
-    const validPattern = /^\d*(\.\d{0,2})?$/;
+    // Validate regex: allow digits and one dot, max precision decimals
+    // ^\d*(\.\d{0,n})?$ matches:
+    // "" (handled above), "12", "12.", "12.3", "12.34..."
+    const validPattern = new RegExp(`^\\d*(\\.\\d{0,${precision}})?$`);
     if (!validPattern.test(newVal)) {
       return; // Reject invalid chars or too many decimals
     }
@@ -594,6 +596,7 @@ export const AcademicInfoForm = ({
                     )}
                     min={0}
                     max={100}
+                    precision={7}
                   />
                 )}
               </div>
@@ -610,6 +613,7 @@ export const AcademicInfoForm = ({
                   className="h-10 rounded-xl border-2 bg-white"
                   min={0}
                   max={100}
+                  precision={7}
                 />
               </div>
 
@@ -638,6 +642,7 @@ export const AcademicInfoForm = ({
                   value={data.otherExamPercentile}
                   onChange={(val) => handleChange("otherExamPercentile", val)}
                   className="h-10 rounded-xl border-2 bg-white"
+                  precision={7}
                 />
               </div>
             </div>

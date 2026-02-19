@@ -43,6 +43,9 @@ export interface MedicalRecommendationResultsProps {
   ) => void | Promise<void>;
   isRoundInvalidated?: boolean;
   onRegenerateRecommendations?: () => void | Promise<void>;
+  onPreferencesUpdated?: () => void;
+  hasGeneratedRecommendations?: boolean;
+  onRoundResolved?: () => void;
 }
 
 export const MedicalRecommendationResults = ({
@@ -53,6 +56,9 @@ export const MedicalRecommendationResults = ({
   onRoundChange,
   isRoundInvalidated,
   onRegenerateRecommendations,
+  onPreferencesUpdated,
+  hasGeneratedRecommendations,
+  onRoundResolved,
 }: MedicalRecommendationResultsProps) => {
   // Ensure recommendations always have the required structure with empty arrays as defaults
   const recommendations = {
@@ -443,200 +449,209 @@ export const MedicalRecommendationResults = ({
         </TabsList>
 
         <TabsContent value="round1">
-          <CAPFormInstructions />
-          <RecommendationDisclaimer />
+          {hasGeneratedRecommendations && isRoundInvalidated ? (
+            <div className="space-y-6">
+              <RecommendationDisclaimer />
+              <Card className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-950/30 dark:via-indigo-950/30 dark:to-purple-950/30 border-2 border-blue-200 dark:border-blue-800">
+                <CardContent className="pt-6">
+                  <div className="text-center space-y-4">
+                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 mb-4">
+                      <TrendingUp className="w-8 h-8 text-white" />
+                    </div>
 
-          {/* Results Summary */}
-          {filteredRecommendations.length > 0 && (
-            <div className="flex items-center justify-between mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 rounded-xl border border-blue-200 dark:border-blue-800">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                  {filteredRecommendations.length} Colleges Found
-                </h3>
-                <p className="text-sm text-gray-600 dark:text-gray-300">
-                  Based on your profile and preferences
-                </p>
-              </div>
-              <Button
-                onClick={handleDownloadPDF}
-                disabled={
-                  isGenerating ||
-                  (!isUnlocked && paymentData?.is_payment !== true)
-                }
-                variant="outline"
-                className="flex items-center gap-2"
-              >
-                {isGenerating ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    <span className="text-sm font-medium">Generating...</span>
-                  </>
-                ) : (
-                  <>
-                    <Download className="mr-2 h-4 w-4" />
-                    <span className="text-sm font-medium">Download PDF</span>
-                  </>
-                )}
-              </Button>
+                    <div>
+                      <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+                        Form Updated - Regenerate Recommendations
+                      </h3>
+                      <p className="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+                        Your form data has been updated. Click the button below
+                        to generate new recommendations based on your updated
+                        information.
+                      </p>
+                    </div>
+
+                    <Button
+                      size="lg"
+                      onClick={onRegenerateRecommendations}
+                      className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold px-8 py-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
+                    >
+                      <TrendingUp className="mr-2 h-5 w-5" />
+                      Generate New Recommendations
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
-          )}
-
-          {isRoundInvalidated && filteredRecommendations.length === 0 ? (
-            <Card className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-950/30 dark:via-indigo-950/30 dark:to-purple-950/30 border-2 border-blue-200 dark:border-blue-800">
-              <CardContent className="pt-6">
-                <div className="text-center space-y-4">
-                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 mb-4">
-                    <TrendingUp className="w-8 h-8 text-white" />
-                  </div>
-
-                  <div>
-                    <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-                      Form Updated - Regenerate Recommendations
-                    </h3>
-                    <p className="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-                      Your form data has been updated. Click the button below to
-                      generate new recommendations based on your updated
-                      information.
-                    </p>
-                  </div>
-
-                  <Button
-                    size="lg"
-                    onClick={onRegenerateRecommendations}
-                    className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold px-8 py-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
-                  >
-                    <TrendingUp className="mr-2 h-5 w-5" />
-                    Generate New Recommendations
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ) : filteredRecommendations.length === 0 ? (
-            <NoResultsState />
           ) : (
             <>
-              <div className="space-y-4">
-                {visibleRecommendations.map((rec, index) =>
-                  renderRecommendationCard(rec, index),
-                )}
-              </div>
+              <CAPFormInstructions />
+              <RecommendationDisclaimer />
 
-              {hiddenCount > 0 && shouldBlurResults && (
-                <Card className="mt-6 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-950/30 dark:via-indigo-950/30 dark:to-purple-950/30 border-2 border-blue-200 dark:border-blue-800">
-                  <CardContent className="pt-6">
-                    <div className="text-center space-y-4">
-                      <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 mb-4">
-                        <Lock className="w-8 h-8 text-white" />
-                      </div>
+              {/* Results Summary */}
+              {filteredRecommendations.length > 0 && (
+                <div className="flex items-center justify-between mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 rounded-xl border border-blue-200 dark:border-blue-800">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                      {filteredRecommendations.length} Colleges Found
+                    </h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-300">
+                      Based on your profile and preferences
+                    </p>
+                  </div>
+                  <Button
+                    onClick={handleDownloadPDF}
+                    disabled={
+                      isGenerating ||
+                      (!isUnlocked && paymentData?.is_payment !== true)
+                    }
+                    variant="outline"
+                    className="flex items-center gap-2"
+                  >
+                    {isGenerating ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        <span className="text-sm font-medium">
+                          Generating...
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <Download className="mr-2 h-4 w-4" />
+                        <span className="text-sm font-medium">
+                          Download PDF
+                        </span>
+                      </>
+                    )}
+                  </Button>
+                </div>
+              )}
 
-                      <div>
-                        <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-                          {hiddenCount} More Recommendations Locked
-                        </h3>
-                        <p className="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-                          Unlock all {filteredRecommendations.length}{" "}
-                          personalized medical college recommendations to
-                          maximize your admission chances!
-                        </p>
-                      </div>
+              {filteredRecommendations.length === 0 ? (
+                <NoResultsState />
+              ) : (
+                <div className="space-y-4">
+                  {visibleRecommendations.map((rec, index) =>
+                    renderRecommendationCard(rec, index),
+                  )}
 
-                      {/* Premium Gate for Round 1 */}
-                      <div className="relative">
-                        <PremiumGate
-                          onUnlock={() => setIsUnlocked(true)}
-                          storageKey="medicalRecommendationUnlocked"
-                          productType="medical-recommendations"
-                          title="Medical Recommendations Unlock"
-                          description="Unlock complete medical college recommendations"
-                        />
-                      </div>
+                  {hiddenCount > 0 && shouldBlurResults && (
+                    <Card className="mt-6 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-950/30 dark:via-indigo-950/30 dark:to-purple-950/30 border-2 border-blue-200 dark:border-blue-800">
+                      <CardContent className="pt-6">
+                        <div className="text-center space-y-4">
+                          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 mb-4">
+                            <Lock className="w-8 h-8 text-white" />
+                          </div>
 
-                      {/* Blurred recommendation cards preview */}
-                      <div className="blur-sm pointer-events-none space-y-4 mt-6">
-                        {filteredRecommendations
-                          .slice(
-                            5,
-                            Math.min(10, filteredRecommendations.length),
-                          )
-                          .map((rec, index) => (
-                            <Card
-                              key={index}
-                              className="hover:shadow-lg transition-all duration-300 border border-gray-200 bg-white relative w-full overflow-hidden"
-                            >
-                              <CardHeader className="pb-2">
-                                <div className="flex items-start gap-3 pr-16 sm:pr-20 min-w-0">
-                                  <div className="flex-shrink-0 w-7 h-7 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-full flex items-center justify-center font-bold text-xs">
-                                    {index + 6}
-                                  </div>
-                                  <div className="flex-shrink-0">
-                                    <div className="w-10 h-10 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg flex items-center justify-center border border-gray-100">
-                                      <Building className="w-6 h-6 text-purple-600" />
-                                    </div>
-                                  </div>
-                                  <div className="flex-1 min-w-0">
-                                    <div className="flex items-start justify-between gap-2 mb-1">
-                                      <div className="flex-1 min-w-0">
-                                        <h3
-                                          className="text-sm font-semibold text-gray-900 leading-tight"
-                                          title={rec.college.college_name}
-                                        >
-                                          {truncateText(
-                                            rec.college.college_name,
-                                            40,
-                                          )}
-                                        </h3>
-                                        <div className="flex items-center gap-1 mt-1 text-xs text-gray-500">
-                                          <MapPin
-                                            size={12}
-                                            className="flex-shrink-0"
-                                          />
-                                          <span className="truncate">
-                                            {rec.college.city}
-                                          </span>
+                          <div>
+                            <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+                              {hiddenCount} More Recommendations Locked
+                            </h3>
+                            <p className="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+                              Unlock all {filteredRecommendations.length}{" "}
+                              personalized medical college recommendations to
+                              maximize your admission chances!
+                            </p>
+                          </div>
+
+                          {/* Premium Gate for Round 1 */}
+                          <div className="relative">
+                            <PremiumGate
+                              onUnlock={() => setIsUnlocked(true)}
+                              storageKey="medicalRecommendationUnlocked"
+                              productType="medical-recommendations"
+                              title="Medical Recommendations Unlock"
+                              description="Unlock complete medical college recommendations"
+                            />
+                          </div>
+
+                          {/* Blurred recommendation cards preview */}
+                          <div className="blur-sm pointer-events-none space-y-4 mt-6">
+                            {filteredRecommendations
+                              .slice(
+                                5,
+                                Math.min(10, filteredRecommendations.length),
+                              )
+                              .map((rec, index) => (
+                                <Card
+                                  key={index}
+                                  className="hover:shadow-lg transition-all duration-300 border border-gray-200 bg-white relative w-full overflow-hidden"
+                                >
+                                  <CardHeader className="pb-2">
+                                    <div className="flex items-start gap-3 pr-16 sm:pr-20 min-w-0">
+                                      <div className="flex-shrink-0 w-7 h-7 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-full flex items-center justify-center font-bold text-xs">
+                                        {index + 6}
+                                      </div>
+                                      <div className="flex-shrink-0">
+                                        <div className="w-10 h-10 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg flex items-center justify-center border border-gray-100">
+                                          <Building className="w-6 h-6 text-purple-600" />
                                         </div>
                                       </div>
-                                      <Badge
-                                        className={`${getCategoryColor(rec.category)} px-2 py-0.5 text-xs font-medium flex-shrink-0`}
-                                      >
-                                        {rec.category}
-                                      </Badge>
+                                      <div className="flex-1 min-w-0">
+                                        <div className="flex items-start justify-between gap-2 mb-1">
+                                          <div className="flex-1 min-w-0">
+                                            <h3
+                                              className="text-sm font-semibold text-gray-900 leading-tight"
+                                              title={rec.college.college_name}
+                                            >
+                                              {truncateText(
+                                                rec.college.college_name,
+                                                40,
+                                              )}
+                                            </h3>
+                                            <div className="flex items-center gap-1 mt-1 text-xs text-gray-500">
+                                              <MapPin
+                                                size={12}
+                                                className="flex-shrink-0"
+                                              />
+                                              <span className="truncate">
+                                                {rec.college.city}
+                                              </span>
+                                            </div>
+                                          </div>
+                                          <Badge
+                                            className={`${getCategoryColor(rec.category)} px-2 py-0.5 text-xs font-medium flex-shrink-0`}
+                                          >
+                                            {rec.category}
+                                          </Badge>
+                                        </div>
+                                        <div className="mt-2">
+                                          <p className="text-xs font-medium text-gray-700 leading-snug">
+                                            {truncateText(rec.program, 60)}
+                                          </p>
+                                        </div>
+                                      </div>
                                     </div>
-                                    <div className="mt-2">
-                                      <p className="text-xs font-medium text-gray-700 leading-snug">
-                                        {truncateText(rec.program, 60)}
-                                      </p>
+                                  </CardHeader>
+                                  <CardContent className="pt-2 pb-3">
+                                    <div className="grid grid-cols-2 gap-2 sm:gap-3">
+                                      <div className="bg-gray-50 rounded-lg p-2">
+                                        <p className="text-xs text-gray-600">
+                                          Closing Rank
+                                        </p>
+                                        <p className="text-sm font-bold text-gray-900">
+                                          {rec.closing_rank
+                                            ? rec.closing_rank.toLocaleString()
+                                            : "N/A"}
+                                        </p>
+                                      </div>
+                                      <div className="bg-gray-50 rounded-lg p-2">
+                                        <p className="text-xs text-gray-600">
+                                          Admission Chance
+                                        </p>
+                                        <p className="text-sm font-bold text-gray-900">
+                                          {rec.admission_probability}%
+                                        </p>
+                                      </div>
                                     </div>
-                                  </div>
-                                </div>
-                              </CardHeader>
-                              <CardContent className="pt-2 pb-3">
-                                <div className="grid grid-cols-2 gap-2 sm:gap-3">
-                                  <div className="bg-gray-50 rounded-lg p-2">
-                                    <p className="text-xs text-gray-600">
-                                      Closing Rank
-                                    </p>
-                                    <p className="text-sm font-bold text-gray-900">
-                                      {rec.closing_rank
-                                        ? rec.closing_rank.toLocaleString()
-                                        : "N/A"}
-                                    </p>
-                                  </div>
-                                  <div className="bg-gray-50 rounded-lg p-2">
-                                    <p className="text-xs text-gray-600">
-                                      Admission Chance
-                                    </p>
-                                    <p className="text-sm font-bold text-gray-900">
-                                      {rec.admission_probability}%
-                                    </p>
-                                  </div>
-                                </div>
-                              </CardContent>
-                            </Card>
-                          ))}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                                  </CardContent>
+                                </Card>
+                              ))}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
               )}
             </>
           )}
@@ -646,6 +661,7 @@ export const MedicalRecommendationResults = ({
           <MedicalRound2Tab
             isRoundInvalidated={isRoundInvalidated}
             onRegenerateRecommendations={onRegenerateRecommendations}
+            onRoundResolved={onRoundResolved}
           />
         </TabsContent>
 
@@ -653,6 +669,7 @@ export const MedicalRecommendationResults = ({
           <MedicalRound3Tab
             isRoundInvalidated={isRoundInvalidated}
             onRegenerateRecommendations={onRegenerateRecommendations}
+            onRoundResolved={onRoundResolved}
           />
         </TabsContent>
       </Tabs>
