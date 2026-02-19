@@ -76,11 +76,15 @@ interface SelectedCollege {
 interface MedicalRound2TabProps {
   isRoundInvalidated?: boolean;
   onRegenerateRecommendations?: () => void | Promise<void>;
+  onPreferencesUpdated?: () => void;
+  onRoundResolved?: () => void;
 }
 
 export const MedicalRound2Tab = ({
   isRoundInvalidated = false,
   onRegenerateRecommendations,
+  onPreferencesUpdated,
+  onRoundResolved,
 }: MedicalRound2TabProps) => {
   const { user, isLoggedIn } = useAuth();
   const { toast } = useToast();
@@ -156,6 +160,15 @@ export const MedicalRound2Tab = ({
     window.scrollTo(0, 0);
   }, [hasGeneratedRecommendations]);
 
+  // Effect to clear results when round is invalidated
+  useEffect(() => {
+    if (isRoundInvalidated) {
+      setRound2Recommendations([]);
+      // Do NOT set hasGeneratedRecommendations to false here,
+      // as we need it to know if results were previously generated.
+    }
+  }, [isRoundInvalidated]);
+
   // Load from localStorage and API on mount
   useEffect(() => {
     const loadExistingData = async () => {
@@ -169,13 +182,17 @@ export const MedicalRound2Tab = ({
           // Ensure it's an array before setting
           if (Array.isArray(parsedRecs)) {
             setRound2Recommendations(parsedRecs);
-            setHasGeneratedRecommendations(true);
+            if (parsedRecs.length > 0) {
+              setHasGeneratedRecommendations(true);
+            }
           } else if (parsedRecs && typeof parsedRecs === "object") {
             // If it's the raw API response with Dream/Reach/Match/Safety structure
             const convertedRecs =
               convertApiResponseToRecommendations(parsedRecs);
             setRound2Recommendations(convertedRecs);
-            setHasGeneratedRecommendations(true);
+            if (convertedRecs.length > 0) {
+              setHasGeneratedRecommendations(true);
+            }
 
             // Check payment status from cached API response
             if (parsedRecs.is_payment === true) {
@@ -207,7 +224,9 @@ export const MedicalRound2Tab = ({
               const convertedRecs =
                 convertApiResponseToRecommendations(parsedRecs);
               setRound2Recommendations(convertedRecs);
-              setHasGeneratedRecommendations(true);
+              if (convertedRecs.length > 0) {
+                setHasGeneratedRecommendations(true);
+              }
 
               // Check if these recommendations were paid and should unlock
               if (parsedRecs.is_payment === true) {
@@ -286,6 +305,22 @@ export const MedicalRound2Tab = ({
             console.error("Error loading stored selection data:", error);
           }
         }
+      }
+
+      // Check if recommendations exist and if so show preferences
+      const hasRecs =
+        sessionStorage.getItem("cachedMedicalRound2Recommendations") ||
+        localStorage.getItem("medicalRound2Recommendations");
+      if (hasRecs) {
+        setShowPreferences(true);
+      }
+
+      // Check for persisted skip selection flag
+      const persistedSkip =
+        localStorage.getItem("medicalRound2SkipSelection") === "true";
+      if (persistedSkip) {
+        setSkipRound1Selection(true);
+        setShowPreferences(true);
       }
 
       // Load preferences for faster access (won't show until confirmed or create new list)
@@ -504,6 +539,7 @@ export const MedicalRound2Tab = ({
 
     // Clear localStorage and reset state
     localStorage.removeItem("medicalRound2SelectedCollege");
+    localStorage.setItem("medicalRound2SkipSelection", "true");
     setSelectedCollege(null);
     setSkipRound1Selection(true);
     setShowPreferences(true);
@@ -980,6 +1016,16 @@ export const MedicalRound2Tab = ({
       setEditingPreferences(false);
       window.scrollTo({ top: 0, behavior: "smooth" });
 
+      // Signal parent that preferences have been updated
+      if (onPreferencesUpdated) {
+        onPreferencesUpdated();
+      } else {
+        // Fallback: update flags manually if parent callback not provided
+        sessionStorage.setItem("round1Invalidated", "true");
+        sessionStorage.setItem("round2Invalidated", "true");
+        sessionStorage.setItem("round3Invalidated", "true");
+      }
+
       toast({
         title: "Preferences Updated",
         description: "Your Round 2 preferences have been successfully updated.",
@@ -1094,16 +1140,7 @@ export const MedicalRound2Tab = ({
       return;
     }
 
-    if (!skipRound1Selection && !selectedCollege?.college?.college_code) {
-      toast({
-        title: "Missing College Selection",
-        description:
-          "Please select your Round 1 college before generating recommendations",
-        variant: "destructive",
-        duration: 3000,
-      });
-      return;
-    }
+    setIsGeneratingRecommendations(true);
 
     setIsGeneratingRecommendations(true);
 
@@ -1337,6 +1374,11 @@ export const MedicalRound2Tab = ({
             "Your Round 2 recommendation list has been generated successfully based on your preferences.",
           duration: 3000,
         });
+
+        // Notify parent that round is resolved
+        if (onRoundResolved) {
+          onRoundResolved();
+        }
       } else {
         throw new Error(
           response.message || "Failed to generate recommendations",
@@ -1994,241 +2036,96 @@ export const MedicalRound2Tab = ({
           </div>
         )}
 
-      {/* Round 2 Recommendations Display */}
-      {hasGeneratedRecommendations && round2Recommendations.length > 0 && (
-        <div className="space-y-6">
-          {/* Generate New Recommendations Button */}
-          <div className="flex justify-center pt-6">
-            <Button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleRestRecommendation();
-              }}
-              variant="outline"
-              className="px-6 py-2"
-            >
-              Generate New Recommendations
-            </Button>
-          </div>
-          <div className="text-center">
-            <h3 className="text-2xl font-bold text-foreground mb-2">
-              Round 2 College Recommendations
-            </h3>
-            <p className="text-muted-foreground">
-              Based on your Round 1 selection and preferences, here are your
-              Round 2 options
-            </p>
-          </div>
-
-          {/* Results Summary and Download */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
-            <div className="text-center sm:text-left">
-              <p className="text-lg text-gray-600">
-                Found{" "}
-                <span className="font-semibold text-blue-600">
-                  {categorizedRecommendations.length}
-                </span>{" "}
-                college recommendations
-              </p>
+      {/* Main Content Area - Prioritized Logic */}
+      {hasGeneratedRecommendations && isRoundInvalidated ? (
+        /* 1. If Invalidated, show ONLY the regeneration card */
+        <Card className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-950/30 dark:via-indigo-950/30 dark:to-purple-950/30 border-2 border-blue-200 dark:border-blue-800">
+          <CardContent className="pt-6">
+            <div className="text-center space-y-4">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 mb-4">
+                <TrendingUp className="w-8 h-8 text-white" />
+              </div>
+              <div>
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+                  Form Updated - Regenerate Recommendations
+                </h3>
+                <p className="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+                  Your form data has been updated. Click the button below to
+                  generate new recommendations based on your updated
+                  information.
+                </p>
+              </div>
+              <Button
+                size="lg"
+                onClick={onRegenerateRecommendations}
+                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold px-8 py-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
+              >
+                <TrendingUp className="mr-2 h-5 w-5" />
+                Generate New Recommendations
+              </Button>
             </div>
+          </CardContent>
+        </Card>
+      ) : (
+        /* 2. Non-invalidated states */
+        <>
+          {/* Results Display */}
+          {hasGeneratedRecommendations && round2Recommendations.length > 0 ? (
+            <div className="space-y-6">
+              {/* Generate New Recommendations Button */}
+              <div className="flex justify-center pt-6">
+                <Button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleRestRecommendation();
+                  }}
+                  variant="outline"
+                  className="px-6 py-2"
+                >
+                  Generate New Recommendations
+                </Button>
+              </div>
+              <div className="text-center">
+                <h3 className="text-2xl font-bold text-foreground mb-2">
+                  Round 2 College Recommendations
+                </h3>
+                <p className="text-muted-foreground">
+                  Based on your Round 1 selection and preferences, here are your
+                  Round 2 options
+                </p>
+              </div>
 
-            <Button
-              onClick={handleDownloadPDF}
-              disabled={!isUnlocked || isPdfGenerating}
-              className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg min-h-[44px] touch-manipulation"
-            >
-              <span className="text-sm font-medium">
-                {isPdfGenerating
-                  ? "Generating..."
-                  : isUnlocked
-                    ? "Download PDF"
-                    : "Unlock to Download"}
-              </span>
-            </Button>
-          </div>
+              {/* Results Summary and Download */}
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
+                <div className="text-center sm:text-left">
+                  <p className="text-lg text-gray-600">
+                    Found{" "}
+                    <span className="font-semibold text-blue-600">
+                      {categorizedRecommendations.length}
+                    </span>{" "}
+                    college recommendations
+                  </p>
+                </div>
 
-          {/* Recommendations List */}
-          {isUnlocked ? (
-            <div className="space-y-4">
-              {categorizedRecommendations.map((recommendation, index) => {
-                // Add debugging and safety checks
-                if (
-                  !recommendation ||
-                  !recommendation.college ||
-                  !recommendation.college.college_name
-                ) {
-                  console.error("Invalid recommendation data:", recommendation);
-                  return null;
-                }
+                <Button
+                  onClick={handleDownloadPDF}
+                  disabled={!isUnlocked || isPdfGenerating}
+                  className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg min-h-[44px] touch-manipulation"
+                >
+                  <span className="text-sm font-medium">
+                    {isPdfGenerating
+                      ? "Generating..."
+                      : isUnlocked
+                        ? "Download PDF"
+                        : "Unlock to Download"}
+                  </span>
+                </Button>
+              </div>
 
-                return (
-                  <Card
-                    key={`${recommendation.college?.college_code}-${index}`}
-                    className="hover:shadow-lg transition-all duration-300 border border-gray-200 bg-white"
-                  >
-                    <CardHeader className="pb-2">
-                      <div className="flex items-start gap-3 pr-16 sm:pr-20 min-w-0">
-                        <div className="flex-shrink-0 w-7 h-7 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-full flex items-center justify-center font-bold text-xs">
-                          {index + 1}
-                        </div>
-                        <div className="flex-shrink-0">
-                          <div className="w-10 h-10 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg flex items-center justify-center border border-gray-100">
-                            <Building className="w-6 h-6 text-purple-600" />
-                          </div>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between gap-2 mb-1">
-                            <div className="flex-1 min-w-0">
-                              <h3
-                                className="text-sm font-semibold text-gray-900 leading-tight"
-                                title={recommendation.college.college_name}
-                              >
-                                {truncateText(
-                                  recommendation.college.college_name,
-                                  40,
-                                )}
-                              </h3>
-                              <div className="flex items-center gap-1 mt-1 text-xs text-gray-500">
-                                <MapPin size={12} className="flex-shrink-0" />
-                                <span className="truncate">
-                                  {recommendation.college.city}
-                                  {recommendation.college.state
-                                    ? `, ${recommendation.college.state}`
-                                    : ""}
-                                </span>
-                              </div>
-                            </div>
-                            <Badge
-                              className={`${getCategoryColor(recommendation.category)} px-2 py-0.5 text-xs font-medium flex-shrink-0`}
-                            >
-                              {recommendation.category}
-                            </Badge>
-                          </div>
-                          <div className="mt-2 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-1">
-                            <div className="flex items-center gap-1 text-xs text-blue-600">
-                              <Badge
-                                variant="outline"
-                                className="bg-blue-50 text-xs text-blue-600"
-                              >
-                                {recommendation.college.course_type}
-                              </Badge>
-                              <span className="text-gray-400">•</span>
-                              <span className="font-medium">
-                                College Code:{" "}
-                                {recommendation.college.college_code}
-                              </span>
-                            </div>
-                            <Badge
-                              variant="outline"
-                              className="bg-blue-50 text-xs text-blue-600"
-                            >
-                              Category: {recommendation.quotaCategory}
-                            </Badge>
-                          </div>
-                        </div>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="pt-2 pb-3">
-                      <div className="grid grid-cols-2 gap-2 sm:gap-3 mb-3">
-                        <div className="bg-blue-50 rounded-lg p-2">
-                          <div className="flex items-start gap-1">
-                            <TrendingUp
-                              size={14}
-                              className="text-blue-600 mt-0.5 flex-shrink-0"
-                            />
-                            <div className="min-w-0">
-                              <p className="text-xs text-blue-600 leading-tight">
-                                Closing Rank
-                              </p>
-                              <p className="text-sm font-bold text-blue-900 truncate">
-                                {recommendation.closing_rank
-                                  ? recommendation.closing_rank.toLocaleString()
-                                  : "N/A"}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="bg-green-50 rounded-lg p-2">
-                          <div className="flex items-start gap-1">
-                            <Users
-                              size={14}
-                              className="text-green-600 mt-0.5 flex-shrink-0"
-                            />
-                            <div className="min-w-0">
-                              <p className="text-xs text-green-600 leading-tight">
-                                Admission Chance
-                              </p>
-                              <p
-                                className={`text-sm font-bold truncate ${getProbabilityColor(recommendation.admission_probability)}`}
-                              >
-                                {recommendation.admission_probability}%
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="bg-purple-50 rounded-lg p-2">
-                          <div className="flex items-start gap-1">
-                            <Users
-                              size={14}
-                              className="text-purple-600 mt-0.5 flex-shrink-0"
-                            />
-                            <div className="min-w-0">
-                              <p className="text-xs text-purple-600 leading-tight">
-                                Your Rank
-                              </p>
-                              <p className="text-sm font-bold text-purple-900 truncate">
-                                {recommendation.neet_rank
-                                  ? recommendation.neet_rank.toLocaleString()
-                                  : "N/A"}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="bg-orange-50 rounded-lg p-2">
-                          <div className="flex items-start gap-1">
-                            <Users
-                              size={14}
-                              className="text-orange-600 mt-0.5 flex-shrink-0"
-                            />
-                            <div className="min-w-0">
-                              <p className="text-xs text-orange-600 leading-tight">
-                                College Type
-                              </p>
-                              <p className="text-sm font-bold text-orange-900 truncate">
-                                {recommendation.college.college_type || "N/A"}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      {/* <div className="mt-2 p-2 bg-blue-50 rounded-lg border border-blue-100">
-                        <div className="flex items-center gap-1 text-xs text-blue-700">
-                          <Badge variant="outline" className="text-xs">
-                            {recommendation.college.course_type}
-                          </Badge>
-                          <span className="text-gray-400">•</span>
-                          <span className="font-medium">
-                            College Code: {recommendation.college.college_code}
-                          </span>
-                        </div>
-                        <div className="bg-blue-50 rounded-lg p-2">
-                          <p className="text-xs font-medium text-blue-600 leading-tight">
-                            Category: {recommendation.quotaCategory}
-                          </p>
-                        </div>
-                      </div> */}
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="relative">
-              {/* Blurred preview cards */}
-              <div className="space-y-4 opacity-30 blur-sm pointer-events-none">
-                {categorizedRecommendations
-                  .slice(0, 3)
-                  .map((recommendation, index) => {
+              {/* Recommendations List */}
+              {isUnlocked ? (
+                <div className="space-y-4">
+                  {categorizedRecommendations.map((recommendation, index) => {
                     if (
                       !recommendation ||
                       !recommendation.college ||
@@ -2239,8 +2136,8 @@ export const MedicalRound2Tab = ({
 
                     return (
                       <Card
-                        key={`preview-${recommendation.college?.college_code}-${index}`}
-                        className="border border-gray-200 bg-white"
+                        key={`${recommendation.college?.college_code}-${index}`}
+                        className="hover:shadow-lg transition-all duration-300 border border-gray-200 bg-white"
                       >
                         <CardHeader className="pb-2">
                           <div className="flex items-start gap-3 pr-16 sm:pr-20 min-w-0">
@@ -2271,6 +2168,9 @@ export const MedicalRound2Tab = ({
                                     />
                                     <span className="truncate">
                                       {recommendation.college.city}
+                                      {recommendation.college.state
+                                        ? `, ${recommendation.college.state}`
+                                        : ""}
                                     </span>
                                   </div>
                                 </div>
@@ -2280,354 +2180,487 @@ export const MedicalRound2Tab = ({
                                   {recommendation.category}
                                 </Badge>
                               </div>
+                              <div className="mt-2 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-1">
+                                <div className="flex items-center gap-1 text-xs text-blue-600">
+                                  <Badge
+                                    variant="outline"
+                                    className="bg-blue-50 text-xs text-blue-600"
+                                  >
+                                    {recommendation.college.course_type}
+                                  </Badge>
+                                  <span className="text-gray-400">•</span>
+                                  <span className="font-medium">
+                                    College Code:{" "}
+                                    {recommendation.college.college_code}
+                                  </span>
+                                </div>
+                                <Badge
+                                  variant="outline"
+                                  className="bg-blue-50 text-xs text-blue-600"
+                                >
+                                  Category: {recommendation.quotaCategory}
+                                </Badge>
+                              </div>
                             </div>
                           </div>
                         </CardHeader>
+
+                        <CardContent className="pt-2 pb-3">
+                          <div className="grid grid-cols-2 gap-2 sm:gap-3 mb-3">
+                            <div className="bg-blue-50 rounded-lg p-2">
+                              <div className="flex items-start gap-1">
+                                <TrendingUp
+                                  size={14}
+                                  className="text-blue-600 mt-0.5 flex-shrink-0"
+                                />
+                                <div className="min-w-0">
+                                  <p className="text-xs text-blue-600 leading-tight">
+                                    Closing Rank
+                                  </p>
+                                  <p className="text-sm font-bold text-blue-900 truncate">
+                                    {recommendation.closing_rank
+                                      ? recommendation.closing_rank.toLocaleString()
+                                      : "N/A"}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="bg-green-50 rounded-lg p-2">
+                              <div className="flex items-start gap-1">
+                                <Users
+                                  size={14}
+                                  className="text-green-600 mt-0.5 flex-shrink-0"
+                                />
+                                <div className="min-w-0">
+                                  <p className="text-xs text-green-600 leading-tight">
+                                    Admission Chance
+                                  </p>
+                                  <p
+                                    className={`text-sm font-bold truncate ${getProbabilityColor(recommendation.admission_probability)}`}
+                                  >
+                                    {recommendation.admission_probability}%
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="bg-purple-50 rounded-lg p-2">
+                              <div className="flex items-start gap-1">
+                                <Users
+                                  size={14}
+                                  className="text-purple-600 mt-0.5 flex-shrink-0"
+                                />
+                                <div className="min-w-0">
+                                  <p className="text-xs text-purple-600 leading-tight">
+                                    Your Rank
+                                  </p>
+                                  <p className="text-sm font-bold text-purple-900 truncate">
+                                    {recommendation.neet_rank
+                                      ? recommendation.neet_rank.toLocaleString()
+                                      : "N/A"}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="bg-orange-50 rounded-lg p-2">
+                              <div className="flex items-start gap-1">
+                                <Users
+                                  size={14}
+                                  className="text-orange-600 mt-0.5 flex-shrink-0"
+                                />
+                                <div className="min-w-0">
+                                  <p className="text-xs text-orange-600 leading-tight">
+                                    College Type
+                                  </p>
+                                  <p className="text-sm font-bold text-orange-900 truncate">
+                                    {recommendation.college.college_type ||
+                                      "N/A"}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </CardContent>
                       </Card>
                     );
                   })}
-              </div>
+                </div>
+              ) : (
+                <div className="relative">
+                  {/* Blurred preview cards */}
+                  <div className="space-y-4 opacity-30 blur-sm pointer-events-none">
+                    {categorizedRecommendations
+                      .slice(0, 3)
+                      .map((recommendation, index) => {
+                        if (
+                          !recommendation ||
+                          !recommendation.college ||
+                          !recommendation.college.college_name
+                        ) {
+                          return null;
+                        }
 
-              {/* Premium Gate for Round 2 */}
-              <div className="absolute inset-0 flex items-center justify-center">
-                <PremiumGate
-                  onUnlock={() => setIsUnlocked(true)}
-                  storageKey="medicalRecommendationUnlocked"
-                  productType="medical-recommendations"
-                  title="Medical Recommendations Unlock"
-                  description="Unlock complete medical college recommendations"
-                />
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Round 2 Recommendations Display */}
-      {hasGeneratedRecommendations && round2Recommendations.length <= 0 && (
-        <>
-          {isRoundInvalidated ? (
-            <Card className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-950/30 dark:via-indigo-950/30 dark:to-purple-950/30 border-2 border-blue-200 dark:border-blue-800">
-              <CardContent className="pt-6">
-                <div className="text-center space-y-4">
-                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 mb-4">
-                    <TrendingUp className="w-8 h-8 text-white" />
+                        return (
+                          <Card
+                            key={`preview-${recommendation.college?.college_code}-${index}`}
+                            className="border border-gray-200 bg-white"
+                          >
+                            <CardHeader className="pb-2">
+                              <div className="flex items-start gap-3 pr-16 sm:pr-20 min-w-0">
+                                <div className="flex-shrink-0 w-7 h-7 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-full flex items-center justify-center font-bold text-xs">
+                                  {index + 1}
+                                </div>
+                                <div className="flex-shrink-0">
+                                  <div className="w-10 h-10 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg flex items-center justify-center border border-gray-100">
+                                    <Building className="w-6 h-6 text-purple-600" />
+                                  </div>
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-start justify-between gap-2 mb-1">
+                                    <div className="flex-1 min-w-0">
+                                      <h3
+                                        className="text-sm font-semibold text-gray-900 leading-tight"
+                                        title={
+                                          recommendation.college.college_name
+                                        }
+                                      >
+                                        {truncateText(
+                                          recommendation.college.college_name,
+                                          40,
+                                        )}
+                                      </h3>
+                                      <div className="flex items-center gap-1 mt-1 text-xs text-gray-500">
+                                        <MapPin
+                                          size={12}
+                                          className="flex-shrink-0"
+                                        />
+                                        <span className="truncate">
+                                          {recommendation.college.city}
+                                        </span>
+                                      </div>
+                                    </div>
+                                    <Badge
+                                      className={`${getCategoryColor(recommendation.category)} px-2 py-0.5 text-xs font-medium flex-shrink-0`}
+                                    >
+                                      {recommendation.category}
+                                    </Badge>
+                                  </div>
+                                </div>
+                              </div>
+                            </CardHeader>
+                          </Card>
+                        );
+                      })}
                   </div>
 
-                  <div>
-                    <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-                      Form Updated - Regenerate Recommendations
-                    </h3>
-                    <p className="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-                      Your form data has been updated. Click the button below to
-                      generate new recommendations based on your updated
-                      information.
-                    </p>
-                  </div>
-
-                  <Button
-                    size="lg"
-                    onClick={onRegenerateRecommendations}
-                    className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold px-8 py-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
-                  >
-                    <TrendingUp className="mr-2 h-5 w-5" />
-                    Generate New Recommendations
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ) : (
-            <NoResultsState />
-          )}
-        </>
-      )}
-
-      {/* Header - Only show if not confirmed */}
-      {!isConfirmed && (
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-foreground mb-2">
-            Round 2 College Selection
-          </h2>
-          <p className="text-muted-foreground">
-            Search and select the college you received in Round 1 for Round 2
-            counselling
-          </p>
-        </div>
-      )}
-
-      {/* Search Section - Only show if not confirmed */}
-      {!isConfirmed && !skipRound1Selection && (
-        <>
-          <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
-            <CardContent className="p-6 text-center">
-              <div className="space-y-4">
-                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
-                  <Plus className="w-6 h-6 text-blue-600" />
-                </div>
-                <div className="space-y-2">
-                  <h3 className="text-lg font-semibold text-gray-800">
-                    Create New Round 2 List
-                  </h3>
-                  <p className="text-sm text-gray-600 max-w-md mx-auto">
-                    Don't have Round 1 details? Start fresh with a new Round 2
-                    recommendation list based on your preferences.
-                  </p>
-                </div>
-                <Button
-                  onClick={handleCreateNewList}
-                  className="bg-blue-600 hover:bg-blue-700"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Create New List
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* OR Create New List Option */}
-          <div className="flex items-center gap-4">
-            <div className="flex-1 h-px bg-border"></div>
-            <span className="text-sm text-muted-foreground bg-background px-3">
-              OR
-            </span>
-            <div className="flex-1 h-px bg-border"></div>
-          </div>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">
-                Search Your Round 1 College
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="search-type">Search Type</Label>
-                  <Select
-                    value={searchType}
-                    onValueChange={(value: any) => {
-                      setSearchType(value);
-                      setSearchValue("");
-                    }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select search type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {searchTypeOptions.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="search-value">
-                    {searchType === "college_name"
-                      ? "College Name"
-                      : localStorage.getItem("selected_state") === "Karnataka"
-                        ? "College Code"
-                        : "College Code (4 digits)"}
-                  </Label>
-                  <div className="flex gap-2">
-                    <Input
-                      id="search-value"
-                      value={searchValue}
-                      onChange={(e) => {
-                        const selectedState =
-                          localStorage.getItem("selected_state") || "";
-                        const value = e.target.value;
-
-                        if (searchType === "college_code") {
-                          if (selectedState === "Karnataka") {
-                            // Allow alphanumeric for Karnataka
-                            if (/^[a-zA-Z0-9]*$/.test(value)) {
-                              setSearchValue(value.toUpperCase());
-                            }
-                          } else {
-                            // Only allow numeric input and limit to 4 digits for non-Karnataka states
-                            const numericValue = value.replace(/[^0-9]/g, "");
-                            if (numericValue.length <= 4) {
-                              setSearchValue(numericValue);
-                            }
-                          }
-                        } else {
-                          // For college_name, allow any input
-                          setSearchValue(value);
-                        }
-                      }}
-                      onKeyDown={(e) => {
-                        const selectedState =
-                          localStorage.getItem("selected_state") || "";
-
-                        if (searchType === "college_code") {
-                          if (selectedState !== "Karnataka") {
-                            // Prevent -, +, e, E and other non-numeric keys for non-Karnataka states
-                            if (
-                              e.key === "-" ||
-                              e.key === "+" ||
-                              e.key === "e" ||
-                              e.key === "E" ||
-                              e.key === "."
-                            ) {
-                              e.preventDefault();
-                            }
-                          } else {
-                            // For Karnataka, prevent special characters (allow alphanumeric)
-                            if (
-                              !/^[a-zA-Z0-9]$/.test(e.key) &&
-                              e.key.length === 1 &&
-                              !e.ctrlKey &&
-                              !e.metaKey &&
-                              !e.altKey
-                            ) {
-                              e.preventDefault();
-                            }
-                          }
-                        }
-                        if (e.key === "Enter") {
-                          handleSearch();
-                        }
-                      }}
-                      onPaste={(e) => {
-                        const selectedState =
-                          localStorage.getItem("selected_state") || "";
-
-                        if (searchType === "college_code") {
-                          e.preventDefault();
-                          const pastedText = e.clipboardData.getData("text");
-
-                          if (selectedState === "Karnataka") {
-                            // Allow alphanumeric
-                            const alphanumericValue = pastedText.replace(
-                              /[^a-zA-Z0-9]/g,
-                              "",
-                            );
-                            setSearchValue(alphanumericValue.toUpperCase());
-                          } else {
-                            // Numeric only
-                            const numericValue = pastedText.replace(
-                              /[^0-9]/g,
-                              "",
-                            );
-                            if (numericValue.length <= 4) {
-                              setSearchValue(numericValue);
-                            }
-                          }
-                        }
-                      }}
-                      placeholder={
-                        searchType === "college_name"
-                          ? "Enter college name"
-                          : localStorage.getItem("selected_state") ===
-                              "Karnataka"
-                            ? "Enter college code"
-                            : "Enter 4-digit college code"
-                      }
-                      type="text"
-                      maxLength={
-                        searchType === "college_code" &&
-                        localStorage.getItem("selected_state") !== "Karnataka"
-                          ? 4
-                          : undefined
-                      }
+                  {/* Premium Gate for Round 2 */}
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <PremiumGate
+                      onUnlock={() => setIsUnlocked(true)}
+                      storageKey="medicalRecommendationUnlocked"
+                      productType="medical-recommendations"
+                      title="Medical Recommendations Unlock"
+                      description="Unlock complete medical college recommendations"
                     />
-                    <Button onClick={handleSearch} disabled={isSearching}>
-                      <Search className="w-4 h-4 mr-2" />
-                      {isSearching ? "Searching..." : "Search"}
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : hasGeneratedRecommendations ? (
+            /* 3. If Generated but empty results, show NoResultsState */
+            <NoResultsState />
+          ) : null}
+
+          {/* College Selection Search Section */}
+          {!selectedCollege && !hasGeneratedRecommendations && (
+            <div className="space-y-6">
+              <div className="text-center">
+                <h2 className="text-2xl font-bold text-foreground mb-2">
+                  Round 2 College Selection
+                </h2>
+                <p className="text-muted-foreground">
+                  Search and select the college you received in Round 1 for
+                  Round 2 counselling
+                </p>
+              </div>
+
+              <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
+                <CardContent className="p-6 text-center">
+                  <div className="space-y-4">
+                    <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
+                      <Plus className="w-6 h-6 text-blue-600" />
+                    </div>
+                    <div className="space-y-2">
+                      <h3 className="text-lg font-semibold text-gray-800">
+                        Create New Round 2 List
+                      </h3>
+                      <p className="text-sm text-gray-600 max-w-md mx-auto">
+                        Don't have Round 1 details? Start fresh with a new Round
+                        2 recommendation list based on your preferences.
+                      </p>
+                    </div>
+                    <Button
+                      onClick={handleCreateNewList}
+                      className="bg-blue-600 hover:bg-blue-700"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Create New List
                     </Button>
                   </div>
-                </div>
+                </CardContent>
+              </Card>
+
+              {/* OR Create New List Option */}
+              <div className="flex items-center gap-4">
+                <div className="flex-1 h-px bg-border"></div>
+                <span className="text-sm text-muted-foreground bg-background px-3">
+                  OR
+                </span>
+                <div className="flex-1 h-px bg-border"></div>
               </div>
-            </CardContent>
-          </Card>
 
-          {/* Search Results */}
-          {searchResults.length > 0 && (
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Search Results</h3>
-              {searchResults.map((college, index) => (
-                <Card
-                  key={`${college.college_code}-${index}`}
-                  className="hover:shadow-md transition-shadow"
-                >
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between gap-4">
-                      {/* College Info */}
-                      <div className="flex-1">
-                        <h4 className="text-lg font-semibold text-foreground">
-                          {college.college_name}
-                        </h4>
-                        <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
-                          <div className="flex items-center gap-1">
-                            <MapPin className="w-4 h-4" />
-                            {college.city}
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Building2 className="w-4 h-4" />
-                            {college.college_code}
-                          </div>
-                          {college.course_type && (
-                            <div className="flex items-center gap-1">
-                              <GraduationCap className="w-4 h-4" />
-                              {college.course_type}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Select College Button */}
-                      <Button
-                        onClick={() => handleCollegeSelect(college)}
-                        variant={
-                          selectedCollege?.college?.college_code ===
-                            college.college_code &&
-                          selectedCollege?.college?.course_type ===
-                            college.course_type
-                            ? "default"
-                            : "outline"
-                        }
-                        className="shrink-0"
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">
+                    Search Your Round 1 College
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label htmlFor="search-type">Search Type</Label>
+                      <Select
+                        value={searchType}
+                        onValueChange={(value: any) => {
+                          setSearchType(value);
+                          setSearchValue("");
+                        }}
                       >
-                        {selectedCollege?.college?.college_code ===
-                          college.college_code &&
-                        selectedCollege?.college?.course_type ===
-                          college.course_type ? (
-                          <>
-                            <Check className="w-4 h-4 mr-2" />
-                            Selected
-                          </>
-                        ) : (
-                          "Select"
-                        )}
-                      </Button>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select search type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {searchTypeOptions.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
-                  </CardContent>
-                </Card>
-              ))}
+
+                    <div className="space-y-2">
+                      <Label htmlFor="search-value">
+                        {searchType === "college_name"
+                          ? "College Name"
+                          : localStorage.getItem("selected_state") ===
+                              "Karnataka"
+                            ? "College Code"
+                            : "College Code (4 digits)"}
+                      </Label>
+                      <div className="flex gap-2">
+                        <Input
+                          id="search-value"
+                          value={searchValue}
+                          onChange={(e) => {
+                            const selectedState =
+                              localStorage.getItem("selected_state") || "";
+                            const value = e.target.value;
+
+                            if (searchType === "college_code") {
+                              if (selectedState === "Karnataka") {
+                                // Allow alphanumeric for Karnataka
+                                if (/^[a-zA-Z0-9]*$/.test(value)) {
+                                  setSearchValue(value.toUpperCase());
+                                }
+                              } else {
+                                // Only allow numeric input and limit to 4 digits for non-Karnataka states
+                                const numericValue = value.replace(
+                                  /[^0-9]/g,
+                                  "",
+                                );
+                                if (numericValue.length <= 4) {
+                                  setSearchValue(numericValue);
+                                }
+                              }
+                            } else {
+                              // For college_name, allow any input
+                              setSearchValue(value);
+                            }
+                          }}
+                          onKeyDown={(e) => {
+                            const selectedState =
+                              localStorage.getItem("selected_state") || "";
+
+                            if (searchType === "college_code") {
+                              if (selectedState !== "Karnataka") {
+                                // Prevent -, +, e, E and other non-numeric keys for non-Karnataka states
+                                if (
+                                  e.key === "-" ||
+                                  e.key === "+" ||
+                                  e.key === "e" ||
+                                  e.key === "E" ||
+                                  e.key === "."
+                                ) {
+                                  e.preventDefault();
+                                }
+                              } else {
+                                // For Karnataka, prevent special characters (allow alphanumeric)
+                                if (
+                                  !/^[a-zA-Z0-9]$/.test(e.key) &&
+                                  e.key.length === 1 &&
+                                  !e.ctrlKey &&
+                                  !e.metaKey &&
+                                  !e.altKey
+                                ) {
+                                  e.preventDefault();
+                                }
+                              }
+                            }
+                            if (e.key === "Enter") {
+                              handleSearch();
+                            }
+                          }}
+                          onPaste={(e) => {
+                            const selectedState =
+                              localStorage.getItem("selected_state") || "";
+
+                            if (searchType === "college_code") {
+                              e.preventDefault();
+                              const pastedText =
+                                e.clipboardData.getData("text");
+
+                              if (selectedState === "Karnataka") {
+                                // Allow alphanumeric
+                                const alphanumericValue = pastedText.replace(
+                                  /[^a-zA-Z0-9]/g,
+                                  "",
+                                );
+                                setSearchValue(alphanumericValue.toUpperCase());
+                              } else {
+                                // Numeric only
+                                const numericValue = pastedText.replace(
+                                  /[^0-9]/g,
+                                  "",
+                                );
+                                if (numericValue.length <= 4) {
+                                  setSearchValue(numericValue);
+                                }
+                              }
+                            }
+                          }}
+                          placeholder={
+                            searchType === "college_name"
+                              ? "Enter college name"
+                              : localStorage.getItem("selected_state") ===
+                                  "Karnataka"
+                                ? "Enter college code"
+                                : "Enter 4-digit college code"
+                          }
+                          type="text"
+                          maxLength={
+                            searchType === "college_code" &&
+                            localStorage.getItem("selected_state") !==
+                              "Karnataka"
+                              ? 4
+                              : undefined
+                          }
+                        />
+                        <Button onClick={handleSearch} disabled={isSearching}>
+                          <Search className="w-4 h-4 mr-2" />
+                          {isSearching ? "Searching..." : "Search"}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Search Results */}
+              {searchResults.length > 0 && (
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold">Search Results</h3>
+                  {searchResults.map((college, index) => (
+                    <Card
+                      key={`${college.college_code}-${index}`}
+                      className="hover:shadow-md transition-shadow"
+                    >
+                      <CardContent className="p-6">
+                        <div className="flex items-center justify-between gap-4">
+                          {/* College Info */}
+                          <div className="flex-1">
+                            <h4 className="text-lg font-semibold text-foreground">
+                              {college.college_name}
+                            </h4>
+                            <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
+                              <div className="flex items-center gap-1">
+                                <MapPin className="w-4 h-4" />
+                                {college.city}
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <Building2 className="w-4 h-4" />
+                                {college.college_code}
+                              </div>
+                              {college.course_type && (
+                                <div className="flex items-center gap-1">
+                                  <GraduationCap className="w-4 h-4" />
+                                  {college.course_type}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Select College Button */}
+                          <Button
+                            onClick={() => handleCollegeSelect(college)}
+                            variant={
+                              selectedCollege?.college?.college_code ===
+                                college.college_code &&
+                              selectedCollege?.college?.course_type ===
+                                college.course_type
+                                ? "default"
+                                : "outline"
+                            }
+                            className="shrink-0"
+                          >
+                            {selectedCollege?.college?.college_code ===
+                              college.college_code &&
+                            selectedCollege?.college?.course_type ===
+                              college.course_type ? (
+                              <>
+                                <Check className="w-4 h-4 mr-2" />
+                                Selected
+                              </>
+                            ) : (
+                              "Select"
+                            )}
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+
+              {/* Help Text */}
+              <Card className="bg-blue-50 border-blue-200">
+                <CardContent className="p-4">
+                  <div className="text-sm text-blue-800">
+                    <p className="font-medium mb-2">💡 Tips for searching:</p>
+                    <ul className="space-y-1 list-disc list-inside text-blue-700">
+                      <li>
+                        <strong>College Name:</strong> You can search with
+                        partial names
+                      </li>
+                      <li>
+                        <strong>College Code:</strong> Use the official college
+                        code from your documents
+                      </li>
+                    </ul>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           )}
-
-          {/* Help Text */}
-          <Card className="bg-blue-50 border-blue-200">
-            <CardContent className="p-4">
-              <div className="text-sm text-blue-800">
-                <p className="font-medium mb-2">💡 Tips for searching:</p>
-                <ul className="space-y-1 list-disc list-inside text-blue-700">
-                  <li>
-                    <strong>College Name:</strong> You can search with partial
-                    names
-                  </li>
-                  <li>
-                    <strong>College Code:</strong> Use the official college code
-                    from your documents
-                  </li>
-                </ul>
-              </div>
-            </CardContent>
-          </Card>
         </>
       )}
 

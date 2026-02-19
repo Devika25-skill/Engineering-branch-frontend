@@ -1,7 +1,12 @@
-
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { categoryMapping } from "./CategoryMapping";
@@ -29,14 +34,15 @@ const ChancesCalculationForm = ({
   availableStreams,
   onCalculate,
   isLoading,
-  collegeName
+  collegeName,
 }: ChancesCalculationFormProps) => {
   return (
     <div className="space-y-4">
       <p className="text-sm text-gray-600">
-        Enter your academic details to calculate your admission probability for {collegeName}
+        Enter your academic details to calculate your admission probability for{" "}
+        {collegeName}
       </p>
-      
+
       <div className="space-y-4">
         <div>
           <Label htmlFor="stream">Branch/Stream</Label>
@@ -69,7 +75,7 @@ const ChancesCalculationForm = ({
             </SelectContent>
           </Select>
         </div>
-        
+
         <div>
           <Label htmlFor="cet">MH-CET Percentile</Label>
           <Input
@@ -80,12 +86,13 @@ const ChancesCalculationForm = ({
             onChange={(e) => setCetPercentile(e.target.value)}
             min="0"
             max="100"
+            step="0.0000001"
           />
         </div>
       </div>
-      
-      <Button 
-        onClick={onCalculate} 
+
+      <Button
+        onClick={onCalculate}
         className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
         disabled={isLoading}
       >
@@ -95,7 +102,7 @@ const ChancesCalculationForm = ({
             Calculating...
           </>
         ) : (
-          'Calculate Chances'
+          "Calculate Chances"
         )}
       </Button>
     </div>
