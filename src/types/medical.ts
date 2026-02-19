@@ -82,16 +82,16 @@ export type KarnatakaFirstYearMedicalQuota =
 // Medical Program Types
 export type MedicalProgram =
   | "ALL"
+  | "MBBS"
   | "BAMS"
-  | "BASLP"
-  | "BDS"
   | "BHMS"
-  | "BNYS"
-  | "BOTH"
-  | "BPO"
   | "BPTH"
+  | "BDS"
   | "BUMS"
-  | "MBBS";
+  | "BPO"
+  | "BOTH"
+  | "BASLP"
+  | "BNYS";
 
 // CAP Rounds
 export type Round = 1 | 2 | 3;
