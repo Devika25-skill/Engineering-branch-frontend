@@ -168,8 +168,16 @@ export const MedicalRound3Tab = ({
   useEffect(() => {
     if (isRoundInvalidated) {
       setRound3Recommendations([]);
-      // Do NOT set hasGeneratedRecommendations to false here,
-      // as we need it to know if results were previously generated.
+
+      // Check if we actually have recommendations stored for this round
+      // If not, we shouldn't show the "Form Updated" message
+      const hasStoredRecs =
+        sessionStorage.getItem("cachedMedicalRound3Recommendations") ||
+        localStorage.getItem("medicalRound3Recommendations");
+
+      if (!hasStoredRecs) {
+        setHasGeneratedRecommendations(false);
+      }
     }
   }, [isRoundInvalidated]);
 

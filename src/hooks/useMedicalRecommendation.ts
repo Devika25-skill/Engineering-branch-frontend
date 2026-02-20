@@ -205,6 +205,7 @@ export const useMedicalRecommendation = () => {
       sessionStorage.removeItem("cachedMedicalRecommendations");
       sessionStorage.removeItem("medicalRecommendationPaymentData");
       localStorage.removeItem("medicalRound2Recommendations");
+      localStorage.removeItem("medicalRound3Recommendations");
 
       // Generate recommendations for the active round
       const recommendationPayload: GenerateMedicalRecommendationsRequest = {
