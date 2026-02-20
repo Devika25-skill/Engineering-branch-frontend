@@ -111,7 +111,7 @@ const RecommendationSteps = () => {
       neetPercentile: credentials.examPercentiles?.NEETPercentile || undefined,
       neetAllIndiaRank:
         credentials.examPercentiles?.NEETAllIndiaRank || undefined,
-      neetRollNumber: credentials.examPercentiles?.NEETRollNumber || undefined,
+      neetRollNumber: credentials.examPercentiles?.NEETRollNumber || null,
       otherExamName: otherExam?.examName || undefined,
       otherExamPercentile: otherExam?.percentileOrScore || undefined,
 
@@ -464,9 +464,9 @@ const RecommendationSteps = () => {
         if (!formData.neetAllIndiaRank || formData.neetAllIndiaRank <= 0)
           errors.push("All India Rank");
         if (
-          !formData.neetRollNumber ||
-          formData.neetRollNumber < 1000000000 ||
-          formData.neetRollNumber > 9999999999
+          formData.neetRollNumber &&
+          (formData.neetRollNumber < 1000000000 ||
+            formData.neetRollNumber > 9999999999)
         )
           errors.push("NEET Roll Number");
       } else {

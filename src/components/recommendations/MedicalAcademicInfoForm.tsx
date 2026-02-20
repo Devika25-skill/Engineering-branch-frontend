@@ -1026,8 +1026,10 @@ export const MedicalAcademicInfoForm = ({
 
               <div className="space-y-2">
                 <Label className="flex items-center gap-2 text-slate-700 font-semibold text-sm">
-                  NEET Roll Number
-                  <span className="text-red-500">*</span>
+                  NEET Roll Number{" "}
+                  <span className="text-xs text-slate-500 font-normal">
+                    (Optional)
+                  </span>
                   {isFieldError("NEET Roll Number") && (
                     <AlertCircle size={14} className="text-red-500" />
                   )}
