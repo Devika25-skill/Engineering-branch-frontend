@@ -131,6 +131,7 @@ const MedicalRecommendationResults = () => {
               accept_payment: parsed.accept_payment || true,
             });
             setHasGeneratedRecommendations(true);
+            setIsRoundInvalidated(false);
           } else {
             // Check if this round was invalidated due to form update
             const invalidationKey = `round${roundNumber}Invalidated`;
@@ -236,6 +237,7 @@ const MedicalRecommendationResults = () => {
 
         // Clear invalidation flag since we're now viewing this round
         sessionStorage.removeItem(`round${roundNumber}Invalidated`);
+        setIsRoundInvalidated(false);
       } else {
         // Check if this round was invalidated due to form update
         const invalidationKey = `round${roundNumber}Invalidated`;
