@@ -390,7 +390,7 @@ export interface MedicalAcademicCredentials {
   examPercentiles: {
     NEETPercentile: number; // 0-100, max 2 decimal places
     NEETAllIndiaRank: number; // >= 1
-    NEETRollNumber: number; // 10-digit number (1000000000 to 9999999999)
+    NEETRollNumber?: number; // 10-digit number (1000000000 to 9999999999)
     otherEntranceExam?: Array<{
       examName: string;
       percentileOrScore: number;

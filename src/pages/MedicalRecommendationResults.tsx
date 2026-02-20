@@ -51,7 +51,7 @@ const MedicalRecommendationResults = () => {
       reservationCategory: credentials.reservationCategory || "",
       neetAllIndiaRank: credentials.examPercentiles?.NEETAllIndiaRank || 0,
       neetPercentile: credentials.examPercentiles?.NEETPercentile || 0,
-      neetRollNumber: credentials.examPercentiles?.NEETRollNumber || 0,
+      neetRollNumber: credentials.examPercentiles?.NEETRollNumber || null,
       tenthMarks: credentials.academicMarks?._10thGradeMarksPercent || 0,
       twelfthMarks: credentials.academicMarks?._12thGradeMarksPercent || 0,
       groupingMarks: credentials.academicMarks?.groupingMarksPercent || 0,
@@ -378,7 +378,8 @@ const MedicalRecommendationResults = () => {
               NEETPercentile: credentials.examPercentiles?.NEETPercentile || 0,
               NEETAllIndiaRank:
                 credentials.examPercentiles?.NEETAllIndiaRank || 0,
-              NEETRollNumber: credentials.examPercentiles?.NEETRollNumber || 0,
+              NEETRollNumber:
+                credentials.examPercentiles?.NEETRollNumber || null,
               otherEntranceExam:
                 credentials.examPercentiles?.otherEntranceExam || [],
             },
