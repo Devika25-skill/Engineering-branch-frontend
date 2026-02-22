@@ -1675,6 +1675,8 @@ export const Round3Tab = () => {
 
   // Get selected state from localStorage
   const selectedState = localStorage.getItem("selected_state") || "Maharashtra";
+  const isKaOrMh =
+    selectedState === "Karnataka" || selectedState === "Maharashtra";
 
   const maharashtraCities = [
     "ALL",
@@ -2495,11 +2497,13 @@ export const Round3Tab = () => {
           )}
 
           {/* Round 3 Recommendations Display */}
-          {hasGeneratedRecommendations && round3Recommendations.length <= 0 && (
-            <>
-              <NoResultsState />
-            </>
-          )}
+          {hasGeneratedRecommendations &&
+            round3Recommendations.length <= 0 &&
+            !isKaOrMh && (
+              <>
+                <NoResultsState />
+              </>
+            )}
 
           {/* Header - Only show if not confirmed */}
           {!isConfirmed && (
@@ -2514,130 +2518,150 @@ export const Round3Tab = () => {
             </div>
           )}
 
-          {/* Search Section - Only show if not confirmed */}
-          {!isConfirmed && !skipRound2Selection && (
-            <>
-              <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
-                <CardContent className="p-6 text-center">
-                  <div className="space-y-4">
-                    <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
-                      <Plus className="w-6 h-6 text-blue-600" />
-                    </div>
-                    <div className="space-y-2">
-                      <h3 className="text-lg font-semibold text-gray-800">
-                        Create New Round 3 List
-                      </h3>
-                      <p className="text-sm text-gray-600 max-w-md mx-auto">
-                        Don't have Round 2 details? Start fresh with a new Round
-                        3 recommendation list based on your preferences.
-                      </p>
-                    </div>
-                    <Button
-                      onClick={handleCreateNewList}
-                      className="bg-blue-600 hover:bg-blue-700"
-                    >
-                      <Plus className="w-4 h-4 mr-2" />
-                      Create New List
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* OR Create New List Option */}
-              <div className="flex items-center gap-4">
-                <div className="flex-1 h-px bg-border"></div>
-                <span className="text-sm text-muted-foreground bg-background px-3">
-                  OR
-                </span>
-                <div className="flex-1 h-px bg-border"></div>
-              </div>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">
-                    Search Your Round 2 College
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label htmlFor="search-type">Search Type</Label>
-                      <Select
-                        value={searchType}
-                        onValueChange={(value: any) => {
-                          setSearchType(value);
-                          setSearchValue("");
-                        }}
+          {/* Search Section - Only show if not confirmed - or if ka/mh and recommendations are empty */}
+          {!isConfirmed &&
+            (!skipRound2Selection ||
+              (isKaOrMh && round3Recommendations.length === 0)) && (
+              <>
+                <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
+                  <CardContent className="p-6 text-center">
+                    <div className="space-y-4">
+                      <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
+                        <Plus className="w-6 h-6 text-blue-600" />
+                      </div>
+                      <div className="space-y-2">
+                        <h3 className="text-lg font-semibold text-gray-800">
+                          Create New Round 3 List
+                        </h3>
+                        <p className="text-sm text-gray-600 max-w-md mx-auto">
+                          Don't have Round 2 details? Start fresh with a new
+                          Round 3 recommendation list based on your preferences.
+                        </p>
+                      </div>
+                      <Button
+                        onClick={handleCreateNewList}
+                        className="bg-blue-600 hover:bg-blue-700"
                       >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select search type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {searchTypeOptions.map((option) => (
-                            <SelectItem key={option.value} value={option.value}>
-                              {option.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                        <Plus className="w-4 h-4 mr-2" />
+                        Create New List
+                      </Button>
                     </div>
+                  </CardContent>
+                </Card>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="search-value">
-                        {searchType === "choice_code"
-                          ? "Choice Code"
-                          : searchType === "college_name"
-                            ? "College Name"
-                            : "College Code"}
-                      </Label>
-                      <div className="flex gap-2">
-                        <Input
-                          id="search-value"
-                          value={searchValue}
-                          onChange={(e) => {
-                            const selectedState =
-                              localStorage.getItem("selected_state") || "";
-                            const value = e.target.value;
+                {/* OR Create New List Option */}
+                <div className="flex items-center gap-4">
+                  <div className="flex-1 h-px bg-border"></div>
+                  <span className="text-sm text-muted-foreground bg-background px-3">
+                    OR
+                  </span>
+                  <div className="flex-1 h-px bg-border"></div>
+                </div>
 
-                            if (searchType === "college_code") {
-                              if (selectedState === "Karnataka") {
-                                // Allow alphanumeric for Karnataka
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">
+                      Search Your Round 2 College
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label htmlFor="search-type">Search Type</Label>
+                        <Select
+                          value={searchType}
+                          onValueChange={(value: any) => {
+                            setSearchType(value);
+                            setSearchValue("");
+                          }}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select search type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {searchTypeOptions.map((option) => (
+                              <SelectItem
+                                key={option.value}
+                                value={option.value}
+                              >
+                                {option.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="search-value">
+                          {searchType === "choice_code"
+                            ? "Choice Code"
+                            : searchType === "college_name"
+                              ? "College Name"
+                              : "College Code"}
+                        </Label>
+                        <div className="flex gap-2">
+                          <Input
+                            id="search-value"
+                            value={searchValue}
+                            onChange={(e) => {
+                              const selectedState =
+                                localStorage.getItem("selected_state") || "";
+                              const value = e.target.value;
+
+                              if (searchType === "college_code") {
+                                if (selectedState === "Karnataka") {
+                                  // Allow alphanumeric for Karnataka
+                                  if (/^[a-zA-Z0-9]*$/.test(value)) {
+                                    setSearchValue(value.toUpperCase());
+                                  }
+                                } else {
+                                  // Only allow digits for college code and max 4 chars for others
+                                  if (
+                                    /^\d*$/.test(value) &&
+                                    value.length <= 4
+                                  ) {
+                                    setSearchValue(value);
+                                  }
+                                }
+                              } else if (searchType === "choice_code") {
+                                // Only allow alphanumeric for choice code
                                 if (/^[a-zA-Z0-9]*$/.test(value)) {
                                   setSearchValue(value.toUpperCase());
                                 }
                               } else {
-                                // Only allow digits for college code and max 4 chars for others
-                                if (/^\d*$/.test(value) && value.length <= 4) {
-                                  setSearchValue(value);
-                                }
+                                setSearchValue(value);
                               }
-                            } else if (searchType === "choice_code") {
-                              // Only allow alphanumeric for choice code
-                              if (/^[a-zA-Z0-9]*$/.test(value)) {
-                                setSearchValue(value.toUpperCase());
-                              }
-                            } else {
-                              setSearchValue(value);
-                            }
-                          }}
-                          onKeyDown={(e) => {
-                            const selectedState =
-                              localStorage.getItem("selected_state") || "";
+                            }}
+                            onKeyDown={(e) => {
+                              const selectedState =
+                                localStorage.getItem("selected_state") || "";
 
-                            if (searchType === "college_code") {
-                              if (selectedState !== "Karnataka") {
-                                // Prevent -, +, e, E and other non-numeric keys for non-Karnataka states
-                                if (
-                                  e.key === "-" ||
-                                  e.key === "+" ||
-                                  e.key === "e" ||
-                                  e.key === "E" ||
-                                  e.key === "."
-                                ) {
-                                  e.preventDefault();
+                              if (searchType === "college_code") {
+                                if (selectedState !== "Karnataka") {
+                                  // Prevent -, +, e, E and other non-numeric keys for non-Karnataka states
+                                  if (
+                                    e.key === "-" ||
+                                    e.key === "+" ||
+                                    e.key === "e" ||
+                                    e.key === "E" ||
+                                    e.key === "."
+                                  ) {
+                                    e.preventDefault();
+                                  }
+                                } else {
+                                  // For Karnataka, prevent special characters (allow alphanumeric)
+                                  if (
+                                    !/^[a-zA-Z0-9]$/.test(e.key) &&
+                                    e.key.length === 1 &&
+                                    !e.ctrlKey &&
+                                    !e.metaKey &&
+                                    !e.altKey
+                                  ) {
+                                    e.preventDefault();
+                                  }
                                 }
-                              } else {
-                                // For Karnataka, prevent special characters (allow alphanumeric)
+                              } else if (searchType === "choice_code") {
+                                // Prevent special characters (allow alphanumeric)
                                 if (
                                   !/^[a-zA-Z0-9]$/.test(e.key) &&
                                   e.key.length === 1 &&
@@ -2648,170 +2672,160 @@ export const Round3Tab = () => {
                                   e.preventDefault();
                                 }
                               }
-                            } else if (searchType === "choice_code") {
-                              // Prevent special characters (allow alphanumeric)
-                              if (
-                                !/^[a-zA-Z0-9]$/.test(e.key) &&
-                                e.key.length === 1 &&
-                                !e.ctrlKey &&
-                                !e.metaKey &&
-                                !e.altKey
-                              ) {
-                                e.preventDefault();
+                              if (e.key === "Enter") {
+                                handleSearch();
                               }
-                            }
-                            if (e.key === "Enter") {
-                              handleSearch();
-                            }
-                          }}
-                          onPaste={(e) => {
-                            const selectedState =
-                              localStorage.getItem("selected_state") || "";
+                            }}
+                            onPaste={(e) => {
+                              const selectedState =
+                                localStorage.getItem("selected_state") || "";
 
-                            if (searchType === "college_code") {
-                              e.preventDefault();
-                              const pastedText =
-                                e.clipboardData.getData("text");
+                              if (searchType === "college_code") {
+                                e.preventDefault();
+                                const pastedText =
+                                  e.clipboardData.getData("text");
 
-                              if (selectedState === "Karnataka") {
+                                if (selectedState === "Karnataka") {
+                                  // Allow alphanumeric
+                                  const alphanumericValue = pastedText.replace(
+                                    /[^a-zA-Z0-9]/g,
+                                    "",
+                                  );
+                                  setSearchValue(
+                                    alphanumericValue.toUpperCase(),
+                                  );
+                                } else {
+                                  // Numeric only
+                                  const numericValue = pastedText.replace(
+                                    /[^0-9]/g,
+                                    "",
+                                  );
+                                  if (numericValue.length <= 4) {
+                                    setSearchValue(numericValue);
+                                  }
+                                }
+                              } else if (searchType === "choice_code") {
+                                e.preventDefault();
+                                const pastedText =
+                                  e.clipboardData.getData("text");
                                 // Allow alphanumeric
                                 const alphanumericValue = pastedText.replace(
                                   /[^a-zA-Z0-9]/g,
                                   "",
                                 );
                                 setSearchValue(alphanumericValue.toUpperCase());
-                              } else {
-                                // Numeric only
-                                const numericValue = pastedText.replace(
-                                  /[^0-9]/g,
-                                  "",
-                                );
-                                if (numericValue.length <= 4) {
-                                  setSearchValue(numericValue);
-                                }
                               }
-                            } else if (searchType === "choice_code") {
-                              e.preventDefault();
-                              const pastedText =
-                                e.clipboardData.getData("text");
-                              // Allow alphanumeric
-                              const alphanumericValue = pastedText.replace(
-                                /[^a-zA-Z0-9]/g,
-                                "",
-                              );
-                              setSearchValue(alphanumericValue.toUpperCase());
+                            }}
+                            placeholder={
+                              searchType === "choice_code"
+                                ? "Enter choice code (e.g., 211626310 or 1234U)"
+                                : searchType === "college_name"
+                                  ? "Enter college name"
+                                  : localStorage.getItem("selected_state") ===
+                                      "Karnataka"
+                                    ? "Enter college code (e.g., E184)"
+                                    : "Enter college code (e.g., 1146)"
                             }
-                          }}
-                          placeholder={
-                            searchType === "choice_code"
-                              ? "Enter choice code (e.g., 211626310 or 1234U)"
-                              : searchType === "college_name"
-                                ? "Enter college name"
-                                : localStorage.getItem("selected_state") ===
-                                    "Karnataka"
-                                  ? "Enter college code (e.g., E184)"
-                                  : "Enter college code (e.g., 1146)"
-                          }
-                          type={
-                            searchType === "college_name" ||
-                            searchType === "choice_code" ||
-                            (localStorage.getItem("selected_state") ===
-                              "Karnataka" &&
-                              searchType === "college_code")
-                              ? "text"
-                              : "text" // Changed to text to better control input validation via regex
-                          }
-                          onKeyPress={(e) =>
-                            e.key === "Enter" && handleSearch()
-                          }
-                        />
-                        <Button onClick={handleSearch} disabled={isSearching}>
-                          <Search className="w-4 h-4 mr-2" />
-                          {isSearching ? "Searching..." : "Search"}
-                        </Button>
+                            type={
+                              searchType === "college_name" ||
+                              searchType === "choice_code" ||
+                              (localStorage.getItem("selected_state") ===
+                                "Karnataka" &&
+                                searchType === "college_code")
+                                ? "text"
+                                : "text" // Changed to text to better control input validation via regex
+                            }
+                            onKeyPress={(e) =>
+                              e.key === "Enter" && handleSearch()
+                            }
+                          />
+                          <Button onClick={handleSearch} disabled={isSearching}>
+                            <Search className="w-4 h-4 mr-2" />
+                            {isSearching ? "Searching..." : "Search"}
+                          </Button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
 
-              {/* Search Results */}
-              {searchResults.length > 0 && (
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold">Search Results</h3>
-                  {searchResults.map((college, index) => (
-                    <Card
-                      key={`${college.College_code}-${index}`}
-                      className="hover:shadow-md transition-shadow"
-                    >
-                      <CardContent className="p-6">
-                        <div className="space-y-4">
-                          {/* College Info */}
-                          <div className="space-y-2">
-                            <div className="flex items-start justify-between gap-4">
-                              <div className="flex-1">
-                                <h4 className="text-lg font-semibold text-foreground">
-                                  {college.College_Name}
-                                </h4>
-                                <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
-                                  <div className="flex items-center gap-1">
-                                    <MapPin className="w-4 h-4" />
-                                    {college.City}
+                {/* Search Results */}
+                {searchResults.length > 0 && (
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold">Search Results</h3>
+                    {searchResults.map((college, index) => (
+                      <Card
+                        key={`${college.College_code}-${index}`}
+                        className="hover:shadow-md transition-shadow"
+                      >
+                        <CardContent className="p-6">
+                          <div className="space-y-4">
+                            {/* College Info */}
+                            <div className="space-y-2">
+                              <div className="flex items-start justify-between gap-4">
+                                <div className="flex-1">
+                                  <h4 className="text-lg font-semibold text-foreground">
+                                    {college.College_Name}
+                                  </h4>
+                                  <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
+                                    <div className="flex items-center gap-1">
+                                      <MapPin className="w-4 h-4" />
+                                      {college.City}
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                      <Building2 className="w-4 h-4" />
+                                      Code: {college.College_code}
+                                    </div>
+                                    {college.College_Website && (
+                                      <a
+                                        href={college.College_Website}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center gap-1 text-blue-600 hover:text-blue-800"
+                                      >
+                                        <Globe className="w-4 h-4" />
+                                        Website
+                                      </a>
+                                    )}
                                   </div>
-                                  <div className="flex items-center gap-1">
-                                    <Building2 className="w-4 h-4" />
-                                    Code: {college.College_code}
-                                  </div>
-                                  {college.College_Website && (
-                                    <a
-                                      href={college.College_Website}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="flex items-center gap-1 text-blue-600 hover:text-blue-800"
-                                    >
-                                      <Globe className="w-4 h-4" />
-                                      Website
-                                    </a>
-                                  )}
                                 </div>
                               </div>
                             </div>
+                            <Separator />
+
+                            {/* Departments */}
+                            {renderDepartments(college)}
                           </div>
-                          <Separator />
-
-                          {/* Departments */}
-                          {renderDepartments(college)}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              )}
-
-              {/* Help Text */}
-              <Card className="bg-blue-50 border-blue-200">
-                <CardContent className="p-4">
-                  <div className="text-sm text-blue-800">
-                    <p className="font-medium mb-2">💡 Tips for searching:</p>
-                    <ul className="space-y-1 list-disc list-inside text-blue-700">
-                      <li>
-                        <strong>Choice Code:</strong> Use the exact choice code
-                        from your Round 2 allotment
-                      </li>
-                      <li>
-                        <strong>College Name:</strong> You can search with
-                        partial names
-                      </li>
-                      <li>
-                        <strong>College Code:</strong> Use the official college
-                        code from your documents
-                      </li>
-                    </ul>
+                        </CardContent>
+                      </Card>
+                    ))}
                   </div>
-                </CardContent>
-              </Card>
-            </>
-          )}
+                )}
+
+                {/* Help Text */}
+                <Card className="bg-blue-50 border-blue-200">
+                  <CardContent className="p-4">
+                    <div className="text-sm text-blue-800">
+                      <p className="font-medium mb-2">💡 Tips for searching:</p>
+                      <ul className="space-y-1 list-disc list-inside text-blue-700">
+                        <li>
+                          <strong>Choice Code:</strong> Use the exact choice
+                          code from your Round 2 allotment
+                        </li>
+                        <li>
+                          <strong>College Name:</strong> You can search with
+                          partial names
+                        </li>
+                        <li>
+                          <strong>College Code:</strong> Use the official
+                          college code from your documents
+                        </li>
+                      </ul>
+                    </div>
+                  </CardContent>
+                </Card>
+              </>
+            )}
 
           {/* Selection Dialog */}
           <Dialog
