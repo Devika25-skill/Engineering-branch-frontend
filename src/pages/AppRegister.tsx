@@ -31,7 +31,7 @@ const AppRegister = () => {
         mobile: '',
         state: 'Maharashtra',
         city: 'Pune',
-        admission_type: '',
+        admission_type: 'First Year Engineering',
     });
 
     const [otp, setOtp] = useState('');
