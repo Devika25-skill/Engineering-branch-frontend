@@ -212,9 +212,9 @@ const Navigation = () => {
                         <AvatarFallback className="bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700 font-bold text-xs sm:text-sm">
                           {user?.name
                             ? user.name
-                                .split(" ")
-                                .map((n) => n[0])
-                                .join("")
+                              .split(" ")
+                              .map((n) => n[0])
+                              .join("")
                             : "U"}
                         </AvatarFallback>
                       </Avatar>
@@ -261,6 +261,16 @@ const Navigation = () => {
                 >
                   <User size={16} className="mr-2 group-hover:animate-pulse" />
                   Login
+                </Button>
+              )}
+
+              {!isLoggedIn && (
+                <Button
+                  onClick={() => navigate('/register')}
+                  variant="outline"
+                  className="hidden sm:flex border-blue-600 text-blue-600 hover:bg-blue-50 font-semibold px-4 sm:px-6 py-2 rounded-xl shadow-sm transform hover:scale-105 transition-all duration-300"
+                >
+                  Register
                 </Button>
               )}
 
@@ -318,6 +328,16 @@ const Navigation = () => {
                         >
                           <User size={16} className="mr-2" />
                           Login
+                        </Button>
+                        <Button
+                          onClick={() => {
+                            navigate('/register');
+                            setMobileMenuOpen(false);
+                          }}
+                          variant="outline"
+                          className="w-full border-blue-600 text-blue-600 hover:bg-blue-50 font-semibold py-3 rounded-xl shadow-md mt-2"
+                        >
+                          Register
                         </Button>
                       </div>
                     )}

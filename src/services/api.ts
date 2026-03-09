@@ -483,17 +483,6 @@ export interface KarnatakaRecommendationRequest {
   last_round_choice_course_name: string;
 }
 
-export interface KarnatakaRecommendationRequest {
-  category: string;
-  cet_rank: number;
-  cet_course: string[];
-  cities: string[];
-  gender: string;
-  round: number;
-  last_round_choice_college_code: string;
-  last_round_choice_course_name: string;
-}
-
 export interface GenerateRoundListResponse {
   message: string;
   success: boolean;
@@ -802,12 +791,12 @@ class ApiService {
       // Handle CET cutoff range safely
       const cetCutoffRange =
         apiCollege.cet_cutoff_range?.min !== null &&
-        apiCollege.cet_cutoff_range?.max !== null
+          apiCollege.cet_cutoff_range?.max !== null
           ? {
-              min: apiCollege.cet_cutoff_range.min,
-              max: apiCollege.cet_cutoff_range.max,
-              year: new Date().getFullYear(),
-            }
+            min: apiCollege.cet_cutoff_range.min,
+            max: apiCollege.cet_cutoff_range.max,
+            year: new Date().getFullYear(),
+          }
           : null;
 
       // Ensure streams is always an array
@@ -830,9 +819,9 @@ class ApiService {
         placementRange:
           placementMin !== null || placementMax !== null
             ? {
-                min: placementMin,
-                max: placementMax,
-              }
+              min: placementMin,
+              max: placementMax,
+            }
             : null,
         cetCutoffRange: cetCutoffRange,
         type: "Private" as const,
@@ -928,7 +917,7 @@ class ApiService {
       rating: safeValue(apiData.College_Reviews_out_of_5),
       placement: safeValue(
         apiData.Placement_Details?.Overall_College_Placement_Percentage ||
-          apiData.Average_Placement_Percentage,
+        apiData.Average_Placement_Percentage,
       ),
       placementRange: null,
       type:
@@ -1766,6 +1755,40 @@ class ApiService {
         },
       },
     );
+  }
+
+  async preRegister(data: any): Promise<ApiResponse<any>> {
+    return this.request<ApiResponse<any>>("/api/v1/auth/pre-register", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  }
+
+  async getAuthConfig(): Promise<ApiResponse<any>> {
+    return this.request<ApiResponse<any>>("/api/v1/auth/auth-config", {
+      method: "GET",
+    });
+  }
+
+  async validateCoupon(couponCode: string): Promise<ApiResponse<any>> {
+    return this.request<ApiResponse<any>>("/api/v1/auth/validate-coupon", {
+      method: "POST",
+      body: JSON.stringify({ coupon_code: couponCode }),
+    });
+  }
+
+  async initiatePreRegPayment(data: { email: string; full_name: string; contact: string; product_type: string; coupon_code?: string; amount: number }): Promise<ApiResponse<any>> {
+    return this.request<ApiResponse<any>>("/api/v1/payment/pre-register/initiate", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  }
+
+  async verifyPreRegPayment(data: { order_id: string; razorpay_payment_id: string; razorpay_signature: string; email: string }): Promise<ApiResponse<any>> {
+    return this.request<ApiResponse<any>>("/api/v1/payment/pre-register/verify", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
   }
 }
 
