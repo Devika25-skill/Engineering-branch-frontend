@@ -50,7 +50,7 @@ const Navigation = () => {
       localStorage.setItem('integrated_admission_type', program);
       localStorage.removeItem('recommendation_type');
     }
-    
+
     switch (program) {
       case 'first-year':
       case 'First_Year_Medical':
@@ -68,10 +68,10 @@ const Navigation = () => {
         break;
     }
   };
-  
+
   const NavLinks = ({ mobile = false }: { mobile?: boolean }) => (
     <>
-      <button 
+      <button
         onClick={() => {
           navigate('/colleges');
           if (mobile) setMobileMenuOpen(false);
@@ -82,12 +82,12 @@ const Navigation = () => {
         <span className="font-medium">Browse Colleges</span>
         {!mobile && <div className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-blue-600 to-purple-600 group-hover:w-full transition-all duration-300"></div>}
       </button>
-      <button 
+      <button
         onClick={() => {
           // Check saved preference and navigate accordingly
           const savedRecommendationType = localStorage.getItem('recommendation_type');
           const savedIntegratedType = localStorage.getItem('integrated_admission_type');
-          
+
           if (savedRecommendationType === 'direct-second-year') {
             const hasExistingData = sessionStorage.getItem('cachedDiplomaRecommendations');
             navigate(hasExistingData ? '/diploma-recommendations/results' : '/diploma-recommendations/steps');
@@ -121,22 +121,22 @@ const Navigation = () => {
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
-            <div 
-              className="flex items-center cursor-pointer group transition-all duration-300 hover:scale-105" 
+            <div
+              className="flex items-center cursor-pointer group transition-all duration-300 hover:scale-105"
               onClick={() => navigate('/')}
             >
               <div className="relative">
-                <img 
-                  src="/lovable-uploads/3eef3d0d-75a9-46a2-9c43-12a8251e55b6.png" 
-                  alt="FutureBridge Logo" 
+                <img
+                  src="/lovable-uploads/3eef3d0d-75a9-46a2-9c43-12a8251e55b6.png"
+                  alt="FutureBridge Logo"
                   className="h-[60px]  w-15 group-hover:scale-110 transition-transform duration-300"
                 />
-                
+
                 {/* Blinking star effect */}
                 {/* <div className="absolute top-0 right-0 w-3 h-3 bg-yellow-400 rounded-full animate-pulse opacity-75 group-hover:opacity-100 transition-opacity duration-300"></div> */}
               </div>
               <div className="flex flex-col ml-2">
-                
+
               </div>
             </div>
 
@@ -164,8 +164,8 @@ const Navigation = () => {
                       <p className="text-sm font-medium leading-none">{user?.name || 'Guest User'}</p>
                       <p className="text-xs leading-none text-muted-foreground">{user?.email}</p>
                     </div>
-                    <DropdownMenuItem 
-                      onClick={() => navigate('/my-tickets')} 
+                    <DropdownMenuItem
+                      onClick={() => navigate('/my-tickets')}
                       className="focus:bg-accent"
                     >
                       <LifeBuoy className="mr-2 h-4 w-4" />
@@ -181,12 +181,22 @@ const Navigation = () => {
                   </DropdownMenuContent>
                 </DropdownMenu>
               ) : (
-                <Button 
+                <Button
                   onClick={handleLogin}
                   className="hidden sm:flex bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold px-4 sm:px-6 py-2 rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 group"
                 >
                   <User size={16} className="mr-2 group-hover:animate-pulse" />
                   Login
+                </Button>
+              )}
+
+              {!isLoggedIn && (
+                <Button
+                  onClick={() => navigate('/register')}
+                  variant="outline"
+                  className="hidden sm:flex border-blue-600 text-blue-600 hover:bg-blue-50 font-semibold px-4 sm:px-6 py-2 rounded-xl shadow-sm transform hover:scale-105 transition-all duration-300"
+                >
+                  Register
                 </Button>
               )}
 
@@ -200,10 +210,10 @@ const Navigation = () => {
                 <SheetContent side="right" className="w-[300px] bg-white z-50">
                   <div className="flex flex-col space-y-4 mt-8">
                     <NavLinks mobile />
-                    
+
                     {isLoggedIn && (
                       <div className="border-t pt-4 space-y-2">
-                        <Button 
+                        <Button
                           variant="outline"
                           onClick={() => {
                             navigate('/my-tickets');
@@ -217,7 +227,7 @@ const Navigation = () => {
                             <Badge variant="secondary" className="ml-auto">{ticketCount}</Badge>
                           )}
                         </Button>
-                        <Button 
+                        <Button
                           variant="outline"
                           onClick={() => {
                             logout();
@@ -230,10 +240,10 @@ const Navigation = () => {
                         </Button>
                       </div>
                     )}
-                    
+
                     {!isLoggedIn && (
                       <div className="border-t pt-4">
-                        <Button 
+                        <Button
                           onClick={() => {
                             handleLogin();
                             setMobileMenuOpen(false);
@@ -242,6 +252,16 @@ const Navigation = () => {
                         >
                           <User size={16} className="mr-2" />
                           Login
+                        </Button>
+                        <Button
+                          onClick={() => {
+                            navigate('/register');
+                            setMobileMenuOpen(false);
+                          }}
+                          variant="outline"
+                          className="w-full border-blue-600 text-blue-600 hover:bg-blue-50 font-semibold py-3 rounded-xl shadow-md mt-2"
+                        >
+                          Register
                         </Button>
                       </div>
                     )}
@@ -252,12 +272,12 @@ const Navigation = () => {
           </div>
         </div>
       </nav>
-      
-      <LoginDialog 
+
+      <LoginDialog
         open={loginDialogOpen}
         onOpenChange={setLoginDialogOpen}
       />
-      
+
       <ProgramSelectionDialog
         open={showProgramDialog}
         onOpenChange={setShowProgramDialog}

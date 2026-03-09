@@ -4,7 +4,7 @@
 const getApiBaseUrl = () => {
   const currentDomain = window.location.href;
 
-  
+
   if (currentDomain.startsWith('https://futurebridge.skilljourney.in/')) {
     // Production domain
     return 'https://prod-fb-brd8dagqc9cfe6hv.eastus-01.azurewebsites.net';

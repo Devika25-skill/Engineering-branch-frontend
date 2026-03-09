@@ -21,6 +21,7 @@ import CollegeDetails from "./pages/CollegeDetails";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Admin from "./pages/Admin";
+import AppRegister from "./pages/AppRegister";
 import NotFound from "./pages/NotFound";
 import RaiseIssue from "./pages/RaiseIssue";
 import MyTickets from "./pages/MyTickets";
@@ -50,10 +51,11 @@ const App = () => (
                 <Route path="/integrated-steps" element={<IntegratedAdmissionSteps />} />
                 <Route path="/integrated-rounds" element={<IntegratedRounds />} />
                 <Route path="/college/:id" element={<CollegeDetails />} />
-              <Route path="/raise-issue" element={<RaiseIssue />} />
-              <Route path="/my-tickets" element={<MyTickets />} />
-              <Route path="/ticket/:ticketId" element={<TicketDetails />} />
-              <Route path="*" element={<NotFound />} />
+                <Route path="/raise-issue" element={<RaiseIssue />} />
+                <Route path="/my-tickets" element={<MyTickets />} />
+                <Route path="/ticket/:ticketId" element={<TicketDetails />} />
+                <Route path="/register" element={<AppRegister />} />
+                <Route path="*" element={<NotFound />} />
               </Routes>
             </div>
             <Footer />

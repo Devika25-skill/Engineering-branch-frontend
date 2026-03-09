@@ -1,12 +1,12 @@
 
 import { config } from '@/config/env';
 import type { College } from '@/types/college';
-import type { 
-  StoreMedicalConfigRequest, 
-  StoreMedicalConfigResponse, 
+import type {
+  StoreMedicalConfigRequest,
+  StoreMedicalConfigResponse,
   FetchMedicalDetailsResponse,
   GenerateMedicalRecommendationsRequest,
-  GenerateMedicalRecommendationsResponse 
+  GenerateMedicalRecommendationsResponse
 } from '@/types/medical';
 
 const API_BASE_URL = config.apiBaseUrl;
@@ -35,7 +35,7 @@ export interface ApiCollegeResponse {
   institute_id: string;
   sj_institute_id: number;
   city: string;
-  region:string | null;
+  region: string | null;
   logo: string;
   rating: number;
   courses_count: number;
@@ -198,7 +198,7 @@ export interface AdmissionChancesResponse {
     admission_probability: number;
     probability_message: string;
   };
-  detail?:string
+  detail?: string
 
 }
 
@@ -534,7 +534,7 @@ class ApiService {
   private async request<T>(endpoint: string, options?: RequestInit): Promise<T> {
     try {
       const token = localStorage.getItem('accessToken');
-      
+
       const response = await fetch(`${API_BASE_URL}${endpoint}`, {
         headers: {
           'Content-Type': 'application/json',
@@ -557,12 +557,12 @@ class ApiService {
   }
 
   async getCutoffData(token: string): Promise<CutoffApiResponse> {
-    
+
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`
     };
-    
+
     return this.request<CutoffApiResponse>('/api/v1/explore/colleges/cutoff/all', {
       method: 'GET',
       headers,
@@ -590,8 +590,8 @@ class ApiService {
       // Handle placement range safely
       const placementMin = apiCollege.placement_range?.min || null;
       const placementMax = apiCollege.placement_range?.max || null;
-      const averagePlacement = (placementMin !== null && placementMax !== null && placementMax > 0) 
-        ? Math.round((placementMin + placementMax) / 2) 
+      const averagePlacement = (placementMin !== null && placementMax !== null && placementMax > 0)
+        ? Math.round((placementMin + placementMax) / 2)
         : (placementMin || null);
 
       // Handle CET cutoff range safely
@@ -609,7 +609,7 @@ class ApiService {
         name: apiCollege.college_name || null,
         logo: apiCollege.logo || null,
         city: apiCollege.city || null,
-        region:apiCollege.region || null,
+        region: apiCollege.region || null,
         streams: streams,
         coursesOffered: apiCollege.courses_count || null,
         totalIntake: apiCollege.total_intake || null,
@@ -648,17 +648,17 @@ class ApiService {
       'fees': 'fees',
       'placement': 'placement_percentage'
     };
-    
+
     return sortMapping[sortBy] || 'rating';
   }
 
   async getCollegeById(id: number): Promise<ApiResponse<College>> {
-    
+
     const response = await this.request<ApiCollegeDetailsResponse>(`/api/v1/explore/college/${id}`);
-    
+
     // Transform API response to match our College interface
     const apiData = response.data;
-    
+
     // Helper function to safely convert values to avoid null/undefined
     const safeValue = (value: any): any => {
       if (value === null || value === undefined || value === 0 || value === '') return null;
@@ -706,9 +706,9 @@ class ApiService {
       rating: safeValue(apiData.College_Reviews_out_of_5),
       placement: safeValue(apiData.Placement_Details?.Overall_College_Placement_Percentage || apiData.Average_Placement_Percentage),
       placementRange: null,
-      type: apiData.College_Type === 'private' ? 'Private' : 
-            apiData.College_Type === 'public' ? 'Government' : 
-            'Autonomous',
+      type: apiData.College_Type === 'private' ? 'Private' :
+        apiData.College_Type === 'public' ? 'Government' :
+          'Autonomous',
       college_type: apiData.College_Type ? capitalizeFirst(apiData.College_Type) : null,
       established: safeValue(apiData.Established_Year),
       nirf_ranking: (() => {
@@ -724,7 +724,7 @@ class ApiService {
       cetCutoffRange: null,
       infrastructure_score: null,
       faculty_score: null,
-      
+
       // Additional detailed information from API
       facilities: {
         library: true,
@@ -737,36 +737,36 @@ class ApiService {
         transportFacility: apiData.Facilities?.Bus === 'Yes',
         parking: true,
       },
-      
+
       placementDetails: {
         averagePackage: safeValue(apiData.Placement_Details?.Average_Package_LPA),
-        highestPackage: safeValue(apiData.Placement_Details?.Highest_Package_LPA) || 
-                       (apiData["Previous_Year_Highest_Package_Offered_(LPA)"] 
-                        ? apiData["Previous_Year_Highest_Package_Offered_(LPA)"] / 100000 
-                        : null),
+        highestPackage: safeValue(apiData.Placement_Details?.Highest_Package_LPA) ||
+          (apiData["Previous_Year_Highest_Package_Offered_(LPA)"]
+            ? apiData["Previous_Year_Highest_Package_Offered_(LPA)"] / 100000
+            : null),
         majorRecruiters: apiData.Placement_Details?.Top_Recruiters || [],
         placementOfficer: null,
       },
-      
+
       admission: {
         process: safeValue(apiData.Admission_Process) || 'Based on entrance exam',
         eligibility: 'As per university norms',
         importantDates: undefined,
       },
-      
+
       location: {
         nearbyLandmarks: apiData.Location?.Nearest_Airport ? [apiData.Location.Nearest_Airport] : [],
         transportation: apiData.Location?.Nearest_Railway_Station ? [apiData.Location.Nearest_Railway_Station] : [],
         latitude: undefined,
         longitude: undefined,
       },
-      
+
       achievements: [],
       alumniHighlights: [],
-      
+
       // Add departments data
       departments: departments,
-      
+
       // Add location details
       locationDetails: {
         address: safeValue(apiData.Location?.Address || apiData.College_Address),
@@ -776,7 +776,7 @@ class ApiService {
         distanceFromAirport: safeValue(apiData.Location?.Distance_from_Airport_km),
       }
     };
-    
+
     return {
       success: true,
       data: college,
@@ -794,12 +794,12 @@ class ApiService {
     // This will use the same colleges data to compute stats
     const response = await this.getColleges();
     const colleges = response.data;
-    
+
     const cities = [...new Set(colleges.map(c => c.city))].filter(Boolean);
     const streams = [...new Set(colleges.flatMap(c => c.streams || []))].filter(Boolean);
     const types = [...new Set(colleges.map(c => c.college_type))].filter(Boolean);
     const fees = colleges.map(c => c.fees).filter(f => f > 0);
-    
+
     return {
       success: true,
       data: {
@@ -814,7 +814,7 @@ class ApiService {
 
   async sendOTP(email: string): Promise<SendOTPResponse> {
     const payload: SendOTPRequest = { email };
-    
+
     return this.request<SendOTPResponse>('/api/v1/auth/sendOTP', {
       method: 'POST',
       body: JSON.stringify(payload),
@@ -827,7 +827,7 @@ class ApiService {
       user_type: 'user',
       otp
     };
-    
+
     return this.request<ValidateOTPResponse>('/api/v1/auth/validateOTP', {
       method: 'POST',
       body: JSON.stringify(payload),
@@ -835,13 +835,13 @@ class ApiService {
   }
 
   async storeUser(email: string, name: string, mobile?: string): Promise<StoreUserResponse> {
-    const username:string =email
-    const payload: StoreUserRequest = { 
-      username, 
+    const username: string = email
+    const payload: StoreUserRequest = {
+      username,
       name,
       ...(mobile && { mobile })
     };
-    
+
     return this.request<StoreUserResponse>('/api/v1/user/store_user', {
       method: 'POST',
       body: JSON.stringify(payload),
@@ -849,7 +849,7 @@ class ApiService {
   }
 
   async calculateAdmissionChances(payload: AdmissionChancesRequest): Promise<AdmissionChancesResponse> {
-    
+
     return this.request<AdmissionChancesResponse>('/api/v1/explore/admission-chances', {
       method: 'POST',
       body: JSON.stringify(payload),
@@ -857,7 +857,7 @@ class ApiService {
   }
 
   async generateRecommendation(payload: GenerateRecommendationRequest): Promise<GenerateRecommendationResponse> {
-    
+
     return this.request<GenerateRecommendationResponse>('/api/v1/explore/generate_recommendation', {
       method: 'POST',
       body: JSON.stringify(payload),
@@ -865,7 +865,7 @@ class ApiService {
   }
 
   async getRecommendations(payload: RecommendationRequest, token: string): Promise<RecommendationApiResponse> {
-    
+
     return this.request<RecommendationApiResponse>('/api/v1/explore/recommendation/college-list', {
       method: 'POST',
       headers: {
@@ -992,7 +992,7 @@ class ApiService {
   async generateDiplomaRoundList(payload: DiplomaRoundListRequest): Promise<DiplomaRoundListResponse> {
     return this.request<DiplomaRoundListResponse>('/api/v1/explore/generate/diploma-round-list', {
       method: 'POST',
-       headers: {
+      headers: {
         'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
         'Content-Type': 'application/json',
       },
@@ -1001,13 +1001,13 @@ class ApiService {
   }
 
   // Diploma Round 2 API method
-  async generateDiplomaRound2List(payload: { 
-    category: string; 
-    cet_percentile: number; 
-    cet_course: string[]; 
-    location: string[]; 
-    round: number; 
-    last_round_college_choice_code: number; 
+  async generateDiplomaRound2List(payload: {
+    category: string;
+    cet_percentile: number;
+    cet_course: string[];
+    location: string[];
+    round: number;
+    last_round_college_choice_code: number;
   }): Promise<DiplomaRoundListResponse> {
     return this.request<DiplomaRoundListResponse>('/api/v1/explore/generate/diploma-round-list', {
       method: 'POST',
@@ -1161,6 +1161,19 @@ class ApiService {
         'Authorization': `Bearer ${token}`,
         'Accept': 'application/json',
       },
+    });
+  }
+  async sendOTP(email: string): Promise<SendOTPResponse> {
+    return this.request<SendOTPResponse>('/api/v1/auth/sendOTP', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    });
+  }
+
+  async preRegister(data: any): Promise<ApiResponse<any>> {
+    return this.request<ApiResponse<any>>('/api/v1/auth/pre-register', {
+      method: 'POST',
+      body: JSON.stringify(data),
     });
   }
 }
