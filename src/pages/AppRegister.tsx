@@ -10,7 +10,7 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp
 import { useToast } from "@/hooks/use-toast";
 import Navigation from "@/components/Navigation";
 import { apiService } from "@/services/api";
-import { Loader2, CheckCircle2, ArrowRight, Mail, GraduationCap } from "lucide-react";
+import { Loader2, CheckCircle2, ArrowRight, Mail, GraduationCap, Gift } from "lucide-react";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 
 const admissionOptions = [
@@ -231,7 +231,32 @@ const AppRegister = () => {
             <Navigation />
             <div className="container mx-auto px-4 py-8 sm:py-16">
                 <div className="mx-auto max-w-xl transition-all duration-500">
-                    <div className="grid grid-cols-1 gap-8">
+                    <div className="grid grid-cols-1 gap-6">
+                        <div className="relative overflow-hidden bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 p-1 rounded-2xl shadow-2xl shadow-purple-500/20 transform transition-all hover:-translate-y-1 animate-in slide-in-from-bottom-4 duration-700">
+                            <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-white opacity-20 rounded-full blur-2xl"></div>
+                            <div className="absolute bottom-0 left-0 -mb-4 -ml-4 w-24 h-24 bg-white opacity-20 rounded-full blur-2xl"></div>
+                            <div className="relative bg-white/10 backdrop-blur-md px-5 py-4 sm:px-6 sm:py-5 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-4 text-white border border-white/20">
+                                <div className="flex items-center gap-4 w-full sm:w-auto">
+                                    <div className="p-3 bg-white/20 rounded-full shrink-0 shadow-lg ring-1 ring-white/40">
+                                        <Gift className="w-6 h-6 sm:w-8 sm:h-8 text-yellow-300 animate-pulse" />
+                                    </div>
+                                    <div className="text-left w-full">
+                                        <p className="font-extrabold text-base sm:text-lg text-white leading-tight drop-shadow-md">
+                                            Register now and get a flat <span className="text-yellow-300 text-xl sm:text-2xl font-black drop-shadow-lg">60% OFF!</span>
+                                        </p>
+                                        <p className="text-sm sm:text-sm text-purple-100 font-medium mt-1.5 drop-shadow-sm">
+                                            Use coupon code <span className="px-2 py-1 mx-1 rounded-md bg-white/25 font-bold text-white tracking-widest border border-white/40 shadow-sm">FUTURE60</span> at checkout.
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="shrink-0 w-full sm:w-auto mt-3 sm:mt-0 text-right sm:text-right flex justify-end">
+                                    <span className="inline-flex items-center justify-center px-4 py-2 rounded-full bg-yellow-300 text-purple-900 text-xs font-black uppercase tracking-widest shadow-lg shadow-yellow-300/30 whitespace-nowrap border border-yellow-200 hover:bg-yellow-400 transition-colors cursor-default">
+                                        Limited Time Offer
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
                         <Card className="shadow-2xl border-none bg-white/90 backdrop-blur-md overflow-hidden animate-in zoom-in-95 duration-500">
                             <CardHeader className="text-center bg-gradient-to-r from-blue-600 to-indigo-700 text-white p-6 sm:p-10">
                                 <div className="flex justify-center mb-4">
@@ -452,10 +477,11 @@ const AppRegister = () => {
                                             <Button
                                                 variant="outline"
                                                 onClick={() => window.open('/mock-recommendations', '_blank')}
-                                                className="w-full h-12 border-blue-200 text-blue-600 font-bold rounded-xl hover:bg-blue-50 hover:text-blue-700 transition-all flex items-center justify-center gap-2"
+                                                className="w-full h-auto py-3 px-4 border-blue-200 text-blue-600 font-bold rounded-xl hover:bg-blue-50 hover:text-blue-700 transition-all flex items-center justify-center gap-2 flex-wrap text-center"
                                             >
-                                                Check how your recommendation list will look like
-                                                <ArrowRight className="w-4 h-4" />
+                                                <span className="text-sm sm:text-base">Check how your recommendation
+                                                    <br />list will look</span>
+                                                <ArrowRight className="w-4 h-4 shrink-0" />
                                             </Button>
                                         </div>
 
