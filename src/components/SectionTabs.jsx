@@ -2,10 +2,10 @@
 
 export default function SectionTabs({ activeStep }) {
   const tabs = [
-    { name: 'Academic Profile', icon: '🎓', subtitle: 'Academic records' },
-    { name: 'Entrance Exam', icon: '🎯', subtitle: 'Competitive scores' },
-    { name: 'Extracurricular Achievements', icon: '🏆', subtitle: 'Beyond academics' },
-    { name: 'Personal Assessment', icon: '📋', subtitle: 'Skills & goals' }
+    { name: 'Academic Profile', icon: '🎓', subtitle: "What's your academic story so far?" },
+    { name: 'Entrance Exam', icon: '🎯', subtitle: 'Tell us how you cracked the big ones' },
+    { name: 'Extracurricular Achievements', icon: '🏆', subtitle: 'Beyond books, what else drives you?' },
+    { name: 'Personal Assessment', icon: '📋', subtitle: 'A quick assessment to know you better.' }
   ];
 
   return (
