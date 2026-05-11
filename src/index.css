@@ -1,0 +1,446 @@
+/* src/index.css */
+
+body {
+  background-color: #fdf2f8;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+}
+
+.container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* ===== MAIN NAV (TOP) ===== */
+.main-nav {
+  background: white;
+  height: 70px;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid #f3f4f6;
+  padding: 0 40px;
+}
+
+.nav-container {
+  width: 100%;
+  max-width: 1300px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo-section {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mortarboard {
+  font-size: 1.8rem;
+  color: #6b21a8;
+  /* Purple */
+}
+
+.logo-text {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #111827;
+}
+
+.nav-links {
+  display: flex;
+  gap: 30px;
+}
+
+.nav-link {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #4b5563;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.nav-auth {
+  display: flex;
+  gap: 12px;
+}
+
+.login-btn {
+  background: linear-gradient(135deg, #4f46e5, #7e22ce);
+  /* Purple/Blue gradient */
+  color: white;
+  padding: 8px 24px;
+  border-radius: 8px;
+  border: none;
+  font-weight: 600;
+  font-size: 0.9rem;
+  box-shadow: 0 4px 6px rgba(126, 34, 206, 0.2);
+  cursor: pointer;
+}
+
+.register-btn {
+  background: white;
+  color: #3b82f6;
+  border: 1px solid #3b82f6;
+  padding: 8px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+/* ===== SECONDARY HEADER (GREEN) ===== */
+.navbar {
+  background-color: transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 20px 40px 20px;
+}
+
+.navbar-logo {
+  background-color: #22c55e;
+  color: white;
+  font-size: 1.5rem;
+  width: 55px;
+  height: 55px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.navbar-title {
+  color: #16a34a;
+  font-size: 1.5rem;
+  line-height: 2rem;
+  font-weight: 700;
+  margin: 0;
+  text-align: center;
+}
+
+/* ===== STEP TRACKER ===== */
+.step-container {
+  max-width: 1000px;
+  margin: 10px auto;
+  padding: 0 20px;
+}
+
+.step-row {
+  display: flex;
+  justify-content: flex-start;
+  gap: 15px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.step-badge {
+  background-color: #f3e8ff;
+  color: #7e22ce;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.step-text {
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+.progress-bg {
+  background-color: #e5e7eb;
+  height: 10px;
+  border-radius: 5px;
+  overflow: hidden;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.progress-fill {
+  background-color: #111827;
+  height: 100%;
+  width: 100%;
+  transition: transform 0.6s cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+/* ===== SECTION TABS ===== */
+.tabs-container {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  max-width: 1100px;
+  margin: 30px auto;
+  text-align: center;
+}
+
+.tab-item {
+  flex: 1;
+  opacity: 0.5;
+}
+
+.tab-item.active {
+  opacity: 1;
+}
+
+.tab-icon-wrapper {
+  background: white;
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 10px auto;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  font-size: 1.5rem;
+}
+
+.tab-item.active .tab-icon-wrapper {
+  background: #0ea5e9;
+  color: white;
+}
+
+.tab-name {
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: #1f2937;
+  margin-bottom: 4px;
+}
+
+.tab-subtitle {
+  font-size: 0.75rem;
+  color: #6b7280;
+  line-height: 1.2;
+}
+
+/* ===== MAIN FORM CARD ===== */
+.form-card {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  border-top: 6px solid #3b82f6;
+  margin-bottom: 40px;
+}
+
+.form-section {
+  padding: 35px;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 25px;
+}
+
+.section-icon {
+  background: #3b82f6;
+  color: white;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+}
+
+.section-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  height: 50px;
+  /* ENFORCED IDENTICAL HEIGHT */
+  padding: 0 15px;
+  /* PADDING ADJUSTED FOR FIXED HEIGHT */
+  border: 1px solid #e5e7eb;
+  border-radius: 11px;
+  font-size: 0.95rem;
+  background: #f9fafb;
+  box-sizing: border-box;
+  /* CRITICAL FOR HEIGHT ALIGNMENT */
+  transition: all 0.2s;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  background: white;
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Achievements Card */
+.achievements-card {
+  background: #fdf2f8;
+  border: 1px solid #fbcfe8;
+  border-radius: 12px;
+  margin-top: 30px;
+  padding: 15px 20px;
+  cursor: pointer;
+}
+
+.achievements-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.achievements-icon {
+  background: #db2777;
+  color: white;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+}
+
+.achievements-title {
+  font-weight: 700;
+  color: #1f2937;
+  flex: 1;
+}
+
+.achievements-title small {
+  font-weight: 400;
+  color: #6b7280;
+}
+
+.arrow-down {
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+/* Bottom Nav Buttons */
+.bottom-nav {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 40px;
+  padding: 0 20px 40px 20px;
+  max-width: 1000px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.back-btn {
+  background: white;
+  border: 1px solid #e5e7eb;
+  color: #6b7280;
+  padding: 12px 30px;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.continue-gradient-btn {
+  background: linear-gradient(90deg, #3b82f6, #06b6d4);
+  color: white;
+  border: none;
+  padding: 12px 45px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+}
+
+.marks-input {
+  width: 100% !important;
+  /* You can change this value to whatever width you want */
+}
+
+.core-subject-input {
+  color: #3b3d44 !important;
+  /* Change text color */
+  background: #f9fafb !important;
+  /* Change background color */
+  border-color: #e1e6ef !important;
+  /* Change border color */
+}
+
+.subject-select {
+  background-color: #f9fafb !important;
+  border: 1.5px solid #d1d5db !important;
+  color: #1f2937 !important;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%234b5563'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 1rem;
+  padding-right: 35px !important;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  transition: all 0.2s ease;
+}
+
+.subject-select:hover {
+  border-color: #3b82f6 !important;
+  background-color: #f0f9ff !important;
+}
+
+.subject-select:focus {
+  border-color: #3b82f6 !important;
+  background-color: #ffffff !important;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1) !important;
+  outline: none;
+}
+
+.custom-subject-input {
+  border: 1.5px solid #3b82f6 !important;
+  background: #f0f9ff !important;
+  color: #1e40af !important;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.custom-subject-input:focus {
+  background: #ffffff !important;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1) !important;
+}
+
+/* Specific styling for Extracurricular dropdowns */
+.extra-select {
+  background-color: #f7f7f7 !important;
+  /* Soft pink to match the Achievements theme */
+  border-color: #e6e5e6 !important;
+}
+
+.extra-select:hover {
+  background-color: #f1f1f1 !important;
+  border-color: #e7e7e7 !important;
+}
