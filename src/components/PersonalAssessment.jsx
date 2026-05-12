@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { personalityQuestions } from '../data/personalityQuestions';
 
-export default function PersonalAssessment({ onToggleFullscreen, isFullscreen }) {
+export default function PersonalAssessment({ onToggleFullscreen, isFullscreen, onViewResults }) {
   const [started, setStarted] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState({});
@@ -118,15 +118,9 @@ export default function PersonalAssessment({ onToggleFullscreen, isFullscreen })
           <button 
             className="continue-gradient-btn" 
             style={{ padding: '15px 40px', fontSize: '1.1rem' }}
-            onClick={() => alert('Results are being generated...')}
+            onClick={() => onViewResults && onViewResults()}
           >
             View Results ✨
-          </button>
-          <button 
-            onClick={resetAssessment}
-            style={{ background: '#f1f5f9', border: '1px solid #e2e8f0', padding: '15px 25px', borderRadius: '12px', fontWeight: '600', cursor: 'pointer' }}
-          >
-            Retake Assessment
           </button>
         </div>
       </div>
@@ -244,7 +238,7 @@ export default function PersonalAssessment({ onToggleFullscreen, isFullscreen })
       </div>
 
       <div style={{ textAlign: 'center', marginBottom: '10px', marginTop: '40px' }}>
-        <h2 style={{ fontSize: '2.2rem', fontWeight: '700', color: '#1e293b', marginBottom: '10px', minHeight: '120px', maxWidth: '800px', margin: '0 auto 10px auto' }}>
+        <h2 className="PersonalAssessment_question_text" style={{ fontSize: '2.2rem', fontWeight: '700', color: '#1e293b', marginBottom: '10px', minHeight: '120px', maxWidth: '800px', margin: '0 auto 10px auto' }}>
           "{currentQ.text}"
         </h2>
       </div>

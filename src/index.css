@@ -1,14 +1,20 @@
 /* src/index.css */
 
+* {
+  box-sizing: border-box;
+}
+
 body {
   background-color: #fdf2f8;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   margin: 0;
   padding: 0;
   min-height: 100vh;
+  overflow-x: hidden; /* Prevent horizontal scroll */
 }
 
 .container {
+  width: 100%;
   max-width: 1000px;
   margin: 0 auto;
   padding: 20px;
@@ -492,4 +498,122 @@ body {
 .minimize-btn:hover {
   background: #e2e8f0;
   color: #1e293b;
+}
+
+/* ===== MOBILE RESPONSIVENESS ===== */
+@media (max-width: 768px) {
+  .main-nav {
+    padding: 0 15px;
+    height: 60px;
+  }
+
+  .nav-container {
+    padding: 0;
+  }
+  
+  .nav-links {
+    display: none; 
+  }
+
+  .nav-auth {
+    gap: 8px;
+  }
+
+  .login-btn, .register-btn {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+  }
+
+  .register-btn {
+    display: none; /* Hide register on small mobile to save space */
+  }
+
+  .logo-text {
+    font-size: 1rem;
+  }
+
+  .tabs-container {
+    overflow-x: auto;
+    justify-content: flex-start;
+    padding-bottom: 10px;
+    gap: 15px;
+    margin: 20px 0;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; /* Hide scrollbar Firefox */
+  }
+  
+  .tabs-container::-webkit-scrollbar {
+    display: none; /* Hide scrollbar Chrome/Safari */
+  }
+
+  .tab-item {
+    min-width: 140px;
+    flex: none;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+
+  .container, .container-fullscreen {
+    padding: 10px;
+    width: 100%;
+    margin: 0;
+    overflow-x: hidden;
+  }
+
+  .form-section {
+    padding: 15px;
+  }
+
+  .form-card, .form-card-fullscreen {
+    margin-bottom: 20px;
+    border-radius: 16px;
+  }
+
+  h2 {
+    font-size: 1.3rem !important;
+    line-height: 1.4 !important;
+  }
+
+  .PersonalAssessment_question_text {
+    font-size: 1.2rem !important;
+    margin-top: 20px !important;
+  }
+
+  .bottom-nav {
+    flex-direction: column;
+    gap: 12px;
+    padding: 0 10px 20px 10px;
+    width: 100%;
+  }
+
+  .continue-gradient-btn, .back-btn {
+    width: 100%;
+    text-align: center;
+    padding: 14px;
+  }
+
+  .fullscreen-controls {
+    top: 10px;
+    right: 10px;
+  }
+
+  .minimize-btn {
+    padding: 4px 8px;
+    font-size: 0.7rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .logo-text {
+    font-size: 1.1rem;
+  }
+
+  .tab-icon-wrapper {
+    width: 40px;
+    height: 40px;
+    font-size: 1.2rem;
+  }
 }

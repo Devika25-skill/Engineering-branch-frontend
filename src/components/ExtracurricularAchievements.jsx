@@ -33,9 +33,9 @@ export default function ExtracurricularAchievements() {
       <div style={{ 
         marginBottom: '30px', 
         padding: '15px 20px', 
-        background: skipped ? '#fff5f5' : '#fff', 
+        background: skipped ? '#f0f9ff' : '#fff', 
         border: '1px solid',
-        borderColor: skipped ? '#f87171' : '#e5e7eb',
+        borderColor: skipped ? '#3b82f6' : '#e5e7eb',
         borderRadius: '12px',
         display: 'flex',
         alignItems: 'center',
@@ -49,8 +49,8 @@ export default function ExtracurricularAchievements() {
           onChange={() => {}} // Handled by div click
           style={{ width: '18px', height: '18px', cursor: 'pointer' }}
         />
-        <span style={{ fontSize: '0.95rem', fontWeight: '500', color: skipped ? '#991b1b' : '#374151' }}>
-          I don't have any extracurricular achievements to add (Skip this section)
+        <span style={{ fontSize: '0.95rem', fontWeight: '500', color: skipped ? '#1d4ed8' : '#374151' }}>
+          I did not intend to add any extracurricular achievements. I would like to skip this step.
         </span>
       </div>
 
@@ -203,22 +203,47 @@ export default function ExtracurricularAchievements() {
           </button>
         </>
       ) : (
-        <div style={{ 
-          padding: '40px', 
+        <div className="fade-in" style={{ 
+          padding: '80px 40px', 
           textAlign: 'center', 
-          background: '#fff5f5', 
-          borderRadius: '16px', 
-          border: '1px dashed #fca5a5'
+          background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)', 
+          borderRadius: '24px', 
+          border: '1px solid #e2e8f0',
+          boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.02)'
         }}>
-          <div style={{ fontSize: '2rem', marginBottom: '10px' }}>🕊️</div>
-          <p style={{ color: '#991b1b', fontWeight: '500' }}>
-            Section skipped. No achievements added.
+          <div style={{ 
+            width: '70px', 
+            height: '70px', 
+            background: '#e2e8f0', 
+            margin: '0 auto 25px auto', 
+            borderRadius: '20px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '1.5rem',
+            color: '#94a3b8'
+          }}>⏸️</div>
+          <h3 style={{ fontSize: '1.2rem', fontWeight: '700', color: '#111827', marginBottom: '8px' }}>
+            This section has been skipped.
+          </h3>
+          <p style={{ color: '#4b5563', fontSize: '0.95rem', marginBottom: '30px' }}>
+            Your branch recommendation will not be affected by skipping this section.
           </p>
           <button 
             onClick={() => setSkipped(false)}
-            style={{ color: '#dc2626', background: 'none', border: 'none', textDecoration: 'underline', cursor: 'pointer', marginTop: '10px' }}
+            style={{ 
+              background: 'white', 
+              border: '1px solid #d1d5db', 
+              padding: '10px 20px', 
+              borderRadius: '6px', 
+              color: '#374151', 
+              fontWeight: '600', 
+              fontSize: '0.9rem',
+              cursor: 'pointer',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+            }}
           >
-            Wait, I have something to add
+            Go back, I want to fill this step
           </button>
         </div>
       )}

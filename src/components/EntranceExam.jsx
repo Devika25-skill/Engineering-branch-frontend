@@ -54,7 +54,7 @@ export default function EntranceExam() {
           style={{ width: '18px', height: '18px', cursor: 'pointer' }}
         />
         <span style={{ fontSize: '0.95rem', fontWeight: '500', color: skipped ? '#1e40af' : '#374151' }}>
-          I haven't taken any entrance exams (Skip this section)
+          I did not intend to give any entrance exam. I would like to skip this step.
         </span>
       </div>
 
@@ -169,22 +169,47 @@ export default function EntranceExam() {
           </button>
         </div>
       ) : (
-        <div style={{ 
-          padding: '40px', 
+        <div className="fade-in" style={{ 
+          padding: '80px 40px', 
           textAlign: 'center', 
-          background: '#f9fafb', 
-          borderRadius: '16px', 
-          border: '1px dashed #cbd5e1'
+          background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)', 
+          borderRadius: '24px', 
+          border: '1px solid #e2e8f0',
+          boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.02)'
         }}>
-          <div style={{ fontSize: '2rem', marginBottom: '10px' }}>ℹ️</div>
-          <p style={{ color: '#64748b', fontWeight: '500' }}>
-            Section skipped. You can continue to the next step.
+          <div style={{ 
+            width: '70px', 
+            height: '70px', 
+            background: '#e2e8f0', 
+            margin: '0 auto 25px auto', 
+            borderRadius: '20px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '1.5rem',
+            color: '#94a3b8'
+          }}>⏸️</div>
+          <h3 style={{ fontSize: '1.2rem', fontWeight: '700', color: '#111827', marginBottom: '8px' }}>
+            This section has been skipped.
+          </h3>
+          <p style={{ color: '#4b5563', fontSize: '0.95rem', marginBottom: '30px' }}>
+            Your branch recommendation will not be affected by skipping this section.
           </p>
           <button 
             onClick={() => setSkipped(false)}
-            style={{ color: '#3b82f6', background: 'none', border: 'none', textDecoration: 'underline', cursor: 'pointer', marginTop: '10px' }}
+            style={{ 
+              background: 'white', 
+              border: '1px solid #d1d5db', 
+              padding: '10px 20px', 
+              borderRadius: '6px', 
+              color: '#374151', 
+              fontWeight: '600', 
+              fontSize: '0.9rem',
+              cursor: 'pointer',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+            }}
           >
-            Wait, I want to add an exam
+            Go back, I want to fill this step
           </button>
         </div>
       )}

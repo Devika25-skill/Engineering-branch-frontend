@@ -1,15 +1,29 @@
 import { useState } from 'react';
 
-const SUBJECTS = [
-  'Biology', 'Hindi', 'Marathi', 'Geography', 'IT',
-  'Computer Science', 'Electronics', 'Automobile', 'Other / Custom'
+const SUBJECTS_SCHOOL = [
+  'English', 'Mathematics', 'Science', 'Physics', 'Chemistry', 'Biology',
+  'History', 'Geography', 'Civics / Political Science', 'Economics',
+  'Hindi', 'Marathi', 'Sanskrit', 'Other Regional Language', 'Other / Custom'
+];
+
+const SUBJECTS_HIGHER = [
+  'Mathematics', 'Physics', 'Chemistry', 'Biology', 'Hindi', 'Marathi',
+  'Geography', 'IT', 'Computer Science', 'Electronics', 'Automobile', 'Other / Custom'
+];
+
+const SUBJECTS_FY = [
+  'Engineering Mathematics', 'Engineering Physics', 'Engineering Chemistry',
+  'Basic Electrical Engineering', 'Engineering Graphics', 'Basic Mechanical Engineering',
+  'Programming / Computer Programming', 'Communication Skills / English',
+  'Workshop / Practical Labs', 'Other / Custom'
 ];
 
 export default function SubjectEntry() {
+  const [latestClass, setLatestClass] = useState('');
   const [entries, setEntries] = useState([
-    { id: 'math', subject: 'Mathematics', marks: '', total: 100, compulsory: true },
-    { id: 'phy', subject: 'Physics', marks: '', total: 100, compulsory: true },
-    { id: 'chem', subject: 'Chemistry', marks: '', total: 100, compulsory: true },
+    { id: 'sub1', subject: '', marks: '', total: 100, compulsory: true },
+    { id: 'sub2', subject: '', marks: '', total: 100, compulsory: true },
+    { id: 'sub3', subject: '', marks: '', total: 100, compulsory: true },
   ]);
 
   const addRow = () => setEntries([...entries, { id: Date.now(), subject: '', marks: '', total: 100, compulsory: false, customName: '' }]);
@@ -23,41 +37,55 @@ export default function SubjectEntry() {
   };
 
   return (
-    <div style={{ marginTop: '-15px' }}>
+    <div className="fade-in">
       {/* Main Heading */}
-      <h2 style={{ fontSize: '1.4rem', fontWeight: '800', color: '#111827', marginBottom: '8px' }}>
-        12th Academic Marks
+      <h2 style={{ fontSize: '1.4rem', fontWeight: '800', color: '#535e76ff', marginBottom: '30px' }}>
+        Academic Performance
       </h2>
 
+      {/* Class Selector */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1.5fr 1fr auto', gap: '30px', marginBottom: '40px' }}>
+        <div className="form-group">
+          <label style={{ fontSize: '0.9rem', fontWeight: '600', color: '#374151', marginBottom: '8px', display: 'block' }}>
+            Select your latest class
+          </label>
+          <select
+            value={latestClass}
+            onChange={(e) => setLatestClass(e.target.value)}
+            className="subject-select"
+            style={{ background: '#f3f4f6', borderColor: '#d1d5db', maxWidth: '385px' }}
+          >
+            <option value="" disabled>Select your class</option>
+            <option>FY Engineering</option>
+            <option>12th grade</option>
+            <option>11th grade</option>
+            <option>10th grade</option>
+            <option>9th grade</option>
+          </select>
+        </div>
+      </div>
+
       {/* Sub Heading */}
-      <h3 style={{ fontSize: '0.95rem', fontWeight: '400', color: '#6b7280', marginBottom: '30px' }}>
-        Subject-wise Marks
+      <h3 style={{ fontSize: '1rem', fontWeight: '700', color: '#111827', marginBottom: '25px' }}>
+        Subject - wise marks
       </h3>
 
-      {entries.map((row) => (
-        <div
-          key={row.id}
-          className="form-grid"
-          style={{
-            marginBottom: '45px',
-            alignItems: 'flex-end',
-            display: 'grid',
-            gridTemplateColumns: '2fr 1fr 1fr auto',
-            gap: '45px'
-          }}
-        >
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
+        {entries.map((row) => (
+          <div
+            key={row.id}
+            className="form-grid"
+            style={{
+              alignItems: 'flex-end',
+              display: 'grid',
+              gridTemplateColumns: '1.5fr 1.5fr 1fr auto',
+              gap: '30px',
+              marginBottom: '0'
+            }}
+          >
 
-          <div className="form-group">
-            <label>Subject</label>
-            {row.compulsory ? (
-              <input
-                type="text"
-                value={row.subject}
-                readOnly
-                className="core-subject-input"
-                style={{ fontWeight: '600' }}
-              />
-            ) : (
+            <div className="form-group">
+              <label style={{ fontSize: '0.85rem', color: '#4b5563' }}>Subject*</label>
               <div style={{ width: '100%' }}>
                 {row.subject === 'Other / Custom' ? (
                   <div style={{ display: 'flex', gap: '8px' }}>
@@ -76,10 +104,8 @@ export default function SubjectEntry() {
                         border: '1px solid #e5e7eb',
                         borderRadius: '10px',
                         padding: '0 12px',
-                        cursor: 'pointer',
-                        fontSize: '1.1rem'
+                        cursor: 'pointer'
                       }}
-                      title="Back to list"
                     >
                       ↺
                     </button>
@@ -89,80 +115,93 @@ export default function SubjectEntry() {
                     value={row.subject}
                     onChange={(e) => updateRow(row.id, 'subject', e.target.value)}
                     className="subject-select"
+                    style={{ background: '#f3f4f6', border: '1px solid #d1d5db' }}
                   >
-                    <option value="">Select Subject</option>
-                    {SUBJECTS.map(s => <option key={s} value={s}>{s}</option>)}
+                    <option value="" disabled>Insert Subject</option>
+                    {(latestClass === 'FY Engineering' ? SUBJECTS_FY : (latestClass === '9th grade' || latestClass === '10th grade' ? SUBJECTS_SCHOOL : SUBJECTS_HIGHER)).map(s => (
+                      <option key={s} value={s}>{s}</option>
+                    ))}
                   </select>
                 )}
               </div>
-            )}
-          </div>
+            </div>
 
-          <div className="form-group">
-            <label>Marks {row.compulsory && '*'}</label>
-            <input
-              className="marks-input"
-              type="number"
-              value={row.marks}
-              onChange={(e) => updateRow(row.id, 'marks', e.target.value)}
-            />
-          </div>
+            <div className="form-group">
+              <label style={{ fontSize: '0.85rem', color: '#4b5563' }}>Marks you scored*</label>
+              <input
+                type="number"
+                placeholder="for eg. 85"
+                value={row.marks}
+                style={{ background: '#f3f4f6', border: '1px solid #d1d5db' }}
+                onChange={(e) => updateRow(row.id, 'marks', e.target.value)}
+              />
+            </div>
 
-          <div className="form-group">
-            <label>Out of</label>
-            <input
-              className={`marks-input ${row.compulsory ? 'core-total-input' : ''}`}
-              type="number"
-              value={row.total}
-              readOnly={row.compulsory}
-              style={row.compulsory ? { cursor: 'not-allowed' } : {}}
-              onChange={(e) => updateRow(row.id, 'total', e.target.value)}
-            />
-          </div>
+            <div className="form-group">
+              <label style={{ fontSize: '0.85rem', color: '#4b5563' }}>Total marks</label>
+              <input
+                type="number"
+                value={row.total}
+                style={{ background: '#f3f4f6', border: '1px solid #d1d5db' }}
+                onChange={(e) => updateRow(row.id, 'total', e.target.value)}
+              />
+            </div>
 
-          <div style={{ paddingBottom: '10px', minWidth: '32px' }}>
-            {!row.compulsory ? (
-              <button
-                onClick={() => removeRow(row.id)}
-                style={{
-                  background: '#333333',
-                  border: 'none',
-                  cursor: 'pointer',
-                  padding: '6px',
-                  borderRadius: '4px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}
-                title="Remove Subject"
-              >
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M19 7L18.1327 19.1425C18.0579 20.1891 17.187 21 16.1378 21H7.86224C6.81296 21 5.94208 20.1891 5.86732 19.1425L5 7M10 11V17M14 11V17M15 7V4C15 3.44772 14.5523 3 14 3H10C9.44772 3 9 3.44772 9 4V7M4 7H20" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </button>
-            ) : (
-              <div style={{ width: '32px' }}></div>
-            )}
+            <div style={{ paddingBottom: '5px' }}>
+              {!row.compulsory ? (
+                <button
+                  onClick={() => removeRow(row.id)}
+                  style={{
+                    background: '#333',
+                    border: 'none',
+                    cursor: 'pointer',
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: '6px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'white'
+                  }}
+                >
+                  ✕
+                </button>
+              ) : (
+                <div style={{ width: '32px' }}></div>
+              )}
+            </div>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
 
-      <button 
-        type="button" 
-        onClick={addRow} 
-        className="back-btn" 
-        style={{ 
-          marginTop: '10px', 
-          borderStyle: 'dashed', 
-          width: '100%', 
-          color: '#3b82f6', 
+      <button
+        type="button"
+        onClick={addRow}
+        style={{
+          marginTop: '40px',
+          width: '100%',
           background: '#f0f9ff',
-          padding: '12px',
-          fontWeight: '600',
-          fontSize: '0.9rem'
+          border: '1.5px dashed #3b82f6',
+          padding: '16px',
+          borderRadius: '16px',
+          fontWeight: '700',
+          fontSize: '0.95rem',
+          color: '#2563eb',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '8px',
+          transition: 'all 0.2s'
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.background = '#e0f2fe';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.background = '#f0f9ff';
         }}
       >
-        + Add Optional Subject
+        <span style={{ fontSize: '1.2rem' }}>+</span> Add optional subject
       </button>
     </div>
   );
