@@ -38,22 +38,22 @@ export default function SubjectEntry() {
 
   return (
     <div className="fade-in">
-      {/* Main Heading */}
-      <h2 style={{ fontSize: '1.4rem', fontWeight: '800', color: '#535e76ff', marginBottom: '30px' }}>
-        Academic Performance
-      </h2>
+      <div className="section-header" style={{ marginBottom: '40px' }}>
+        <div className="section-icon">🎓</div>
+        <h2 className="section-title">Academic Performance</h2>
+      </div>
 
       {/* Class Selector */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1.5fr 1fr auto', gap: '30px', marginBottom: '40px' }}>
+      <div className="class-selector-row">
         <div className="form-group">
-          <label style={{ fontSize: '0.9rem', fontWeight: '600', color: '#374151', marginBottom: '8px', display: 'block' }}>
+          <label style={{ fontSize: '1.1rem', fontWeight: '700', color: '#4b5563', marginBottom: '12px', display: 'block' }}>
             Select your latest class
           </label>
           <select
             value={latestClass}
             onChange={(e) => setLatestClass(e.target.value)}
             className="subject-select"
-            style={{ background: '#f3f4f6', borderColor: '#d1d5db', maxWidth: '385px' }}
+            style={{ backgroundColor: '#f3f4f6', borderColor: '#d1d5db', width: '100%', maxWidth: '400px' }}
           >
             <option value="" disabled>Select your class</option>
             <option>FY Engineering</option>
@@ -66,22 +66,15 @@ export default function SubjectEntry() {
       </div>
 
       {/* Sub Heading */}
-      <h3 style={{ fontSize: '1rem', fontWeight: '700', color: '#111827', marginBottom: '25px' }}>
+      <h3 style={{ fontSize: '1.2rem', fontWeight: '700', color: '#636978ff', marginBottom: '25px' }}>
         Subject - wise marks
       </h3>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
         {entries.map((row) => (
           <div
             key={row.id}
-            className="form-grid"
-            style={{
-              alignItems: 'flex-end',
-              display: 'grid',
-              gridTemplateColumns: '1.5fr 1.5fr 1fr auto',
-              gap: '30px',
-              marginBottom: '0'
-            }}
+            className="subject-row"
           >
 
             <div className="form-group">
@@ -115,7 +108,7 @@ export default function SubjectEntry() {
                     value={row.subject}
                     onChange={(e) => updateRow(row.id, 'subject', e.target.value)}
                     className="subject-select"
-                    style={{ background: '#f3f4f6', border: '1px solid #d1d5db' }}
+                    style={{ background: 'white', border: '1px solid #d1d5db' }}
                   >
                     <option value="" disabled>Insert Subject</option>
                     {(latestClass === 'FY Engineering' ? SUBJECTS_FY : (latestClass === '9th grade' || latestClass === '10th grade' ? SUBJECTS_SCHOOL : SUBJECTS_HIGHER)).map(s => (
@@ -127,22 +120,22 @@ export default function SubjectEntry() {
             </div>
 
             <div className="form-group">
-              <label style={{ fontSize: '0.85rem', color: '#4b5563' }}>Marks you scored*</label>
+              <label style={{ fontSize: '0.85rem', fontWeight: '600', color: '#374151' }}>Marks*</label>
               <input
                 type="number"
-                placeholder="for eg. 85"
+                placeholder="eg. 85"
                 value={row.marks}
-                style={{ background: '#f3f4f6', border: '1px solid #d1d5db' }}
+                style={{ background: 'white', border: '1px solid #d1d5db' }}
                 onChange={(e) => updateRow(row.id, 'marks', e.target.value)}
               />
             </div>
 
             <div className="form-group">
-              <label style={{ fontSize: '0.85rem', color: '#4b5563' }}>Total marks</label>
+              <label style={{ fontSize: '0.85rem', fontWeight: '600', color: '#374151' }}>Out of*</label>
               <input
                 type="number"
                 value={row.total}
-                style={{ background: '#f3f4f6', border: '1px solid #d1d5db' }}
+                style={{ background: 'white', border: '1px solid #d1d5db' }}
                 onChange={(e) => updateRow(row.id, 'total', e.target.value)}
               />
             </div>

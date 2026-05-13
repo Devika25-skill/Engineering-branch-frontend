@@ -25,15 +25,12 @@ export default function ExtracurricularAchievements() {
         <h2 className="section-title">Extracurricular Achievements</h2>
       </div>
 
-      <p style={{ color: '#6b7280', fontSize: '0.9rem', marginBottom: '20px' }}>
-        Highlight your achievements beyond academics to strengthen your engineering profile.
-      </p>
 
       {/* Skip Option */}
-      <div style={{ 
-        marginBottom: '30px', 
-        padding: '15px 20px', 
-        background: skipped ? '#f0f9ff' : '#fff', 
+      <div style={{
+        marginBottom: '30px',
+        padding: '15px 20px',
+        background: skipped ? '#f0f9ff' : '#fff',
         border: '1px solid',
         borderColor: skipped ? '#3b82f6' : '#e5e7eb',
         borderRadius: '12px',
@@ -43,14 +40,14 @@ export default function ExtracurricularAchievements() {
         cursor: 'pointer',
         transition: 'all 0.2s'
       }} onClick={() => setSkipped(!skipped)}>
-        <input 
-          type="checkbox" 
-          checked={skipped} 
-          onChange={() => {}} // Handled by div click
+        <input
+          type="checkbox"
+          checked={skipped}
+          onChange={() => { }} // Handled by div click
           style={{ width: '18px', height: '18px', cursor: 'pointer' }}
         />
         <span style={{ fontSize: '0.95rem', fontWeight: '500', color: skipped ? '#1d4ed8' : '#374151' }}>
-          I did not intend to add any extracurricular achievements. I would like to skip this step.
+          Skip this step.
         </span>
       </div>
 
@@ -59,21 +56,21 @@ export default function ExtracurricularAchievements() {
           {achievements.map((item) => (
             <div key={item.id} className="achievements-card-item" style={{ marginBottom: '35px', position: 'relative', background: '#f9fafb', padding: '20px', borderRadius: '12px', border: '1px solid #f3f4f6' }}>
               <div className="form-grid" style={{ gridTemplateColumns: '1.2fr 2fr 1fr', gap: '20px', marginBottom: '20px' }}>
-                
+
                 {/* Category Selection */}
                 <div className="form-group">
                   <label>Category</label>
                   {item.type === 'Other' ? (
                     <div style={{ display: 'flex', gap: '8px' }}>
-                      <input 
-                        type="text" 
-                        placeholder="Type category..." 
+                      <input
+                        type="text"
+                        placeholder="Type category..."
                         className="custom-subject-input"
                         value={item.customType}
                         onChange={(e) => updateAchievement(item.id, 'customType', e.target.value)}
                         autoFocus
                       />
-                      <button 
+                      <button
                         onClick={() => updateAchievement(item.id, 'type', '')}
                         style={{ background: '#eee', border: '1px solid #ddd', borderRadius: '8px', padding: '0 10px', cursor: 'pointer' }}
                       >
@@ -81,8 +78,8 @@ export default function ExtracurricularAchievements() {
                       </button>
                     </div>
                   ) : (
-                    <select 
-                      value={item.type} 
+                    <select
+                      value={item.type}
                       onChange={(e) => updateAchievement(item.id, 'type', e.target.value)}
                       className="subject-select extra-select"
                     >
@@ -99,10 +96,10 @@ export default function ExtracurricularAchievements() {
 
                 {/* Title Input */}
                 <div className="form-group">
-                  <label>Title / Achievement Name</label>
-                  <input 
-                    type="text" 
-                    placeholder="e.g. State Level Football Runner-up" 
+                  <label>Achievement</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. State Level Football Runner-up"
                     value={item.title}
                     onChange={(e) => updateAchievement(item.id, 'title', e.target.value)}
                   />
@@ -113,15 +110,15 @@ export default function ExtracurricularAchievements() {
                   <label>Level</label>
                   {item.level === 'Other' ? (
                     <div style={{ display: 'flex', gap: '8px' }}>
-                      <input 
-                        type="text" 
-                        placeholder="Type level..." 
+                      <input
+                        type="text"
+                        placeholder="Type level..."
                         className="custom-subject-input"
                         value={item.customLevel}
                         onChange={(e) => updateAchievement(item.id, 'customLevel', e.target.value)}
                         autoFocus
                       />
-                      <button 
+                      <button
                         onClick={() => updateAchievement(item.id, 'level', '')}
                         style={{ background: '#eee', border: '1px solid #ddd', borderRadius: '8px', padding: '0 10px', cursor: 'pointer' }}
                       >
@@ -129,8 +126,8 @@ export default function ExtracurricularAchievements() {
                       </button>
                     </div>
                   ) : (
-                    <select 
-                      value={item.level} 
+                    <select
+                      value={item.level}
                       onChange={(e) => updateAchievement(item.id, 'level', e.target.value)}
                       className="subject-select extra-select"
                     >
@@ -149,17 +146,17 @@ export default function ExtracurricularAchievements() {
 
               <div className="form-group" style={{ marginBottom: '10px' }}>
                 <label>Brief Description</label>
-                <input 
-                  type="text" 
-                  placeholder="What did you learn or achieve? (e.g. Led the team to victory...)" 
-                  style={{ width: '100%' }} 
+                <input
+                  type="text"
+                  placeholder="What did you learn or achieve? (e.g. Led the team to victory...)"
+                  style={{ width: '100%' }}
                   value={item.description}
                   onChange={(e) => updateAchievement(item.id, 'description', e.target.value)}
                 />
               </div>
 
               {achievements.length > 1 && (
-                <button 
+                <button
                   onClick={() => removeAchievement(item.id)}
                   style={{
                     position: 'absolute',
@@ -185,14 +182,14 @@ export default function ExtracurricularAchievements() {
             </div>
           ))}
 
-          <button 
+          <button
             onClick={addAchievement}
-            className="back-btn" 
-            style={{ 
-              marginTop: '10px', 
-              borderStyle: 'dashed', 
-              width: '100%', 
-              color: '#3b82f6', 
+            className="back-btn"
+            style={{
+              marginTop: '10px',
+              borderStyle: 'dashed',
+              width: '100%',
+              color: '#3b82f6',
               background: '#f0f9ff',
               padding: '12px',
               fontWeight: '600',
@@ -203,19 +200,19 @@ export default function ExtracurricularAchievements() {
           </button>
         </>
       ) : (
-        <div className="fade-in" style={{ 
-          padding: '80px 40px', 
-          textAlign: 'center', 
-          background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)', 
-          borderRadius: '24px', 
+        <div className="fade-in" style={{
+          padding: '80px 40px',
+          textAlign: 'center',
+          background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+          borderRadius: '24px',
           border: '1px solid #e2e8f0',
           boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.02)'
         }}>
-          <div style={{ 
-            width: '70px', 
-            height: '70px', 
-            background: '#e2e8f0', 
-            margin: '0 auto 25px auto', 
+          <div style={{
+            width: '70px',
+            height: '70px',
+            background: '#e2e8f0',
+            margin: '0 auto 25px auto',
             borderRadius: '20px',
             display: 'flex',
             alignItems: 'center',
@@ -229,22 +226,6 @@ export default function ExtracurricularAchievements() {
           <p style={{ color: '#4b5563', fontSize: '0.95rem', marginBottom: '30px' }}>
             Your branch recommendation will not be affected by skipping this section.
           </p>
-          <button 
-            onClick={() => setSkipped(false)}
-            style={{ 
-              background: 'white', 
-              border: '1px solid #d1d5db', 
-              padding: '10px 20px', 
-              borderRadius: '6px', 
-              color: '#374151', 
-              fontWeight: '600', 
-              fontSize: '0.9rem',
-              cursor: 'pointer',
-              boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
-            }}
-          >
-            Go back, I want to fill this step
-          </button>
         </div>
       )}
     </div>

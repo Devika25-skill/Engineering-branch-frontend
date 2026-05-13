@@ -211,11 +211,12 @@ export default function WelcomeBack({ completedSteps, onResume, onStartOver }) {
                   flex: 1, 
                   padding: '12px', 
                   borderRadius: '10px', 
-                  background: '#f3f4f6', 
+                  background: '#3b82f6', 
                   border: 'none', 
                   fontWeight: '700', 
-                  color: '#111827', 
-                  cursor: 'pointer' 
+                  color: 'white', 
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 6px rgba(59, 130, 246, 0.2)'
                 }}
               >
                 No

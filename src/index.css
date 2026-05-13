@@ -1,16 +1,22 @@
 /* src/index.css */
 
+html {
+  font-size: 92%;
+  /* Scale down whole app font size */
+}
+
 * {
   box-sizing: border-box;
 }
 
 body {
-  background-color: #fdf2f8;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #bb9bae;
+  font-family: 'Inter', -apple-system, sans-serif;
   margin: 0;
   padding: 0;
   min-height: 100vh;
-  overflow-x: hidden; /* Prevent horizontal scroll */
+  overflow-x: hidden;
+  line-height: 1.5;
 }
 
 .container {
@@ -148,8 +154,8 @@ body {
 }
 
 .step-badge {
-  background-color: #f3e8ff;
-  color: #7e22ce;
+  background-color: #eef2ff;
+  color: #6366f1;
   padding: 4px 12px;
   border-radius: 12px;
   font-size: 0.85rem;
@@ -178,17 +184,19 @@ body {
 
 /* ===== SECTION TABS ===== */
 .tabs-container {
-  display: flex;
-  justify-content: center;
-  gap: 30px;
-  max-width: 1100px;
-  margin: 30px auto;
+  display: flex !important;
+  justify-content: center !important;
+  gap: 15px !important;
+  max-width: 480px !important;
+  margin: 20px auto !important;
   text-align: center;
 }
 
 .tab-item {
-  flex: 1;
+  flex: 1 !important;
   opacity: 0.5;
+  min-width: 0 !important;
+  padding: 0 !important;
 }
 
 .tab-item.active {
@@ -209,7 +217,7 @@ body {
 }
 
 .tab-item.active .tab-icon-wrapper {
-  background: #0ea5e9;
+  background: #6366f1;
   color: white;
 }
 
@@ -218,12 +226,15 @@ body {
   font-size: 0.85rem;
   color: #1f2937;
   margin-bottom: 4px;
+  white-space: pre-wrap;
 }
 
 .tab-subtitle {
   font-size: 0.75rem;
   color: #6b7280;
-  line-height: 1.2;
+  line-height: 1.3;
+  max-width: 100px;
+  margin: 0 auto;
 }
 
 /* ===== MAIN FORM CARD ===== */
@@ -250,19 +261,20 @@ body {
 .section-icon {
   background: #3b82f6;
   color: white;
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1rem;
+  font-size: 1.4rem;
 }
 
 .section-title {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: #1f2937;
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #27303e;
+  margin: 0;
 }
 
 .form-grid {
@@ -287,15 +299,12 @@ body {
 .form-group select {
   width: 100%;
   height: 50px;
-  /* ENFORCED IDENTICAL HEIGHT */
   padding: 0 15px;
-  /* PADDING ADJUSTED FOR FIXED HEIGHT */
   border: 1px solid #e5e7eb;
   border-radius: 11px;
   font-size: 0.95rem;
-  background: #f9fafb;
+  background-color: #f1f1f1 !important;
   box-sizing: border-box;
-  /* CRITICAL FOR HEIGHT ALIGNMENT */
   transition: all 0.2s;
 }
 
@@ -309,8 +318,8 @@ body {
 
 /* Achievements Card */
 .achievements-card {
-  background: #fdf2f8;
-  border: 1px solid #fbcfe8;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
   border-radius: 12px;
   margin-top: 30px;
   padding: 15px 20px;
@@ -398,20 +407,24 @@ body {
   /* Change border color */
 }
 
+select,
 .subject-select {
-  background-color: #f9fafb !important;
-  border: 1.5px solid #d1d5db !important;
-  color: #1f2937 !important;
-  cursor: pointer;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%234b5563'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 12px center;
-  background-size: 1rem;
-  padding-right: 35px !important;
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
+  background-color: #f1f1f1 !important;
+  border: 1px solid #e5e7eb !important;
+  color: #374151 !important;
+  cursor: pointer !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%239ca3af' stroke-width='1.5'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19.5 8.25l-7.5 7.5-7.5-7.5' /%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 12px center !important;
+  background-size: 1rem !important;
+  padding: 10px 40px 10px 16px !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
   transition: all 0.2s ease;
+  border-radius: 11px !important;
+  font-size: 0.95rem;
+  height: 50px !important;
 }
 
 .subject-select:hover {
@@ -470,7 +483,8 @@ body {
   transition: all 0.3s ease;
 }
 
-.form-card, .form-card-fullscreen {
+.form-card,
+.form-card-fullscreen {
   position: relative;
 }
 
@@ -510,22 +524,24 @@ body {
   .nav-container {
     padding: 0;
   }
-  
+
   .nav-links {
-    display: none; 
+    display: none;
   }
 
   .nav-auth {
     gap: 8px;
   }
 
-  .login-btn, .register-btn {
+  .login-btn,
+  .register-btn {
     padding: 6px 12px;
     font-size: 0.8rem;
   }
 
   .register-btn {
-    display: none; /* Hide register on small mobile to save space */
+    display: none;
+    /* Hide register on small mobile to save space */
   }
 
   .logo-text {
@@ -539,11 +555,13 @@ body {
     gap: 15px;
     margin: 20px 0;
     -webkit-overflow-scrolling: touch;
-    scrollbar-width: none; /* Hide scrollbar Firefox */
+    scrollbar-width: none;
+    /* Hide scrollbar Firefox */
   }
-  
+
   .tabs-container::-webkit-scrollbar {
-    display: none; /* Hide scrollbar Chrome/Safari */
+    display: none;
+    /* Hide scrollbar Chrome/Safari */
   }
 
   .tab-item {
@@ -556,7 +574,8 @@ body {
     gap: 15px;
   }
 
-  .container, .container-fullscreen {
+  .container,
+  .container-fullscreen {
     padding: 10px;
     width: 100%;
     margin: 0;
@@ -567,7 +586,8 @@ body {
     padding: 15px;
   }
 
-  .form-card, .form-card-fullscreen {
+  .form-card,
+  .form-card-fullscreen {
     margin-bottom: 20px;
     border-radius: 16px;
   }
@@ -589,7 +609,8 @@ body {
     width: 100%;
   }
 
-  .continue-gradient-btn, .back-btn {
+  .continue-gradient-btn,
+  .back-btn {
     width: 100%;
     text-align: center;
     padding: 14px;
@@ -615,5 +636,61 @@ body {
     width: 40px;
     height: 40px;
     font-size: 1.2rem;
+  }
+}
+
+/* ===== RESPONSIVE SUBJECT ENTRY ===== */
+.subject-row {
+  display: grid;
+  grid-template-columns: 1.5fr 1.2fr 0.8fr auto;
+  gap: 20px;
+  align-items: flex-end;
+  margin-bottom: 15px;
+}
+
+.class-selector-row {
+  margin-bottom: 30px;
+}
+
+@media (max-width: 768px) {
+  .subject-row {
+    grid-template-columns: 2.2fr 1fr 1fr auto;
+    gap: 10px;
+    padding: 0;
+    background: transparent;
+    border-radius: 0;
+    border: none;
+    margin-bottom: 25px;
+    align-items: flex-end;
+  }
+
+  .subject-row .form-group {
+    margin-bottom: 0;
+  }
+
+  .subject-row label {
+    display: block !important;
+    font-size: 0.75rem !important;
+    font-weight: 600 !important;
+    color: #374151 !important;
+    margin-bottom: 6px !important;
+    white-space: nowrap;
+  }
+
+  .subject-row input,
+  .subject-row select {
+    padding: 10px !important;
+    font-size: 0.85rem !important;
+    border-radius: 10px !important;
+    background: white !important;
+    border: 1px solid #d1d5db !important;
+  }
+
+  .section-header {
+    margin-bottom: 20px !important;
+  }
+
+  .form-section {
+    padding: 20px !important;
   }
 }

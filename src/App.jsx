@@ -12,7 +12,7 @@ import Dashboard from './components/Dashboard'
 import WelcomeBack from './components/WelcomeBack'
 
 function App() {
-  const [currentStep, setCurrentStep] = useState(0);
+  const [currentStep, setCurrentStep] = useState(3);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showDashboard, setShowDashboard] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
@@ -48,17 +48,20 @@ function App() {
 
   const handleStartOver = () => {
     localStorage.removeItem('engineering_current_step');
+    localStorage.removeItem('personality_assessment_progress');
+    localStorage.removeItem('personality_assessment_session');
     setCurrentStep(0);
     setShowWelcome(false);
+    window.location.reload(); // Refresh to clear all internal states
   };
 
   if (showWelcome) {
     return (
-      <div style={{ backgroundColor: '#fdf2f8', minHeight: '100vh' }}>
+      <div style={{ backgroundColor: '#f8fafc', minHeight: '100vh' }}>
         <Navbar />
-        <WelcomeBack 
-          completedSteps={currentStep} 
-          onResume={() => setShowWelcome(false)} 
+        <WelcomeBack
+          completedSteps={currentStep}
+          onResume={() => setShowWelcome(false)}
           onStartOver={handleStartOver}
         />
       </div>
@@ -67,20 +70,20 @@ function App() {
 
   if (showDashboard) {
     return (
-      <div style={{ backgroundColor: '#fdf2f8', minHeight: '100vh' }}>
+      <div style={{ backgroundColor: '#f8fafc', minHeight: '100vh' }}>
         <Navbar />
-        <Dashboard 
-          isLanding={currentStep === 0} 
-          onStartAssessment={() => setShowDashboard(false)} 
+        <Dashboard
+          isLanding={currentStep === 0}
+          onStartAssessment={() => setShowDashboard(false)}
         />
       </div>
     );
   }
 
   return (
-    <div style={{ backgroundColor: '#fdf2f8', minHeight: '100vh' }}>
+    <div style={{ backgroundColor: '#fcf2f9', minHeight: '100vh' }}>
       <Navbar />
-      
+
       {!isFullscreen && (
         <>
           <Header />
@@ -92,15 +95,27 @@ function App() {
       <div className={isFullscreen ? "container-fullscreen" : "container"}>
         <div className={isFullscreen ? "form-card-fullscreen" : "form-card"}>
           <div className="form-section" style={{ minHeight: '400px' }}>
-            
+            {!isFullscreen && (
+              <div style={{
+                marginBottom: '15px',
+                fontSize: '0.8rem',
+                fontWeight: '700',
+                color: '#6366f1',
+                letterSpacing: '1.2px',
+                textTransform: 'uppercase'
+              }}>
+                Step {currentStep + 1} of 4
+              </div>
+            )}
+
             {/* Multi-step form content */}
             {currentStep === 0 && <SubjectEntry />}
             {currentStep === 1 && <EntranceExam />}
             {currentStep === 2 && <ExtracurricularAchievements />}
             {currentStep === 3 && (
-              <PersonalAssessment 
-                onToggleFullscreen={setIsFullscreen} 
-                isFullscreen={isFullscreen} 
+              <PersonalAssessment
+                onToggleFullscreen={setIsFullscreen}
+                isFullscreen={isFullscreen}
                 onViewResults={() => setShowDashboard(true)}
               />
             )}
@@ -118,9 +133,11 @@ function App() {
               <div />
             )}
 
-            <button className="continue-gradient-btn" onClick={nextStep}>
-              {currentStep === 3 ? 'Get My Recommendations ✨' : 'Save & continue →'}
-            </button>
+            {currentStep < 3 && (
+              <button className="continue-gradient-btn" onClick={nextStep}>
+                Save & continue →
+              </button>
+            )}
           </div>
         )}
       </div>

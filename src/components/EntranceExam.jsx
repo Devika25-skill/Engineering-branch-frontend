@@ -22,6 +22,23 @@ export default function EntranceExam() {
     }
   };
 
+  const testApiConnection = async () => {
+    try {
+      const response = await fetch('http://127.0.0.1:8000/save-exams', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ exams: exams }),
+      });
+      const data = await response.json();
+      alert("Success! " + data.message);
+    } catch (error) {
+      console.error("Connection error:", error);
+      alert("Error connecting to API. Is your uvicorn running?");
+    }
+  };
+
   return (
     <div className="fade-in">
       <div className="section-header">
@@ -29,9 +46,6 @@ export default function EntranceExam() {
         <h2 className="section-title">Entrance Exam Scores</h2>
       </div>
 
-      <p style={{ color: '#6b7280', fontSize: '0.9rem', marginBottom: '20px' }}>
-        Enter your scores for competitive exams to get better branch recommendations.
-      </p>
 
       {/* Skip Option */}
       <div style={{ 
@@ -54,7 +68,7 @@ export default function EntranceExam() {
           style={{ width: '18px', height: '18px', cursor: 'pointer' }}
         />
         <span style={{ fontSize: '0.95rem', fontWeight: '500', color: skipped ? '#1e40af' : '#374151' }}>
-          I did not intend to give any entrance exam. I would like to skip this step.
+          Skip this step.
         </span>
       </div>
 
@@ -62,7 +76,11 @@ export default function EntranceExam() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           {exams.map((exam) => (
             <div key={exam.id} className="achievements-card-item" style={{ background: '#f9fafb', padding: '20px', borderRadius: '12px', border: '1px solid #f3f4f6', position: 'relative' }}>
-              <div className="form-grid" style={{ gridTemplateColumns: '1.2fr 1fr 1fr', gap: '20px', alignItems: 'flex-end' }}>
+              <div className="form-grid" style={{ 
+                gridTemplateColumns: exam.name === 'JEE Advanced' ? '1fr 1.5fr' : '1.2fr 1fr 1fr', 
+                gap: '20px', 
+                alignItems: 'flex-end' 
+              }}>
                 
                 <div className="form-group">
                   <label>Exam Name</label>
@@ -105,15 +123,17 @@ export default function EntranceExam() {
                   )}
                 </div>
 
-                <div className="form-group">
-                  <label>Percentile / Score</label>
-                  <input 
-                    type="text" 
-                    placeholder="e.g. 98.5" 
-                    value={exam.percentile}
-                    onChange={(e) => updateExam(exam.id, 'percentile', e.target.value)}
-                  />
-                </div>
+                {exam.name !== 'JEE Advanced' && (
+                  <div className="form-group">
+                    <label>Percentile / Score</label>
+                    <input 
+                      type="text" 
+                      placeholder="e.g. 98.5" 
+                      value={exam.percentile}
+                      onChange={(e) => updateExam(exam.id, 'percentile', e.target.value)}
+                    />
+                  </div>
+                )}
 
                 <div className="form-group">
                   <label>All India Rank (AIR)</label>
@@ -167,6 +187,28 @@ export default function EntranceExam() {
           >
             + Add Another Exam (BITSAT, VITEEE, etc.)
           </button>
+
+          <button 
+            onClick={testApiConnection} 
+            style={{ 
+              marginTop: '30px', 
+              padding: '12px', 
+              background: '#059669', 
+              color: 'white', 
+              borderRadius: '10px',
+              width: '100%',
+              border: 'none',
+              fontWeight: '700',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              boxShadow: '0 4px 12px rgba(5, 150, 105, 0.2)'
+            }}
+          >
+            <span style={{ fontSize: '1.1rem' }}>⚡</span> Test Connection to FastAPI
+          </button>
         </div>
       ) : (
         <div className="fade-in" style={{ 
@@ -195,22 +237,6 @@ export default function EntranceExam() {
           <p style={{ color: '#4b5563', fontSize: '0.95rem', marginBottom: '30px' }}>
             Your branch recommendation will not be affected by skipping this section.
           </p>
-          <button 
-            onClick={() => setSkipped(false)}
-            style={{ 
-              background: 'white', 
-              border: '1px solid #d1d5db', 
-              padding: '10px 20px', 
-              borderRadius: '6px', 
-              color: '#374151', 
-              fontWeight: '600', 
-              fontSize: '0.9rem',
-              cursor: 'pointer',
-              boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
-            }}
-          >
-            Go back, I want to fill this step
-          </button>
         </div>
       )}
     </div>
