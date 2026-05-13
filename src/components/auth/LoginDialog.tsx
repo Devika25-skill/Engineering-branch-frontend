@@ -13,9 +13,11 @@ interface LoginDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess?: () => void;
+  canClose?: boolean;
+  origin?: string;
 }
 
-const LoginDialog = ({ open, onOpenChange, onSuccess }: LoginDialogProps) => {
+const LoginDialog = ({ open, onOpenChange, onSuccess, canClose = true, origin }: LoginDialogProps) => {
   const [step, setStep] = useState<'email' | 'otp'>('email');
   const [email, setEmail] = useState('');
   const [otp, setOtp] = useState('');
@@ -53,9 +55,9 @@ const LoginDialog = ({ open, onOpenChange, onSuccess }: LoginDialogProps) => {
     setError('');
     
     try {
-      await login(email, parseInt(otp));
+      const needsDetails = await login(email, parseInt(otp));
       // Don't close dialog immediately if user details are needed
-      if (!needsUserDetails) {
+      if (!needsDetails) {
         onOpenChange(false);
         resetForm();
         onSuccess?.();
@@ -68,7 +70,7 @@ const LoginDialog = ({ open, onOpenChange, onSuccess }: LoginDialogProps) => {
   };
 
   const handleUserDetailsSave = async (name: string, mobile?: string) => {
-    await updateUserDetails(name, mobile);
+    await updateUserDetails(name, mobile, origin);
     onOpenChange(false);
     resetForm();
     onSuccess?.();
@@ -88,19 +90,30 @@ const LoginDialog = ({ open, onOpenChange, onSuccess }: LoginDialogProps) => {
     }
   };
 
-  // Show user details dialog if needed
-  if (needsUserDetails) {
+  // Show user details dialog if needed and the dialog is actually open
+  if (open && needsUserDetails) {
     return (
       <UserDetailsDialog
         open={true}
         onSave={handleUserDetailsSave}
+        canClose={canClose}
+        onOpenChange={handleClose}
       />
     );
   }
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md w-[95vw] max-h-[90vh] top-[10%] translate-y-0 sm:top-[50%] sm:translate-y-[-50%] overflow-y-auto z-[99999]">
+      <DialogContent 
+        hideCloseButton={!canClose}
+        className="sm:max-w-md w-[95vw] max-h-[90vh] top-[10%] translate-y-0 sm:top-[50%] sm:translate-y-[-50%] overflow-y-auto z-[99999]"
+        onPointerDownOutside={(e) => {
+          if (!canClose) e.preventDefault();
+        }}
+        onEscapeKeyDown={(e) => {
+          if (!canClose) e.preventDefault();
+        }}
+      >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Lock className="h-5 w-5" />

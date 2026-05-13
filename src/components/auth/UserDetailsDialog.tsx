@@ -9,9 +9,11 @@ import { User, Phone } from 'lucide-react';
 interface UserDetailsDialogProps {
   open: boolean;
   onSave: (name: string, mobile?: string) => void;
+  canClose?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-const UserDetailsDialog = ({ open, onSave }: UserDetailsDialogProps) => {
+const UserDetailsDialog = ({ open, onSave, canClose = true, onOpenChange }: UserDetailsDialogProps) => {
   const [name, setName] = useState('');
   const [mobile, setMobile] = useState('');
   const [loading, setLoading] = useState(false);
@@ -36,8 +38,17 @@ const UserDetailsDialog = ({ open, onSave }: UserDetailsDialogProps) => {
   };
 
   return (
-    <Dialog open={open} onOpenChange={() => {}}>
-      <DialogContent className="sm:max-w-md w-[95vw] max-h-[90vh] top-[10%] translate-y-0 sm:top-[50%] sm:translate-y-[-50%] overflow-y-auto z-[99999]">
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent 
+        hideCloseButton={!canClose}
+        className="sm:max-w-md w-[95vw] max-h-[90vh] top-[10%] translate-y-0 sm:top-[50%] sm:translate-y-[-50%] overflow-y-auto z-[99999]"
+        onPointerDownOutside={(e) => {
+          if (!canClose) e.preventDefault();
+        }}
+        onEscapeKeyDown={(e) => {
+          if (!canClose) e.preventDefault();
+        }}
+      >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <User className="h-5 w-5" />

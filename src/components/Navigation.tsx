@@ -73,9 +73,9 @@ const Navigation = () => {
 
 
     switch (program) {
-      case "first-year":
-      case "First_Year_Medical":
-        navigate("/recommendations");
+      case 'first-year':
+      case 'First_Year_Medical':
+        navigate('/recommendations');
         break;
       case "direct-second-year":
         navigate("/diploma-recommendations/steps");
@@ -131,7 +131,12 @@ const Navigation = () => {
             savedRecommendationType === "first-year" ||
             savedRecommendationType === "First_Year_Medical"
           ) {
-            navigate("/recommendations");
+            const hasExistingData = sessionStorage.getItem("recommendationFormData");
+            navigate(
+              hasExistingData
+                ? "/recommendations/results"
+                : "/recommendations/steps",
+            );
           } else if (savedIntegratedType) {
             // Check if form data exists for this integrated type
             const hasExistingData = sessionStorage.getItem(
@@ -179,9 +184,6 @@ const Navigation = () => {
               onClick={() => navigate("/")}
             >
               <div className="relative">
-                <img
-                  src="/lovable-uploads/3eef3d0d-75a9-46a2-9c43-12a8251e55b6.png"
-                  alt="FutureBridge Logo"
                 <img
                   src="/lovable-uploads/3eef3d0d-75a9-46a2-9c43-12a8251e55b6.png"
                   alt="FutureBridge Logo"

@@ -10,8 +10,8 @@ const getApiBaseUrl = () => {
     // Staging domain
     return "https://staging-futurebridge.azurewebsites.net";
   } else {
-    // Default to staging for development and other domains
-    return "https://staging-futurebridge.azurewebsites.net";
+    // Default to staging for other domains
+    return 'https://staging-futurebridge.azurewebsites.net';
   }
 };
 

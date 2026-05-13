@@ -35,7 +35,6 @@ export interface ApiCollegeResponse {
   sj_institute_id: number;
   city: string;
   region: string | null;
-  region: string | null;
   logo: string;
   rating: number;
   courses_count: number;
@@ -221,6 +220,7 @@ export interface StoreUserRequest {
   username: string;
   name: string;
   mobile?: string;
+  user_origin?: string;
 }
 
 export interface StoreUserResponse {
@@ -1077,16 +1077,13 @@ class ApiService {
     });
   }
 
-  async storeUser(
-    email: string,
-    name: string,
-    mobile?: string,
-  ): Promise<StoreUserResponse> {
-    const username: string = email;
+  async storeUser(email: string, name: string, mobile?: string, origin?: string): Promise<StoreUserResponse> {
+    const username: string = email
     const payload: StoreUserRequest = {
       username,
       name,
       ...(mobile && { mobile }),
+      ...(origin && { user_origin: origin })
     };
 
     return this.request<StoreUserResponse>("/api/v1/user/store_user", {
