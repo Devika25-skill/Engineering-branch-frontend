@@ -1,11 +1,17 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MapPin, X, Plus, GripVertical } from "lucide-react";
-import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 
 interface DiplomaCitiesFormProps {
   data: any;
@@ -13,19 +19,25 @@ interface DiplomaCitiesFormProps {
   validationErrors?: string[];
 }
 
-export const DiplomaCitiesForm = ({ data, onUpdate, validationErrors = [] }: DiplomaCitiesFormProps) => {
-  const [selectedCities, setSelectedCities] = useState<string[]>(data.selectedCities || []);
+export const DiplomaCitiesForm = ({
+  data,
+  onUpdate,
+  validationErrors = [],
+}: DiplomaCitiesFormProps) => {
+  const [selectedCities, setSelectedCities] = useState<string[]>(
+    data.selectedCities || [],
+  );
 
   const availableCities = [
     "ALL",
-    "Ahmednagar",
+    "Ahilyanagar (Ahmednagar)",
     "Akola",
     "Amravati",
     "Beed",
     "Bhandara",
     "Buldhana",
     "Chandrapur",
-    "Chh. Sambhaji Nagar (Aurangabad)",
+    "Chhatrapati Sambhajinagar (Aurangabad)",
     "Chikhli",
     "Dharashiv (Osmanabad)",
     "Dhule",
@@ -54,23 +66,27 @@ export const DiplomaCitiesForm = ({ data, onUpdate, validationErrors = [] }: Dip
     "Ulhasnagar",
     "Wardha",
     "Washim",
-    "Yavatmal"
+    "Yavatmal",
   ];
 
   useEffect(() => {
     onUpdate({
-      selectedCities: selectedCities
+      selectedCities: selectedCities,
     });
   }, [selectedCities, onUpdate]);
 
   const addCity = (city: string) => {
+    if (city === "ALL") {
+      setSelectedCities(["ALL"]);
+      return;
+    }
     if (!selectedCities.includes(city)) {
-      setSelectedCities([...selectedCities, city]);
+      setSelectedCities([...selectedCities.filter((c) => c !== "ALL"), city]);
     }
   };
 
   const removeCity = (city: string) => {
-    setSelectedCities(selectedCities.filter(c => c !== city));
+    setSelectedCities(selectedCities.filter((c) => c !== city));
   };
 
   const handleCityDragEnd = (result: any) => {
@@ -92,35 +108,67 @@ export const DiplomaCitiesForm = ({ data, onUpdate, validationErrors = [] }: Dip
               <MapPin className="text-white" size={20} />
             </div>
             Preferred Cities
-            <span className="text-xs text-slate-500 font-normal ml-2">(Optional)</span>
+            <span className="text-xs text-slate-500 font-normal ml-2">
+              (Optional)
+            </span>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           {availableCities.length > 10 ? (
             <SearchableSelect
               options={availableCities
-                .filter(city => !selectedCities.includes(city))
-                .map(city => ({ value: city, label: city }))}
+                .filter(
+                  (city) => !selectedCities.includes(city) && city !== "ALL",
+                )
+                .map((city) => ({ value: city, label: city }))
+                .concat(
+                  selectedCities.includes("ALL")
+                    ? []
+                    : [{ value: "ALL", label: "ALL" }],
+                )
+                .sort((a, b) =>
+                  a.value === "ALL"
+                    ? -1
+                    : b.value === "ALL"
+                      ? 1
+                      : a.value.localeCompare(b.value),
+                )}
               value=""
               onValueChange={addCity}
-              placeholder="Add cities you'd love to study in"
+              placeholder={
+                selectedCities.includes("ALL")
+                  ? "ALL cities selected"
+                  : "Add cities you'd love to study in"
+              }
               searchPlaceholder="Search cities..."
               className="w-full"
+              disabled={selectedCities.includes("ALL")}
             />
           ) : (
-            <Select onValueChange={addCity}>
+            <Select
+              onValueChange={addCity}
+              disabled={selectedCities.includes("ALL")}
+            >
               <SelectTrigger className="h-12 rounded-xl border-2 bg-white">
                 <div className="flex items-center gap-2">
                   <Plus size={16} className="text-green-600" />
-                  <SelectValue placeholder="Add cities you'd love to study in" />
+                  <SelectValue
+                    placeholder={
+                      selectedCities.includes("ALL")
+                        ? "ALL cities selected"
+                        : "Add cities you'd love to study in"
+                    }
+                  />
                 </div>
               </SelectTrigger>
               <SelectContent className="max-h-80">
-                {availableCities.filter(city => !selectedCities.includes(city)).map((city) => (
-                  <SelectItem key={city} value={city}>
-                    {city}
-                  </SelectItem>
-                ))}
+                {availableCities
+                  .filter((city) => !selectedCities.includes(city))
+                  .map((city) => (
+                    <SelectItem key={city} value={city}>
+                      {city}
+                    </SelectItem>
+                  ))}
               </SelectContent>
             </Select>
           )}
@@ -130,26 +178,48 @@ export const DiplomaCitiesForm = ({ data, onUpdate, validationErrors = [] }: Dip
               <p className="text-sm font-medium text-slate-600 flex items-center gap-2">
                 🗺️ Your Preferences (drag to reorder by priority):
               </p>
-              <div className={`border-2 rounded-xl p-3 bg-white ${selectedCities.length > 5 ? 'max-h-80 overflow-y-auto' : ''}`}>
+              <div
+                className={`border-2 rounded-xl p-3 bg-white ${selectedCities.length > 5 ? "max-h-80 overflow-y-auto" : ""}`}
+              >
                 <DragDropContext onDragEnd={handleCityDragEnd}>
                   <Droppable droppableId="cities">
                     {(provided) => (
-                      <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-2">
+                      <div
+                        {...provided.droppableProps}
+                        ref={provided.innerRef}
+                        className="space-y-2"
+                      >
                         {selectedCities.map((city, index) => (
-                          <Draggable key={city} draggableId={city} index={index}>
+                          <Draggable
+                            key={city}
+                            draggableId={city}
+                            index={index}
+                            isDragDisabled={city === "ALL"}
+                          >
                             {(provided) => (
                               <div
                                 ref={provided.innerRef}
                                 {...provided.draggableProps}
                                 className="flex items-center gap-3 p-3 bg-gradient-to-r from-green-100 to-emerald-100 rounded-xl border shadow-sm hover:shadow-md transition-all"
                               >
-                                <div {...provided.dragHandleProps}>
-                                  <GripVertical size={16} className="text-slate-400 hover:text-slate-600" />
-                                </div>
-                                <span className="text-sm font-bold text-green-700 bg-white px-2 py-1 rounded-full">
-                                  #{index + 1}
+                                {city !== "ALL" && (
+                                  <div {...provided.dragHandleProps}>
+                                    <GripVertical
+                                      size={16}
+                                      className="text-slate-400 hover:text-slate-600"
+                                    />
+                                  </div>
+                                )}
+                                {city !== "ALL" && (
+                                  <span className="text-sm font-bold text-green-700 bg-white px-2 py-1 rounded-full">
+                                    #{index + 1}
+                                  </span>
+                                )}
+                                <span
+                                  className={`flex-1 text-sm ${city === "ALL" ? "font-bold text-slate-700 pl-2" : "font-medium text-slate-700"}`}
+                                >
+                                  {city}
                                 </span>
-                                <span className="flex-1 text-sm font-medium text-slate-700">{city}</span>
                                 <Button
                                   type="button"
                                   size="sm"

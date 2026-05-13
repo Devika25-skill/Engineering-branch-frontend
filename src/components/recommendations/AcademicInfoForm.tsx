@@ -1,94 +1,351 @@
-
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { GraduationCap, User, Award, AlertCircle, ChevronDown } from "lucide-react";
-import { useEffect } from "react";
+import {
+  GraduationCap,
+  User,
+  Award,
+  AlertCircle,
+  ChevronDown,
+} from "lucide-react";
+import { useState, useEffect } from "react";
 
-interface AcademicInfoFormProps {
-  data: any;
-  onUpdate: (data: any) => void;
-  validationErrors?: string[];
-}
+// Internal NumberInput component for strict 2-decimal validation
+const NumberInput = ({
+  value,
+  onChange,
+  placeholder,
+  className,
+  min = 0,
+  max,
+  precision = 2,
+}: {
+  value: number | undefined;
+  onChange: (val: number | undefined) => void;
+  placeholder?: string;
+  className?: string;
+  min?: number;
+  max?: number;
+  precision?: number;
+}) => {
+  const [localValue, setLocalValue] = useState<string>(
+    value !== undefined ? value.toString() : "",
+  );
 
-export const AcademicInfoForm = ({ data, onUpdate, validationErrors = [] }: AcademicInfoFormProps) => {
+  // Sync local value with prop value when it changes externally
+  useEffect(() => {
+    if (value === undefined) {
+      setLocalValue("");
+    } else {
+      // Only update if number representation differs (avoids cursor jumps on valid inputs like "10.")
+      // But we must respect the number value.
+      // If user typed "10.0", parseFloat("10.0") is 10.
+      // value will be 10. localValue is "10.0". We should NOT overwrite localValue with "10".
+      // We only overwrite if the semantic number value has changed significantly or is completely different.
+      const parsedLocal = parseFloat(localValue);
+      if (isNaN(parsedLocal) || parsedLocal !== value) {
+        setLocalValue(value.toString());
+      }
+    }
+  }, [value]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newVal = e.target.value;
+
+    // Allow empty
+    if (newVal === "") {
+      setLocalValue("");
+      onChange(undefined);
+      return;
+    }
+
+    // Validate regex: allow digits and one dot, max precision decimals
+    // ^\d*(\.\d{0,n})?$ matches:
+    // "" (handled above), "12", "12.", "12.3", "12.34..."
+    const validPattern = new RegExp(`^\\d*(\\.\\d{0,${precision}})?$`);
+    if (!validPattern.test(newVal)) {
+      return; // Reject invalid chars or too many decimals
+    }
+
+    // RANGE check
+    // "12." shouldn't be parsed for range check yet, but standard parseFloat handles it as 12.
+    const parsed = parseFloat(newVal);
+    if (!isNaN(parsed)) {
+      if (parsed < min || (max !== undefined && parsed > max)) {
+        return; // Reject out of range
+      }
+      setLocalValue(newVal);
+      onChange(parsed);
+    }
+  };
+
+  const preventInvalidChars = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (["e", "E", "+", "-"].includes(e.key)) {
+      e.preventDefault();
+    }
+  };
+
+  return (
+    <Input
+      type="text"
+      inputMode="decimal"
+      value={localValue}
+      onChange={handleChange}
+      onKeyDown={preventInvalidChars}
+      placeholder={placeholder}
+      className={className}
+    />
+  );
+};
+
+export const AcademicInfoForm = ({
+  data,
+  onUpdate,
+  validationErrors = [],
+}: AcademicInfoFormProps) => {
+  const isKarnataka = localStorage.getItem("selected_state") === "Karnataka";
+
   // Set default values when component mounts
   useEffect(() => {
-    const defaultData = {
-      reservationCategory: data.reservationCategory || "GOPENS",
-      grouping: data.grouping || "PCM (Physics, Chemistry, Mathematics)"
+    const defaultData: any = {
+      grouping: data.grouping || "PCM (Physics, Chemistry, Mathematics)",
     };
-    
-    // Only update if the values are different from current data
-    if (!data.reservationCategory || !data.grouping) {
-      onUpdate(defaultData);
+
+    // Only update if grouping is missing
+    if (!data.grouping) {
+      onUpdate({ ...defaultData });
     }
-  }, []);
+  }, [data.grouping, onUpdate]);
 
   const handleChange = (field: string, value: any) => {
     onUpdate({ [field]: value });
   };
 
-  const handlePercentageChange = (field: string, value: string) => {
-    const numValue = parseFloat(value);
-    if (value === '' || (numValue >= 0 && numValue <= 100)) {
-      onUpdate({ [field]: numValue || undefined });
-    }
-  };
-
   const isFieldError = (fieldName: string) => {
-    return validationErrors.some(error => error.toLowerCase().includes(fieldName.toLowerCase()));
+    return validationErrors.some((error) =>
+      error.toLowerCase().includes(fieldName.toLowerCase()),
+    );
   };
 
   const getFieldClassName = (fieldName: string, baseClass: string = "") => {
-    return isFieldError(fieldName) 
-      ? `${baseClass} border-red-300 ring-red-200 focus:border-red-500 focus:ring-red-200` 
+    return isFieldError(fieldName)
+      ? `${baseClass} border-red-300 ring-red-200 focus:border-red-500 focus:ring-red-200`
       : baseClass;
   };
 
+  // Karnataka Reservation Categories
+  const karnatakaReservationCategories = [
+    { code: "1G", label: "1G - 1 GENERAL" },
+    { code: "1H", label: "1H - 1 UNDER HYD-KAR QUOTA" },
+    { code: "1K", label: "1K - 1 KARNATAKA CANDIDATES" },
+    { code: "1KH", label: "1KH - 1 KARNATAKA UNDER HYD-KAR QUOTA" },
+    { code: "1R", label: "1R - 1 NRI" },
+    { code: "1RH", label: "1RH - 1 NRI UNDER HYD-KAR QUOTA" },
+    { code: "2AG", label: "2AG - 2A GENERAL" },
+    { code: "2AH", label: "2AH - 2A UNDER HYD-KAR QUOTA" },
+    { code: "2AK", label: "2AK - 2A KARNATAKA CANDIDATES" },
+    { code: "2AKH", label: "2AKH - 2A KARNATAKA UNDER HYD-KAR QUOTA" },
+    { code: "2AR", label: "2AR - 2A NRI" },
+    { code: "2ARH", label: "2ARH - 2A NRI UNDER HYD-KAR QUOTA" },
+    { code: "2BG", label: "2BG - 2B GENERAL" },
+    { code: "2BH", label: "2BH - 2B UNDER HYD-KAR QUOTA" },
+    { code: "2BK", label: "2BK - 2B KARNATAKA CANDIDATES" },
+    { code: "2BKH", label: "2BKH - 2B KARNATAKA UNDER HYD-KAR QUOTA" },
+    { code: "2BR", label: "2BR - 2B NRI" },
+    { code: "2BRH", label: "2BRH - 2B NRI UNDER HYD-KAR QUOTA" },
+    { code: "3AG", label: "3AG - 3A GENERAL" },
+    { code: "3AH", label: "3AH - 3A UNDER HYD-KAR QUOTA" },
+    { code: "3AK", label: "3AK - 3A KARNATAKA CANDIDATES" },
+    { code: "3AKH", label: "3AKH - 3A KARNATAKA UNDER HYD-KAR QUOTA" },
+    { code: "3AR", label: "3AR - 3A NRI" },
+    { code: "3ARH", label: "3ARH - 3A NRI UNDER HYD-KAR QUOTA" },
+    { code: "3BG", label: "3BG - 3B GENERAL" },
+    { code: "3BH", label: "3BH - 3B UNDER HYD-KAR QUOTA" },
+    { code: "3BK", label: "3BK - 3B KARNATAKA CANDIDATES" },
+    { code: "3BKH", label: "3BKH - 3B KARNATAKA UNDER HYD-KAR QUOTA" },
+    { code: "3BR", label: "3BR - 3B NRI" },
+    { code: "3BRH", label: "3BRH - 3B NRI UNDER HYD-KAR QUOTA" },
+    { code: "GM", label: "GM - GENERAL MERIT" },
+    { code: "GMH", label: "GMH - GENERAL MERIT UNDER HYD-KAR QUOTA" },
+    { code: "GMK", label: "GMK - GENERAL MERIT KARNATAKA CANDIDATES" },
+    {
+      code: "GMKH",
+      label: "GMKH - GENERAL MERIT KARNATAKA UNDER HYD-KAR QUOTA",
+    },
+    { code: "GMR", label: "GMR - GENERAL MERIT NRI" },
+    { code: "GMRH", label: "GMRH - GENERAL MERIT NRI UNDER HYD-KAR QUOTA" },
+    { code: "SCG", label: "SCG - SCHEDULED CASTE GENERAL" },
+    { code: "SCH", label: "SCH - SCHEDULED CASTE UNDER HYD-KAR QUOTA" },
+    { code: "SCK", label: "SCK - SCHEDULED CASTE KARNATAKA CANDIDATES" },
+    {
+      code: "SCKH",
+      label: "SCKH - SCHEDULED CASTE KARNATAKA UNDER HYD-KAR QUOTA",
+    },
+    { code: "SCR", label: "SCR - SCHEDULED CASTE NRI" },
+    { code: "SCRH", label: "SCRH - SCHEDULED CASTE NRI UNDER HYD-KAR QUOTA" },
+    { code: "STG", label: "STG - SCHEDULED TRIBE GENERAL" },
+    { code: "STH", label: "STH - SCHEDULED TRIBE UNDER HYD-KAR QUOTA" },
+    { code: "STK", label: "STK - SCHEDULED TRIBE KARNATAKA CANDIDATES" },
+    {
+      code: "STKH",
+      label: "STKH - SCHEDULED TRIBE KARNATAKA UNDER HYD-KAR QUOTA",
+    },
+    { code: "STR", label: "STR - SCHEDULED TRIBE NRI" },
+    { code: "STRH", label: "STRH - SCHEDULED TRIBE NRI UNDER HYD-KAR QUOTA" },
+  ];
+
   // Updated reservation categories to match API codes
   const reservationCategories = [
-  { "code": "GOPENS", "label": "General – Open" },
-  { "code": "GSCS", "label": "General – Scheduled Caste (SC)" },
-  { "code": "GSTS", "label": "General – Scheduled Tribe (ST)" },
-  { "code": "GVJS", "label": "General – Vimukta Jati/De-notified Tribes (VJ/DT)" },
-  { "code": "GNT1S", "label": "General – Nomadic Tribe 1 (NT1)" },
-  { "code": "GNT2S", "label": "General – Nomadic Tribe 2 (NT2)" },
-  { "code": "GNT3S", "label": "General – Nomadic Tribe 3 (NT3)" },
-  { "code": "GOBCS", "label": "General – Other Backward Class (OBC)" },
-  { "code": "GSEBCS", "label": "General – Socially and Educationally Backward Class (SEBC)" },
-  { "code": "LOPENS", "label": "Ladies – Open" },
-  { "code": "LSCS", "label": "Ladies – Scheduled Caste (SC)" },
-  { "code": "LSTS", "label": "Ladies – Scheduled Tribe (ST)" },
-  { "code": "LVJS", "label": "Ladies – Vimukta Jati/De-notified Tribes (VJ/DT)" },
-  { "code": "LNT1S", "label": "Ladies – Nomadic Tribe 1 (NT1)" },
-  { "code": "LNT2S", "label": "Ladies – Nomadic Tribe 2 (NT2)" },
-  { "code": "LOBCS", "label": "Ladies – Other Backward Class (OBC)" },
-  { "code": "LSEBCS", "label": "Ladies – Socially and Educationally Backward Class (SEBC)" },
-  { "code": "PWDOPENS", "label": "Persons with Disabilities – Open" },
-  { "code": "PWDOBCS", "label": "Persons with Disabilities – Other Backward Class (OBC)" },
-  { "code": "DEFOPENS", "label": "Defence – Open" },
-  { "code": "DEFSCS", "label": "Defence – Scheduled Caste (SC)" },
-  { "code": "DEFOBCS", "label": "Defence – Other Backward Class (OBC)" },
-  { "code": "DEFSEBCS", "label": "Defence – Socially and Educationally Backward Class (SEBC)" },
-  { "code": "TFWS", "label": "Tuition Fee Waiver Scheme" },
-  { "code": "PWDRNT3S", "label": "Persons with Disabilities – Nomadic Tribe 3 (NT3)" },
-  { "code": "DEFRNT3S", "label": "Defence – Nomadic Tribe 3 (NT3)" },
-  { "code": "PWDROBC", "label": "Persons with Disabilities – Reserved OBC" },
-  { "code": "DEFRSEBCS", "label": "Defence – Reserved SEBC" },
-  { "code": "ORPHAN", "label": "Orphan Category" },
-  { "code": "EWS", "label": "Economically Weaker Sections" }
-];
+    {
+      code: "DEFRNT1S",
+      label: "Defence – Reserved – Nomadic Tribe 1 (NT1)",
+    },
+    {
+      code: "DEFRNT2S",
+      label: "Defence – Reserved – Nomadic Tribe 2 (NT2)",
+    },
+    {
+      code: "DEFRNT3S",
+      label: "Defence – Reserved – Nomadic Tribe 3 (NT3)",
+    },
+    {
+      code: "DEFRSTS",
+      label: "Defence – Reserved – Scheduled Tribe (ST)",
+    },
+    {
+      code: "DEFRVJS",
+      label: "Defence – Reserved – Vimukta Jati / De-notified Tribes (VJ/DT)",
+    },
+    { code: "DEFOPENS", label: "Defence – Open" },
+    { code: "DEFOBCS", label: "Defence – Other Backward Class (OBC)" },
+    { code: "DEFRSEBCS", label: "Defence – Reserved SEBC" },
+    { code: "DEFSCS", label: "Defence – Scheduled Caste (SC)" },
+    {
+      code: "DEFSEBCS",
+      label: "Defence – Socially and Educationally Backward Class (SEBC)",
+    },
+    { code: "EWS", label: "Economically Weaker Sections" },
+    { code: "GNT1S", label: "General – Nomadic Tribe 1 (NT1)" },
+    { code: "GNT2S", label: "General – Nomadic Tribe 2 (NT2)" },
+    { code: "GNT3S", label: "General – Nomadic Tribe 3 (NT3)" },
+    { code: "GOPENS", label: "General – Open" },
+    { code: "GOBCS", label: "General – Other Backward Class (OBC)" },
+    { code: "GSCS", label: "General – Scheduled Caste (SC)" },
+    { code: "GSTS", label: "General – Scheduled Tribe (ST)" },
+    {
+      code: "GSEBCS",
+      label: "General – Socially and Educationally Backward Class (SEBC)",
+    },
+    {
+      code: "GVJS",
+      label: "General – Vimukta Jati/De-notified Tribes (VJ/DT)",
+    },
+    { code: "LNT1S", label: "Ladies – Nomadic Tribe 1 (NT1)" },
+    { code: "LNT2S", label: "Ladies – Nomadic Tribe 2 (NT2)" },
+    { code: "LNT3S", label: "Ladies – Nomadic Tribe 3 (NT3)" },
+    { code: "LOPENS", label: "Ladies – Open" },
+    { code: "LOBCS", label: "Ladies – Other Backward Class (OBC)" },
+    { code: "LSCS", label: "Ladies – Scheduled Caste (SC)" },
+    { code: "LSTS", label: "Ladies – Scheduled Tribe (ST)" },
+    {
+      code: "LSEBCS",
+      label: "Ladies – Socially and Educationally Backward Class (SEBC)",
+    },
+    { code: "LVJS", label: "Ladies – Vimukta Jati/De-notified Tribes (VJ/DT)" },
+    { code: "MI", label: "Minority" },
+    { code: "ORPHAN", label: "Orphan Category" },
+    {
+      code: "PWDRNT3S",
+      label: "Persons with Disabilities – Nomadic Tribe 3 (NT3)",
+    },
+    {
+      code: "PWDRSEBCS",
+      label: "Persons with Disabilities – Reserved – SEBC",
+    },
+    {
+      code: "PWDRVJS",
+      label:
+        "Persons with Disabilities – Reserved-Vimukta Jati / De-notified Tribes (VJ/DT)",
+    },
+    {
+      code: "PWDSCS",
+      label: "Persons with Disabilities – Scheduled Caste (SC)",
+    },
+    {
+      code: "PWDSEBCS",
+      label: "Persons with Disabilities – SEBC",
+    },
+    { code: "PWDOPENS", label: "Persons with Disabilities – Open" },
+    {
+      code: "PWDOBCS",
+      label: "Persons with Disabilities – Other Backward Class (OBC)",
+    },
+    { code: "PWDROBC", label: "Persons with Disabilities – Reserved OBC" },
+    {
+      code: "PWDSTS",
+      label: "Persons with Disabilities – Scheduled Tribe (ST)",
+    },
+    { code: "TFWS", label: "Tuition Fee Waiver Scheme" },
+  ];
 
   const groupingOptions = [
-    "PCM (Physics, Chemistry, Mathematics)", 
+    "PCM (Physics, Chemistry, Mathematics)",
     "PCB (Physics, Chemistry, Biology)",
-    "PCMB (Physics, Chemistry, Mathematics, Biology)"
+    "PCMB (Physics, Chemistry, Mathematics, Biology)",
   ];
+
+  const districtOptions = [
+    "Ahilyanagar (Ahmednagar)",
+    "Akola",
+    "Amravati",
+    "Beed",
+    "Bhandara",
+    "Buldana",
+    "Chandrapur",
+    "Chhatrapati Sambhajinagar (Aurangabad)",
+    "Dharashiv (Osmanabad)",
+    "Dhule",
+    "Gadchiroli",
+    "Gondia",
+    "Hingoli",
+    "Jalgaon",
+    "Jalna",
+    "Kolhapur",
+    "Latur",
+    "Mumbai City",
+    "Mumbai Suburban",
+    "Nagpur",
+    "Nanded",
+    "Nandurbar",
+    "Nashik",
+    "Palghar",
+    "Parbhani",
+    "Pune",
+    "Raigad",
+    "Ratnagiri",
+    "Sangli",
+    "Satara",
+    "Sindhudurg",
+    "Solapur",
+    "Thane",
+    "Wardha",
+    "Washim",
+    "Yavatmal",
+  ].map((district) => ({ value: district, label: district }));
+
+  const currentCategories = isKarnataka
+    ? karnatakaReservationCategories
+    : reservationCategories;
 
   return (
     <div className="space-y-6">
@@ -106,20 +363,57 @@ export const AcademicInfoForm = ({ data, onUpdate, validationErrors = [] }: Acad
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label className="flex items-center gap-2 text-slate-700 font-semibold text-sm">
+                <User size={14} />
+                Gender
+                <span className="text-red-500">*</span>
+                {isFieldError("Gender") && (
+                  <AlertCircle size={14} className="text-red-500" />
+                )}
+              </Label>
+              <Select
+                onValueChange={(value) => handleChange("gender", value)}
+                value={data.gender ?? ""}
+              >
+                <SelectTrigger
+                  className={getFieldClassName(
+                    "Gender",
+                    "h-10 rounded-xl border-2 bg-white",
+                  )}
+                >
+                  <SelectValue placeholder="Select your gender" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="male">Male</SelectItem>
+                  <SelectItem value="female">Female</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2 text-slate-700 font-semibold text-sm">
                 <GraduationCap size={14} />
                 Reservation Category
                 <span className="text-red-500">*</span>
-                {isFieldError('Reservation Category') && <AlertCircle size={14} className="text-red-500" />}
+                {isFieldError("Reservation Category") && (
+                  <AlertCircle size={14} className="text-red-500" />
+                )}
               </Label>
-              <Select 
-                onValueChange={(value) => handleChange('reservationCategory', value)} 
-                value={data.reservationCategory || "GOPENS"}
+              <Select
+                onValueChange={(value) =>
+                  handleChange("reservationCategory", value)
+                }
+                value={data.reservationCategory || ""}
               >
-                <SelectTrigger className={getFieldClassName('Reservation Category', "h-10 rounded-xl border-2 bg-white")}>
+                <SelectTrigger
+                  className={getFieldClassName(
+                    "Reservation Category",
+                    "h-10 rounded-xl border-2 bg-white",
+                  )}
+                >
                   <SelectValue placeholder="Select your category" />
                 </SelectTrigger>
                 <SelectContent className="max-h-80">
-                  {reservationCategories.map((category) => (
+                  {currentCategories.map((category) => (
                     <SelectItem key={category.code} value={category.code}>
                       {category.label}
                     </SelectItem>
@@ -133,13 +427,20 @@ export const AcademicInfoForm = ({ data, onUpdate, validationErrors = [] }: Acad
                 <GraduationCap size={14} />
                 12th Grade Grouping
                 <span className="text-red-500">*</span>
-                {isFieldError('12th Grade Grouping') && <AlertCircle size={14} className="text-red-500" />}
+                {isFieldError("12th Grade Grouping") && (
+                  <AlertCircle size={14} className="text-red-500" />
+                )}
               </Label>
-              <Select 
-                onValueChange={(value) => handleChange('grouping', value)} 
+              <Select
+                onValueChange={(value) => handleChange("grouping", value)}
                 value={data.grouping || "PCM (Physics, Chemistry, Mathematics)"}
               >
-                <SelectTrigger className={getFieldClassName('12th Grade Grouping', "h-10 rounded-xl border-2 bg-white")}>
+                <SelectTrigger
+                  className={getFieldClassName(
+                    "12th Grade Grouping",
+                    "h-10 rounded-xl border-2 bg-white",
+                  )}
+                >
                   <SelectValue placeholder="What did you study in 12th?" />
                 </SelectTrigger>
                 <SelectContent>
@@ -151,6 +452,30 @@ export const AcademicInfoForm = ({ data, onUpdate, validationErrors = [] }: Acad
                 </SelectContent>
               </Select>
             </div>
+
+            {!isKarnataka && (
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2 text-slate-700 font-semibold text-sm">
+                  <GraduationCap size={14} />
+                  Select the District Where Your Most Recent College Is Located
+                  <span className="text-red-500">*</span>
+                  {isFieldError("District") && (
+                    <AlertCircle size={14} className="text-red-500" />
+                  )}
+                </Label>
+                <SearchableSelect
+                  options={districtOptions}
+                  value={data.district}
+                  onValueChange={(value) => handleChange("district", value)}
+                  placeholder="Search and select district..."
+                  searchPlaceholder="Type to search district..."
+                  className={getFieldClassName(
+                    "District",
+                    "h-10 rounded-xl border-2 bg-white",
+                  )}
+                />
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -171,16 +496,20 @@ export const AcademicInfoForm = ({ data, onUpdate, validationErrors = [] }: Acad
               <Label className="flex items-center gap-2 text-slate-700 font-semibold text-sm">
                 📊 10th Grade Marks (%)
                 <span className="text-red-500">*</span>
-                {isFieldError('10th Grade Marks') && <AlertCircle size={14} className="text-red-500" />}
+                {isFieldError("10th Grade Marks") && (
+                  <AlertCircle size={14} className="text-red-500" />
+                )}
               </Label>
-              <Input
-                type="number"
+              <NumberInput
                 placeholder="Enter your 10th percentage"
-                value={data.tenthMarks || ''}
-                onChange={(e) => handlePercentageChange('tenthMarks', e.target.value)}
-                className={getFieldClassName('10th Grade Marks', "h-10 rounded-xl border-2 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none")}
-                min="0"
-                max="100"
+                value={data.tenthMarks}
+                onChange={(val) => handleChange("tenthMarks", val)}
+                className={getFieldClassName(
+                  "10th Grade Marks",
+                  "h-10 rounded-xl border-2 bg-white",
+                )}
+                min={0}
+                max={100}
               />
             </div>
 
@@ -188,16 +517,20 @@ export const AcademicInfoForm = ({ data, onUpdate, validationErrors = [] }: Acad
               <Label className="flex items-center gap-2 text-slate-700 font-semibold text-sm">
                 📈 12th Grade Marks (%)
                 <span className="text-red-500">*</span>
-                {isFieldError('12th Grade Marks') && <AlertCircle size={14} className="text-red-500" />}
+                {isFieldError("12th Grade Marks") && (
+                  <AlertCircle size={14} className="text-red-500" />
+                )}
               </Label>
-              <Input
-                type="number"
+              <NumberInput
                 placeholder="Enter your 12th percentage"
-                value={data.twelfthMarks || ''}
-                onChange={(e) => handlePercentageChange('twelfthMarks', e.target.value)}
-                className={getFieldClassName('12th Grade Marks', "h-10 rounded-xl border-2 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none")}
-                min="0"
-                max="100"
+                value={data.twelfthMarks}
+                onChange={(val) => handleChange("twelfthMarks", val)}
+                className={getFieldClassName(
+                  "12th Grade Marks",
+                  "h-10 rounded-xl border-2 bg-white",
+                )}
+                min={0}
+                max={100}
               />
             </div>
 
@@ -205,16 +538,20 @@ export const AcademicInfoForm = ({ data, onUpdate, validationErrors = [] }: Acad
               <Label className="flex items-center gap-2 text-slate-700 font-semibold text-sm">
                 🎯 Grouping Marks (%)
                 <span className="text-red-500">*</span>
-                {isFieldError('Grouping Marks') && <AlertCircle size={14} className="text-red-500" />}
+                {isFieldError("Grouping Marks") && (
+                  <AlertCircle size={14} className="text-red-500" />
+                )}
               </Label>
-              <Input
-                type="number"
+              <NumberInput
                 placeholder="Enter your grouping marks"
-                value={data.groupingMarks || ''}
-                onChange={(e) => handlePercentageChange('groupingMarks', e.target.value)}
-                className={getFieldClassName('Grouping Marks', "h-10 rounded-xl border-2 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none")}
-                min="0"
-                max="100"
+                value={data.groupingMarks}
+                onChange={(val) => handleChange("groupingMarks", val)}
+                className={getFieldClassName(
+                  "Grouping Marks",
+                  "h-10 rounded-xl border-2 bg-white",
+                )}
+                min={0}
+                max={100}
               />
             </div>
           </div>
@@ -227,52 +564,85 @@ export const AcademicInfoForm = ({ data, onUpdate, validationErrors = [] }: Acad
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="flex items-center gap-2 text-slate-700 font-semibold text-sm">
-                  CET Percentile
+                  {isKarnataka ? "CET Rank" : "CET Percentile"}
                   <span className="text-red-500">*</span>
-                  {isFieldError('CET Percentile') && <AlertCircle size={14} className="text-red-500" />}
+                  {isKarnataka
+                    ? isFieldError("CET Rank") && (
+                        <AlertCircle size={14} className="text-red-500" />
+                      )
+                    : isFieldError("CET Percentile") && (
+                        <AlertCircle size={14} className="text-red-500" />
+                      )}
+                </Label>
+                {isKarnataka ? (
+                  <NumberInput
+                    placeholder="Your CET Rank"
+                    value={data.cetRank}
+                    onChange={(val) => handleChange("cetRank", val)}
+                    className={getFieldClassName(
+                      "CET Rank",
+                      "h-10 rounded-xl border-2 bg-white",
+                    )}
+                    min={1}
+                  />
+                ) : (
+                  <NumberInput
+                    placeholder="Your CET percentile (0-100)"
+                    value={data.cetPercentile}
+                    onChange={(val) => handleChange("cetPercentile", val)}
+                    className={getFieldClassName(
+                      "CET Percentile",
+                      "h-10 rounded-xl border-2 bg-white",
+                    )}
+                    min={0}
+                    max={100}
+                    precision={7}
+                  />
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-slate-600 font-medium text-sm">
+                  JEE Percentile{" "}
+                  <span className="text-xs text-slate-500">(Optional)</span>
+                </Label>
+                <NumberInput
+                  placeholder="Your JEE percentile (0-100)"
+                  value={data.jeePercentile}
+                  onChange={(val) => handleChange("jeePercentile", val)}
+                  className="h-10 rounded-xl border-2 bg-white"
+                  min={0}
+                  max={100}
+                  precision={7}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-slate-600 font-medium text-sm">
+                  Other Exam Name{" "}
+                  <span className="text-xs text-slate-500">(Optional)</span>
                 </Label>
                 <Input
-                  type="number"
-                  placeholder="Your CET percentile (0-100)"
-                  value={data.cetPercentile || ''}
-                  onChange={(e) => handlePercentageChange('cetPercentile', e.target.value)}
-                  className={getFieldClassName('CET Percentile', "h-10 rounded-xl border-2 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none")}
-                  min="0"
-                  max="100"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-slate-600 font-medium text-sm">JEE Percentile <span className="text-xs text-slate-500">(Optional)</span></Label>
-                <Input
-                  type="number"
-                  placeholder="Your JEE percentile (0-100)"
-                  value={data.jeePercentile || ''}
-                  onChange={(e) => handlePercentageChange('jeePercentile', e.target.value)}
-                  className="h-10 rounded-xl border-2 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                  min="0"
-                  max="100"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-slate-600 font-medium text-sm">Other Exam Name <span className="text-xs text-slate-500">(Optional)</span></Label>
-                <Input
                   placeholder="e.g., BITSAT, VITEEE, COMEDK"
-                  value={data.otherExamName || ''}
-                  onChange={(e) => handleChange('otherExamName', e.target.value)}
+                  value={data.otherExamName || ""}
+                  onChange={(e) =>
+                    handleChange("otherExamName", e.target.value)
+                  }
                   className="h-10 rounded-xl border-2 bg-white"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label className="text-slate-600 font-medium text-sm">Other Exam Score <span className="text-xs text-slate-500">(Optional)</span></Label>
-                <Input
-                  type="number"
+                <Label className="text-slate-600 font-medium text-sm">
+                  Other Exam Score{" "}
+                  <span className="text-xs text-slate-500">(Optional)</span>
+                </Label>
+                <NumberInput
                   placeholder="Your score/percentile"
-                  value={data.otherExamPercentile || ''}
-                  onChange={(e) => handleChange('otherExamPercentile', parseFloat(e.target.value) || undefined)}
-                  className="h-10 rounded-xl border-2 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  value={data.otherExamPercentile}
+                  onChange={(val) => handleChange("otherExamPercentile", val)}
+                  className="h-10 rounded-xl border-2 bg-white"
+                  precision={7}
                 />
               </div>
             </div>
@@ -289,14 +659,17 @@ export const AcademicInfoForm = ({ data, onUpdate, validationErrors = [] }: Acad
                 <Award className="text-white" size={16} />
               </div>
               <span className="text-lg font-bold text-slate-800">
-                Your Achievements <span className="text-sm text-slate-500 font-normal">(Optional)</span>
+                Your Achievements{" "}
+                <span className="text-sm text-slate-500 font-normal">
+                  (Optional)
+                </span>
               </span>
               <div className="ml-auto transform transition-transform duration-200 group-open:rotate-180">
                 <ChevronDown className="w-5 h-5 text-slate-600" />
               </div>
             </div>
           </summary>
-          
+
           <div className="px-6 pb-6 space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
@@ -305,8 +678,10 @@ export const AcademicInfoForm = ({ data, onUpdate, validationErrors = [] }: Acad
                 </Label>
                 <Textarea
                   placeholder="State-level cricket, student council president, debate competitions..."
-                  value={data.sportsAchievements || ''}
-                  onChange={(e) => handleChange('sportsAchievements', e.target.value)}
+                  value={data.sportsAchievements || ""}
+                  onChange={(e) =>
+                    handleChange("sportsAchievements", e.target.value)
+                  }
                   rows={2}
                   className="rounded-xl border-2 bg-white resize-none"
                 />
@@ -318,8 +693,10 @@ export const AcademicInfoForm = ({ data, onUpdate, validationErrors = [] }: Acad
                 </Label>
                 <Textarea
                   placeholder="Python certification, web development course, cloud computing..."
-                  value={data.certifications || ''}
-                  onChange={(e) => handleChange('certifications', e.target.value)}
+                  value={data.certifications || ""}
+                  onChange={(e) =>
+                    handleChange("certifications", e.target.value)
+                  }
                   rows={2}
                   className="rounded-xl border-2 bg-white resize-none"
                 />
@@ -331,8 +708,8 @@ export const AcademicInfoForm = ({ data, onUpdate, validationErrors = [] }: Acad
                 </Label>
                 <Textarea
                   placeholder="Summer internship, part-time job, freelance projects..."
-                  value={data.internships || ''}
-                  onChange={(e) => handleChange('internships', e.target.value)}
+                  value={data.internships || ""}
+                  onChange={(e) => handleChange("internships", e.target.value)}
                   rows={2}
                   className="rounded-xl border-2 bg-white resize-none"
                 />
@@ -344,8 +721,10 @@ export const AcademicInfoForm = ({ data, onUpdate, validationErrors = [] }: Acad
                 </Label>
                 <Textarea
                   placeholder="Hackathon winner, published research, volunteer work..."
-                  value={data.otherAchievements || ''}
-                  onChange={(e) => handleChange('otherAchievements', e.target.value)}
+                  value={data.otherAchievements || ""}
+                  onChange={(e) =>
+                    handleChange("otherAchievements", e.target.value)
+                  }
                   rows={2}
                   className="rounded-xl border-2 bg-white resize-none"
                 />

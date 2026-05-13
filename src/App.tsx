@@ -26,6 +26,7 @@ import NotFound from "./pages/NotFound";
 import RaiseIssue from "./pages/RaiseIssue";
 import MyTickets from "./pages/MyTickets";
 import TicketDetails from "./pages/TicketDetails";
+import MockRecommendationPage from "./pages/MockRecommendationPage";
 
 const queryClient = new QueryClient();
 
@@ -55,6 +56,7 @@ const App = () => (
                 <Route path="/my-tickets" element={<MyTickets />} />
                 <Route path="/ticket/:ticketId" element={<TicketDetails />} />
                 <Route path="/register" element={<AppRegister />} />
+                <Route path="/mock-recommendations" element={<MockRecommendationPage />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </div>

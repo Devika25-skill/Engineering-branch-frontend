@@ -1,14 +1,9 @@
-import { IntegratedAdmissionType } from '@/types/integratedAdmission';
+import { IntegratedAdmissionType } from "@/types/integratedAdmission";
 
 // Branch options for each admission type
 export const branchOptions: Record<IntegratedAdmissionType, string[]> = {
-  'BCA_MCA_Int': [
-    "ALL",
-    "B.C.A. Visual Arts",
-    "MCA INTEGRATED",
-    "BCA"
-  ],
-  'BBA_BMS_BBM_MBA_Int': [
+  BCA_MCA_Int: ["ALL", "B.C.A. Visual Arts", "MCA INTEGRATED", "BCA"],
+  BBA_BMS_BBM_MBA_Int: [
     "ALL",
     "Bachelor of Business Administration in International Business",
     "BMS-MMS Integrated",
@@ -30,18 +25,14 @@ export const branchOptions: Record<IntegratedAdmissionType, string[]> = {
     "Bachelor of Business Administration in Hospitality and Facilities Management",
     "BBA Shipping and Logistics Management",
     "BMS E-Commerce Operation",
-    "BBA"
+    "BBA",
   ],
-  'B_and_D_Pharmacy': [
-    "ALL",
-    "Pharm D  Doctor of Pharmacy",
-    "Pharmacy"
-  ]
+  B_and_D_Pharmacy: ["ALL", "Pharm D  Doctor of Pharmacy", "Pharmacy"],
 };
 
 // City options for each admission type
 export const cityOptions: Record<IntegratedAdmissionType, string[]> = {
-  'BCA_MCA_Int': [
+  BCA_MCA_Int: [
     "ALL",
     "Ahmednagar",
     "Ahmednagar/Ahilyanagar",
@@ -82,7 +73,7 @@ export const cityOptions: Record<IntegratedAdmissionType, string[]> = {
     "Deoli",
     "Deopur",
     "Dharangaon",
-    "Dharashiv",
+    "Dharashiv (Osmanabad)",
     "Dhule",
     "Dondaicha",
     "Faizpur",
@@ -177,9 +168,9 @@ export const cityOptions: Record<IntegratedAdmissionType, string[]> = {
     "Washim",
     "Wathar",
     "Yavatmal",
-    "Yeola"
+    "Yeola",
   ],
-  'BBA_BMS_BBM_MBA_Int': [
+  BBA_BMS_BBM_MBA_Int: [
     "ALL",
     "Ahmednagar/Ahilyanagar",
     "Akluj",
@@ -296,9 +287,9 @@ export const cityOptions: Record<IntegratedAdmissionType, string[]> = {
     "Washim",
     "Wathar",
     "Yavatmal",
-    "Yeola"
+    "Yeola",
   ],
-  'B_and_D_Pharmacy': [
+  B_and_D_Pharmacy: [
     "ALL",
     "Abhona",
     "Ahmednagar/Ahilyanagar",
@@ -526,231 +517,303 @@ export const cityOptions: Record<IntegratedAdmissionType, string[]> = {
     "Wathar",
     "Yavatmal",
     "Yelgaon",
-    "Yeola"
-
-  ]
+    "Yeola",
+  ],
 };
 
 // Category options for each admission type
-export const categoryOptions: Record<IntegratedAdmissionType, Array<{ value: string; label: string }>> = {
-  'BCA_MCA_Int': [
-    { value: 'GOPENH', label: 'Open Category (General)' },
-    { value: 'GOBCH', label: 'Other Backward Class (OBC)' },
-    { value: 'GNTAH', label: 'Nomadic Tribe - Category A (NT-A)' },
-    { value: 'GNTBH', label: 'Nomadic Tribe - Category B (NT-B)' },
-    { value: 'GNTCH', label: 'Nomadic Tribe - Category C (NT-C)' },
-    { value: 'GNTDH', label: 'Nomadic Tribe - Category D (NT-D)' },
-    { value: 'GSCH', label: 'Scheduled Caste (SC)' },
-    { value: 'GSEBCH', label: 'Socially and Educationally Backward Class (SEBC)' },
-    { value: 'GSTH', label: 'Scheduled Tribe (ST)' },
-    { value: 'DEFOBCS', label: 'Defense - Other Backward Class (OBC)' },
-    { value: 'DEFOPENS', label: 'Defense - Open Category (General)' },
-    { value: 'DEFROBCS', label: 'Defense (Retired) - Other Backward Class (OBC)' },
-    { value: 'DEFRSEBCS', label: 'Defense (Retired) - Socially and Educationally Backward Class (SEBC)' },
-    { value: 'DEFSCS', label: 'Defense - Scheduled Caste (SC)' },
-    { value: 'DEFSEBCS', label: 'Defense - Socially and Educationally Backward Class (SEBC)' },
-    { value: 'EWS', label: 'Economically Weaker Section' },
-    { value: 'MI', label: 'Minority Quota' },
-    { value: 'MI-MH', label: 'Minority Quota - Maharashtra Domicile' },
-    { value: 'ORPHAN', label: 'Orphan Category' },
-    { value: 'PWDOBCH', label: 'Persons with Disability (PwD) - OBC ' },
-    { value: 'PWDOPENH', label: 'Persons with Disability (PwD) - Open Category (General)' },
-    { value: 'PWDROBCH', label: 'Persons with Disability (PwD) - Retired Defense - OBC' },
-    { value: 'PWDSCH', label: 'Persons with Disability (PwD) - SC' },
-    { value: 'PWDSEBCH', label: 'Persons with Disability (PwD) - SEBC ' },
-    { value: 'TFWS', label: 'Tuition Fee Waiver Scheme' }
+export const categoryOptions: Record<
+  IntegratedAdmissionType,
+  Array<{ value: string; label: string }>
+> = {
+  BCA_MCA_Int: [
+    { value: "GOPENH", label: "Open Category (General)" },
+    { value: "GOBCH", label: "Other Backward Class (OBC)" },
+    { value: "GNTAH", label: "Nomadic Tribe - Category A (NT-A)" },
+    { value: "GNTBH", label: "Nomadic Tribe - Category B (NT-B)" },
+    { value: "GNTCH", label: "Nomadic Tribe - Category C (NT-C)" },
+    { value: "GNTDH", label: "Nomadic Tribe - Category D (NT-D)" },
+    { value: "GSCH", label: "Scheduled Caste (SC)" },
+    {
+      value: "GSEBCH",
+      label: "Socially and Educationally Backward Class (SEBC)",
+    },
+    { value: "GSTH", label: "Scheduled Tribe (ST)" },
+    { value: "DEFOBCS", label: "Defense - Other Backward Class (OBC)" },
+    { value: "DEFOPENS", label: "Defense - Open Category (General)" },
+    {
+      value: "DEFROBCS",
+      label: "Defense (Retired) - Other Backward Class (OBC)",
+    },
+    {
+      value: "DEFRSEBCS",
+      label:
+        "Defense (Retired) - Socially and Educationally Backward Class (SEBC)",
+    },
+    { value: "DEFSCS", label: "Defense - Scheduled Caste (SC)" },
+    {
+      value: "DEFSEBCS",
+      label: "Defense - Socially and Educationally Backward Class (SEBC)",
+    },
+    { value: "EWS", label: "Economically Weaker Section" },
+    { value: "MI", label: "Minority Quota" },
+    { value: "MI-MH", label: "Minority Quota - Maharashtra Domicile" },
+    { value: "ORPHAN", label: "Orphan Category" },
+    { value: "PWDOBCH", label: "Persons with Disability (PwD) - OBC " },
+    {
+      value: "PWDOPENH",
+      label: "Persons with Disability (PwD) - Open Category (General)",
+    },
+    {
+      value: "PWDROBCH",
+      label: "Persons with Disability (PwD) - Retired Defense - OBC",
+    },
+    { value: "PWDSCH", label: "Persons with Disability (PwD) - SC" },
+    { value: "PWDSEBCH", label: "Persons with Disability (PwD) - SEBC " },
+    { value: "TFWS", label: "Tuition Fee Waiver Scheme" },
   ],
-  'BBA_BMS_BBM_MBA_Int': [
-    { value: 'GOPENH', label: 'Open Category (General)' },
-    { value: 'GOBCH', label: 'Other Backward Class (OBC)' },
-    { value: 'GNTAH', label: 'Nomadic Tribe - Category A (NT-A)' },
-    { value: 'GNTBH', label: 'Nomadic Tribe - Category B (NT-B)' },
-    { value: 'GNTCH', label: 'Nomadic Tribe - Category C (NT-C)' },
-    { value: 'GNTDH', label: 'Nomadic Tribe - Category D (NT-D)' },
-    { value: 'GSCH', label: 'Scheduled Caste (SC)' },
-    { value: 'GSEBCH', label: 'Socially and Educationally Backward Class (SEBC)' },
-    { value: 'GSTH', label: 'Scheduled Tribe (ST)' },
-    { value: 'DEFOBCS', label: 'Defense - Other Backward Class (OBC)' },
-    { value: 'DEFOPENS', label: 'Defense - Open Category (General)' },
-    { value: 'DEFROBCS', label: 'Defense (Retired) - Other Backward Class (OBC)' },
-    { value: 'DEFRSEBCS', label: 'Defense (Retired) - Socially and Educationally Backward Class (SEBC)' },
-    { value: 'DEFSCS', label: 'Defense - Scheduled Caste (SC)' },
-    { value: 'DEFSEBCS', label: 'Defense - Socially and Educationally Backward Class (SEBC)' },
-    { value: 'EWS', label: 'Economically Weaker Section' },
-    { value: 'MI', label: 'Minority Quota' },
-    { value: 'MI-MH', label: 'Minority Quota - Maharashtra Domicile' },
-    { value: 'ORPHAN', label: 'Orphan Category' },
-    { value: 'PWDOBCH', label: 'Persons with Disability (PwD) - OBC ' },
-    { value: 'PWDOPENH', label: 'Persons with Disability (PwD) - Open Category (General)' },
-    { value: 'PWDROBCH', label: 'Persons with Disability (PwD) - Retired Defense - OBC' },
-    { value: 'PWDSCH', label: 'Persons with Disability (PwD) - SC' },
-    { value: 'PWDSEBCH', label: 'Persons with Disability (PwD) - SEBC ' },
-    { value: 'TFWS', label: 'Tuition Fee Waiver Scheme' }
+  BBA_BMS_BBM_MBA_Int: [
+    { value: "GOPENH", label: "Open Category (General)" },
+    { value: "GOBCH", label: "Other Backward Class (OBC)" },
+    { value: "GNTAH", label: "Nomadic Tribe - Category A (NT-A)" },
+    { value: "GNTBH", label: "Nomadic Tribe - Category B (NT-B)" },
+    { value: "GNTCH", label: "Nomadic Tribe - Category C (NT-C)" },
+    { value: "GNTDH", label: "Nomadic Tribe - Category D (NT-D)" },
+    { value: "GSCH", label: "Scheduled Caste (SC)" },
+    {
+      value: "GSEBCH",
+      label: "Socially and Educationally Backward Class (SEBC)",
+    },
+    { value: "GSTH", label: "Scheduled Tribe (ST)" },
+    { value: "DEFOBCS", label: "Defense - Other Backward Class (OBC)" },
+    { value: "DEFOPENS", label: "Defense - Open Category (General)" },
+    {
+      value: "DEFROBCS",
+      label: "Defense (Retired) - Other Backward Class (OBC)",
+    },
+    {
+      value: "DEFRSEBCS",
+      label:
+        "Defense (Retired) - Socially and Educationally Backward Class (SEBC)",
+    },
+    { value: "DEFSCS", label: "Defense - Scheduled Caste (SC)" },
+    {
+      value: "DEFSEBCS",
+      label: "Defense - Socially and Educationally Backward Class (SEBC)",
+    },
+    { value: "EWS", label: "Economically Weaker Section" },
+    { value: "MI", label: "Minority Quota" },
+    { value: "MI-MH", label: "Minority Quota - Maharashtra Domicile" },
+    { value: "ORPHAN", label: "Orphan Category" },
+    { value: "PWDOBCH", label: "Persons with Disability (PwD) - OBC " },
+    {
+      value: "PWDOPENH",
+      label: "Persons with Disability (PwD) - Open Category (General)",
+    },
+    {
+      value: "PWDROBCH",
+      label: "Persons with Disability (PwD) - Retired Defense - OBC",
+    },
+    { value: "PWDSCH", label: "Persons with Disability (PwD) - SC" },
+    { value: "PWDSEBCH", label: "Persons with Disability (PwD) - SEBC " },
+    { value: "TFWS", label: "Tuition Fee Waiver Scheme" },
   ],
-  'B_and_D_Pharmacy': [
-    { value: 'GOPENH', label: 'Open Category (General)' },
-    { value: 'GOBCH', label: 'Other Backward Class (OBC)' },
-    { value: 'GNTAH', label: 'Nomadic Tribe - Category A (NT-A)' },
-    { value: 'GNTBH', label: 'Nomadic Tribe - Category B (NT-B)' },
-    { value: 'GNTCH', label: 'Nomadic Tribe - Category C (NT-C)' },
-    { value: 'GNTDH', label: 'Nomadic Tribe - Category D (NT-D)' },
-    { value: 'GSCH', label: 'Scheduled Caste (SC)' },
-    { value: 'GSEBCH', label: 'Socially and Educationally Backward Class (SEBC)' },
-    { value: 'GSTH', label: 'Scheduled Tribe (ST)' },
-    { value: 'DEFOBCS', label: 'Defense - Other Backward Class (OBC)' },
-    { value: 'DEFOPENS', label: 'Defense - Open Category (General)' },
-    { value: 'DEFROBCS', label: 'Defense (Retired) - Other Backward Class (OBC)' },
-    { value: 'DEFRSEBCS', label: 'Defense (Retired) - Socially and Educationally Backward Class (SEBC)' },
-    { value: 'DEFSCS', label: 'Defense - Scheduled Caste (SC)' },
-    { value: 'DEFSEBCS', label: 'Defense - Socially and Educationally Backward Class (SEBC)' },
-    { value: 'EWS', label: 'Economically Weaker Section' },
-    { value: 'MI', label: 'Minority Quota' },
-    { value: 'MI-MH', label: 'Minority Quota - Maharashtra Domicile' },
-    { value: 'ORPHAN', label: 'Orphan Category' },
-    { value: 'PWDOBCH', label: 'Persons with Disability (PwD) - OBC ' },
-    { value: 'PWDOPENH', label: 'Persons with Disability (PwD) - Open Category (General)' },
-    { value: 'PWDROBCH', label: 'Persons with Disability (PwD) - Retired Defense - OBC' },
-    { value: 'PWDSCH', label: 'Persons with Disability (PwD) - SC' },
-    { value: 'PWDSEBCH', label: 'Persons with Disability (PwD) - SEBC ' },
-    { value: 'TFWS', label: 'Tuition Fee Waiver Scheme' }
-  ]
+  B_and_D_Pharmacy: [
+    { value: "GOPENH", label: "Open Category (General)" },
+    { value: "GOBCH", label: "Other Backward Class (OBC)" },
+    { value: "GNTAH", label: "Nomadic Tribe - Category A (NT-A)" },
+    { value: "GNTBH", label: "Nomadic Tribe - Category B (NT-B)" },
+    { value: "GNTCH", label: "Nomadic Tribe - Category C (NT-C)" },
+    { value: "GNTDH", label: "Nomadic Tribe - Category D (NT-D)" },
+    { value: "GSCH", label: "Scheduled Caste (SC)" },
+    {
+      value: "GSEBCH",
+      label: "Socially and Educationally Backward Class (SEBC)",
+    },
+    { value: "GSTH", label: "Scheduled Tribe (ST)" },
+    { value: "DEFOBCS", label: "Defense - Other Backward Class (OBC)" },
+    { value: "DEFOPENS", label: "Defense - Open Category (General)" },
+    {
+      value: "DEFROBCS",
+      label: "Defense (Retired) - Other Backward Class (OBC)",
+    },
+    {
+      value: "DEFRSEBCS",
+      label:
+        "Defense (Retired) - Socially and Educationally Backward Class (SEBC)",
+    },
+    { value: "DEFSCS", label: "Defense - Scheduled Caste (SC)" },
+    {
+      value: "DEFSEBCS",
+      label: "Defense - Socially and Educationally Backward Class (SEBC)",
+    },
+    { value: "EWS", label: "Economically Weaker Section" },
+    { value: "MI", label: "Minority Quota" },
+    { value: "MI-MH", label: "Minority Quota - Maharashtra Domicile" },
+    { value: "ORPHAN", label: "Orphan Category" },
+    { value: "PWDOBCH", label: "Persons with Disability (PwD) - OBC " },
+    {
+      value: "PWDOPENH",
+      label: "Persons with Disability (PwD) - Open Category (General)",
+    },
+    {
+      value: "PWDROBCH",
+      label: "Persons with Disability (PwD) - Retired Defense - OBC",
+    },
+    { value: "PWDSCH", label: "Persons with Disability (PwD) - SC" },
+    { value: "PWDSEBCH", label: "Persons with Disability (PwD) - SEBC " },
+    { value: "TFWS", label: "Tuition Fee Waiver Scheme" },
+  ],
 };
 
-export const districtOptions: Record<IntegratedAdmissionType, Array<{ value: string; label: string }>> = {
-  "BCA_MCA_Int": [
-    { value: 'Ahmednagar', label: 'Ahmednagar' },
-    { value: 'Akola', label: 'Akola' },
-    { value: 'Amravati', label: 'Amravati' },
-    { value: 'Beed', label: 'Beed' },
-    { value: 'Bhandara', label: 'Bhandara' },
-    { value: 'Buldana', label: 'Buldana' },
-    { value: 'Chandrapur', label: 'Chandrapur' },
-    { value: 'Chhatrapati Sambhajinagar', label: 'Chhatrapati Sambhajinagar' },
-    { value: 'Dharashiv', label: 'Dharashiv' },
-    { value: 'Dhule', label: 'Dhule' },
-    { value: 'Gadchiroli', label: 'Gadchiroli' },
-    { value: 'Gondia', label: 'Gondia' },
-    { value: 'Hingoli', label: 'Hingoli' },
-    { value: 'Jalgaon', label: 'Jalgaon' },
-    { value: 'Jalna', label: 'Jalna' },
-    { value: 'Kolhapur', label: 'Kolhapur' },
-    { value: 'Latur', label: 'Latur' },
-    { value: 'Mumbai City', label: 'Mumbai City' },
-    { value: 'Mumbai Suburban', label: 'Mumbai Suburban' },
-    { value: 'Nagpur', label: 'Nagpur' },
-    { value: 'Nanded', label: 'Nanded' },
-    { value: 'Nandurbar', label: 'Nandurbar' },
-    { value: 'Nashik', label: 'Nashik' },
-    { value: 'Palghar', label: 'Palghar' },
-    { value: 'Parbhani', label: 'Parbhani' },
-    { value: 'Pune', label: 'Pune' },
-    { value: 'Raigad', label: 'Raigad' },
-    { value: 'Ratnagiri', label: 'Ratnagiri' },
-    { value: 'Sangli', label: 'Sangli' },
-    { value: 'Satara', label: 'Satara' },
-    { value: 'Sindhudurg', label: 'Sindhudurg' },
-    { value: 'Solapur', label: 'Solapur' },
-    { value: 'Thane', label: 'Thane' },
-    { value: 'Wardha', label: 'Wardha' },
-    { value: 'Washim', label: 'Washim' },
-    { value: 'Yavatmal', label: 'Yavatmal' }
+export const districtOptions: Record<
+  IntegratedAdmissionType,
+  Array<{ value: string; label: string }>
+> = {
+  BCA_MCA_Int: [
+    { value: "Ahmednagar", label: "Ahmednagar" },
+    { value: "Akola", label: "Akola" },
+    { value: "Amravati", label: "Amravati" },
+    { value: "Beed", label: "Beed" },
+    { value: "Bhandara", label: "Bhandara" },
+    { value: "Buldana", label: "Buldana" },
+    { value: "Chandrapur", label: "Chandrapur" },
+    { value: "Chhatrapati Sambhajinagar", label: "Chhatrapati Sambhajinagar" },
+    { value: "Dharashiv (Osmanabad)", label: "Dharashiv (Osmanabad)" },
+    { value: "Dhule", label: "Dhule" },
+    { value: "Gadchiroli", label: "Gadchiroli" },
+    { value: "Gondia", label: "Gondia" },
+    { value: "Hingoli", label: "Hingoli" },
+    { value: "Jalgaon", label: "Jalgaon" },
+    { value: "Jalna", label: "Jalna" },
+    { value: "Kolhapur", label: "Kolhapur" },
+    { value: "Latur", label: "Latur" },
+    { value: "Mumbai City", label: "Mumbai City" },
+    { value: "Mumbai Suburban", label: "Mumbai Suburban" },
+    { value: "Nagpur", label: "Nagpur" },
+    { value: "Nanded", label: "Nanded" },
+    { value: "Nandurbar", label: "Nandurbar" },
+    { value: "Nashik", label: "Nashik" },
+    { value: "Palghar", label: "Palghar" },
+    { value: "Parbhani", label: "Parbhani" },
+    { value: "Pune", label: "Pune" },
+    { value: "Raigad", label: "Raigad" },
+    { value: "Ratnagiri", label: "Ratnagiri" },
+    { value: "Sangli", label: "Sangli" },
+    { value: "Satara", label: "Satara" },
+    { value: "Sindhudurg", label: "Sindhudurg" },
+    { value: "Solapur", label: "Solapur" },
+    { value: "Thane", label: "Thane" },
+    { value: "Wardha", label: "Wardha" },
+    { value: "Washim", label: "Washim" },
+    { value: "Yavatmal", label: "Yavatmal" },
   ],
-  "BBA_BMS_BBM_MBA_Int": [
-    { value: 'Ahmednagar', label: 'Ahmednagar' },
-    { value: 'Akola', label: 'Akola' },
-    { value: 'Amravati', label: 'Amravati' },
-    { value: 'Beed', label: 'Beed' },
-    { value: 'Bhandara', label: 'Bhandara' },
-    { value: 'Buldana', label: 'Buldana' },
-    { value: 'Chandrapur', label: 'Chandrapur' },
-    { value: 'Chhatrapati Sambhajinagar', label: 'Chhatrapati Sambhajinagar' },
-    { value: 'Dharashiv', label: 'Dharashiv' },
-    { value: 'Dhule', label: 'Dhule' },
-    { value: 'Gadchiroli', label: 'Gadchiroli' },
-    { value: 'Gondia', label: 'Gondia' },
-    { value: 'Hingoli', label: 'Hingoli' },
-    { value: 'Jalgaon', label: 'Jalgaon' },
-    { value: 'Jalna', label: 'Jalna' },
-    { value: 'Kolhapur', label: 'Kolhapur' },
-    { value: 'Latur', label: 'Latur' },
-    { value: 'Mumbai City', label: 'Mumbai City' },
-    { value: 'Mumbai Suburban', label: 'Mumbai Suburban' },
-    { value: 'Nagpur', label: 'Nagpur' },
-    { value: 'Nanded', label: 'Nanded' },
-    { value: 'Nandurbar', label: 'Nandurbar' },
-    { value: 'Nashik', label: 'Nashik' },
-    { value: 'Palghar', label: 'Palghar' },
-    { value: 'Parbhani', label: 'Parbhani' },
-    { value: 'Pune', label: 'Pune' },
-    { value: 'Raigad', label: 'Raigad' },
-    { value: 'Ratnagiri', label: 'Ratnagiri' },
-    { value: 'Sangli', label: 'Sangli' },
-    { value: 'Satara', label: 'Satara' },
-    { value: 'Sindhudurg', label: 'Sindhudurg' },
-    { value: 'Solapur', label: 'Solapur' },
-    { value: 'Thane', label: 'Thane' },
-    { value: 'Wardha', label: 'Wardha' },
-    { value: 'Washim', label: 'Washim' },
-    { value: 'Yavatmal', label: 'Yavatmal' }
+  BBA_BMS_BBM_MBA_Int: [
+    { value: "Ahmednagar", label: "Ahmednagar" },
+    { value: "Akola", label: "Akola" },
+    { value: "Amravati", label: "Amravati" },
+    { value: "Beed", label: "Beed" },
+    { value: "Bhandara", label: "Bhandara" },
+    { value: "Buldana", label: "Buldana" },
+    { value: "Chandrapur", label: "Chandrapur" },
+    { value: "Chhatrapati Sambhajinagar", label: "Chhatrapati Sambhajinagar" },
+    { value: "Dharashiv (Osmanabad)", label: "Dharashiv (Osmanabad)" },
+    { value: "Dhule", label: "Dhule" },
+    { value: "Gadchiroli", label: "Gadchiroli" },
+    { value: "Gondia", label: "Gondia" },
+    { value: "Hingoli", label: "Hingoli" },
+    { value: "Jalgaon", label: "Jalgaon" },
+    { value: "Jalna", label: "Jalna" },
+    { value: "Kolhapur", label: "Kolhapur" },
+    { value: "Latur", label: "Latur" },
+    { value: "Mumbai City", label: "Mumbai City" },
+    { value: "Mumbai Suburban", label: "Mumbai Suburban" },
+    { value: "Nagpur", label: "Nagpur" },
+    { value: "Nanded", label: "Nanded" },
+    { value: "Nandurbar", label: "Nandurbar" },
+    { value: "Nashik", label: "Nashik" },
+    { value: "Palghar", label: "Palghar" },
+    { value: "Parbhani", label: "Parbhani" },
+    { value: "Pune", label: "Pune" },
+    { value: "Raigad", label: "Raigad" },
+    { value: "Ratnagiri", label: "Ratnagiri" },
+    { value: "Sangli", label: "Sangli" },
+    { value: "Satara", label: "Satara" },
+    { value: "Sindhudurg", label: "Sindhudurg" },
+    { value: "Solapur", label: "Solapur" },
+    { value: "Thane", label: "Thane" },
+    { value: "Wardha", label: "Wardha" },
+    { value: "Washim", label: "Washim" },
+    { value: "Yavatmal", label: "Yavatmal" },
   ],
-  "B_and_D_Pharmacy": [
-    { value: 'Ahmednagar', label: 'Ahmednagar' },
-    { value: 'Akola', label: 'Akola' },
-    { value: 'Amravati', label: 'Amravati' },
-    { value: 'Beed', label: 'Beed' },
-    { value: 'Bhandara', label: 'Bhandara' },
-    { value: 'Buldana', label: 'Buldana' },
-    { value: 'Chandrapur', label: 'Chandrapur' },
-    { value: 'Chhatrapati Sambhajinagar', label: 'Chhatrapati Sambhajinagar' },
-    { value: 'Dharashiv', label: 'Dharashiv' },
-    { value: 'Dhule', label: 'Dhule' },
-    { value: 'Gadchiroli', label: 'Gadchiroli' },
-    { value: 'Gondia', label: 'Gondia' },
-    { value: 'Hingoli', label: 'Hingoli' },
-    { value: 'Jalgaon', label: 'Jalgaon' },
-    { value: 'Jalna', label: 'Jalna' },
-    { value: 'Kolhapur', label: 'Kolhapur' },
-    { value: 'Latur', label: 'Latur' },
-    { value: 'Mumbai City', label: 'Mumbai City' },
-    { value: 'Mumbai Suburban', label: 'Mumbai Suburban' },
-    { value: 'Nagpur', label: 'Nagpur' },
-    { value: 'Nanded', label: 'Nanded' },
-    { value: 'Nandurbar', label: 'Nandurbar' },
-    { value: 'Nashik', label: 'Nashik' },
-    { value: 'Palghar', label: 'Palghar' },
-    { value: 'Parbhani', label: 'Parbhani' },
-    { value: 'Pune', label: 'Pune' },
-    { value: 'Raigad', label: 'Raigad' },
-    { value: 'Ratnagiri', label: 'Ratnagiri' },
-    { value: 'Sangli', label: 'Sangli' },
-    { value: 'Satara', label: 'Satara' },
-    { value: 'Sindhudurg', label: 'Sindhudurg' },
-    { value: 'Solapur', label: 'Solapur' },
-    { value: 'Thane', label: 'Thane' },
-    { value: 'Wardha', label: 'Wardha' },
-    { value: 'Washim', label: 'Washim' },
-    { value: 'Yavatmal', label: 'Yavatmal' }
-  ]
+  B_and_D_Pharmacy: [
+    { value: "Ahmednagar", label: "Ahmednagar" },
+    { value: "Akola", label: "Akola" },
+    { value: "Amravati", label: "Amravati" },
+    { value: "Beed", label: "Beed" },
+    { value: "Bhandara", label: "Bhandara" },
+    { value: "Buldana", label: "Buldana" },
+    { value: "Chandrapur", label: "Chandrapur" },
+    { value: "Chhatrapati Sambhajinagar", label: "Chhatrapati Sambhajinagar" },
+    { value: "Dharashiv (Osmanabad)", label: "Dharashiv (Osmanabad)" },
+    { value: "Dhule", label: "Dhule" },
+    { value: "Gadchiroli", label: "Gadchiroli" },
+    { value: "Gondia", label: "Gondia" },
+    { value: "Hingoli", label: "Hingoli" },
+    { value: "Jalgaon", label: "Jalgaon" },
+    { value: "Jalna", label: "Jalna" },
+    { value: "Kolhapur", label: "Kolhapur" },
+    { value: "Latur", label: "Latur" },
+    { value: "Mumbai City", label: "Mumbai City" },
+    { value: "Mumbai Suburban", label: "Mumbai Suburban" },
+    { value: "Nagpur", label: "Nagpur" },
+    { value: "Nanded", label: "Nanded" },
+    { value: "Nandurbar", label: "Nandurbar" },
+    { value: "Nashik", label: "Nashik" },
+    { value: "Palghar", label: "Palghar" },
+    { value: "Parbhani", label: "Parbhani" },
+    { value: "Pune", label: "Pune" },
+    { value: "Raigad", label: "Raigad" },
+    { value: "Ratnagiri", label: "Ratnagiri" },
+    { value: "Sangli", label: "Sangli" },
+    { value: "Satara", label: "Satara" },
+    { value: "Sindhudurg", label: "Sindhudurg" },
+    { value: "Solapur", label: "Solapur" },
+    { value: "Thane", label: "Thane" },
+    { value: "Wardha", label: "Wardha" },
+    { value: "Washim", label: "Washim" },
+    { value: "Yavatmal", label: "Yavatmal" },
+  ],
 };
-
 
 // Helper function to get category label from value
-export const getCategoryLabel = (admissionType: IntegratedAdmissionType, categoryValue: string): string => {
-  const category = categoryOptions[admissionType].find(cat => cat.value === categoryValue);
+export const getCategoryLabel = (
+  admissionType: IntegratedAdmissionType,
+  categoryValue: string,
+): string => {
+  const category = categoryOptions[admissionType].find(
+    (cat) => cat.value === categoryValue,
+  );
   return category ? category.label : categoryValue;
 };
 
 // Helper function to get all available branches for an admission type
-export const getBranchesForAdmissionType = (admissionType: IntegratedAdmissionType): string[] => {
+export const getBranchesForAdmissionType = (
+  admissionType: IntegratedAdmissionType,
+): string[] => {
   return branchOptions[admissionType] || [];
 };
 
 // Helper function to get all available cities for an admission type
-export const getCitiesForAdmissionType = (admissionType: IntegratedAdmissionType): string[] => {
+export const getCitiesForAdmissionType = (
+  admissionType: IntegratedAdmissionType,
+): string[] => {
   return cityOptions[admissionType] || [];
 };
 
 // Helper function to get all available categories for an admission type
-export const getCategoriesForAdmissionType = (admissionType: IntegratedAdmissionType): Array<{ value: string; label: string }> => {
+export const getCategoriesForAdmissionType = (
+  admissionType: IntegratedAdmissionType,
+): Array<{ value: string; label: string }> => {
   return categoryOptions[admissionType] || [];
 };

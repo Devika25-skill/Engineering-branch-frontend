@@ -12,44 +12,65 @@ interface RecommendationHistory {
 }
 
 class RecommendationStorageService {
-  private static STORAGE_KEY = 'recommendation_data';
+  private static STORAGE_KEY = "recommendation_data";
   private static MAX_HISTORY = 10;
-  
+
   // Separate storage keys for each step
-  private static MEDICAL_ACADEMIC_KEY = 'medical_academic_details';
-  private static MEDICAL_PREFERENCES_KEY = 'medical_preferences';
-  private static MEDICAL_PRIORITIES_KEY = 'medical_priorities';
-  private static ENGINEERING_ACADEMIC_KEY = 'engineering_academic_details';
-  private static ENGINEERING_PREFERENCES_KEY = 'engineering_preferences';
-  private static ENGINEERING_PRIORITIES_KEY = 'engineering_priorities';
+  private static MEDICAL_ACADEMIC_KEY = "medical_academic_details";
+  private static MEDICAL_PREFERENCES_KEY = "medical_preferences";
+  private static MEDICAL_PRIORITIES_KEY = "medical_priorities";
+  private static ENGINEERING_ACADEMIC_KEY = "engineering_academic_details";
+  private static ENGINEERING_PREFERENCES_KEY = "engineering_preferences";
+  private static ENGINEERING_PRIORITIES_KEY = "engineering_priorities";
+  private static KARNATAKA_ENGINEERING_ACADEMIC_KEY =
+    "karnataka_engineering_academic_details";
+  private static KARNATAKA_ENGINEERING_PREFERENCES_KEY =
+    "karnataka_engineering_preferences";
+  private static KARNATAKA_ENGINEERING_PRIORITIES_KEY =
+    "karnataka_engineering_priorities";
 
   // Determine if current recommendation is medical
   private isMedicalRecommendation(): boolean {
-    return localStorage.getItem('recommendation_type') === 'First_Year_Medical';
+    return localStorage.getItem("recommendation_type") === "First_Year_Medical";
+  }
+
+  // Determine if current recommendation is Karnataka engineering
+  private isKarnatakaEngineering(): boolean {
+    return localStorage.getItem("selected_state") === "Karnataka";
   }
 
   // Save academic details
   saveAcademicDetails(data: any): void {
     try {
-      const key = this.isMedicalRecommendation() 
-        ? RecommendationStorageService.MEDICAL_ACADEMIC_KEY
-        : RecommendationStorageService.ENGINEERING_ACADEMIC_KEY;
+      let key = "";
+      if (this.isMedicalRecommendation()) {
+        key = RecommendationStorageService.MEDICAL_ACADEMIC_KEY;
+      } else if (this.isKarnatakaEngineering()) {
+        key = RecommendationStorageService.KARNATAKA_ENGINEERING_ACADEMIC_KEY;
+      } else {
+        key = RecommendationStorageService.ENGINEERING_ACADEMIC_KEY;
+      }
       sessionStorage.setItem(key, JSON.stringify(data));
     } catch (error) {
-      console.error('Failed to save academic details:', error);
+      console.error("Failed to save academic details:", error);
     }
   }
 
   // Get academic details
   getAcademicDetails(): any | null {
     try {
-      const key = this.isMedicalRecommendation()
-        ? RecommendationStorageService.MEDICAL_ACADEMIC_KEY
-        : RecommendationStorageService.ENGINEERING_ACADEMIC_KEY;
+      let key = "";
+      if (this.isMedicalRecommendation()) {
+        key = RecommendationStorageService.MEDICAL_ACADEMIC_KEY;
+      } else if (this.isKarnatakaEngineering()) {
+        key = RecommendationStorageService.KARNATAKA_ENGINEERING_ACADEMIC_KEY;
+      } else {
+        key = RecommendationStorageService.ENGINEERING_ACADEMIC_KEY;
+      }
       const stored = sessionStorage.getItem(key);
       return stored ? JSON.parse(stored) : null;
     } catch (error) {
-      console.error('Failed to get academic details:', error);
+      console.error("Failed to get academic details:", error);
       return null;
     }
   }
@@ -57,25 +78,37 @@ class RecommendationStorageService {
   // Save preferences
   savePreferences(data: any): void {
     try {
-      const key = this.isMedicalRecommendation()
-        ? RecommendationStorageService.MEDICAL_PREFERENCES_KEY
-        : RecommendationStorageService.ENGINEERING_PREFERENCES_KEY;
+      let key = "";
+      if (this.isMedicalRecommendation()) {
+        key = RecommendationStorageService.MEDICAL_PREFERENCES_KEY;
+      } else if (this.isKarnatakaEngineering()) {
+        key =
+          RecommendationStorageService.KARNATAKA_ENGINEERING_PREFERENCES_KEY;
+      } else {
+        key = RecommendationStorageService.ENGINEERING_PREFERENCES_KEY;
+      }
       sessionStorage.setItem(key, JSON.stringify(data));
     } catch (error) {
-      console.error('Failed to save preferences:', error);
+      console.error("Failed to save preferences:", error);
     }
   }
 
   // Get preferences
   getPreferences(): any | null {
     try {
-      const key = this.isMedicalRecommendation()
-        ? RecommendationStorageService.MEDICAL_PREFERENCES_KEY
-        : RecommendationStorageService.ENGINEERING_PREFERENCES_KEY;
+      let key = "";
+      if (this.isMedicalRecommendation()) {
+        key = RecommendationStorageService.MEDICAL_PREFERENCES_KEY;
+      } else if (this.isKarnatakaEngineering()) {
+        key =
+          RecommendationStorageService.KARNATAKA_ENGINEERING_PREFERENCES_KEY;
+      } else {
+        key = RecommendationStorageService.ENGINEERING_PREFERENCES_KEY;
+      }
       const stored = sessionStorage.getItem(key);
       return stored ? JSON.parse(stored) : null;
     } catch (error) {
-      console.error('Failed to get preferences:', error);
+      console.error("Failed to get preferences:", error);
       return null;
     }
   }
@@ -83,25 +116,35 @@ class RecommendationStorageService {
   // Save priorities
   savePriorities(data: any): void {
     try {
-      const key = this.isMedicalRecommendation()
-        ? RecommendationStorageService.MEDICAL_PRIORITIES_KEY
-        : RecommendationStorageService.ENGINEERING_PRIORITIES_KEY;
+      let key = "";
+      if (this.isMedicalRecommendation()) {
+        key = RecommendationStorageService.MEDICAL_PRIORITIES_KEY;
+      } else if (this.isKarnatakaEngineering()) {
+        key = RecommendationStorageService.KARNATAKA_ENGINEERING_PRIORITIES_KEY;
+      } else {
+        key = RecommendationStorageService.ENGINEERING_PRIORITIES_KEY;
+      }
       sessionStorage.setItem(key, JSON.stringify(data));
     } catch (error) {
-      console.error('Failed to save priorities:', error);
+      console.error("Failed to save priorities:", error);
     }
   }
 
   // Get priorities
   getPriorities(): any | null {
     try {
-      const key = this.isMedicalRecommendation()
-        ? RecommendationStorageService.MEDICAL_PRIORITIES_KEY
-        : RecommendationStorageService.ENGINEERING_PRIORITIES_KEY;
+      let key = "";
+      if (this.isMedicalRecommendation()) {
+        key = RecommendationStorageService.MEDICAL_PRIORITIES_KEY;
+      } else if (this.isKarnatakaEngineering()) {
+        key = RecommendationStorageService.KARNATAKA_ENGINEERING_PRIORITIES_KEY;
+      } else {
+        key = RecommendationStorageService.ENGINEERING_PRIORITIES_KEY;
+      }
       const stored = sessionStorage.getItem(key);
       return stored ? JSON.parse(stored) : null;
     } catch (error) {
-      console.error('Failed to get priorities:', error);
+      console.error("Failed to get priorities:", error);
       return null;
     }
   }
@@ -109,23 +152,51 @@ class RecommendationStorageService {
   // Save complete form data (combines all steps)
   saveFormData(formData: any): void {
     try {
-      const academicFields = ['tenthMarks', 'twelfthMarks', 'groupingMarks', 'reservationCategory', 
-        'grouping', 'cetPercentile', 'jeePercentile', 'neetPercentile', 'neetAllIndiaRank', 
-        'neetRollNumber', 'gender', 'otherExamName', 'otherExamPercentile', 'sportsAchievements',
-        'certifications', 'internships', 'otherAchievements'];
-      
-      const preferencesFields = ['preferredStreams', 'preferredMedicalPrograms', 'preferredCities',
-        'hostelPreference', 'campusSetting', 'transportFacility'];
-      
-      const prioritiesFields = ['maxBudget', 'collegeTypes', 'priorities', 'wifiTechInfrastructure',
-        'coCurricularActivities'];
+      const academicFields = [
+        "tenthMarks",
+        "twelfthMarks",
+        "groupingMarks",
+        "reservationCategory",
+        "grouping",
+        "cetPercentile",
+        "jeePercentile",
+        "neetPercentile",
+        "neetAllIndiaRank",
+        "neetRollNumber",
+        "gender",
+        "otherExamName",
+        "otherExamPercentile",
+        "sportsAchievements",
+        "certifications",
+        "internships",
+        "otherAchievements",
+        "cetRank", // Added cetRank to academic fields
+      ];
+
+      const preferencesFields = [
+        "preferredStreams",
+        "preferredMedicalPrograms",
+        "preferredCities",
+        "hostelPreference",
+        "campusSetting",
+        "transportFacility",
+        "district",
+      ];
+
+      const prioritiesFields = [
+        "maxBudget",
+        "collegeTypes",
+        "priorities",
+        "wifiTechInfrastructure",
+        "coCurricularActivities",
+      ];
 
       // Extract and save each section separately
       const academicData: any = {};
       const preferencesData: any = {};
       const prioritiesData: any = {};
 
-      Object.keys(formData).forEach(key => {
+      Object.keys(formData).forEach((key) => {
         if (academicFields.includes(key)) {
           academicData[key] = formData[key];
         } else if (preferencesFields.includes(key)) {
@@ -139,7 +210,7 @@ class RecommendationStorageService {
       this.savePreferences(preferencesData);
       this.savePriorities(prioritiesData);
     } catch (error) {
-      console.error('Failed to save form data:', error);
+      console.error("Failed to save form data:", error);
     }
   }
 
@@ -149,16 +220,20 @@ class RecommendationStorageService {
       const academic = this.getAcademicDetails() || {};
       const preferences = this.getPreferences() || {};
       const priorities = this.getPriorities() || {};
-      
+
       return { ...academic, ...preferences, ...priorities };
     } catch (error) {
-      console.error('Failed to get form data:', error);
+      console.error("Failed to get form data:", error);
       return null;
     }
   }
 
   // Save recommendation result
-  saveRecommendation(formData: any, recommendations: any[], recommendationId?: string): void {
+  saveRecommendation(
+    formData: any,
+    recommendations: any[],
+    recommendationId?: string,
+  ): void {
     try {
       const history = this.getHistory();
       const newRecommendation: StoredRecommendation = {
@@ -166,29 +241,43 @@ class RecommendationStorageService {
         formData,
         recommendations,
         timestamp: Date.now(),
-        recommendationId
+        recommendationId,
       };
 
       history.recommendations.unshift(newRecommendation);
-      
+
       // Keep only the latest MAX_HISTORY recommendations
-      if (history.recommendations.length > RecommendationStorageService.MAX_HISTORY) {
-        history.recommendations = history.recommendations.slice(0, RecommendationStorageService.MAX_HISTORY);
+      if (
+        history.recommendations.length >
+        RecommendationStorageService.MAX_HISTORY
+      ) {
+        history.recommendations = history.recommendations.slice(
+          0,
+          RecommendationStorageService.MAX_HISTORY,
+        );
       }
 
-      localStorage.setItem(RecommendationStorageService.STORAGE_KEY, JSON.stringify(history));
+      localStorage.setItem(
+        RecommendationStorageService.STORAGE_KEY,
+        JSON.stringify(history),
+      );
+
+      // Also save to active session storage keys
+      this.saveFormData(formData);
     } catch (error) {
-      console.error('Failed to save recommendation:', error);
+      console.error("Failed to save recommendation:", error);
     }
   }
 
   // Get recommendation history
   getHistory(): RecommendationHistory {
     try {
-      const stored = localStorage.getItem(RecommendationStorageService.STORAGE_KEY);
+      const stored = localStorage.getItem(
+        RecommendationStorageService.STORAGE_KEY,
+      );
       return stored ? JSON.parse(stored) : { recommendations: [] };
     } catch (error) {
-      console.error('Failed to get recommendation history:', error);
+      console.error("Failed to get recommendation history:", error);
       return { recommendations: [] };
     }
   }
@@ -196,17 +285,22 @@ class RecommendationStorageService {
   // Get specific recommendation by ID
   getRecommendationById(id: string): StoredRecommendation | null {
     const history = this.getHistory();
-    return history.recommendations.find(rec => rec.id === id) || null;
+    return history.recommendations.find((rec) => rec.id === id) || null;
   }
 
   // Delete specific recommendation
   deleteRecommendation(id: string): void {
     try {
       const history = this.getHistory();
-      history.recommendations = history.recommendations.filter(rec => rec.id !== id);
-      localStorage.setItem(RecommendationStorageService.STORAGE_KEY, JSON.stringify(history));
+      history.recommendations = history.recommendations.filter(
+        (rec) => rec.id !== id,
+      );
+      localStorage.setItem(
+        RecommendationStorageService.STORAGE_KEY,
+        JSON.stringify(history),
+      );
     } catch (error) {
-      console.error('Failed to delete recommendation:', error);
+      console.error("Failed to delete recommendation:", error);
     }
   }
 
@@ -215,54 +309,88 @@ class RecommendationStorageService {
     try {
       localStorage.removeItem(RecommendationStorageService.STORAGE_KEY);
     } catch (error) {
-      console.error('Failed to clear history:', error);
+      console.error("Failed to clear history:", error);
     }
   }
 
   // Clear form data
   clearFormData(): void {
     try {
-      sessionStorage.removeItem(RecommendationStorageService.MEDICAL_ACADEMIC_KEY);
-      sessionStorage.removeItem(RecommendationStorageService.MEDICAL_PREFERENCES_KEY);
-      sessionStorage.removeItem(RecommendationStorageService.MEDICAL_PRIORITIES_KEY);
-      sessionStorage.removeItem(RecommendationStorageService.ENGINEERING_ACADEMIC_KEY);
-      sessionStorage.removeItem(RecommendationStorageService.ENGINEERING_PREFERENCES_KEY);
-      sessionStorage.removeItem(RecommendationStorageService.ENGINEERING_PRIORITIES_KEY);
+      sessionStorage.removeItem(
+        RecommendationStorageService.MEDICAL_ACADEMIC_KEY,
+      );
+      sessionStorage.removeItem(
+        RecommendationStorageService.MEDICAL_PREFERENCES_KEY,
+      );
+      sessionStorage.removeItem(
+        RecommendationStorageService.MEDICAL_PRIORITIES_KEY,
+      );
+      sessionStorage.removeItem(
+        RecommendationStorageService.ENGINEERING_ACADEMIC_KEY,
+      );
+      sessionStorage.removeItem(
+        RecommendationStorageService.ENGINEERING_PREFERENCES_KEY,
+      );
+      sessionStorage.removeItem(
+        RecommendationStorageService.ENGINEERING_PRIORITIES_KEY,
+      );
+      sessionStorage.removeItem(
+        RecommendationStorageService.KARNATAKA_ENGINEERING_ACADEMIC_KEY,
+      );
+      sessionStorage.removeItem(
+        RecommendationStorageService.KARNATAKA_ENGINEERING_PREFERENCES_KEY,
+      );
+      sessionStorage.removeItem(
+        RecommendationStorageService.KARNATAKA_ENGINEERING_PRIORITIES_KEY,
+      );
     } catch (error) {
-      console.error('Failed to clear form data:', error);
+      console.error("Failed to clear form data:", error);
     }
   }
 
   // Medical recommendation storage methods
-  setMedicalRecommendations(recommendations: any[], formData: any, isPaid: boolean = false, acceptPayment: boolean = true): void {
+  setMedicalRecommendations(
+    recommendations: any[],
+    formData: any,
+    isPaid: boolean = false,
+    acceptPayment: boolean = true,
+  ): void {
     try {
-      sessionStorage.setItem('cachedMedicalRecommendations', JSON.stringify(recommendations));
-      sessionStorage.setItem('medicalRecommendationPaymentData', JSON.stringify({
-        is_payment: isPaid,
-        accept_payment: acceptPayment
-      }));
+      sessionStorage.setItem(
+        "cachedMedicalRecommendations",
+        JSON.stringify(recommendations),
+      );
+      sessionStorage.setItem(
+        "medicalRecommendationPaymentData",
+        JSON.stringify({
+          is_payment: isPaid,
+          accept_payment: acceptPayment,
+        }),
+      );
       this.saveFormData(formData);
     } catch (error) {
-      console.error('Failed to save medical recommendations:', error);
+      console.error("Failed to save medical recommendations:", error);
     }
   }
 
   getMedicalRecommendations(): any[] | null {
     try {
-      const cached = sessionStorage.getItem('cachedMedicalRecommendations');
+      const cached = sessionStorage.getItem("cachedMedicalRecommendations");
       return cached ? JSON.parse(cached) : null;
     } catch (error) {
-      console.error('Failed to get medical recommendations:', error);
+      console.error("Failed to get medical recommendations:", error);
       return null;
     }
   }
 
   getMedicalPaymentData(): { is_payment: boolean; accept_payment: boolean } {
     try {
-      const data = sessionStorage.getItem('medicalRecommendationPaymentData');
-      return data ? JSON.parse(data) : { is_payment: false, accept_payment: true };
+      const data = sessionStorage.getItem("medicalRecommendationPaymentData");
+      return data
+        ? JSON.parse(data)
+        : { is_payment: false, accept_payment: true };
     } catch (error) {
-      console.error('Failed to get medical payment data:', error);
+      console.error("Failed to get medical payment data:", error);
       return { is_payment: false, accept_payment: true };
     }
   }
@@ -275,23 +403,57 @@ class RecommendationStorageService {
   setMedicalPaidStatus(isPaid: boolean): void {
     try {
       const currentData = this.getMedicalPaymentData();
-      sessionStorage.setItem('medicalRecommendationPaymentData', JSON.stringify({
-        ...currentData,
-        is_payment: isPaid
-      }));
+      sessionStorage.setItem(
+        "medicalRecommendationPaymentData",
+        JSON.stringify({
+          ...currentData,
+          is_payment: isPaid,
+        }),
+      );
     } catch (error) {
-      console.error('Failed to set medical paid status:', error);
+      console.error("Failed to set medical paid status:", error);
     }
   }
 
   clearMedicalRecommendations(): void {
     try {
-      sessionStorage.removeItem('cachedMedicalRecommendations');
-      sessionStorage.removeItem('medicalRecommendationPaymentData');
-      sessionStorage.removeItem('cachedMedicalRound2Recommendations');
-      localStorage.removeItem('medicalRound2Recommendations');
+      sessionStorage.removeItem("cachedMedicalRecommendations");
+      sessionStorage.removeItem("medicalRecommendationPaymentData");
+      sessionStorage.removeItem("cachedMedicalRound2Recommendations");
+      localStorage.removeItem("medicalRound2Recommendations");
     } catch (error) {
-      console.error('Failed to clear medical recommendations:', error);
+      console.error("Failed to clear medical recommendations:", error);
+    }
+  }
+
+  // Clear all workflow data (Medical, Engineering, Karnataka)
+  clearAllWorkflowData(): void {
+    try {
+      // Retrieve critical auth data before clearing
+      const accessTokenLocal = localStorage.getItem("accessToken");
+      const userLocal = localStorage.getItem("user");
+      const accessTokenSession = sessionStorage.getItem("accessToken");
+      const userSession = sessionStorage.getItem("user");
+
+      // Clear everything
+      localStorage.clear();
+      sessionStorage.clear();
+
+      // Restore critical auth data
+      if (accessTokenLocal) {
+        localStorage.setItem("accessToken", accessTokenLocal);
+      }
+      if (userLocal) {
+        localStorage.setItem("user", userLocal);
+      }
+      if (accessTokenSession) {
+        sessionStorage.setItem("accessToken", accessTokenSession);
+      }
+      if (userSession) {
+        sessionStorage.setItem("user", userSession);
+      }
+    } catch (error) {
+      console.error("Failed to clear all workflow data:", error);
     }
   }
 }

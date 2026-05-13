@@ -1,13 +1,12 @@
-
-import { config } from '@/config/env';
-import type { College } from '@/types/college';
+import { config } from "@/config/env";
+import type { College } from "@/types/college";
 import type {
   StoreMedicalConfigRequest,
   StoreMedicalConfigResponse,
   FetchMedicalDetailsResponse,
   GenerateMedicalRecommendationsRequest,
-  GenerateMedicalRecommendationsResponse
-} from '@/types/medical';
+  GenerateMedicalRecommendationsResponse,
+} from "@/types/medical";
 
 const API_BASE_URL = config.apiBaseUrl;
 
@@ -35,6 +34,7 @@ export interface ApiCollegeResponse {
   institute_id: string;
   sj_institute_id: number;
   city: string;
+  region: string | null;
   region: string | null;
   logo: string;
   rating: number;
@@ -132,11 +132,62 @@ interface StoreCollegeDetailsRequest {
   cet_percentile: number;
 }
 
+export interface StoreKarnatakaEngineeringRoundDetailsRequest {
+  round: number;
+  college_code: string | number;
+  college_name: string;
+  course_name: string;
+  city: string;
+  category: string;
+  cet_rank: number;
+  isDeleted: boolean;
+}
+
+export interface GetKarnatakaEngineeringRoundDetailsResponse {
+  message: string;
+  success: boolean;
+  data: {
+    email: string;
+    round: number;
+    college_code: string | number;
+    college_name: string;
+    course_name: string;
+    city: string;
+    category: string;
+    cet_rank: number;
+    isDeleted: boolean;
+    created_at: string;
+    updated_at: string;
+  };
+}
+
 interface UserRoundDetailsResponse {
   username: string;
   College_Name: string;
   City: string;
   College_code: number;
+  Course_Name: string;
+  Course_Code: number;
+  Choice_Code: number;
+  round: number;
+}
+
+export interface StoreDiplomaCollegeDetailsRequest {
+  username: string;
+  college_name: string;
+  college_code: number;
+  course_name: string;
+  course_code: number;
+  choice_code: number;
+  round: number;
+  location: string;
+}
+
+export interface DiplomaRoundDetailsResponse {
+  username: string;
+  College_Name: string;
+  College_code: number;
+  City: string;
   Course_Name: string;
   Course_Code: number;
   Choice_Code: number;
@@ -198,8 +249,7 @@ export interface AdmissionChancesResponse {
     admission_probability: number;
     probability_message: string;
   };
-  detail?: string
-
+  detail?: string;
 }
 
 export interface GenerateRecommendationRequest {
@@ -231,6 +281,7 @@ export interface GenerateRecommendationRequest {
     preferences: {
       engineeringBranches: string[];
       preferredCities: string[];
+      preferredDistrict?: string;
     };
     campusFacilitiesEnvironment?: {
       hostelFacility?: string;
@@ -244,6 +295,7 @@ export interface GenerateRecommendationRequest {
     priorityFactors?: string[];
   };
   username: string;
+  gender?: string;
 }
 
 export interface GenerateRecommendationResponse {
@@ -254,6 +306,110 @@ export interface GenerateRecommendationResponse {
     is_payment: any;
     recommendation_id: string;
     created_at: string;
+  };
+}
+
+export interface StoreKarnatakaEngineeringConfigRequest {
+  username: string;
+  gender: string;
+  reservationCategory: string;
+  academic_credentials: {
+    educationBackground: {
+      educationType: string;
+      stream: string;
+    };
+    academicMarks: {
+      _10thGradeMarksPercent: number;
+      _12thGradeMarksPercent: number;
+      groupingMarksPercent: number;
+    };
+    examPercentiles: {
+      CET_Rank?: number;
+      JEE?: number;
+      otherEntranceExam?: Array<{
+        examName?: string;
+        percentileOrScore?: number;
+      }>;
+    };
+    achievementsExperience?: {
+      sportsAchievements?: string;
+      certifications?: string;
+      internshipsWorkExperience?: string;
+      otherAchievements?: string;
+    };
+    preferences: {
+      engineeringBranches: string[];
+      preferredCities: string[];
+    };
+    campusFacilitiesEnvironment?: {
+      hostelFacility?: string;
+      campusSetting?: string;
+      transportFacility?: string;
+      wifiTechInfrastructure?: string;
+      coCurricularActivities?: string;
+    };
+    annualBudget: number;
+    collegeTypePreferences?: string[];
+    priorityFactors?: string[];
+  };
+}
+
+export interface StoreKarnatakaEngineeringConfigResponse {
+  message: string;
+  success: boolean;
+  data: {
+    engineering_configuration_id: string;
+    timestamp: string;
+    operation: string;
+  };
+}
+
+export interface FetchKarnatakaEngineeringConfigResponse {
+  message: string;
+  success: boolean;
+  data: {
+    username: string;
+    gender: string;
+    reservationCategory: string;
+    academic_credentials: {
+      educationBackground: {
+        educationType: string;
+        stream: string;
+      };
+      academicMarks: {
+        _10thGradeMarksPercent: number;
+        _12thGradeMarksPercent: number;
+        groupingMarksPercent: number;
+      };
+      examPercentiles: {
+        CET_Rank: number;
+        JEE: number;
+        otherEntranceExam: Array<{
+          examName: string;
+          percentileOrScore: number;
+        }>;
+      };
+      achievementsExperience: {
+        sportsAchievements: string;
+        certifications: string;
+        internshipsWorkExperience: string;
+        otherAchievements: string;
+      };
+      preferences: {
+        engineeringBranches: string[];
+        preferredCities: string[];
+      };
+      campusFacilitiesEnvironment: {
+        hostelFacility: string;
+        campusSetting: string;
+        transportFacility: string;
+        wifiTechInfrastructure: string;
+        coCurricularActivities: string;
+      };
+      annualBudget: number;
+      collegeTypePreferences: string[];
+      priorityFactors: string[];
+    };
   };
 }
 
@@ -317,6 +473,17 @@ export interface RoundListRecommendation {
   cutoff: number;
 }
 
+export interface KarnatakaRecommendationRequest {
+  category: string;
+  cet_rank: number;
+  cet_course: string[];
+  cities: string[];
+  gender: string;
+  round: number;
+  last_round_choice_college_code: string;
+  last_round_choice_course_name: string;
+}
+
 export interface GenerateRoundListResponse {
   message: string;
   success: boolean;
@@ -338,6 +505,9 @@ export interface DiplomaRoundListRequest {
   cet_percentile: number;
   cet_course: string[];
   location: string[];
+  gender?: string;
+  round?: number;
+  last_round_college_choice_code?: number;
 }
 
 export interface DiplomaRoundListResponse {
@@ -359,8 +529,19 @@ export interface DiplomaConfigResponse {
   message: string;
   success: boolean;
   data: {
-    round: number;
-    configuration: any;
+    email?: string;
+    Round?: number;
+    diploma_user_config?: {
+      category: string;
+      cet_percentile: number;
+      cet_course: string[];
+      location: string[];
+      gender?: string;
+      last_round_college_choice_code?: number;
+    };
+    configuration?: any; // Fallback
+    round?: number; // Fallback
+    [key: string]: any;
   };
 }
 
@@ -383,6 +564,10 @@ export interface RecommendationRequest {
   cet_percentile: number;
   cet_course: string[];
   location: string[];
+  district?: string;
+  gender?: string;
+  round?: number;
+  last_round_college_choice_code?: number | string;
 }
 
 export interface RecommendationCollegeData {
@@ -453,6 +638,7 @@ export interface FetchAICapDetailsResponse {
   success: boolean;
   data: {
     username: string;
+    gender?: string;
     academic_credentials: {
       educationBackground: {
         educationType: string;
@@ -481,6 +667,7 @@ export interface FetchAICapDetailsResponse {
       preferences: {
         engineeringBranches: string[];
         preferredCities: string[];
+        preferredDistrict?: string;
       };
       campusFacilitiesEnvironment: {
         hostelFacility: string;
@@ -511,7 +698,7 @@ export interface CollegeSearchByCodeRequest {
 
 export interface CollegeDepartment {
   course_name: string;
-  choice_code: number;
+  choice_code?: number | string;
   course_code?: number;
   sj_code?: number;
 }
@@ -520,7 +707,7 @@ export interface CollegeSearchResult {
   College_Name: string;
   College_Website: string;
   City: string;
-  College_code: number;
+  College_code: number | string;
   department: CollegeDepartment | CollegeDepartment[];
 }
 
@@ -531,14 +718,17 @@ export interface CollegeSearchResponse {
 }
 
 class ApiService {
-  private async request<T>(endpoint: string, options?: RequestInit): Promise<T> {
+  private async request<T>(
+    endpoint: string,
+    options?: RequestInit,
+  ): Promise<T> {
     try {
-      const token = localStorage.getItem('accessToken');
+      const token = localStorage.getItem("accessToken");
 
       const response = await fetch(`${API_BASE_URL}${endpoint}`, {
         headers: {
-          'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` }),
+          "Content-Type": "application/json",
+          ...(token && { Authorization: `Bearer ${token}` }),
           ...options?.headers,
         },
         ...options,
@@ -551,22 +741,24 @@ class ApiService {
       const data = await response.json();
       return data;
     } catch (error) {
-      console.error('API request failed:', error);
+      console.error("API request failed:", error);
       throw error;
     }
   }
 
   async getCutoffData(token: string): Promise<CutoffApiResponse> {
-
     const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
     };
 
-    return this.request<CutoffApiResponse>('/api/v1/explore/colleges/cutoff/all', {
-      method: 'GET',
-      headers,
-    });
+    return this.request<CutoffApiResponse>(
+      "/api/v1/explore/colleges/cutoff/all",
+      {
+        method: "GET",
+        headers,
+      },
+    );
   }
 
   async getColleges(filters?: CollegeFilters): Promise<ApiResponse<College[]>> {
@@ -575,34 +767,43 @@ class ApiService {
       college_name: filters?.search ? [filters.search] : [],
       course: [],
       city: filters?.city || [],
-      sort_by: this.mapSortBy(filters?.sortBy || 'rating'),
-      order: 'desc'
+      sort_by: this.mapSortBy(filters?.sortBy || "rating"),
+      order: "desc",
     };
 
-
-    const response = await this.request<ApiCollegeListResponse>('/api/v1/explore/Quick_College_Scan/', {
-      method: 'POST',
-      body: JSON.stringify(payload),
-    });
+    const response = await this.request<ApiCollegeListResponse>(
+      "/api/v1/explore/Quick_College_Scan/",
+      {
+        method: "POST",
+        body: JSON.stringify(payload),
+      },
+    );
 
     // Transform API response to match our College interface
-    const colleges: College[] = response.data.colleges.map(apiCollege => {
+    const colleges: College[] = response.data.colleges.map((apiCollege) => {
       // Handle placement range safely
       const placementMin = apiCollege.placement_range?.min || null;
       const placementMax = apiCollege.placement_range?.max || null;
-      const averagePlacement = (placementMin !== null && placementMax !== null && placementMax > 0)
-        ? Math.round((placementMin + placementMax) / 2)
-        : (placementMin || null);
+      const averagePlacement =
+        placementMin !== null && placementMax !== null && placementMax > 0
+          ? Math.round((placementMin + placementMax) / 2)
+          : placementMin || null;
 
       // Handle CET cutoff range safely
-      const cetCutoffRange = (apiCollege.cet_cutoff_range?.min !== null && apiCollege.cet_cutoff_range?.max !== null) ? {
-        min: apiCollege.cet_cutoff_range.min,
-        max: apiCollege.cet_cutoff_range.max,
-        year: new Date().getFullYear()
-      } : null;
+      const cetCutoffRange =
+        apiCollege.cet_cutoff_range?.min !== null &&
+          apiCollege.cet_cutoff_range?.max !== null
+          ? {
+            min: apiCollege.cet_cutoff_range.min,
+            max: apiCollege.cet_cutoff_range.max,
+            year: new Date().getFullYear(),
+          }
+          : null;
 
       // Ensure streams is always an array
-      const streams = Array.isArray(apiCollege.courses) ? apiCollege.courses : [];
+      const streams = Array.isArray(apiCollege.courses)
+        ? apiCollege.courses
+        : [];
 
       return {
         id: apiCollege.sj_institute_id,
@@ -616,13 +817,16 @@ class ApiService {
         fees: apiCollege.fees || null,
         rating: apiCollege.rating || null,
         placement: averagePlacement,
-        placementRange: (placementMin !== null || placementMax !== null) ? {
-          min: placementMin,
-          max: placementMax
-        } : null,
+        placementRange:
+          placementMin !== null || placementMax !== null
+            ? {
+              min: placementMin,
+              max: placementMax,
+            }
+            : null,
         cetCutoffRange: cetCutoffRange,
-        type: 'Private' as const,
-        college_type: apiCollege.college_type || 'Private',
+        type: "Private" as const,
+        college_type: apiCollege.college_type || "Private",
         established: null,
         hasHostel: null,
         infrastructure_score: null,
@@ -630,38 +834,40 @@ class ApiService {
         cutoff_percentile: apiCollege.cet_cutoff_range?.max || null,
         naacGrade: null,
         campusSize: null,
-        totalFaculty: null
+        totalFaculty: null,
       };
     });
 
     return {
       success: true,
       data: colleges,
-      message: response.message
+      message: response.message,
     };
   }
 
   private mapSortBy(sortBy: string): string {
     const sortMapping: { [key: string]: string } = {
-      'rating': 'rating',
-      'name': 'name',
-      'fees': 'fees',
-      'placement': 'placement_percentage'
+      rating: "rating",
+      name: "name",
+      fees: "fees",
+      placement: "placement_percentage",
     };
 
-    return sortMapping[sortBy] || 'rating';
+    return sortMapping[sortBy] || "rating";
   }
 
   async getCollegeById(id: number): Promise<ApiResponse<College>> {
-
-    const response = await this.request<ApiCollegeDetailsResponse>(`/api/v1/explore/college/${id}`);
+    const response = await this.request<ApiCollegeDetailsResponse>(
+      `/api/v1/explore/college/${id}`,
+    );
 
     // Transform API response to match our College interface
     const apiData = response.data;
 
     // Helper function to safely convert values to avoid null/undefined
     const safeValue = (value: any): any => {
-      if (value === null || value === undefined || value === 0 || value === '') return null;
+      if (value === null || value === undefined || value === 0 || value === "")
+        return null;
       return value;
     };
 
@@ -672,15 +878,21 @@ class ApiService {
     };
 
     // Process departments data
-    const departments = apiData.Departments?.map(dept => ({
-      name: dept.Department_Name,
-      nbaAccredited: dept.NBA_Accredited === 'Yes' ? true : dept.NBA_Accredited === 'No' ? false : null,
-      placementRate: safeValue(dept.Placement_Percentage),
-      intake: safeValue(dept.Student_Intake),
-      cetPercent: safeValue(dept.CET),
-      jeePercent: safeValue(dept.JEE),
-      otherPercent: safeValue(dept["Other Entrance"])
-    })) || [];
+    const departments =
+      apiData.Departments?.map((dept) => ({
+        name: dept.Department_Name,
+        nbaAccredited:
+          dept.NBA_Accredited === "Yes"
+            ? true
+            : dept.NBA_Accredited === "No"
+              ? false
+              : null,
+        placementRate: safeValue(dept.Placement_Percentage),
+        intake: safeValue(dept.Student_Intake),
+        cetPercent: safeValue(dept.CET),
+        jeePercent: safeValue(dept.JEE),
+        otherPercent: safeValue(dept["Other Entrance"]),
+      })) || [];
 
     const college: College = {
       id: apiData.SJ_Institute_Code,
@@ -696,20 +908,28 @@ class ApiService {
       naacGrade: safeValue(apiData.NAAC_Acrredition),
       campusSize: null,
       totalFaculty: safeValue(apiData.Faculty_Student_Ratio),
-      streams: departments.map(d => d.name),
+      streams: departments.map((d) => d.name),
       coursesOffered: safeValue(apiData.Engineering_Streams),
       totalIntake: safeValue(apiData.Student_Intake),
       fees: safeValue(apiData["Annual_Fees_(INR)"]),
       feesRange: null,
       hostelFees: null,
-      hasHostel: apiData.Facilities?.Hostel === 'Yes',
+      hasHostel: apiData.Facilities?.Hostel === "Yes",
       rating: safeValue(apiData.College_Reviews_out_of_5),
-      placement: safeValue(apiData.Placement_Details?.Overall_College_Placement_Percentage || apiData.Average_Placement_Percentage),
+      placement: safeValue(
+        apiData.Placement_Details?.Overall_College_Placement_Percentage ||
+        apiData.Average_Placement_Percentage,
+      ),
       placementRange: null,
-      type: apiData.College_Type === 'private' ? 'Private' :
-        apiData.College_Type === 'public' ? 'Government' :
-          'Autonomous',
-      college_type: apiData.College_Type ? capitalizeFirst(apiData.College_Type) : null,
+      type:
+        apiData.College_Type === "private"
+          ? "Private"
+          : apiData.College_Type === "public"
+            ? "Government"
+            : "Autonomous",
+      college_type: apiData.College_Type
+        ? capitalizeFirst(apiData.College_Type)
+        : null,
       established: safeValue(apiData.Established_Year),
       nirf_ranking: (() => {
         const min = safeValue(apiData.NIRF_Rank_Min);
@@ -729,18 +949,22 @@ class ApiService {
       facilities: {
         library: true,
         laboratories: apiData.Facilities?.Lab ? [apiData.Facilities.Lab] : [],
-        sportsComplex: apiData.Facilities?.Sports?.includes('indoor and outdoor') || false,
+        sportsComplex:
+          apiData.Facilities?.Sports?.includes("indoor and outdoor") || false,
         auditorium: true,
         cafeteria: true,
         medicalCenter: true,
-        wifi: apiData.Facilities?.Internet === 'Yes',
-        transportFacility: apiData.Facilities?.Bus === 'Yes',
+        wifi: apiData.Facilities?.Internet === "Yes",
+        transportFacility: apiData.Facilities?.Bus === "Yes",
         parking: true,
       },
 
       placementDetails: {
-        averagePackage: safeValue(apiData.Placement_Details?.Average_Package_LPA),
-        highestPackage: safeValue(apiData.Placement_Details?.Highest_Package_LPA) ||
+        averagePackage: safeValue(
+          apiData.Placement_Details?.Average_Package_LPA,
+        ),
+        highestPackage:
+          safeValue(apiData.Placement_Details?.Highest_Package_LPA) ||
           (apiData["Previous_Year_Highest_Package_Offered_(LPA)"]
             ? apiData["Previous_Year_Highest_Package_Offered_(LPA)"] / 100000
             : null),
@@ -749,14 +973,19 @@ class ApiService {
       },
 
       admission: {
-        process: safeValue(apiData.Admission_Process) || 'Based on entrance exam',
-        eligibility: 'As per university norms',
+        process:
+          safeValue(apiData.Admission_Process) || "Based on entrance exam",
+        eligibility: "As per university norms",
         importantDates: undefined,
       },
 
       location: {
-        nearbyLandmarks: apiData.Location?.Nearest_Airport ? [apiData.Location.Nearest_Airport] : [],
-        transportation: apiData.Location?.Nearest_Railway_Station ? [apiData.Location.Nearest_Railway_Station] : [],
+        nearbyLandmarks: apiData.Location?.Nearest_Airport
+          ? [apiData.Location.Nearest_Airport]
+          : [],
+        transportation: apiData.Location?.Nearest_Railway_Station
+          ? [apiData.Location.Nearest_Railway_Station]
+          : [],
         latitude: undefined,
         longitude: undefined,
       },
@@ -769,36 +998,50 @@ class ApiService {
 
       // Add location details
       locationDetails: {
-        address: safeValue(apiData.Location?.Address || apiData.College_Address),
-        nearestRailwayStation: safeValue(apiData.Location?.Nearest_Railway_Station),
-        distanceFromRailway: safeValue(apiData.Location?.Distance_from_Railway_Station_km),
+        address: safeValue(
+          apiData.Location?.Address || apiData.College_Address,
+        ),
+        nearestRailwayStation: safeValue(
+          apiData.Location?.Nearest_Railway_Station,
+        ),
+        distanceFromRailway: safeValue(
+          apiData.Location?.Distance_from_Railway_Station_km,
+        ),
         nearestAirport: safeValue(apiData.Location?.Nearest_Airport),
-        distanceFromAirport: safeValue(apiData.Location?.Distance_from_Airport_km),
-      }
+        distanceFromAirport: safeValue(
+          apiData.Location?.Distance_from_Airport_km,
+        ),
+      },
     };
 
     return {
       success: true,
       data: college,
-      message: response.message
+      message: response.message,
     };
   }
 
-  async getCollegeStats(): Promise<ApiResponse<{
-    totalColleges: number;
-    cities: string[];
-    streams: string[];
-    types: string[];
-    feesRange: { min: number; max: number };
-  }>> {
+  async getCollegeStats(): Promise<
+    ApiResponse<{
+      totalColleges: number;
+      cities: string[];
+      streams: string[];
+      types: string[];
+      feesRange: { min: number; max: number };
+    }>
+  > {
     // This will use the same colleges data to compute stats
     const response = await this.getColleges();
     const colleges = response.data;
 
-    const cities = [...new Set(colleges.map(c => c.city))].filter(Boolean);
-    const streams = [...new Set(colleges.flatMap(c => c.streams || []))].filter(Boolean);
-    const types = [...new Set(colleges.map(c => c.college_type))].filter(Boolean);
-    const fees = colleges.map(c => c.fees).filter(f => f > 0);
+    const cities = [...new Set(colleges.map((c) => c.city))].filter(Boolean);
+    const streams = [
+      ...new Set(colleges.flatMap((c) => c.streams || [])),
+    ].filter(Boolean);
+    const types = [...new Set(colleges.map((c) => c.college_type))].filter(
+      Boolean,
+    );
+    const fees = colleges.map((c) => c.fees).filter((f) => f > 0);
 
     return {
       success: true,
@@ -807,16 +1050,16 @@ class ApiService {
         cities,
         streams,
         types,
-        feesRange: { min: Math.min(...fees), max: Math.max(...fees) }
-      }
+        feesRange: { min: Math.min(...fees), max: Math.max(...fees) },
+      },
     };
   }
 
   async sendOTP(email: string): Promise<SendOTPResponse> {
     const payload: SendOTPRequest = { email };
 
-    return this.request<SendOTPResponse>('/api/v1/auth/sendOTP', {
-      method: 'POST',
+    return this.request<SendOTPResponse>("/api/v1/auth/sendOTP", {
+      method: "POST",
       body: JSON.stringify(payload),
     });
   }
@@ -824,180 +1067,278 @@ class ApiService {
   async validateOTP(email: string, otp: number): Promise<ValidateOTPResponse> {
     const payload: ValidateOTPRequest = {
       email,
-      user_type: 'user',
-      otp
+      user_type: "user",
+      otp,
     };
 
-    return this.request<ValidateOTPResponse>('/api/v1/auth/validateOTP', {
-      method: 'POST',
+    return this.request<ValidateOTPResponse>("/api/v1/auth/validateOTP", {
+      method: "POST",
       body: JSON.stringify(payload),
     });
   }
 
-  async storeUser(email: string, name: string, mobile?: string): Promise<StoreUserResponse> {
-    const username: string = email
+  async storeUser(
+    email: string,
+    name: string,
+    mobile?: string,
+  ): Promise<StoreUserResponse> {
+    const username: string = email;
     const payload: StoreUserRequest = {
       username,
       name,
-      ...(mobile && { mobile })
+      ...(mobile && { mobile }),
     };
 
-    return this.request<StoreUserResponse>('/api/v1/user/store_user', {
-      method: 'POST',
+    return this.request<StoreUserResponse>("/api/v1/user/store_user", {
+      method: "POST",
       body: JSON.stringify(payload),
     });
   }
 
-  async calculateAdmissionChances(payload: AdmissionChancesRequest): Promise<AdmissionChancesResponse> {
-
-    return this.request<AdmissionChancesResponse>('/api/v1/explore/admission-chances', {
-      method: 'POST',
-      body: JSON.stringify(payload),
-    });
+  async calculateAdmissionChances(
+    payload: AdmissionChancesRequest,
+  ): Promise<AdmissionChancesResponse> {
+    return this.request<AdmissionChancesResponse>(
+      "/api/v1/explore/admission-chances",
+      {
+        method: "POST",
+        body: JSON.stringify(payload),
+      },
+    );
   }
 
-  async generateRecommendation(payload: GenerateRecommendationRequest): Promise<GenerateRecommendationResponse> {
-
-    return this.request<GenerateRecommendationResponse>('/api/v1/explore/generate_recommendation', {
-      method: 'POST',
-      body: JSON.stringify(payload),
-    });
+  async generateRecommendation(
+    payload: GenerateRecommendationRequest,
+  ): Promise<GenerateRecommendationResponse> {
+    return this.request<GenerateRecommendationResponse>(
+      "/api/v1/explore/generate_recommendation",
+      {
+        method: "POST",
+        body: JSON.stringify(payload),
+      },
+    );
   }
 
-  async getRecommendations(payload: RecommendationRequest, token: string): Promise<RecommendationApiResponse> {
+  async getRecommendations(
+    payload: RecommendationRequest,
+    token: string,
+  ): Promise<RecommendationApiResponse> {
+    const isKarnataka = localStorage.getItem("selected_state") === "Karnataka";
+    const endpoint = isKarnataka
+      ? "/api/v1/karnatakaEngineering/recommendation/college-list"
+      : "/api/v1/explore/recommendation/college-list";
 
-    return this.request<RecommendationApiResponse>('/api/v1/explore/recommendation/college-list', {
-      method: 'POST',
+    return this.request<RecommendationApiResponse>(endpoint, {
+      method: "POST",
       headers: {
-        'Authorization': `Bearer ${token}`,
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
+        Authorization: `Bearer ${token}`,
+        Accept: "application/json",
+        "Content-Type": "application/json",
       },
       body: JSON.stringify(payload),
     });
   }
 
-  async getExistingRecommendations(token: string): Promise<RecommendationApiResponse> {
-    return this.request<RecommendationApiResponse>('/api/v1/explore/recommendation/college-list', {
-      method: 'GET',
+  async getRoundRecommendations(round: number, token: string): Promise<any> {
+    const isKarnataka = localStorage.getItem("selected_state") === "Karnataka";
+    const endpoint = isKarnataka
+      ? `/api/v1/karnatakaEngineering/recommendation/college-list?round=${round}`
+      : `/api/v1/explore/recommendation/college-list?round=${round}`;
+
+    return this.request<any>(endpoint, {
+      method: "GET",
       headers: {
-        'Authorization': `Bearer ${token}`,
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
+        Authorization: `Bearer ${token}`,
+        Accept: "application/json",
+      },
+    });
+  }
+
+  async getExistingRecommendations(
+    token: string,
+  ): Promise<RecommendationApiResponse> {
+    const isKarnataka = localStorage.getItem("selected_state") === "Karnataka";
+    const endpoint = isKarnataka
+      ? "/api/v1/karnatakaEngineering/recommendation/college-list"
+      : "/api/v1/explore/recommendation/college-list";
+
+    return this.request<RecommendationApiResponse>(endpoint, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: "application/json",
+        "Content-Type": "application/json",
       },
     });
   }
 
   async fetchAICapDetails(token: string): Promise<FetchAICapDetailsResponse> {
-    return this.request<FetchAICapDetailsResponse>('/api/v1/explore/fetchAICapDetails', {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`,
+    return this.request<FetchAICapDetailsResponse>(
+      "/api/v1/explore/fetchAICapDetails",
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       },
-    });
+    );
   }
 
   // Round 2 Search Methods
-  async searchCollegeByChoiceCode(payload: CollegeSearchByChoiceCodeRequest, token: string): Promise<CollegeSearchResponse> {
-    return this.request<CollegeSearchResponse>('/api/v1/explore/search_college_by/choice_code', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
+  async searchCollegeByChoiceCode(
+    payload: CollegeSearchByChoiceCodeRequest,
+    token: string,
+  ): Promise<CollegeSearchResponse> {
+    return this.request<CollegeSearchResponse>(
+      "/api/v1/explore/search_college_by/choice_code",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
       },
-      body: JSON.stringify(payload),
+    );
+  }
+
+  async searchCollegeByName(
+    payload: CollegeSearchByNameRequest,
+    token: string,
+  ): Promise<CollegeSearchResponse> {
+    return this.request<CollegeSearchResponse>(
+      "/api/v1/explore/search_college_by/college_name",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      },
+    );
+  }
+
+  async searchCollegeByCode(
+    payload: CollegeSearchByCodeRequest,
+    token: string,
+  ): Promise<CollegeSearchResponse> {
+    return this.request<CollegeSearchResponse>(
+      "/api/v1/explore/search_college_by/college_code",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      },
+    );
+  }
+
+  async storeCollegeDetails(
+    payload: StoreCollegeDetailsRequest,
+    token: string,
+  ): Promise<ApiResponse<any>> {
+    return this.request<ApiResponse<any>>(
+      "/api/v1/user/store_college_details",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      },
+    );
+  }
+
+  async getUserRoundDetails(
+    round: number,
+    token: string,
+  ): Promise<ApiResponse<UserRoundDetailsResponse>> {
+    return this.request<ApiResponse<UserRoundDetailsResponse>>(
+      `/api/v1/user/get_user_round_details/${round}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
+      },
+    );
+  }
+
+  async updateRoundPreferences(
+    payload: { round: number; branches: string[]; cities: string[] },
+    token: string,
+  ): Promise<ApiResponse<{ round_status: string }>> {
+    return this.request<ApiResponse<{ round_status: string }>>(
+      "/api/v1/user/round_prefrences",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      },
+    );
+  }
+
+  async getUserRoundPreferences(
+    round: number,
+    token: string,
+  ): Promise<
+    ApiResponse<{ round: number; branches: string[]; cities: string[] }>
+  > {
+    return this.request<
+      ApiResponse<{ round: number; branches: string[]; cities: string[] }>
+    >(`/api/v1/user/get_user_round_preferences/${round}`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: "application/json",
+      },
     });
   }
 
-  async searchCollegeByName(payload: CollegeSearchByNameRequest, token: string): Promise<CollegeSearchResponse> {
-    return this.request<CollegeSearchResponse>('/api/v1/explore/search_college_by/college_name', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
+  async generateRoundList(
+    payload: GenerateRoundListRequest,
+    token: string,
+  ): Promise<GenerateRoundListResponse> {
+    return this.request<GenerateRoundListResponse>(
+      "/api/v1/explore/generate/round-list",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
       },
-      body: JSON.stringify(payload),
-    });
-  }
-
-  async searchCollegeByCode(payload: CollegeSearchByCodeRequest, token: string): Promise<CollegeSearchResponse> {
-    return this.request<CollegeSearchResponse>('/api/v1/explore/search_college_by/college_code', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(payload),
-    });
-  }
-
-  async storeCollegeDetails(payload: StoreCollegeDetailsRequest, token: string): Promise<ApiResponse<any>> {
-    return this.request<ApiResponse<any>>('/api/v1/user/store_college_details', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(payload),
-    });
-  }
-
-  async getUserRoundDetails(round: number, token: string): Promise<ApiResponse<UserRoundDetailsResponse>> {
-    return this.request<ApiResponse<UserRoundDetailsResponse>>(`/api/v1/user/get_user_round_details/${round}`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Accept': 'application/json',
-      },
-    });
-  }
-
-  async updateRoundPreferences(payload: { round: number; branches: string[]; cities: string[] }, token: string): Promise<ApiResponse<{ round_status: string }>> {
-    return this.request<ApiResponse<{ round_status: string }>>('/api/v1/user/round_prefrences', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
-    });
-  }
-
-  async getUserRoundPreferences(round: number, token: string): Promise<ApiResponse<{ round: number; branches: string[]; cities: string[] }>> {
-    return this.request<ApiResponse<{ round: number; branches: string[]; cities: string[] }>>(`/api/v1/user/get_user_round_preferences/${round}`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Accept': 'application/json',
-      },
-    });
-  }
-
-  async generateRoundList(payload: GenerateRoundListRequest, token: string): Promise<GenerateRoundListResponse> {
-    return this.request<GenerateRoundListResponse>('/api/v1/explore/generate/round-list', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
-    });
+    );
   }
 
   // Diploma recommendation methods
-  async generateDiplomaRoundList(payload: DiplomaRoundListRequest): Promise<DiplomaRoundListResponse> {
-    return this.request<DiplomaRoundListResponse>('/api/v1/explore/generate/diploma-round-list', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
-        'Content-Type': 'application/json',
+  async generateDiplomaRoundList(
+    payload: DiplomaRoundListRequest,
+  ): Promise<DiplomaRoundListResponse> {
+    return this.request<DiplomaRoundListResponse>(
+      "/api/v1/explore/generate/diploma-round-list",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
       },
-      body: JSON.stringify(payload),
-    });
+    );
   }
 
   // Diploma Round 2 API method
@@ -1009,115 +1350,221 @@ class ApiService {
     round: number;
     last_round_college_choice_code: number;
   }): Promise<DiplomaRoundListResponse> {
-    return this.request<DiplomaRoundListResponse>('/api/v1/explore/generate/diploma-round-list', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
-        'Content-Type': 'application/json',
+    return this.request<DiplomaRoundListResponse>(
+      "/api/v1/explore/generate/diploma-round-list",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
       },
-      body: JSON.stringify(payload),
-    });
+    );
   }
 
   async getDiplomaConfig(roundNo: number): Promise<DiplomaConfigResponse> {
-    return this.request<DiplomaConfigResponse>(`/api/v1/explore/get-diploma-config/${roundNo}`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
-        'Content-Type': 'application/json',
+    return this.request<DiplomaConfigResponse>(
+      `/api/v1/explore/get-diploma-config/${roundNo}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+          "Content-Type": "application/json",
+        },
       },
-    });
+    );
+  }
+
+  async storeDiplomaCollegeDetails(
+    payload: StoreDiplomaCollegeDetailsRequest,
+    token: string,
+  ): Promise<ApiResponse<any>> {
+    return this.request<ApiResponse<any>>(
+      "/api/v1/explore/store_diploma_college_details",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      },
+    );
+  }
+
+  async getDiplomaRoundDetails(
+    round: number,
+    token: string,
+  ): Promise<ApiResponse<DiplomaRoundDetailsResponse>> {
+    return this.request<ApiResponse<DiplomaRoundDetailsResponse>>(
+      `/api/v1/explore/get_diploma_round_details/${round}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
+      },
+    );
+  }
+
+  async storeDiplomaUserConfig(payload: {
+    category: string;
+    cet_percentile: number;
+    cet_course: string[];
+    location: string[];
+    gender: string;
+    round: number;
+    last_round_college_choice_code: number;
+  }): Promise<ApiResponse<any>> {
+    return this.request<ApiResponse<any>>(
+      "/api/v1/explore/store-diploma-user-config",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      },
+    );
+  }
+
+  async getDiplomaRoundList(round: number): Promise<DiplomaRoundListResponse> {
+    return this.request<DiplomaRoundListResponse>(
+      `/api/v1/explore/get/diploma-round-list/${round}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+          "Content-Type": "application/json",
+        },
+      },
+    );
   }
 
   // Medical recommendation methods
-  async storeMedicalConfiguration(payload: StoreMedicalConfigRequest): Promise<StoreMedicalConfigResponse> {
-    return this.request<StoreMedicalConfigResponse>('/api/v1/medical/student/configuration', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
-        'Content-Type': 'application/json',
+  async storeMedicalConfiguration(
+    payload: StoreMedicalConfigRequest,
+  ): Promise<StoreMedicalConfigResponse> {
+    return this.request<StoreMedicalConfigResponse>(
+      "/api/v1/medical/student/configuration",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
       },
-      body: JSON.stringify(payload),
-    });
+    );
   }
 
-  async fetchMedicalStudentDetails(token: string, state: string): Promise<FetchMedicalDetailsResponse> {
-    return this.request<FetchMedicalDetailsResponse>(`/api/v1/medical/student/details?state=${encodeURIComponent(state)}`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
+  async fetchMedicalStudentDetails(
+    token: string,
+    state: string,
+  ): Promise<FetchMedicalDetailsResponse> {
+    return this.request<FetchMedicalDetailsResponse>(
+      `/api/v1/medical/student/details?state=${encodeURIComponent(state)}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
       },
-    });
+    );
   }
 
-  async generateMedicalRecommendations(payload: GenerateMedicalRecommendationsRequest): Promise<GenerateMedicalRecommendationsResponse> {
-    return this.request<GenerateMedicalRecommendationsResponse>('/api/v1/medical/medical/recommendations', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
-        'Content-Type': 'application/json',
+  async generateMedicalRecommendations(
+    payload: GenerateMedicalRecommendationsRequest,
+  ): Promise<GenerateMedicalRecommendationsResponse> {
+    return this.request<GenerateMedicalRecommendationsResponse>(
+      "/api/v1/medical/medical/recommendations",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
       },
-      body: JSON.stringify(payload),
-    });
+    );
   }
 
   // Medical College Search Methods
-  async searchMedicalCollegeByName(collegeName: string, token: string, state: string): Promise<any> {
-    return this.request<any>(`/api/v1/medical/college/search/name?college_name=${encodeURIComponent(collegeName)}&state=${encodeURIComponent(state)}`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Accept': 'application/json',
+  async searchMedicalCollegeByName(
+    collegeName: string,
+    token: string,
+    state: string,
+  ): Promise<any> {
+    return this.request<any>(
+      `/api/v1/medical/college/search/name?college_name=${encodeURIComponent(collegeName)}&state=${encodeURIComponent(state)}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
       },
-    });
+    );
   }
 
-  async searchMedicalCollegeByCode(collegeCode: number | string, token: string, state: string): Promise<any> {
-    return this.request<any>(`/api/v1/medical/college/search/code?college_code=${collegeCode}&state=${encodeURIComponent(state)}`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Accept': 'application/json',
+  async searchMedicalCollegeByCode(
+    collegeCode: number | string,
+    token: string,
+    state: string,
+  ): Promise<any> {
+    return this.request<any>(
+      `/api/v1/medical/college/search/code?college_code=${collegeCode}&state=${encodeURIComponent(state)}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
       },
-    });
+    );
   }
 
   // Store Medical College Details for Round
-  async storeMedicalCollegeDetails(payload: {
-    collegeName: string;
-    collegeCode: number;
-    courseName: string;
-    round: number;
-    city: string;
-    state: string;
-    category: string;
-    NEETAllIndiaRank: number;
-    isDeleted?: boolean;
-  }, token: string): Promise<ApiResponse<{ college_status: string }>> {
-    return this.request<ApiResponse<{ college_status: string }>>('/api/v1/medical/store_medical_college_details', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
+  async storeMedicalCollegeDetails(
+    payload: {
+      collegeName: string;
+      collegeCode: number;
+      courseName: string;
+      round: number;
+      city: string;
+      state: string;
+      category: string;
+      NEETAllIndiaRank: number;
+      isDeleted?: boolean;
+    },
+    token: string,
+  ): Promise<ApiResponse<{ college_status: string }>> {
+    return this.request<ApiResponse<{ college_status: string }>>(
+      "/api/v1/medical/store_medical_college_details",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
       },
-      body: JSON.stringify(payload),
-    });
+    );
   }
 
   // Get Saved Medical Round Details
-  async getMedicalUserRoundDetails(round: number, token: string, state: string): Promise<ApiResponse<{
-    userName: string;
-    round: number;
-    collegeName: string;
-    collegeCode: number;
-    courseName: string;
-    city: string;
-    category: string;
-    NEETAllIndiaRank: number;
-  }>> {
-    return this.request<ApiResponse<{
+  async getMedicalUserRoundDetails(
+    round: number,
+    token: string,
+    state: string,
+  ): Promise<
+    ApiResponse<{
       userName: string;
       round: number;
       collegeName: string;
@@ -1126,27 +1573,38 @@ class ApiService {
       city: string;
       category: string;
       NEETAllIndiaRank: number;
-    }>>(`/api/v1/medical/get_medical_user_round_details?round=${round}&state=${encodeURIComponent(state)}`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Accept': 'application/json',
+    }>
+  > {
+    return this.request<
+      ApiResponse<{
+        userName: string;
+        round: number;
+        collegeName: string;
+        collegeCode: number;
+        courseName: string;
+        city: string;
+        category: string;
+        NEETAllIndiaRank: number;
+      }>
+    >(
+      `/api/v1/medical/get_medical_user_round_details?round=${round}&state=${encodeURIComponent(state)}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
       },
-    });
+    );
   }
 
   // Get Medical Recommendations by Round
-  async getMedicalRecommendationsByRound(round: number, token: string, state: string): Promise<ApiResponse<{
-    username: string;
-    Dream: any[];
-    Reach: any[];
-    Match: any[];
-    Safety: any[];
-    Round: number;
-    is_payment: boolean;
-    accept_payment: boolean;
-  }>> {
-    return this.request<ApiResponse<{
+  async getMedicalRecommendationsByRound(
+    round: number,
+    token: string,
+    state: string,
+  ): Promise<
+    ApiResponse<{
       username: string;
       Dream: any[];
       Reach: any[];
@@ -1155,24 +1613,181 @@ class ApiService {
       Round: number;
       is_payment: boolean;
       accept_payment: boolean;
-    }>>(`/api/v1/medical/medical/recommendations/college-list?round=${round}&state=${encodeURIComponent(state)}`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Accept': 'application/json',
+    }>
+  > {
+    return this.request<
+      ApiResponse<{
+        username: string;
+        Dream: any[];
+        Reach: any[];
+        Match: any[];
+        Safety: any[];
+        Round: number;
+        is_payment: boolean;
+        accept_payment: boolean;
+      }>
+    >(
+      `/api/v1/medical/medical/recommendations/college-list?round=${round}&state=${encodeURIComponent(state)}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
       },
-    });
+    );
   }
-  async sendOTP(email: string): Promise<SendOTPResponse> {
-    return this.request<SendOTPResponse>('/api/v1/auth/sendOTP', {
-      method: 'POST',
-      body: JSON.stringify({ email }),
-    });
+  async storeKarnatakaEngineeringConfig(
+    payload: StoreKarnatakaEngineeringConfigRequest,
+  ): Promise<StoreKarnatakaEngineeringConfigResponse> {
+    const token = localStorage.getItem("accessToken");
+    return this.request<StoreKarnatakaEngineeringConfigResponse>(
+      "/api/v1/karnatakaEngineering/store-engineering-user-config/",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      },
+    );
+  }
+
+  async fetchKarnatakaEngineeringConfig(
+    token: string,
+  ): Promise<FetchKarnatakaEngineeringConfigResponse> {
+    return this.request<FetchKarnatakaEngineeringConfigResponse>(
+      "/api/v1/karnatakaEngineering/fetch-engineering-user-config",
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
+      },
+    );
+  }
+
+  async karnatakaEngineeringRecommendation(
+    data: KarnatakaRecommendationRequest,
+    token: string,
+  ): Promise<ApiResponse<ApiCollegeListResponse>> {
+    const response = await fetch(
+      `${API_BASE_URL}/api/v1/karnatakaEngineering/recommendation/college-list`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(data),
+      },
+    );
+    return response.json();
+  }
+
+  async storeKarnatakaEngineeringRoundDetails(
+    payload: StoreKarnatakaEngineeringRoundDetailsRequest,
+    token: string,
+  ): Promise<ApiResponse<any>> {
+    return this.request<ApiResponse<any>>(
+      "/api/v1/karnatakaEngineering/store_engineering_round_college_details",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      },
+    );
+  }
+
+  async searchKarnatakaCollegeByCode(
+    collegeCode: string,
+    token: string,
+  ): Promise<ApiResponse<any>> {
+    return this.request<ApiResponse<any>>(
+      `/api/v1/karnatakaEngineering/search_college_by/college_code?college_code=${collegeCode}`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
+        body: "", // Empty body as per CURL
+      },
+    );
+  }
+
+  async searchKarnatakaCollegeByName(
+    collegeName: string,
+    token: string,
+  ): Promise<ApiResponse<any>> {
+    return this.request<ApiResponse<any>>(
+      `/api/v1/karnatakaEngineering/search_college_by/college_name?college_name=${encodeURIComponent(
+        collegeName,
+      )}`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
+        body: "", // Empty body as per CURL
+      },
+    );
+  }
+
+  async getKarnatakaEngineeringRoundDetails(
+    round: number,
+    token: string,
+  ): Promise<GetKarnatakaEngineeringRoundDetailsResponse> {
+    return this.request<GetKarnatakaEngineeringRoundDetailsResponse>(
+      `/api/v1/karnatakaEngineering/get_engineering_round_college_details?round=${round}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
+      },
+    );
   }
 
   async preRegister(data: any): Promise<ApiResponse<any>> {
-    return this.request<ApiResponse<any>>('/api/v1/auth/pre-register', {
-      method: 'POST',
+    return this.request<ApiResponse<any>>("/api/v1/auth/pre-register", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  }
+
+  async getAuthConfig(): Promise<ApiResponse<any>> {
+    return this.request<ApiResponse<any>>("/api/v1/auth/auth-config", {
+      method: "GET",
+    });
+  }
+
+  async validateCoupon(couponCode: string): Promise<ApiResponse<any>> {
+    return this.request<ApiResponse<any>>("/api/v1/auth/validate-coupon", {
+      method: "POST",
+      body: JSON.stringify({ coupon_code: couponCode }),
+    });
+  }
+
+  async initiatePreRegPayment(data: { email: string; full_name: string; contact: string; product_type: string; coupon_code?: string; amount: number }): Promise<ApiResponse<any>> {
+    return this.request<ApiResponse<any>>("/api/v1/payment/pre-register/initiate", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  }
+
+  async verifyPreRegPayment(data: { order_id: string; razorpay_payment_id: string; razorpay_signature: string; email: string }): Promise<ApiResponse<any>> {
+    return this.request<ApiResponse<any>>("/api/v1/payment/pre-register/verify", {
+      method: "POST",
       body: JSON.stringify(data),
     });
   }

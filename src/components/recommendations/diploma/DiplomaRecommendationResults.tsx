@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from "react";
 import { CollegeRecommendation } from "@/services/cutoffService";
 import { DiplomaRecommendationCard } from "./DiplomaRecommendationCard";
 import { DiplomaCategoryFilter } from "./DiplomaCategoryFilter";
@@ -8,15 +8,22 @@ import { CAPFormInstructions } from "../CAPFormInstructions";
 import { NoResultsState } from "../NoResultsState";
 import { Lock, Unlock, Calendar, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { config } from '@/config/env';
+import { config } from "@/config/env";
 import { usePdfDownload } from "@/hooks/usePdfDownload";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DiplomaRound2Tab } from "./DiplomaRound2Tab";
-import { usePdfDownloadDSY } from '@/hooks/usePdfDownloadDSY';
+import { usePdfDownloadDSY } from "@/hooks/usePdfDownloadDSY";
+import StepLoadingMessages from "@/components/recommendations/StepLoadingMessages";
 
 interface DiplomaRecommendationResultsProps {
   recommendations: CollegeRecommendation[];
@@ -26,6 +33,8 @@ interface DiplomaRecommendationResultsProps {
     is_payment?: boolean;
     accept_payment?: boolean;
   };
+  activeRound?: string;
+  onRoundChange?: (round: string) => void;
 }
 
 interface FormData {
@@ -63,60 +72,255 @@ declare global {
   }
 }
 
+// Helper function for data conversion (duplicated to avoid export issues)
+const convertApiResponseToRecommendations = (apiData: any) => {
+  const recommendations: any[] = [];
+  ["Dream", "Reach", "Match", "Safety"].forEach((category) => {
+    if (apiData[category] && Array.isArray(apiData[category])) {
+      apiData[category].forEach((item: any) => {
+        recommendations.push({
+          category: category,
+          college: {
+            id: item.college.SJ_Institute_Code || item.college.College_Code,
+            name: item.college.College_Name,
+            city: item.college.City,
+            logo: item.college.College_Logo,
+            website: item.college.College_Website,
+            type: item.college.College_Type,
+            nirf_rank: item.college.NIRF_Rank_Min,
+            fees: item.college["Annual_Fees_(INR)"],
+            placement: item.college.Overall_College_Placement_Percentage,
+            rating: item.college.College_Reviews_out_of_5,
+            Student_Intake: item.college.Student_Intake,
+            SJ_Institute_code: item.college.SJ_Institute_Code,
+            college_code:
+              item.college.College_Code ||
+              item.college.College_code ||
+              item.college.college_code ||
+              item.college.dte_code ||
+              item.college.institute_code,
+            Top_Recruiters: item.college.Top_Recruiters || [],
+          },
+          course_name: item.course,
+          cutoff_percentile: item.cutoff,
+          admission_probability: item.admission_probability,
+          probability_message: item.probability_message,
+          choice_code: item.choice_code,
+          cet_percentile: item.cet_percentile,
+          reservation_category: item.category,
+          match_reasons: [],
+        });
+      });
+    }
+  });
+  return recommendations;
+};
+
 export const DiplomaRecommendationResults = ({
-  recommendations,
+  recommendations: initialRecommendations,
   formData,
   recommendationId,
-  paymentData
+  paymentData,
+  activeRound: propActiveRound,
+  onRoundChange,
 }: DiplomaRecommendationResultsProps) => {
-  const [activeCategory, setActiveCategory] = useState<string>('All');
-  const [activeRound, setActiveRound] = useState<string>('round2');
+  const [activeCategory, setActiveCategory] = useState<string>("All");
+  const [internalActiveRound, setInternalActiveRound] =
+    useState<string>("round2");
+  const hasAttemptedRound1Fetch = useRef(false);
+
+  const [isTabLoading, setIsTabLoading] = useState(false);
+
+  const activeRound = propActiveRound || internalActiveRound;
+  const setActiveRound = (round: string) => {
+    // Only set loading if actually changing rounds
+    if (round !== activeRound) {
+      setIsTabLoading(true);
+      setRecommendations([]); // Clear immediately to trigger fetch if needed
+    }
+    setInternalActiveRound(round);
+    if (onRoundChange) {
+      onRoundChange(round);
+    }
+  };
+
+  const [recommendations, setRecommendations] = useState<
+    CollegeRecommendation[]
+  >(initialRecommendations || []);
+  const [isRound1Loading, setIsRound1Loading] = useState(false);
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const userFromStorage = JSON.parse(localStorage.getItem('user') || '{}');
+
+  // When initialRecommendations changes (e.g. parent updates), update local state
+  useEffect(() => {
+    // Always update if initialRecommendations is provided (even if empty, to clear previous round data)
+    // NOTE: We only stop loading if we actually have data, OR if we know for sure it's empty (but that's tricky).
+    // For now, if we get data and we are in active round, stop loading.
+    if (initialRecommendations) {
+      setRecommendations(initialRecommendations);
+      if (initialRecommendations.length > 0) {
+        setIsTabLoading(false);
+      }
+    }
+  }, [initialRecommendations]);
+
+  // Fetch Round 1 data if selected and missing
+  useEffect(() => {
+    const fetchRound1Data = async () => {
+      if (
+        activeRound === "round1" &&
+        recommendations.length === 0 &&
+        !isRound1Loading &&
+        !hasAttemptedRound1Fetch.current
+      ) {
+        // Mark as attempted immediately
+        hasAttemptedRound1Fetch.current = true;
+
+        // Check session storage first
+        const cached = sessionStorage.getItem(
+          "cachedDiplomaRecommendations_v3",
+        );
+        const isUnlockedLocal =
+          localStorage.getItem("diplomaRecommendationUnlocked") === "true";
+
+        if (cached) {
+          const parsedData = JSON.parse(cached);
+          if (parsedData && parsedData.length > 0) {
+            setRecommendations(parsedData);
+            // If already unlocked, no need to refetch just for lock status
+            if (isUnlockedLocal) {
+              setIsTabLoading(false);
+              return;
+            }
+            // If cached but locked, continue to fetch to check is_payment status
+          }
+        }
+
+        setIsRound1Loading(true);
+        try {
+          const { apiService } = await import("@/services/api");
+          const response = await apiService.getDiplomaRoundList(1);
+
+          if (response.success && response.data) {
+            // response.data contains { Dream: [...], Reach: [...], etc }
+            const converted = convertApiResponseToRecommendations(
+              response.data,
+            );
+
+            if (converted.length > 0) {
+              setRecommendations(converted);
+              sessionStorage.setItem(
+                "cachedDiplomaRecommendations_v3",
+                JSON.stringify(converted),
+              );
+              if (response.data.is_payment) {
+                localStorage.setItem("diplomaRecommendationUnlocked", "true");
+                setIsUnlocked(true);
+              }
+            } else {
+              console.log("Round 1 returned empty data");
+            }
+          } else {
+            console.error("Failed to fetch Round 1 data", response);
+          }
+        } catch (error) {
+          console.error("Error fetching Round 1 data:", error);
+        } finally {
+          setIsRound1Loading(false);
+          setIsTabLoading(false);
+        }
+      }
+    };
+
+    fetchRound1Data();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeRound, isRound1Loading]);
+
+  const userFromStorage = JSON.parse(localStorage.getItem("user") || "{}");
   const { generatePDF, isGenerating } = usePdfDownloadDSY();
 
   const [paymentFormData, setPaymentFormData] = useState<FormData>({
-    name: userFromStorage.name || '',
-    email: userFromStorage.email || '',
-    mobile: '',
-    couponCode: 'LAUNCHOFFER'
+    name: userFromStorage.name || "",
+    email: userFromStorage.email || "",
+    mobile: "",
+    couponCode: "LAUNCHOFFER",
   });
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+
+  const handleLoadComplete = useCallback(() => {
+    setIsTabLoading(false);
+  }, []);
 
   const handleDownloadPDF = () => {
     if (!isUnlocked && paymentData?.is_payment !== true) {
       toast({
         title: "Download Locked",
-        description: "Please unlock recommendations to download the PDF report.",
-        variant: "destructive"
+        description:
+          "Please unlock recommendations to download the PDF report.",
+        variant: "destructive",
       });
       return;
     }
 
-    generatePDF(recommendations, formData);
+    // Ensure we have valid form data for the PDF
+    let pdfFormData = null;
+
+    // 1. Try to fetch specific round data from storage first (highest priority for accuracy)
+    if (activeRound === "round1") {
+      const storedRound1 = localStorage.getItem("diploma_form_data_round_1");
+      if (storedRound1) {
+        pdfFormData = JSON.parse(storedRound1);
+      }
+    } else {
+      // For Round 2 (or others), try round 2 key
+      const storedRound2 = localStorage.getItem("diploma_form_data_round_2");
+      if (storedRound2) {
+        pdfFormData = JSON.parse(storedRound2);
+      }
+    }
+
+    // 2. Fallback to props formData if specific storage failed
+    if (!pdfFormData || Object.keys(pdfFormData).length === 0) {
+      if (formData && Object.keys(formData).length > 0) {
+        pdfFormData = formData;
+      }
+    }
+
+    // 3. Final fallback to generic key
+    if (!pdfFormData || Object.keys(pdfFormData).length === 0) {
+      const storedGeneric = localStorage.getItem("diploma_form_data");
+      if (storedGeneric) {
+        pdfFormData = JSON.parse(storedGeneric);
+      }
+    }
+
+    generatePDF(recommendations, pdfFormData || {});
   };
 
   // Load user data from localStorage
   useEffect(() => {
-    const isUnlocked: any = localStorage.getItem('diplomaRecommendationUnlocked')
-    setIsUnlocked(isUnlocked === "true")
-    const userData = localStorage.getItem('userData');
+    const isUnlocked: any = localStorage.getItem(
+      "diplomaRecommendationUnlocked",
+    );
+    setIsUnlocked(isUnlocked === "true");
+    const userData = localStorage.getItem("userData");
     if (userData) {
       const parsed = JSON.parse(userData);
-      setPaymentFormData(prev => ({
+      setPaymentFormData((prev) => ({
         ...prev,
-        name: parsed.name || '',
-        email: parsed.email || '',
-        mobile: parsed.mobile || ''
+        name: parsed.name || "",
+        email: parsed.email || "",
+        mobile: parsed.mobile || "",
       }));
     }
   }, []);
 
   // Determine if unlock functionality should be shown
   const shouldShowUnlock = () => {
-    const isUnlocked: any = localStorage.getItem('diplomaRecommendationUnlocked')
+    const isUnlocked: any = localStorage.getItem(
+      "diplomaRecommendationUnlocked",
+    );
     if (isUnlocked === "true") {
       return false;
     }
@@ -124,31 +328,50 @@ export const DiplomaRecommendationResults = ({
   };
 
   const getDiscountedPrice = () => {
-    let finalPrice = paymentFormData.couponCode.toUpperCase() === 'LAUNCHOFFER' ? 99 : 499;
-    finalPrice = paymentFormData.couponCode.toUpperCase() === 'SJ-FB100FREE' ? 0 : finalPrice;
-    finalPrice = paymentFormData.couponCode.toUpperCase() === 'LAUNCHOFFERTEST' ? 1 : finalPrice;
+    let finalPrice =
+      paymentFormData.couponCode.toUpperCase() === "LAUNCHOFFER" ? 99 : 499;
+    finalPrice =
+      paymentFormData.couponCode.toUpperCase() === "SJ-FB100FREE"
+        ? 0
+        : finalPrice;
+    finalPrice =
+      paymentFormData.couponCode.toUpperCase() === "LAUNCHOFFERTEST"
+        ? 1
+        : finalPrice;
     return finalPrice;
   };
 
   const handleInputChange = (field: keyof FormData, value: string) => {
-    setPaymentFormData(prev => ({ ...prev, [field]: value }));
+    setPaymentFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const validateForm = () => {
     const { name, email, mobile } = paymentFormData;
 
     if (!name.trim()) {
-      toast({ title: "Error", description: "Name is required", variant: "destructive" });
+      toast({
+        title: "Error",
+        description: "Name is required",
+        variant: "destructive",
+      });
       return false;
     }
 
-    if (!email.trim() || !email.includes('@')) {
-      toast({ title: "Error", description: "Valid email is required", variant: "destructive" });
+    if (!email.trim() || !email.includes("@")) {
+      toast({
+        title: "Error",
+        description: "Valid email is required",
+        variant: "destructive",
+      });
       return false;
     }
 
     if (!mobile.trim() || mobile.length < 10) {
-      toast({ title: "Error", description: "Valid mobile number is required", variant: "destructive" });
+      toast({
+        title: "Error",
+        description: "Valid mobile number is required",
+        variant: "destructive",
+      });
       return false;
     }
 
@@ -157,8 +380,8 @@ export const DiplomaRecommendationResults = ({
 
   const loadRazorpayScript = () => {
     return new Promise((resolve) => {
-      const script = document.createElement('script');
-      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
       script.onload = () => resolve(true);
       script.onerror = () => resolve(false);
       document.body.appendChild(script);
@@ -171,17 +394,20 @@ export const DiplomaRecommendationResults = ({
       email: paymentFormData.email,
       contact: parseInt(paymentFormData.mobile),
       product_type: "future-bridge-dsy",
-      amount: getDiscountedPrice()
+      amount: getDiscountedPrice(),
     };
 
     try {
-      const response = await fetch(`${config.apiBaseUrl}/api/v1/payment/payment/initiate`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+      const response = await fetch(
+        `${config.apiBaseUrl}/api/v1/payment/payment/initiate`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
         },
-        body: JSON.stringify(payload),
-      });
+      );
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -190,12 +416,12 @@ export const DiplomaRecommendationResults = ({
       const data: PaymentInitiateResponse = await response.json();
 
       if (!data.success) {
-        throw new Error(data.message || 'Failed to initiate payment');
+        throw new Error(data.message || "Failed to initiate payment");
       }
 
       return data.data;
     } catch (error) {
-      console.error('Payment initiation failed:', error);
+      console.error("Payment initiation failed:", error);
       throw error;
     }
   };
@@ -203,17 +429,20 @@ export const DiplomaRecommendationResults = ({
   const verifyPayment = async (email: string, orderId: string) => {
     const payload = {
       email: email,
-      order_id: orderId
+      order_id: orderId,
     };
 
     try {
-      const response = await fetch(`${config.apiBaseUrl}/api/v1/payment/payment/verify`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
+      const response = await fetch(
+        `${config.apiBaseUrl}/api/v1/payment/payment/verify`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
         },
-        body: JSON.stringify(payload),
-      });
+      );
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -227,7 +456,7 @@ export const DiplomaRecommendationResults = ({
 
       return data;
     } catch (error) {
-      console.error('Payment verification failed:', error);
+      console.error("Payment verification failed:", error);
       throw error;
     }
   };
@@ -242,7 +471,11 @@ export const DiplomaRecommendationResults = ({
         const scriptLoaded = await loadRazorpayScript();
 
         if (!scriptLoaded) {
-          toast({ title: "Error", description: "Payment gateway failed to load", variant: "destructive" });
+          toast({
+            title: "Error",
+            description: "Payment gateway failed to load",
+            variant: "destructive",
+          });
           setIsLoading(false);
           return;
         }
@@ -253,23 +486,26 @@ export const DiplomaRecommendationResults = ({
         // Immediately verify payment after initiation
         setTimeout(async () => {
           try {
-            const verifyResult = await verifyPayment(paymentFormData.email, paymentData.order_id);
+            const verifyResult = await verifyPayment(
+              paymentFormData.email,
+              paymentData.order_id,
+            );
             if (verifyResult.success) {
               // Payment already completed
               toast({
                 title: "Payment Successful!",
-                description: "Your diploma recommendations have been unlocked."
+                description: "Your diploma recommendations have been unlocked.",
               });
 
-              localStorage.setItem('diplomaRecommendationUnlocked', 'true');
-              localStorage.setItem('userData', JSON.stringify(paymentFormData));
+              localStorage.setItem("diplomaRecommendationUnlocked", "true");
+              localStorage.setItem("userData", JSON.stringify(paymentFormData));
 
               setIsUnlocked(true);
               setIsDialogOpen(false);
               setIsLoading(false);
             }
           } catch (error) {
-            console.error('Payment verification check:', error);
+            console.error("Payment verification check:", error);
           }
         }, 1000);
 
@@ -279,7 +515,7 @@ export const DiplomaRecommendationResults = ({
           toast({
             title: "Payment Timeout",
             description: "Payment session expired. Please try again.",
-            variant: "destructive"
+            variant: "destructive",
           });
         }, 150000); // 2 minutes
 
@@ -288,8 +524,9 @@ export const DiplomaRecommendationResults = ({
           amount: paymentData.amount,
           currency: paymentData.currency,
           order_id: paymentData.order_id,
-          name: 'Diploma Recommendation Unlock',
-          description: 'Unlock your personalized diploma college recommendations',
+          name: "Diploma Recommendation Unlock",
+          description:
+            "Unlock your personalized diploma college recommendations",
           prefill: {
             name: paymentFormData.name,
             email: paymentFormData.email,
@@ -297,7 +534,7 @@ export const DiplomaRecommendationResults = ({
           },
           timeout: 300,
           theme: {
-            color: '#3B82F6',
+            color: "#3B82F6",
           },
           handler: async function (response: any) {
             clearTimeout(paymentTimer);
@@ -308,19 +545,20 @@ export const DiplomaRecommendationResults = ({
               // Payment successful
               toast({
                 title: "Payment Successful!",
-                description: "Your diploma recommendations have been unlocked."
+                description: "Your diploma recommendations have been unlocked.",
               });
 
               // Save payment info to localStorage
-              localStorage.setItem('userData', JSON.stringify(paymentFormData));
-              localStorage.setItem('diplomaRecommendationUnlocked', 'true');
+              localStorage.setItem("userData", JSON.stringify(paymentFormData));
+              localStorage.setItem("diplomaRecommendationUnlocked", "true");
               setIsUnlocked(true);
               setIsDialogOpen(false);
             } catch (error) {
               toast({
                 title: "Payment Verification Failed",
-                description: "There was an issue verifying your payment. Please contact support.",
-                variant: "destructive"
+                description:
+                  "There was an issue verifying your payment. Please contact support.",
+                variant: "destructive",
               });
             } finally {
               setIsLoading(false);
@@ -333,26 +571,25 @@ export const DiplomaRecommendationResults = ({
               toast({
                 title: "Payment Cancelled",
                 description: "Payment was cancelled by user.",
-                variant: "destructive"
+                variant: "destructive",
               });
-            }
-          }
+            },
+          },
         };
 
         const razorpay = new window.Razorpay(options);
         razorpay.open();
       } else {
-        localStorage.setItem('diplomaRecommendationUnlocked', 'true');
+        localStorage.setItem("diplomaRecommendationUnlocked", "true");
         setIsUnlocked(true);
         setIsDialogOpen(false);
       }
-
     } catch (error) {
       setIsLoading(false);
       toast({
         title: "Payment Error",
         description: "Failed to initiate payment. Please try again.",
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setIsDialogOpen(false);
@@ -362,9 +599,11 @@ export const DiplomaRecommendationResults = ({
 
   const sortRecommendationsByCategory = (recs: CollegeRecommendation[]) => {
     return recs.sort((a, b) => {
-      const categoryOrder = { 'Dream': 0, 'Reach': 1, 'Match': 2, 'Safety': 3 };
-      const categoryA = categoryOrder[a.category as keyof typeof categoryOrder] ?? 4;
-      const categoryB = categoryOrder[b.category as keyof typeof categoryOrder] ?? 4;
+      const categoryOrder = { Dream: 0, Reach: 1, Match: 2, Safety: 3 };
+      const categoryA =
+        categoryOrder[a.category as keyof typeof categoryOrder] ?? 4;
+      const categoryB =
+        categoryOrder[b.category as keyof typeof categoryOrder] ?? 4;
 
       if (categoryA !== categoryB) {
         return categoryA - categoryB;
@@ -381,18 +620,20 @@ export const DiplomaRecommendationResults = ({
 
     let filtered = recommendations;
 
-    if (activeCategory !== 'All') {
-      filtered = recommendations.filter(rec => rec.category === activeCategory);
+    if (activeCategory !== "All") {
+      filtered = recommendations.filter(
+        (rec) => rec.category === activeCategory,
+      );
     }
 
     return sortRecommendationsByCategory(filtered);
   };
 
   const categoryStats = {
-    Dream: recommendations?.filter(r => r.category === 'Dream').length || 0,
-    Reach: recommendations?.filter(r => r.category === 'Reach').length || 0,
-    Match: recommendations?.filter(r => r.category === 'Match').length || 0,
-    Safety: recommendations?.filter(r => r.category === 'Safety').length || 0,
+    Dream: recommendations?.filter((r) => r.category === "Dream").length || 0,
+    Reach: recommendations?.filter((r) => r.category === "Reach").length || 0,
+    Match: recommendations?.filter((r) => r.category === "Match").length || 0,
+    Safety: recommendations?.filter((r) => r.category === "Safety").length || 0,
   };
 
   const categorizedRecommendations = getCategorizedRecommendations();
@@ -414,8 +655,9 @@ export const DiplomaRecommendationResults = ({
         <span className="text-sm font-medium">Date Yet to be Announced</span>
       </div>
       <p className="text-gray-600 text-sm max-w-md leading-relaxed">
-        We'll notify you as soon as Round {roundNumber} counselling dates are officially announced. 
-        Stay tuned for updates and prepare your documents in advance.
+        We'll notify you as soon as Round {roundNumber} counselling dates are
+        officially announced. Stay tuned for updates and prepare your documents
+        in advance.
       </p>
       <div className="mt-6 p-3 bg-white rounded-lg border border-blue-200 text-xs text-blue-700">
         💡 Tip: Use Round 1 results to plan your strategy for upcoming rounds
@@ -424,226 +666,313 @@ export const DiplomaRecommendationResults = ({
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 relative">
+      {isTabLoading && (
+        <div className="fixed inset-0 bg-white/90 backdrop-blur-sm z-50 flex items-center justify-center">
+          <StepLoadingMessages />
+        </div>
+      )}
+
       <DiplomaRecommendationHeader formData={formData} />
 
       {/* Rounds Tabs */}
-      <Tabs value={activeRound} onValueChange={setActiveRound} className="w-full">
+      <Tabs
+        value={activeRound}
+        onValueChange={setActiveRound}
+        className="w-full"
+      >
         <TabsList className="grid w-full grid-cols-2 h-12 bg-muted">
-          <TabsTrigger value="round1" className="text-xs sm:text-sm font-medium">
+          <TabsTrigger
+            value="round1"
+            className="text-xs sm:text-sm font-medium"
+          >
             Round 1
           </TabsTrigger>
-          <TabsTrigger value="round2" className="text-xs sm:text-sm font-medium">
+          <TabsTrigger
+            value="round2"
+            className="text-xs sm:text-sm font-medium"
+          >
             Round 2
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="round1" className="space-y-6 mt-4">
-          {recommendations && recommendations.length > 0 ? (
+          {/* Show loader if specifically loading Round 1 data */}
+          {isRound1Loading ? (
+            <div className="flex justify-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            </div>
+          ) : recommendations && recommendations.length > 0 ? (
             <>
               <CAPFormInstructions />
               <DiplomaRecommendationDisclaimer />
 
-          {/* Results Summary */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
-            <div className="text-center sm:text-left">
-              <p className="text-lg text-gray-600">
-                Found <span className="font-semibold text-blue-600">{categorizedRecommendations.length}</span> college recommendations
-                {activeCategory !== 'All' && ` in ${activeCategory} category`}
-              </p>
-            </div>
+              {/* Results Summary */}
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
+                <div className="text-center sm:text-left">
+                  <p className="text-lg text-gray-600">
+                    Found{" "}
+                    <span className="font-semibold text-blue-600">
+                      {categorizedRecommendations.length}
+                    </span>{" "}
+                    college recommendations
+                    {activeCategory !== "All" &&
+                      ` in ${activeCategory} category`}
+                  </p>
+                </div>
 
-            <Button
-              onClick={handleDownloadPDF}
-              disabled={(!isUnlocked && paymentData?.is_payment !== true) || isGenerating}
-              className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg min-h-[44px] touch-manipulation"
-              aria-label="Download recommendations as PDF"
-            >
-              <span className="text-sm font-medium">
-                {isGenerating ? 'Generating...' : 'Download PDF'}
-              </span>
-            </Button>
-          </div>
+                <Button
+                  onClick={handleDownloadPDF}
+                  disabled={
+                    (!isUnlocked && paymentData?.is_payment !== true) ||
+                    isGenerating
+                  }
+                  className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg min-h-[44px] touch-manipulation"
+                  aria-label="Download recommendations as PDF"
+                >
+                  <span className="text-sm font-medium">
+                    {isGenerating ? "Generating..." : "Download PDF"}
+                  </span>
+                </Button>
+              </div>
 
-          {/* Category Filter
+              {/* Category Filter
           <DiplomaCategoryFilter 
             activeCategory={activeCategory}
             onCategoryChange={setActiveCategory}
             stats={categoryStats}
           /> */}
 
-          {/* Results List */}
-          {categorizedRecommendations.length > 0 ? (
-            <div className="relative">
-              {/* First 5 cards - always visible */}
-              <div className="space-y-4">
-                {categorizedRecommendations.slice(0, isUnlocked ? 5 : 5).map((recommendation, index) => {
-                  return (
-                    <DiplomaRecommendationCard
-                      key={`${recommendation.college.id}-${recommendation.course_name}-${index}`}
-                      recommendation={recommendation}
-                      index={index + 1}
-                    />
-                  );
-                })}
-              </div>
+              {/* Results List */}
+              {categorizedRecommendations.length > 0 ? (
+                <div className="relative">
+                  {/* First 5 cards - always visible */}
+                  <div className="space-y-4">
+                    {categorizedRecommendations
+                      .slice(0, isUnlocked ? 5 : 5)
+                      .map((recommendation, index) => {
+                        return (
+                          <DiplomaRecommendationCard
+                            key={`${recommendation.college.id}-${recommendation.course_name}-${index}`}
+                            recommendation={recommendation}
+                            index={index + 1}
+                          />
+                        );
+                      })}
+                  </div>
 
-              {/* Blurred cards section with unlock functionality */}
-              {shouldShowUnlock() && categorizedRecommendations.length > 5 && (
-                <div id="blurred-section" className="relative mt-4 z-10">
-                  {/* Unlock section at the top */}
-                  <div className="text-center bg-white/90 backdrop-blur-sm rounded-xl p-6 shadow-lg mb-4 border-2 border-blue-200">
-                    <Lock className="mx-auto mb-3 text-blue-600" size={32} />
-                    <h3 className="text-xl font-bold text-gray-800 mb-2">
-                      🔒 Unlock Unlimited Attempts
-                    </h3>
-                    <p className="text-gray-600 text-sm mb-4">
-                      {categorizedRecommendations.length - 5} more recommendations waiting
-                    </p>
-
-                    {/* Unlock button */}
-                    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                      <DialogTrigger asChild>
-                        <Button
-                          onClick={() => setIsDialogOpen(true)}
-                          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 flex items-center gap-2 mx-auto"
-                        >
-                          <Unlock size={16} />
-                          Unlock Now
-                        </Button>
-                      </DialogTrigger>
-
-                      <DialogContent className="sm:max-w-md z-[9999]">
-                        <DialogHeader>
-                          <DialogTitle className="text-center">Unlock Diploma Recommendations</DialogTitle>
-                        </DialogHeader>
-
-                        <div className="space-y-4">
-                          {/* Pricing Section */}
-                          <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
-                            <div className="flex items-center justify-center gap-3 mb-2">
-                              <span className="text-lg text-gray-500 line-through">₹{originalPrice}</span>
-                              <span className="text-2xl font-bold text-green-600">₹{finalPrice}</span>
-                            </div>
-                            <p className="text-sm text-green-700">
-                              Save ₹{discount} with Launch Offer!
-                            </p>
-                          </div>
-
-                          {/* Form Fields */}
-                          <div className="space-y-3">
-                            <div>
-                              <Label htmlFor="name">Full Name *</Label>
-                              <Input
-                                id="name"
-                                value={JSON.parse(localStorage.getItem('user') || '{}').name || ''}
-                                onChange={(e) => handleInputChange('name', e.target.value)}
-                                placeholder="Enter your full name"
-                                required
-                                disabled
-                              />
-                            </div>
-
-                            <div>
-                              <Label htmlFor="email">Email *</Label>
-                              <Input
-                                id="email"
-                                type="email"
-                                value={JSON.parse(localStorage.getItem('user') || '{}').email || ''}
-                                onChange={(e) => handleInputChange('email', e.target.value)}
-                                placeholder="Enter your email"
-                                required
-                                disabled
-                              />
-                            </div>
-
-                            <div>
-                              <Label htmlFor="mobile">Mobile Number *</Label>
-                              <Input
-                                id="mobile"
-                                value={paymentFormData.mobile}
-                                onChange={(e) => handleInputChange('mobile', e.target.value)}
-                                placeholder="Enter your mobile number"
-                                maxLength={10}
-                                required
-                              />
-                            </div>
-
-                            <div>
-                              <Label htmlFor="coupon">Coupon Code</Label>
-                              <Input
-                                id="coupon"
-                                value={paymentFormData.couponCode}
-                                onChange={(e) => handleInputChange('couponCode', e.target.value)}
-                                placeholder="Enter coupon code"
-                              />
-                            </div>
-                          </div>
-
-                          {/* Payment Button */}
-                          <Button
-                            onClick={handlePayment}
-                            disabled={isLoading}
-                            className="w-full bg-green-600 hover:bg-green-700 text-white py-3 text-lg"
-                          >
-                            {isLoading ? "Processing..." : `Pay ₹${finalPrice} & Unlock`}
-                          </Button>
-
-                          <p className="text-xs text-gray-500 text-center">
-                            Secure payment powered by Razorpay
+                  {/* Blurred cards section with unlock functionality */}
+                  {shouldShowUnlock() &&
+                    categorizedRecommendations.length > 5 && (
+                      <div id="blurred-section" className="relative mt-4 z-10">
+                        {/* Unlock section at the top */}
+                        <div className="text-center bg-white/90 backdrop-blur-sm rounded-xl p-6 shadow-lg mb-4 border-2 border-blue-200">
+                          <Lock
+                            className="mx-auto mb-3 text-blue-600"
+                            size={32}
+                          />
+                          <h3 className="text-xl font-bold text-gray-800 mb-2">
+                            🔒 Unlock Unlimited Attempts
+                          </h3>
+                          <p className="text-gray-600 text-sm mb-4">
+                            {categorizedRecommendations.length - 5} more
+                            recommendations waiting
                           </p>
+
+                          {/* Unlock button */}
+                          <Dialog
+                            open={isDialogOpen}
+                            onOpenChange={setIsDialogOpen}
+                          >
+                            <DialogTrigger asChild>
+                              <Button
+                                onClick={() => setIsDialogOpen(true)}
+                                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 flex items-center gap-2 mx-auto"
+                              >
+                                <Unlock size={16} />
+                                Unlock Now
+                              </Button>
+                            </DialogTrigger>
+
+                            <DialogContent className="sm:max-w-md z-[9999]">
+                              <DialogHeader>
+                                <DialogTitle className="text-center">
+                                  Unlock Diploma Recommendations
+                                </DialogTitle>
+                              </DialogHeader>
+
+                              <div className="space-y-4">
+                                {/* Pricing Section */}
+                                <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+                                  <div className="flex items-center justify-center gap-3 mb-2">
+                                    <span className="text-lg text-gray-500 line-through">
+                                      ₹{originalPrice}
+                                    </span>
+                                    <span className="text-2xl font-bold text-green-600">
+                                      ₹{finalPrice}
+                                    </span>
+                                  </div>
+                                  <p className="text-sm text-green-700">
+                                    Save ₹{discount} with Launch Offer!
+                                  </p>
+                                </div>
+
+                                {/* Form Fields */}
+                                <div className="space-y-3">
+                                  <div>
+                                    <Label htmlFor="name">Full Name *</Label>
+                                    <Input
+                                      id="name"
+                                      value={
+                                        JSON.parse(
+                                          localStorage.getItem("user") || "{}",
+                                        ).name || ""
+                                      }
+                                      onChange={(e) =>
+                                        handleInputChange(
+                                          "name",
+                                          e.target.value,
+                                        )
+                                      }
+                                      placeholder="Enter your full name"
+                                      required
+                                      disabled
+                                    />
+                                  </div>
+
+                                  <div>
+                                    <Label htmlFor="email">Email *</Label>
+                                    <Input
+                                      id="email"
+                                      type="email"
+                                      value={
+                                        JSON.parse(
+                                          localStorage.getItem("user") || "{}",
+                                        ).email || ""
+                                      }
+                                      onChange={(e) =>
+                                        handleInputChange(
+                                          "email",
+                                          e.target.value,
+                                        )
+                                      }
+                                      placeholder="Enter your email"
+                                      required
+                                      disabled
+                                    />
+                                  </div>
+
+                                  <div>
+                                    <Label htmlFor="mobile">
+                                      Mobile Number *
+                                    </Label>
+                                    <Input
+                                      id="mobile"
+                                      value={paymentFormData.mobile}
+                                      onChange={(e) =>
+                                        handleInputChange(
+                                          "mobile",
+                                          e.target.value,
+                                        )
+                                      }
+                                      placeholder="Enter your mobile number"
+                                      maxLength={10}
+                                      required
+                                    />
+                                  </div>
+
+                                  <div>
+                                    <Label htmlFor="coupon">Coupon Code</Label>
+                                    <Input
+                                      id="coupon"
+                                      value={paymentFormData.couponCode}
+                                      onChange={(e) =>
+                                        handleInputChange(
+                                          "couponCode",
+                                          e.target.value,
+                                        )
+                                      }
+                                      placeholder="Enter coupon code"
+                                    />
+                                  </div>
+                                </div>
+
+                                {/* Payment Button */}
+                                <Button
+                                  onClick={handlePayment}
+                                  disabled={isLoading}
+                                  className="w-full bg-green-600 hover:bg-green-700 text-white py-3 text-lg"
+                                >
+                                  {isLoading
+                                    ? "Processing..."
+                                    : `Pay ₹${finalPrice} & Unlock`}
+                                </Button>
+
+                                <p className="text-xs text-gray-500 text-center">
+                                  Secure payment powered by Razorpay
+                                </p>
+                              </div>
+                            </DialogContent>
+                          </Dialog>
                         </div>
-                      </DialogContent>
-                    </Dialog>
-                  </div>
 
-                  {/* Blurred cards */}
-                  <div className="blur-sm pointer-events-none space-y-4">
-                    {categorizedRecommendations.slice(3, Math.min(8, categorizedRecommendations.length)).map((recommendation, index) => (
-                      <DiplomaRecommendationCard
-                        key={`${recommendation.college.id}-${recommendation.course_name}-${index + 5}`}
-                        recommendation={recommendation}
-                        index={index + 6}
-                      />
-                    ))}
-                  </div>
+                        {/* Blurred cards */}
+                        <div className="blur-sm pointer-events-none space-y-4">
+                          {categorizedRecommendations
+                            .slice(
+                              3,
+                              Math.min(8, categorizedRecommendations.length),
+                            )
+                            .map((recommendation, index) => (
+                              <DiplomaRecommendationCard
+                                key={`${recommendation.college.id}-${recommendation.course_name}-${index + 5}`}
+                                recommendation={recommendation}
+                                index={index + 6}
+                              />
+                            ))}
+                        </div>
+                      </div>
+                    )}
+
+                  {/* Unlocked cards - show all remaining */}
+                  {(isUnlocked || paymentData?.is_payment === true) &&
+                    categorizedRecommendations.length > 5 && (
+                      <div className="space-y-4 mt-4">
+                        {categorizedRecommendations
+                          .slice(5)
+                          .map((recommendation, index) => (
+                            <DiplomaRecommendationCard
+                              key={`${recommendation.college.id}-${recommendation.course_name}-${index + 5}`}
+                              recommendation={recommendation}
+                              index={index + 6}
+                            />
+                          ))}
+                      </div>
+                    )}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-gray-600">
+                    No recommendations found for the {activeCategory} category.
+                  </p>
+                  <button
+                    onClick={() => setActiveCategory("All")}
+                    className="mt-2 text-blue-600 hover:text-blue-800 underline"
+                  >
+                    View all recommendations
+                  </button>
                 </div>
               )}
-
-              {/* Unlocked cards - show all remaining */}
-              {(isUnlocked || paymentData?.is_payment === true) && categorizedRecommendations.length > 5 && (
-                <div className="space-y-4 mt-4">
-                  {categorizedRecommendations.slice(5).map((recommendation, index) => (
-                    <DiplomaRecommendationCard
-                      key={`${recommendation.college.id}-${recommendation.course_name}-${index + 5}`}
-                      recommendation={recommendation}
-                      index={index + 6}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
+            </>
           ) : (
-            <div className="text-center py-8">
-              <p className="text-gray-600">No recommendations found for the {activeCategory} category.</p>
-              <button
-                onClick={() => setActiveCategory('All')}
-                className="mt-2 text-blue-600 hover:text-blue-800 underline"
-              >
-                View all recommendations
-              </button>
-            </div>
+            <>
+              <NoResultsState />
+            </>
           )}
-        </>
-      ) : (
-        <>
-          <NoResultsState />
-        </>
-      )}
         </TabsContent>
 
         <TabsContent value="round2" className="mt-4">
-          <DiplomaRound2Tab />
+          <DiplomaRound2Tab onLoadComplete={handleLoadComplete} />
         </TabsContent>
       </Tabs>
     </div>
