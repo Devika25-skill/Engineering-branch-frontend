@@ -1,3 +1,9 @@
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
+
+@import "C:/Users/Admin/Documents/skilljourney/sj-future-bridge-ui-v2/sj-future-bridge-ui-v2/src/index.css";
+
 /* src/index.css */
 
 html {
@@ -303,7 +309,6 @@ body {
   border: 1px solid #e5e7eb;
   border-radius: 11px;
   font-size: 0.95rem;
-  background-color: #f1f1f1 !important;
   box-sizing: border-box;
   transition: all 0.2s;
 }
@@ -409,7 +414,6 @@ body {
 
 select,
 .subject-select {
-  background-color: #f1f1f1 !important;
   border: 1px solid #e5e7eb !important;
   color: #374151 !important;
   cursor: pointer !important;

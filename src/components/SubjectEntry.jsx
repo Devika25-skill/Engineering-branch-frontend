@@ -37,23 +37,24 @@ export default function SubjectEntry() {
   };
 
   return (
-    <div className="fade-in">
-      <div className="section-header" style={{ marginBottom: '40px' }}>
-        <div className="section-icon">🎓</div>
-        <h2 className="section-title">Academic Performance</h2>
+    <div className="fade-in bg-gradient-to-br from-blue-50 to-indigo-46 shadow-lg rounded-2xl border-0 p-6 md:p-8 mb-8">
+      <div className="flex items-center gap-4 mb-8">
+        <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-xl text-white shadow-md text-2xl">
+          🎓
+        </div>
+        <h2 className="text-2xl font-bold text-slate-800 m-0">Academic Performance</h2>
       </div>
 
       {/* Class Selector */}
-      <div className="class-selector-row">
-        <div className="form-group">
-          <label style={{ fontSize: '1.1rem', fontWeight: '700', color: '#4b5563', marginBottom: '12px', display: 'block' }}>
-            Select your latest class
-          </label>
+      <div className="mb-8">
+        <label className="text-lg font-bold text-slate-700 block mb-3">
+          Select your latest class
+        </label>
+        <div className="grid grid-cols-1 md:grid-cols-[2fr_1fr_1fr_auto] gap-4">
           <select
             value={latestClass}
             onChange={(e) => setLatestClass(e.target.value)}
-            className="subject-select"
-            style={{ backgroundColor: '#f3f4f6', borderColor: '#d1d5db', width: '100%', maxWidth: '400px' }}
+            className="h-12 rounded-xl border-2 border-slate-200 bg-white px-4 w-full outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all shadow-sm text-slate-800"
           >
             <option value="" disabled>Select your class</option>
             <option>FY Engineering</option>
@@ -62,43 +63,40 @@ export default function SubjectEntry() {
             <option>10th grade</option>
             <option>9th grade</option>
           </select>
+          <div className="hidden md:block"></div>
+          <div className="hidden md:block"></div>
+          <div className="hidden md:block w-10"></div>
         </div>
       </div>
 
       {/* Sub Heading */}
-      <h3 style={{ fontSize: '1.2rem', fontWeight: '700', color: '#636978ff', marginBottom: '25px' }}>
-        Subject - wise marks
+      <h3 className="text-lg font-bold text-slate-700 mb-6 pb-2 border-b-2 border-indigo-100/50">
+        Subject-wise Marks
       </h3>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      <div className="flex flex-col gap-5">
         {entries.map((row) => (
           <div
             key={row.id}
-            className="subject-row"
+            className="relative grid grid-cols-1 md:grid-cols-[2fr_1fr_1fr] gap-4 items-end bg-white/50 p-4 rounded-xl border border-indigo-100 shadow-sm"
           >
-
-            <div className="form-group">
-              <label style={{ fontSize: '0.85rem', color: '#4b5563' }}>Subject*</label>
-              <div style={{ width: '100%' }}>
+            <div>
+              <label className="text-gray-600 font-semibold text-base block mb-2">Subject{row.compulsory ? '*' : ''}</label>
+              <div className="w-full">
                 {row.subject === 'Other / Custom' ? (
-                  <div style={{ display: 'flex', gap: '8px' }}>
+                  <div className="flex gap-2">
                     <input
                       type="text"
                       placeholder="Type subject name..."
-                      className="custom-subject-input"
+                      className="h-10 rounded-xl border-2 border-slate-200 bg-white px-3 w-full outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all text-slate-800"
                       value={row.customName || ''}
                       onChange={(e) => updateRow(row.id, 'customName', e.target.value)}
                       autoFocus
                     />
                     <button
                       onClick={() => updateRow(row.id, 'subject', '')}
-                      style={{
-                        background: '#f3f4f6',
-                        border: '1px solid #e5e7eb',
-                        borderRadius: '10px',
-                        padding: '0 12px',
-                        cursor: 'pointer'
-                      }}
+                      className="h-10 w-12 flex items-center justify-center bg-slate-100 border-2 border-slate-200 rounded-xl hover:bg-slate-200 transition-colors text-slate-600 text-xl font-bold"
+                      title="Back to list"
                     >
                       ↺
                     </button>
@@ -107,10 +105,9 @@ export default function SubjectEntry() {
                   <select
                     value={row.subject}
                     onChange={(e) => updateRow(row.id, 'subject', e.target.value)}
-                    className="subject-select"
-                    style={{ background: 'white', border: '1px solid #d1d5db' }}
+                    className="h-10 rounded-xl border-2 border-slate-200 bg-white px-3 w-full outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all text-slate-800"
                   >
-                    <option value="" disabled>Insert Subject</option>
+                    <option value="" disabled>Select Subject</option>
                     {(latestClass === 'FY Engineering' ? SUBJECTS_FY : (latestClass === '9th grade' || latestClass === '10th grade' ? SUBJECTS_SCHOOL : SUBJECTS_HIGHER)).map(s => (
                       <option key={s} value={s}>{s}</option>
                     ))}
@@ -119,50 +116,40 @@ export default function SubjectEntry() {
               </div>
             </div>
 
-            <div className="form-group">
-              <label style={{ fontSize: '0.85rem', fontWeight: '600', color: '#374151' }}>Marks*</label>
+            <div>
+              <label className="text-gray-600 font-semibold text-base block mb-2">Marks{row.compulsory ? '*' : ''}</label>
               <input
                 type="number"
                 placeholder="eg. 85"
                 value={row.marks}
-                style={{ background: 'white', border: '1px solid #d1d5db' }}
                 onChange={(e) => updateRow(row.id, 'marks', e.target.value)}
+                className="h-10 rounded-xl border-2 border-slate-200 bg-white px-3 w-full outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all text-slate-800"
               />
             </div>
 
-            <div className="form-group">
-              <label style={{ fontSize: '0.85rem', fontWeight: '600', color: '#374151' }}>Out of*</label>
+            <div>
+              <label className="text-gray-600 font-semibold text-base block mb-2">Out of{row.compulsory ? '*' : ''}</label>
               <input
                 type="number"
                 value={row.total}
-                style={{ background: 'white', border: '1px solid #d1d5db' }}
                 onChange={(e) => updateRow(row.id, 'total', e.target.value)}
+                className="h-10 rounded-xl border-2 border-slate-200 bg-white px-3 w-full outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all text-slate-800"
               />
             </div>
 
-            <div style={{ paddingBottom: '5px' }}>
-              {!row.compulsory ? (
-                <button
-                  onClick={() => removeRow(row.id)}
-                  style={{
-                    background: '#333',
-                    border: 'none',
-                    cursor: 'pointer',
-                    width: '32px',
-                    height: '32px',
-                    borderRadius: '6px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: 'white'
-                  }}
-                >
-                  ✕
-                </button>
-              ) : (
-                <div style={{ width: '32px' }}></div>
-              )}
-            </div>
+            {!row.compulsory && (
+              <button
+                onClick={() => removeRow(row.id)}
+                className="absolute -top-2 -right-2 h-10 w-10 bg-red-50 text-red-500 hover:bg-red-500 hover:text-white rounded-full flex items-center justify-center transition-all duration-300 group shadow-sm hover:shadow-md z-10"
+                title="Remove subject"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="group-hover:scale-110 transition-transform">
+                  <path d="M3 6h18"></path>
+                  <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                  <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                </svg>
+              </button>
+            )}
           </div>
         ))}
       </div>
@@ -170,31 +157,9 @@ export default function SubjectEntry() {
       <button
         type="button"
         onClick={addRow}
-        style={{
-          marginTop: '40px',
-          width: '100%',
-          background: '#f0f9ff',
-          border: '1.5px dashed #3b82f6',
-          padding: '16px',
-          borderRadius: '16px',
-          fontWeight: '700',
-          fontSize: '0.95rem',
-          color: '#2563eb',
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '8px',
-          transition: 'all 0.2s'
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.background = '#e0f2fe';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.background = '#f0f9ff';
-        }}
+        className="mt-8 w-full bg-blue-50 hover:bg-blue-100 border-2 border-dashed border-blue-400 text-blue-700 font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-sm"
       >
-        <span style={{ fontSize: '1.2rem' }}>+</span> Add optional subject
+        <span className="text-xl leading-none">+</span> Add Subject
       </button>
     </div>
   );

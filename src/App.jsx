@@ -81,7 +81,7 @@ function App() {
   }
 
   return (
-    <div style={{ backgroundColor: '#fcf2f9', minHeight: '100vh' }}>
+    <div className="bg-[#fcf2f9] min-h-screen">
       <Navbar />
 
       {!isFullscreen && (
@@ -92,18 +92,17 @@ function App() {
         </>
       )}
 
-      <div className={isFullscreen ? "container-fullscreen" : "container"}>
-        <div className={isFullscreen ? "form-card-fullscreen" : "form-card"}>
-          <div className="form-section" style={{ minHeight: '400px' }}>
+      <div className={isFullscreen 
+        ? "w-full max-w-7xl mx-auto px-4 md:px-8 py-8 transition-all duration-300" 
+        : "container mx-auto px-4 md:px-8 w-full max-w-5xl transition-all duration-300"}>
+        
+        <div className={isFullscreen 
+          ? "bg-white rounded-3xl shadow-xl overflow-hidden border-t-2 border-slate-200 mb-5 min-h-[80vh] relative transition-all duration-300" 
+          : "bg-white rounded-3xl shadow-xl overflow-hidden border-t-8 border-blue-500 mb-10 relative"}>
+          
+          <div className="p-4 md:p-8 min-h-[400px]">
             {!isFullscreen && (
-              <div style={{
-                marginBottom: '15px',
-                fontSize: '0.8rem',
-                fontWeight: '700',
-                color: '#6366f1',
-                letterSpacing: '1.2px',
-                textTransform: 'uppercase'
-              }}>
+              <div className="mb-4 text-xs font-bold text-indigo-500 tracking-wider uppercase">
                 Step {currentStep + 1} of 4
               </div>
             )}
@@ -124,17 +123,23 @@ function App() {
         </div>
 
         {!isFullscreen && (
-          <div className="bottom-nav">
+          <div className="flex flex-col md:flex-row justify-between items-center mt-10 px-4 md:px-5 pb-10 max-w-5xl mx-auto gap-4 md:gap-0 w-full">
             {currentStep > 0 ? (
-              <button className="back-btn" onClick={prevStep}>
+              <button 
+                className="w-full md:w-auto bg-white border border-slate-200 text-slate-500 px-8 py-3 rounded-xl font-semibold hover:bg-slate-50 transition-colors" 
+                onClick={prevStep}
+              >
                 ← Back
               </button>
             ) : (
-              <div />
+              <div className="hidden md:block" />
             )}
 
             {currentStep < 3 && (
-              <button className="continue-gradient-btn" onClick={nextStep}>
+              <button 
+                className="w-full md:w-auto bg-gradient-to-r from-blue-500 to-cyan-500 text-white border-none px-10 py-3 rounded-xl font-bold shadow-lg shadow-blue-500/30 hover:opacity-90 transition-opacity" 
+                onClick={nextStep}
+              >
                 Save & continue →
               </button>
             )}

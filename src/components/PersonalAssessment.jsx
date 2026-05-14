@@ -16,11 +16,9 @@ export default function PersonalAssessment({ onToggleFullscreen, isFullscreen, o
     if (savedProgress) {
       const parsedProgress = JSON.parse(savedProgress);
       setAnswers(parsedProgress);
-      // Set currentIndex to the next unanswered question
       const answeredCount = Object.keys(parsedProgress).length;
       if (answeredCount > 0) {
         setStarted(true);
-        // If they already started, maybe auto-fullscreen? Let's leave it to user
         if (answeredCount < personalityQuestions.length) {
           setCurrentIndex(answeredCount);
         } else {
@@ -52,8 +50,6 @@ export default function PersonalAssessment({ onToggleFullscreen, isFullscreen, o
 
   const handleAnswer = (option) => {
     const currentQ = personalityQuestions[currentIndex];
-
-    // Create attempt object matching the structure in personality_attempts.json
     const attempt = {
       session_id: sessionId,
       question_id: currentQ.id,
@@ -65,11 +61,9 @@ export default function PersonalAssessment({ onToggleFullscreen, isFullscreen, o
       }
     };
 
-    // Store in local state
     const newAnswers = { ...answers, [currentQ.id]: attempt };
     setAnswers(newAnswers);
 
-    // Auto-advance to next question after a short delay
     setTimeout(() => {
       if (currentIndex < personalityQuestions.length - 1) {
         setCurrentIndex(currentIndex + 1);
@@ -77,26 +71,37 @@ export default function PersonalAssessment({ onToggleFullscreen, isFullscreen, o
         setFinished(true);
       }
     }, 400);
-
-    console.log('Stored Answer:', attempt);
   };
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      const key = parseInt(e.key);
+      if (key >= 1 && key <= 5) {
+        const option = options.find(opt => opt.value === key);
+        if (option) {
+          handleAnswer(option);
+        }
+      }
+      
+      if (e.key === 'ArrowRight' || e.key === 'Enter') {
+        if (currentIndex < personalityQuestions.length - 1 && answers[personalityQuestions[currentIndex].id]) {
+          setCurrentIndex(prev => prev + 1);
+        }
+      }
+      if (e.key === 'ArrowLeft') {
+        if (currentIndex > 0) {
+          setCurrentIndex(prev => prev - 1);
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [currentIndex, answers]);
 
   const prevQuestion = () => {
     if (currentIndex > 0) {
       setCurrentIndex(currentIndex - 1);
-    }
-  };
-
-  const resetAssessment = () => {
-    if (window.confirm('Are you sure you want to reset your progress? This cannot be undone.')) {
-      localStorage.removeItem('personality_assessment_progress');
-      localStorage.removeItem('personality_assessment_session');
-      setAnswers({});
-      setCurrentIndex(0);
-      setFinished(false);
-      setStarted(false);
-      if (onToggleFullscreen) onToggleFullscreen(false);
-      setSessionId(crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2));
     }
   };
 
@@ -110,98 +115,49 @@ export default function PersonalAssessment({ onToggleFullscreen, isFullscreen, o
 
   if (finished) {
     return (
-      <div className="fade-in" style={{ textAlign: 'center', padding: '60px 20px' }}>
-        <div style={{ fontSize: '3rem', marginBottom: '20px' }}>✅</div>
-        <h2 style={{ fontSize: '1.8rem', fontWeight: '800', marginBottom: '15px' }}>Assessment Complete!</h2>
-        <p style={{ color: '#64748b', marginBottom: '30px' }}>Your responses have been stored and analyzed.</p>
-        <div style={{ display: 'flex', gap: '15px', justifyContent: 'center' }}>
-          <button
-            className="continue-gradient-btn"
-            style={{ padding: '15px 40px', fontSize: '1.1rem' }}
-            onClick={() => onViewResults && onViewResults()}
-          >
-            View Results ✨
-          </button>
+      <div className="fade-in flex flex-col items-center justify-center py-20 px-6 text-center">
+        <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center text-4xl mb-8 animate-bounce">
+          ✅
         </div>
+        <h2 className="text-3xl font-extrabold text-slate-800 mb-4 tracking-tight">Assessment Complete!</h2>
+        <p className="text-slate-600 text-lg mb-10 max-w-md">Your responses have been stored and analyzed. We're ready to show your path.</p>
+        <button
+          className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold py-4 px-12 rounded-xl shadow-lg hover:shadow-indigo-200 hover:scale-105 transition-all duration-300"
+          onClick={() => onViewResults && onViewResults()}
+        >
+          View Results ✨
+        </button>
       </div>
     );
   }
 
   if (!started) {
     return (
-      <div className="fade-in" style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        textAlign: 'center',
-        padding: '40px 20px',
-        minHeight: '380px'
-      }}>
-        <div style={{
-          width: '90px',
-          height: '90px',
-          background: '#e5e7eb',
-          borderRadius: '16px',
-          marginBottom: '30px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: '2.5rem'
-        }}>
-          📋
+      <div className="fade-in bg-gradient-to-br from-rose-50/70 to-pink-50/70 shadow-lg rounded-2xl border-0 p-6 md:p-8 mb-8">
+        <div className="flex items-center gap-4 mb-8">
+          <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-rose-400 to-pink-500 rounded-xl text-white shadow-md text-2xl">
+            📋
+          </div>
+          <h2 className="text-2xl font-bold text-slate-800 m-0">Personal Assessment</h2>
         </div>
 
-        <h2 style={{
-          fontSize: '1.6rem',
-          fontWeight: '800',
-          color: '#111827',
-          marginBottom: '16px',
-          maxWidth: '480px'
-        }}>
-          Almost there, ready for the last step?
-        </h2>
+        <div className="flex flex-col items-center justify-center text-center py-10 min-h-[380px]">
+          <h2 className="text-2xl md:text-3xl font-extrabold text-slate-800 mb-4 max-w-2xl">
+            Almost there, ready for the last step?
+          </h2>
 
-        <p style={{
-          color: '#6b7280',
-          fontSize: '0.95rem',
-          lineHeight: '1.7',
-          maxWidth: '440px',
-          marginBottom: '36px'
-        }}>
-          This short assessment helps us understand you beyond your<br /> marks. Just 10 minutes and your recommendation is ready.
-        </p>
+          <p className="text-slate-600 text-base md:text-lg leading-relaxed max-w-2xl mb-10">
+            <span className="block">This short assessment helps us understand you beyond your marks.</span>
+            <span className="block mt-1">Just 10 minutes and your recommendation is ready.</span>
+          </p>
 
-        <button
-          onClick={handleStart}
-          style={{
-            width: '100%',
-            maxWidth: '500px',
-            background: '#f0f7ff',
-            border: '2px solid #3b82f6',
-            color: '#3b82f6',
-            padding: '16px',
-            borderRadius: '12px',
-            fontWeight: '700',
-            fontSize: '1rem',
-            cursor: 'pointer',
-            transition: 'all 0.2s',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '8px'
-          }}
-          onMouseEnter={e => {
-            e.target.style.background = '#e0efff';
-            e.target.style.transform = 'translateY(-2px)';
-          }}
-          onMouseLeave={e => {
-            e.target.style.background = '#f0f7ff';
-            e.target.style.transform = 'translateY(0)';
-          }}
-        >
-          <span style={{ fontSize: '1.2rem' }}>+</span> Start the assessment
-        </button>
+          <button
+            onClick={handleStart}
+            className="w-full max-w-md bg-white hover:bg-blue-50 border-2 border-blue-200 hover:border-blue-400 text-blue-600 font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-sm"
+          >
+            <span className="text-xl leading-none"></span> Start the assessment
+          </button>
+        </div>
       </div>
     );
   }
@@ -210,253 +166,185 @@ export default function PersonalAssessment({ onToggleFullscreen, isFullscreen, o
   const progress = ((currentIndex + 1) / personalityQuestions.length) * 100;
 
   return (
-    <div className="fade-in" style={{
-      padding: isFullscreen ? '60px 80px' : '40px 30px',
-      paddingBottom: '100px',
-      background: '#f8f8f8ff', // Slightly warmer light grey
-      borderRadius: '24px',
-      minHeight: isFullscreen ? '90vh' : '550px',
-      position: 'relative',
-      fontFamily: "'Outfit', 'Inter', -apple-system, sans-serif"
-    }}>
-      {/* Top Header */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: '20px',
-        padding: '0 10px'
-      }}>
-        <div style={{
-          fontSize: '1rem',
-          fontWeight: '500',
-          color: '#1a1a1a'
-        }}>
-          Question {currentIndex + 1} of {personalityQuestions.length}
-        </div>
+    <div className={`fade-in transition-all duration-500 bg-white shadow-xl rounded-2xl border border-blue-100 relative overflow-hidden ${isFullscreen ? 'min-h-[70vh] p-8 md:p-20' : 'min-h-[450px] p-6 md:p-10'}`}>
+      {/* Background decoration */}
+      <div className="absolute top-0 right-0 w-64 h-64 bg-blue-50 rounded-full -mr-32 -mt-32 opacity-50 blur-3xl pointer-events-none"></div>
+      <div className="absolute bottom-0 left-0 w-64 h-64 bg-indigo-50 rounded-full -ml-32 -mb-32 opacity-50 blur-3xl pointer-events-none"></div>
 
+      {/* Floating Header Elements */}
+      <div className="absolute top-6 left-6 z-20">
+        <div className="text-sm font-bold text-[#3b82f6] uppercase tracking-widest bg-[#3b82f6]/10 px-3 py-1 rounded-full border border-[#3b82f6]/20">
+          Step 4: Personal Assessment
+        </div>
+      </div>
+
+      <div className="absolute top-6 right-6 z-20">
         <button
           onClick={() => onToggleFullscreen && onToggleFullscreen(!isFullscreen)}
-          style={{
-            position: 'absolute',
-            top: '25px',
-            right: '30px',
-            background: 'none',
-            border: 'none',
-            color: '#1a1a1a',
-            fontSize: '0.9rem',
-            fontWeight: '500',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            cursor: 'pointer',
-            padding: '5px',
-            zIndex: 10
-          }}
+          className="flex items-center gap-2 px-4 py-2 text-slate-500 hover:text-[#3b82f6] hover:bg-slate-50 rounded-xl transition-all font-medium text-sm border border-slate-100"
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M15 3h6v6M9 21H3v-6" />
             <path d="M21 3l-7 7M3 21l7-7" />
           </svg>
-          Full Page
+          {isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
         </button>
       </div>
 
-      {/* Progress Bar Container */}
-      <div style={{
-        width: '100%',
-        height: '14px',
-        background: '#e5e7eb',
-        borderRadius: '50px',
-        marginBottom: '80px',
-        padding: '0',
-        overflow: 'hidden',
-        boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.05)'
-      }}>
-        <div style={{
-          width: `${progress}%`,
-          height: '100%',
-          background: 'linear-gradient(90deg, #3b82f6, #6366f1)',
-          transition: 'width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)',
-          borderRadius: '50px'
-        }}></div>
+      <div className="flex justify-between items-end mt-12 mb-4 px-1 relative z-10">
+        <span className="text-slate-400 font-bold text-xs uppercase tracking-widest">Assessment Progress</span>
+        <span className="text-[#3b82f6] font-black text-sm bg-[#3b82f6]/10 px-3 py-1 rounded-full">{currentIndex + 1} / {personalityQuestions.length}</span>
+      </div>
+
+      {/* Progress Bar */}
+      <div className="w-full h-3 bg-white rounded-full mb-20 overflow-hidden shadow-inner border border-slate-100 relative z-10">
+        <div
+          className="h-full bg-gradient-to-r from-[#3b82f6] to-[#2563eb] rounded-full transition-all duration-700 ease-out shadow-lg shadow-[#3b82f6]/20"
+          style={{ width: `${progress}%` }}
+        ></div>
       </div>
 
       {/* Question */}
-      <div style={{ textAlign: 'center', marginBottom: '60px' }}>
-        <h2 style={{
-          fontSize: '2.4rem',
-          fontWeight: '700',
-          color: '#111827',
-          margin: '0 auto',
-          maxWidth: '850px',
-          letterSpacing: '-0.02em'
-        }}>
+      <div className="text-center mb-20 relative z-10 px-4">
+        <h2 className="text-2xl md:text-3xl font-extrabold text-slate-800 leading-tight tracking-tight max-w-4xl mx-auto">
           "{currentQ.text}"
         </h2>
       </div>
 
       {/* Options Container */}
-      <div style={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '18px',
-        maxWidth: '520px',
-        margin: '0 auto 80px auto'
-      }}>
-        {options.map((opt) => {
-          const isSelected = answers[currentQ.id]?.score === opt.value;
-          return (
-            <button
-              key={opt.value}
-              onClick={() => handleAnswer(opt)}
-              style={{
-                padding: '18px 32px',
-                background: isSelected ? `${opt.color}10` : '#fff',
-                border: isSelected ? `2px solid ${opt.color}` : '1.5px solid #e5e7eb',
-                borderRadius: '100px',
-                fontSize: '1.05rem',
-                fontWeight: '600',
-                color: isSelected ? '#111827' : '#4b5563',
-                textAlign: 'left',
-                cursor: 'pointer',
-                transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '15px',
-                boxShadow: isSelected ? `0 4px 12px ${opt.color}20` : '0 2px 4px rgba(0,0,0,0.02)'
-              }}
-              onMouseEnter={e => {
-                if (!isSelected) {
-                  e.currentTarget.style.borderColor = opt.color;
-                  e.currentTarget.style.background = `${opt.color}05`;
-                  e.currentTarget.style.transform = 'translateX(5px)';
-                }
-              }}
-              onMouseLeave={e => {
-                if (!isSelected) {
-                  e.currentTarget.style.borderColor = '#e5e7eb';
-                  e.currentTarget.style.background = '#fff';
-                  e.currentTarget.style.transform = 'translateX(0)';
-                }
-              }}
-            >
-              <div style={{
-                width: '24px',
-                height: '24px',
-                borderRadius: '50%',
-                border: isSelected ? `2px solid ${opt.color}` : '2px solid #d1d5db',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                background: 'white',
-                transition: 'all 0.2s ease'
-              }}>
-                {isSelected && (
-                  <div style={{
-                    width: '12px',
-                    height: '12px',
-                    borderRadius: '50%',
-                    background: opt.color
-                  }}></div>
-                )}
-              </div>
-              {opt.label}
-            </button>
-          );
-        })}
+      <div className="max-w-4xl mx-auto mb-12 relative z-10 px-4">
+        {/* Desktop Layout: Horizontal Likert Scale */}
+        <div className="hidden md:block">
+          {/* Labels Row */}
+          <div className="flex justify-between items-end mb-4">
+            {options.map((option) => {
+              const isSelected = answers[currentQ.id]?.score === option.value;
+              return (
+                <div key={option.value} className="flex-1 text-center">
+                  <span className={`text-xs font-bold uppercase tracking-widest px-1 transition-colors duration-300 ${isSelected ? 'text-slate-900' : 'text-slate-600'}`}>
+                    {option.label}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Circles Row with Connecting Bar */}
+          <div className="relative flex justify-between items-center h-20">
+            {/* Connecting Bar */}
+            <div className="absolute top-1/2 left-[10%] right-[10%] h-[2px] bg-slate-400/80 -z-10 transform -translate-y-1/2 rounded-full" />
+            
+            {options.map((option) => {
+              const isSelected = answers[currentQ.id]?.score === option.value;
+              
+              const sizes = {
+                1: "w-16 h-16", // Strongly Disagree
+                2: "w-12 h-12", // Disagree
+                3: "w-10 h-10", // Neutral
+                4: "w-12 h-12", // Agree
+                5: "w-16 h-16", // Strongly Agree
+              };
+              
+              const circleColors = {
+                1: isSelected ? "bg-[#3b82f6] border-[#2563eb] shadow-[#3b82f6]/20" : "bg-white border-slate-200 hover:border-[#3b82f6]/50",
+                2: isSelected ? "bg-[#3b82f6] border-[#2563eb] shadow-[#3b82f6]/20" : "bg-white border-slate-200 hover:border-[#3b82f6]/50",
+                3: isSelected ? "bg-[#3b82f6] border-[#2563eb] shadow-[#3b82f6]/20" : "bg-white border-slate-200 hover:border-[#3b82f6]/50",
+                4: isSelected ? "bg-[#3b82f6] border-[#2563eb] shadow-[#3b82f6]/20" : "bg-white border-slate-200 hover:border-[#3b82f6]/50",
+                5: isSelected ? "bg-[#3b82f6] border-[#2563eb] shadow-[#3b82f6]/20" : "bg-white border-slate-200 hover:border-[#3b82f6]/50",
+              };
+
+              return (
+                <div key={option.value} className="flex-1 flex justify-center items-center">
+                  <button
+                    onClick={() => handleAnswer(option)}
+                    className={`
+                      ${sizes[option.value]}
+                      ${circleColors[option.value]}
+                      rounded-full border-4 transition-all duration-300 transform
+                      ${isSelected ? 'scale-110 shadow-xl' : 'hover:scale-105 shadow-md'}
+                      flex items-center justify-center
+                    `}
+                  >
+                    {isSelected && (
+                      <div className="w-3 h-3 bg-white rounded-full shadow-inner animate-pulse" />
+                    )}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Mobile Layout: Existing Vertical List */}
+        <div className="flex md:hidden flex-col gap-3 max-w-xl mx-auto px-4">
+          {options.map((option) => {
+            const isSelected = answers[currentQ.id]?.score === option.value;
+            return (
+              <button
+                key={option.value}
+                onClick={() => handleAnswer(option)}
+                className={`
+                  w-full p-5 rounded-2xl border-2 text-left transition-all duration-300
+                  flex items-center justify-between group
+                  ${isSelected
+                    ? "bg-white border-indigo-500 shadow-lg scale-[1.02] z-20"
+                    : `bg-white/80 border-transparent shadow-sm hover:shadow-md`
+                  }
+                `}
+                style={!isSelected ? { borderColor: `${option.color}20`, color: option.color } : {}}
+              >
+                <span className="text-lg font-semibold">{option.label}</span>
+                <div className={`
+                  w-7 h-7 rounded-full border-2 flex items-center justify-center transition-all
+                  ${isSelected
+                    ? "bg-indigo-500 border-indigo-500"
+                    : "border-slate-200 group-hover:border-current"
+                  }
+                `}>
+                  {isSelected && (
+                    <div className="w-2.5 h-2.5 bg-white rounded-full" />
+                  )}
+                </div>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
-      {/* Footer Navigation */}
-      <div style={{
-        position: 'absolute',
-        bottom: isFullscreen ? '40px' : '30px',
-        left: isFullscreen ? '50px' : '30px',
-        display: 'flex',
-        justifyContent: 'flex-start'
-      }}>
-        {currentIndex > 0 && (
+      {/* Navigation */}
+      <div className="absolute bottom-8 left-8 right-8 flex justify-between items-center z-10">
+        {currentIndex > 0 ? (
           <button
             onClick={prevQuestion}
-            style={{
-              background: 'white',
-              border: 'none',
-              color: '#1a1a1a',
-              padding: '12px 30px',
-              borderRadius: '100px',
-              cursor: 'pointer',
-              fontSize: '0.95rem',
-              fontWeight: '500',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '10px',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
-              transition: 'all 0.3s ease'
-            }}
-            onMouseEnter={e => {
-              e.currentTarget.style.transform = 'translateY(-2px)';
-              e.currentTarget.style.boxShadow = '0 6px 18px rgba(0,0,0,0.08)';
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.05)';
-            }}
+            className="flex items-center gap-2 px-6 py-3 bg-white border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 transition-all font-bold shadow-sm"
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
               <path d="M19 12H5M12 19l-7-7 7-7" />
             </svg>
-            Previous question
+            Back
           </button>
-        )}
-      </div>
+        ) : <div />}
 
-      {/* Next / Finish Button */}
-      <button 
-        onClick={() => {
-          if (currentIndex < personalityQuestions.length - 1) {
-            setCurrentIndex(currentIndex + 1);
-          } else {
-            setFinished(true);
-          }
-        }}
-        disabled={!answers[currentQ.id]}
-        style={{ 
-          position: 'absolute',
-          bottom: isFullscreen ? '35px' : '40px',
-          right: isFullscreen ? '50px' : '30px',
-          background: answers[currentQ.id] ? 'linear-gradient(90deg, #3b82f6, #6366f1)' : '#e5e7eb', 
-          border: 'none', 
-          color: answers[currentQ.id] ? 'white' : '#9ca3af', 
-          padding: '12px 30px',
-          borderRadius: '100px',
-          cursor: answers[currentQ.id] ? 'pointer' : 'not-allowed', 
-          fontSize: '0.95rem',
-          fontWeight: '600',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '10px',
-          boxShadow: answers[currentQ.id] ? '0 4px 15px rgba(59, 130, 246, 0.3)' : 'none',
-          transition: 'all 0.3s ease',
-          zIndex: 10
-        }}
-        onMouseEnter={e => {
-          if (answers[currentQ.id]) {
-            e.currentTarget.style.transform = 'translateY(-2px)';
-            e.currentTarget.style.boxShadow = '0 6px 20px rgba(59, 130, 246, 0.4)';
-          }
-        }}
-        onMouseLeave={e => {
-          if (answers[currentQ.id]) {
-            e.currentTarget.style.transform = 'translateY(0)';
-            e.currentTarget.style.boxShadow = '0 4px 15px rgba(59, 130, 246, 0.3)';
-          }
-        }}
-      >
-        {currentIndex === personalityQuestions.length - 1 ? 'Finish Assessment' : 'Next Question'}
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M5 12h14M12 5l7 7-7 7" />
-        </svg>
-      </button>
+        <button
+          onClick={() => {
+            if (currentIndex < personalityQuestions.length - 1) {
+              setCurrentIndex(currentIndex + 1);
+            } else {
+              setFinished(true);
+            }
+          }}
+          disabled={!answers[currentQ.id]}
+          className={`flex items-center gap-2 px-8 py-3 rounded-xl font-bold transition-all shadow-md ${answers[currentQ.id]
+            ? 'bg-slate-800 text-white hover:bg-slate-700 hover:translate-y-[-2px] shadow-slate-200'
+            : 'bg-slate-100 text-slate-300 cursor-not-allowed shadow-none'
+            }`}
+        >
+          {currentIndex === personalityQuestions.length - 1 ? 'Finish Assessment' : 'Next'}
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M5 12h14M12 5l7 7-7 7" />
+          </svg>
+        </button>
+      </div>
     </div>
   );
 }
