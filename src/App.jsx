@@ -10,12 +10,23 @@ import EntranceExam from './components/EntranceExam'
 import PersonalAssessment from './components/PersonalAssessment'
 import Dashboard from './components/Dashboard'
 import WelcomeBack from './components/WelcomeBack'
+import CourseRecommendations from './components/CourseRecommendations'
 
 function App() {
   const [currentStep, setCurrentStep] = useState(3);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showDashboard, setShowDashboard] = useState(false);
+  const [showRecommendations, setShowRecommendations] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
+
+  if (showRecommendations) {
+    return (
+      <div className="bg-[#f8fafc] min-h-screen">
+        <Navbar />
+        <CourseRecommendations />
+      </div>
+    );
+  }
 
   useEffect(() => {
     const savedStep = localStorage.getItem('engineering_current_step');
@@ -115,7 +126,7 @@ function App() {
               <PersonalAssessment
                 onToggleFullscreen={setIsFullscreen}
                 isFullscreen={isFullscreen}
-                onViewResults={() => setShowDashboard(true)}
+                onViewResults={() => setShowRecommendations(true)}
               />
             )}
 
