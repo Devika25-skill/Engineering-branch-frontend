@@ -18,15 +18,7 @@ function App() {
   const [showDashboard, setShowDashboard] = useState(false);
   const [showRecommendations, setShowRecommendations] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
-
-  if (showRecommendations) {
-    return (
-      <div className="bg-[#f8fafc] min-h-screen">
-        <Navbar />
-        <CourseRecommendations />
-      </div>
-    );
-  }
+  const [showResultsView, setShowResultsView] = useState(false);
 
   useEffect(() => {
     const savedStep = localStorage.getItem('engineering_current_step');
@@ -51,6 +43,7 @@ function App() {
       saveProgress(next);
     }
   };
+
   const prevStep = () => {
     const prev = Math.max(currentStep - 1, 0);
     setCurrentStep(prev);
@@ -65,6 +58,15 @@ function App() {
     setShowWelcome(false);
     window.location.reload(); // Refresh to clear all internal states
   };
+
+  if (showRecommendations) {
+    return (
+      <div className="bg-[#f8fafc] min-h-screen">
+        <Navbar />
+        <CourseRecommendations />
+      </div>
+    );
+  }
 
   if (showWelcome) {
     return (
@@ -95,7 +97,7 @@ function App() {
     <div className="bg-[#fcf2f9] min-h-screen">
       <Navbar />
 
-      {!isFullscreen && (
+      {!isFullscreen && !showResultsView && (
         <>
           <Header />
           <StepTracker step={currentStep} />
@@ -127,6 +129,7 @@ function App() {
                 onToggleFullscreen={setIsFullscreen}
                 isFullscreen={isFullscreen}
                 onViewResults={() => setShowRecommendations(true)}
+                onShowResults={() => setShowResultsView(true)}
               />
             )}
 

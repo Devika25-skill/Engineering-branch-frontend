@@ -42,7 +42,7 @@ export default function ExtracurricularAchievements() {
 
       {!skipped ? (
         <div className="flex flex-col gap-6">
-          {achievements.map((item) => (
+          {achievements.map((item, index) => (
             <div key={item.id} className="group bg-white/70 backdrop-blur-sm p-6 rounded-2xl border border-amber-100 shadow-sm hover:shadow-md transition-all duration-300 relative">
               <div className="grid grid-cols-1 md:grid-cols-[1.2fr_2fr_1fr] gap-6 mb-5 items-end">
 
@@ -151,7 +151,7 @@ export default function ExtracurricularAchievements() {
                 />
               </div>
 
-              {achievements.length > 1 && (
+              {index > 0 && (
                 <button
                   onClick={() => removeAchievement(item.id)}
                   className="absolute -top-2 -right-2 h-8 w-8 bg-red-50 text-red-500 hover:bg-red-500 hover:text-white rounded-full flex items-center justify-center transition-all duration-300 group shadow-sm hover:shadow-md z-10"
@@ -169,7 +169,7 @@ export default function ExtracurricularAchievements() {
 
           <button
             onClick={addAchievement}
-            className="mt-4 w-full bg-amber-50 hover:bg-amber-100 border-2 border-dashed border-amber-400 text-amber-700 font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-sm"
+            className="mt-6 w-full bg-amber-50 hover:bg-amber-100 border-2 border-dashed border-amber-400 text-amber-700 font-bold py-5 rounded-2xl flex items-center justify-center gap-3 transition-all shadow-md text-lg"
           >
             <span className="text-xl leading-none">+</span> Add Achievement
           </button>

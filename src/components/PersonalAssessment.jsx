@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { personalityQuestions } from '../data/personalityQuestions';
 
-export default function PersonalAssessment({ onToggleFullscreen, isFullscreen, onViewResults }) {
+export default function PersonalAssessment({ onToggleFullscreen, isFullscreen, onViewResults, onShowResults }) {
   const [started, setStarted] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState({});
   const [finished, setFinished] = useState(false);
+  const [showResults, setShowResults] = useState(false);
   const [sessionId, setSessionId] = useState('');
 
   // Load progress and session from localStorage
@@ -82,7 +83,7 @@ export default function PersonalAssessment({ onToggleFullscreen, isFullscreen, o
           handleAnswer(option);
         }
       }
-      
+
       if (e.key === 'ArrowRight' || e.key === 'Enter') {
         if (currentIndex < personalityQuestions.length - 1 && answers[personalityQuestions[currentIndex].id]) {
           setCurrentIndex(prev => prev + 1);
@@ -113,20 +114,243 @@ export default function PersonalAssessment({ onToggleFullscreen, isFullscreen, o
     { label: 'Strongly Agree', value: 5, color: '#3b82f6' }
   ];
 
+  const recommendations = [
+    {
+      id: 1,
+      branch: "Computer Science Engineering",
+      match: 98,
+      icon: "💻",
+      accentColor: "emerald",
+      whyMatch: [
+        "Your high score in logical reasoning and problem-solving is a great fit for algorithm development.",
+        "Your interest in building digital tools aligns perfectly with software engineering principles.",
+        "The fast-paced nature of tech matches your desire for continuous learning and innovation.",
+        "Your analytical skills will excel in data structure and complex system design."
+      ],
+      strengths: [
+        { skill: "Mathematics", level: "High", reasoning: "Aptitude for discrete math and complex calculations." },
+        { skill: "Logical Thinking", level: "High", reasoning: "Exemplary performance in logic-based assessments." },
+        { skill: "System Design", level: "Intermediate", reasoning: "Interest in architecture and structural frameworks." }
+      ],
+      offers: [
+        "Software development, AI, and Cybersecurity careers.",
+        "High-growth opportunities in both startups and global tech giants.",
+        "Foundation for specializing in Cloud, Blockchain, or Machine Learning."
+      ]
+    },
+    {
+      id: 2,
+      branch: "Electronics & Communication Engineering",
+      match: 86,
+      icon: "📡",
+      accentColor: "blue",
+      whyMatch: [
+        "Your aptitude for hardware-software integration is a key requirement for ECE.",
+        "Strong performance in Physics fundamentals provides a solid base for circuit design.",
+        "Interest in communication systems matches the core curriculum of this branch.",
+        "Your detail-oriented approach is perfect for microelectronics and VLSI design."
+      ],
+      strengths: [
+        { skill: "Physics", level: "High", reasoning: "Strong grasp of electromagnetics and semiconductor physics." },
+        { skill: "Circuit Analysis", level: "High", reasoning: "Demonstrated ability in solving network problems." },
+        { skill: "Hardware", level: "Intermediate", reasoning: "Interest in physical components and signal processing." }
+      ],
+      offers: [
+        "Roles in IoT, Robotics, and Embedded Systems development.",
+        "Opportunities in the telecommunications and semiconductor industries.",
+        "Versatility to transition into both core hardware and software roles."
+      ]
+    },
+    {
+      id: 3,
+      branch: "Mechanical Engineering",
+      match: 72,
+      icon: "⚙️",
+      accentColor: "amber",
+      whyMatch: [
+        "Your visualization skills are essential for 3D modeling and machine design.",
+        "Strong conceptual understanding of mechanics and thermodynamics.",
+        "Interest in physical systems and how things work on a macroscopic scale.",
+        "Your practical problem-solving style is a hallmark of successful mechanical engineers."
+      ],
+      strengths: [
+        { skill: "Physics", level: "High", reasoning: "Solid understanding of classical mechanics and energy systems." },
+        { skill: "Spatial Ability", level: "High", reasoning: "Advanced skill in visualizing 3D objects and mechanisms." },
+        { skill: "Design Thinking", level: "Intermediate", reasoning: "Creative approach to optimizing physical products." }
+      ],
+      offers: [
+        "Careers in Automotive, Aerospace, and Manufacturing sectors.",
+        "Involvement in Robotics, Renewable Energy, and Smart Manufacturing.",
+        "Opportunities to work on physical innovations and sustainable systems."
+      ]
+    }
+  ];
+
   if (finished) {
     return (
-      <div className="fade-in flex flex-col items-center justify-center py-20 px-6 text-center">
-        <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center text-4xl mb-8 animate-bounce">
-          ✅
-        </div>
-        <h2 className="text-3xl font-extrabold text-slate-800 mb-4 tracking-tight">Assessment Complete!</h2>
-        <p className="text-slate-600 text-lg mb-10 max-w-md">Your responses have been stored and analyzed. We're ready to show your path.</p>
-        <button
-          className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold py-4 px-12 rounded-xl shadow-lg hover:shadow-indigo-200 hover:scale-105 transition-all duration-300"
-          onClick={() => onViewResults && onViewResults()}
-        >
-          View Results ✨
-        </button>
+      <div className="fade-in pb-10">
+        {/* Success Banner — hidden once results are shown */}
+        {!showResults && (
+          <div className="flex flex-col items-center justify-center py-10 px-6 text-center border-b border-slate-100 mb-8">
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center text-3xl mb-4 animate-bounce">
+              ✅
+            </div>
+            <h2 className="text-2xl font-extrabold text-slate-800 mb-2 tracking-tight">Assessment Complete!</h2>
+            <p className="text-slate-500 text-base max-w-md">Your responses have been stored and analyzed. We're ready to show your path.</p>
+            <button
+              className="mt-6 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold py-4 px-12 rounded-xl shadow-lg hover:shadow-indigo-200 hover:scale-105 transition-all duration-300"
+              onClick={() => {
+                setShowResults(true);
+                if (onToggleFullscreen) onToggleFullscreen(true);
+                if (onShowResults) onShowResults();
+              }}
+            >
+              View Result ✨
+            </button>
+          </div>
+        )}
+
+        {/* Recommendation Cards — only shown after clicking View Result */}
+        {showResults && (<>
+
+          {/* Page Header */}
+          <div className="text-center mb-6 px-4">
+            <h1 className="text-2xl md:text-3xl font-black text-slate-800 leading-tight">
+              Your personalized Engineering Branch<br />recommendation
+            </h1>
+          </div>
+
+          {/* Top 3 Summary Box */}
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 mb-5 mx-2">
+            <p className="text-xl font-bold text-slate-700 mb-3">Your Top 3 recommendations</p>
+            <div className="grid grid-cols-3 rounded-xl overflow-hidden">
+              {recommendations.map((item) => (
+                <div key={item.id} className={`p-4 flex flex-col gap-1 ${item.accentColor === 'emerald' ? 'bg-emerald-50' :
+                  item.accentColor === 'blue' ? 'bg-blue-50' : 'bg-amber-50'
+                  }`}>
+                  <span className="text-base font-semibold text-slate-700 leading-snug">{item.branch}</span>
+                  <span className={`text-2xl font-black ${item.accentColor === 'emerald' ? 'text-emerald-600' :
+                    item.accentColor === 'blue' ? 'text-blue-600' : 'text-amber-600'
+                    }`}>{item.match}%</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Disclaimer */}
+          <div className="flex gap-3 items-start bg-slate-50 border border-slate-200 rounded-xl p-4 mb-6 mx-2">
+            <span className="text-slate-400 text-lg shrink-0">⚠️</span>
+            <p className="text-sm text-slate-500 leading-relaxed italic">
+              <strong className="text-slate-600 not-italic">Important Disclaimer :</strong> This recommendation is generated based on your inputs. Please review it in context of your own interests and long-term goals before proceeding.
+            </p>
+          </div>
+
+          {/* Recommendation Cards */}
+          <div className="space-y-8 px-2">
+            {recommendations.map((item) => (
+              <div key={item.id} className="bg-white rounded-2xl overflow-hidden border-2 border-slate-100 shadow-lg relative">
+                {/* Left Accent Bar */}
+                <div className={`absolute left-0 top-0 bottom-0 w-2 ${item.accentColor === 'emerald' ? 'bg-emerald-500' :
+                  item.accentColor === 'blue' ? 'bg-blue-500' : 'bg-amber-500'
+                  }`}></div>
+
+                <div className="p-5 md:p-8 pl-7 md:pl-10">
+                  {/* Card Header */}
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 border-b border-slate-100 pb-5">
+                    <div className="flex items-center gap-4">
+                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl ${item.accentColor === 'emerald' ? 'bg-emerald-50' :
+                        item.accentColor === 'blue' ? 'bg-blue-50' : 'bg-amber-50'
+                        }`}>
+                        {item.icon}
+                      </div>
+                      <div>
+                        <span className="text-sm font-bold text-slate-400 uppercase tracking-widest block">Best Match #{item.id}</span>
+                        <h3 className="text-2xl font-black text-slate-800">{item.branch}</h3>
+                      </div>
+                    </div>
+                    <div className="bg-slate-50 border border-slate-200 px-4 py-2 rounded-xl self-start md:self-auto">
+                      <span className={`text-2xl font-black ${item.accentColor === 'emerald' ? 'text-emerald-600' :
+                        item.accentColor === 'blue' ? 'text-blue-600' : 'text-amber-600'
+                        }`}>{item.match}% match</span>
+                    </div>
+                  </div>
+
+                  {/* Why Match */}
+                  <h4 className="text-base font-bold text-slate-700 mb-2">Why this matches your interests</h4>
+                  <div className="bg-slate-50 rounded-xl p-4 mb-5 border border-slate-100">
+                    <ul className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-3">
+                      {item.whyMatch.map((point, idx) => (
+                        <li key={idx} className="flex gap-2 text-sm text-slate-600 leading-relaxed items-start">
+                          <span className={`mt-1 w-2 h-2 rounded-full shrink-0 ${item.accentColor === 'emerald' ? 'bg-emerald-500' :
+                            item.accentColor === 'blue' ? 'bg-blue-500' : 'bg-amber-500'
+                            }`}></span>
+                          {point}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  {/* Strength Summary */}
+                  <div className="mb-5">
+                    <h4 className="text-base font-bold text-slate-700 mb-3">Strength Summary</h4>
+                    <div className="overflow-x-auto rounded-xl border border-slate-200">
+                      <table className="w-full text-left border-collapse">
+                        <thead>
+                          <tr className="bg-slate-50 border-b border-slate-200">
+                            <th className="px-4 py-3 text-sm font-bold text-slate-500 uppercase">Skill</th>
+                            <th className="px-4 py-3 text-sm font-bold text-slate-500 uppercase">Level</th>
+                            <th className="px-4 py-3 text-sm font-bold text-slate-500 uppercase">Reasoning</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                          {item.strengths.map((s, idx) => (
+                            <tr key={idx} className="hover:bg-slate-50/50">
+                              <td className="px-4 py-3 text-sm font-bold text-slate-700">{s.skill}</td>
+                              <td className="px-4 py-3">
+                                <span className={`px-2 py-0.5 rounded-full text-xs font-black uppercase ${s.level === 'High' ? 'bg-emerald-100 text-emerald-700' : 'bg-indigo-100 text-indigo-700'
+                                  }`}>{s.level}</span>
+                              </td>
+                              <td className="px-4 py-3 text-sm text-slate-500 italic">{s.reasoning}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  {/* Offers */}
+                  <div>
+                    <h4 className="text-base font-bold text-slate-700 mb-3">What {item.branch.split(' ')[0]} Engineering offers</h4>
+                    <ul className="space-y-2">
+                      {item.offers.map((offer, idx) => (
+                        <li key={idx} className="flex gap-3 text-sm text-slate-600 items-start">
+                          <div className={`mt-0.5 w-5 h-5 rounded-md flex items-center justify-center shrink-0 ${item.accentColor === 'emerald' ? 'bg-emerald-100' :
+                            item.accentColor === 'blue' ? 'bg-blue-100' : 'bg-amber-100'
+                            }`}>
+                            <span className={`text-xs font-black ${item.accentColor === 'emerald' ? 'text-emerald-600' :
+                              item.accentColor === 'blue' ? 'text-blue-600' : 'text-amber-600'
+                              }`}>{idx + 1}</span>
+                          </div>
+                          {offer}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Footer CTA */}
+          <div className="mt-8 flex flex-col items-center gap-3 px-4">
+            <button className="w-full max-w-md bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-4 rounded-2xl text-sm md:text-base transition-all">
+              Find Colleges for these Branches
+            </button>
+            <button className="w-full max-w-md bg-white hover:bg-slate-50 border border-slate-300 text-slate-800 font-bold py-4 rounded-2xl text-sm md:text-base transition-all">
+              Download PDF
+            </button>
+          </div>
+        </>)}
       </div>
     );
   }
@@ -146,9 +370,14 @@ export default function PersonalAssessment({ onToggleFullscreen, isFullscreen, o
             Almost there, ready for the last step?
           </h2>
 
-          <p className="text-slate-600 text-base md:text-lg leading-relaxed max-w-2xl mb-10">
+          <p className="text-slate-600 text-base md:text-lg leading-relaxed max-w-2xl mb-8">
             <span className="block">This short assessment helps us understand you beyond your marks.</span>
             <span className="block mt-1">Just 10 minutes and your recommendation is ready.</span>
+          </p>
+
+          <p className="text-slate-500 text-sm italic font-medium max-w-lg mb-10 bg-white/50 px-4 py-3 rounded-lg border border-slate-200">
+            💡 <span className="font-semibold">Tip:</span> Press 1 - 5 on your keyboard to respond<br />
+            <span className="block mt-1 text-slate-400">(1 - Strongly Disagree ; 5 - Strongly Agree)</span>
           </p>
 
           <button
@@ -166,7 +395,7 @@ export default function PersonalAssessment({ onToggleFullscreen, isFullscreen, o
   const progress = ((currentIndex + 1) / personalityQuestions.length) * 100;
 
   return (
-    <div className={`fade-in transition-all duration-500 bg-white shadow-xl rounded-2xl border border-blue-100 relative overflow-hidden ${isFullscreen ? 'min-h-[70vh] p-8 md:p-20' : 'min-h-[450px] p-6 md:p-10'}`}>
+    <div className={`fade-in transition-all duration-500 bg-white shadow-xl rounded-2xl border border-blue-100 relative overflow-hidden ${isFullscreen ? 'min-h-[70vh] p-8 md:p-20' : 'min-h-[570px] p-6 md:p-10'}`}>
       {/* Background decoration */}
       <div className="absolute top-0 right-0 w-64 h-64 bg-blue-50 rounded-full -mr-32 -mt-32 opacity-50 blur-3xl pointer-events-none"></div>
       <div className="absolute bottom-0 left-0 w-64 h-64 bg-indigo-50 rounded-full -ml-32 -mb-32 opacity-50 blur-3xl pointer-events-none"></div>
@@ -233,10 +462,10 @@ export default function PersonalAssessment({ onToggleFullscreen, isFullscreen, o
           <div className="relative flex justify-between items-center h-20">
             {/* Connecting Bar */}
             <div className="absolute top-1/2 left-[10%] right-[10%] h-[2px] bg-slate-400/80 -z-10 transform -translate-y-1/2 rounded-full" />
-            
+
             {options.map((option) => {
               const isSelected = answers[currentQ.id]?.score === option.value;
-              
+
               const sizes = {
                 1: "w-16 h-16", // Strongly Disagree
                 2: "w-12 h-12", // Disagree
@@ -244,7 +473,7 @@ export default function PersonalAssessment({ onToggleFullscreen, isFullscreen, o
                 4: "w-12 h-12", // Agree
                 5: "w-16 h-16", // Strongly Agree
               };
-              
+
               const circleColors = {
                 1: isSelected ? "bg-[#3b82f6] border-[#2563eb] shadow-[#3b82f6]/20" : "bg-white border-slate-200 hover:border-[#3b82f6]/50",
                 2: isSelected ? "bg-[#3b82f6] border-[#2563eb] shadow-[#3b82f6]/20" : "bg-white border-slate-200 hover:border-[#3b82f6]/50",
@@ -312,7 +541,7 @@ export default function PersonalAssessment({ onToggleFullscreen, isFullscreen, o
       </div>
 
       {/* Navigation */}
-      <div className="absolute bottom-8 left-8 right-8 flex justify-between items-center z-10">
+      <div className="absolute bottom-4 left-8 right-8 flex justify-between items-center z-10">
         {currentIndex > 0 ? (
           <button
             onClick={prevQuestion}

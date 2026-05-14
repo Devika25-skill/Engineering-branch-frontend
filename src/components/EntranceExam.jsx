@@ -46,7 +46,7 @@ export default function EntranceExam() {
 
       {!skipped ? (
         <div className="flex flex-col gap-6">
-          {exams.map((exam) => (
+          {exams.map((exam, index) => (
             <div key={exam.id} className="group bg-white/70 backdrop-blur-sm p-6 rounded-2xl border border-purple-100 shadow-sm hover:shadow-md transition-all duration-300 relative">
               <div className="grid grid-cols-1 md:grid-cols-[1.5fr_1fr_1fr] gap-6 items-end">
 
@@ -111,7 +111,7 @@ export default function EntranceExam() {
                 </div>
               </div>
 
-              {exams.length > 1 && (
+              {index > 0 && (
                 <button
                   onClick={() => removeExam(exam.id)}
                   className="absolute -top-2 -right-2 h-8 w-8 bg-red-50 text-red-500 hover:bg-red-500 hover:text-white rounded-full flex items-center justify-center transition-all duration-300 group shadow-sm hover:shadow-md z-10"
@@ -129,7 +129,7 @@ export default function EntranceExam() {
 
           <button
             onClick={addExam}
-            className="mt-4 w-full bg-purple-50 hover:bg-purple-100 border-2 border-dashed border-purple-400 text-purple-700 font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-sm"
+            className="mt-6 w-full bg-purple-50 hover:bg-purple-100 border-2 border-dashed border-purple-400 text-purple-700 font-bold py-5 rounded-2xl flex items-center justify-center gap-3 transition-all shadow-md text-lg"
           >
             <span className="text-xl leading-none">+</span> Add Exam
           </button>
