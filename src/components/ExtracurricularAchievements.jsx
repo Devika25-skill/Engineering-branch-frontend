@@ -12,9 +12,8 @@ export default function ExtracurricularAchievements({ onNext, onBack }) {
     // Only the first achievement is mandatory
     const first = achievements[0];
     const hasType = first.type === 'Other' ? first.customType.trim() !== '' : first.type !== '';
-    const hasTitle = first.title.trim() !== '';
     const hasLevel = first.level === 'Other' ? first.customLevel.trim() !== '' : first.level !== '';
-    const isValid = hasType && hasTitle && hasLevel;
+    const isValid = hasType && hasLevel;
     if (!isValid) {
       setShowErrors(true);
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -127,13 +126,13 @@ export default function ExtracurricularAchievements({ onNext, onBack }) {
 
                 {/* Title Input */}
                 <div className="flex flex-col gap-2">
-                  <label className="text-gray-600 font-bold text-sm uppercase tracking-wider ml-1">Achievement {index === 0 && <span className="text-red-500">*</span>}</label>
+                  <label className="text-gray-600 font-bold text-sm uppercase tracking-wider ml-1">Achievement</label>
                   <input
                     type="text"
                     placeholder="e.g. State Level Football Runner-up"
                     value={item.title}
                     onChange={(e) => updateAchievement(item.id, 'title', e.target.value)}
-                    className={`h-12 rounded-xl border-2 bg-white px-4 w-full outline-none transition-all text-slate-800 font-medium ${showErrors && index === 0 && !item.title ? 'border-red-500' : 'border-slate-200 focus:border-amber-400 focus:ring-4 focus:ring-amber-50/50'}`}
+                    className="h-12 rounded-xl border-2 border-slate-200 bg-white px-4 w-full outline-none transition-all text-slate-800 font-medium focus:border-amber-400 focus:ring-4 focus:ring-amber-50/50"
                   />
                 </div>
 
