@@ -2,10 +2,11 @@ import { useState } from 'react';
 
 const EXAM_OPTIONS = ['JEE Main', 'JEE Advanced', 'State CET', 'Other'];
 
-export default function EntranceExam() {
+export default function EntranceExam({ onNext, onBack }) {
   const [skipped, setSkipped] = useState(false);
+  const [showErrors, setShowErrors] = useState(false);
   const [exams, setExams] = useState([
-    { id: 'initial-exam', name: 'JEE Main', percentile: '', rank: '', customName: '' }
+    { id: 'initial-exam', name: '', percentile: '', rank: '', customName: '' }
   ]);
 
   const updateExam = (id, field, value) => {
@@ -22,6 +23,35 @@ export default function EntranceExam() {
     }
   };
 
+  const validate = () => {
+    if (skipped) return true;
+    // Only the first exam is mandatory — name and percentile only
+    const first = exams[0];
+    const hasName = first.name !== '' && (first.name !== 'Other' || first.customName.trim() !== '');
+    const hasPercentile = first.name === 'JEE Advanced' || first.percentile.trim() !== '';
+    const isValid = hasName && hasPercentile;
+    if (!isValid) {
+      setShowErrors(true);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    return isValid;
+  };
+
+  const handleNext = () => {
+    if (validate()) {
+      if (onNext) onNext();
+    }
+  };
+
+  // Only the first exam is mandatory - check if it's invalid
+  const isFirstExamInvalid = () => {
+    const first = exams[0];
+    const hasName = first.name !== '' && (first.name !== 'Other' || first.customName.trim() !== '');
+    const hasPercentile = first.name === 'JEE Advanced' || first.percentile.trim() !== '';
+    return !hasName || !hasPercentile;
+  };
+  const hasError = showErrors && !skipped && isFirstExamInvalid();
+
   return (
     <div className="fade-in bg-gradient-to-br from-purple-50/90 to-fuchsia-50/90 shadow-lg rounded-2xl border-0 p-6 md:p-8 mb-8 transition-all duration-500">
       <div className="flex items-center gap-4 mb-8">
@@ -31,13 +61,30 @@ export default function EntranceExam() {
         <h2 className="text-2xl font-extrabold text-slate-800 m-0 tracking-tight">Entrance Exam Scores</h2>
       </div>
 
+      {/* Error Box */}
+      {hasError && (
+        <div className="mb-6 p-4 bg-red-50 border-2 border-red-200 rounded-2xl flex items-center gap-4">
+          <div className="flex items-center justify-center w-10 h-10 bg-red-500 rounded-xl text-white shadow-md text-xl shrink-0">
+            ⚠️
+          </div>
+          <div className="flex flex-col">
+            <span className="text-red-800 font-bold">Action Required</span>
+            <span className="text-red-600 text-sm">Please either skip this section or fill in at least one exam name before continuing.</span>
+          </div>
+        </div>
+      )}
+
       {/* Skip Option */}
       <div
-        className={`mb-8 p-5 rounded-2xl border-2 flex items-center gap-4 cursor-pointer transition-all duration-300 transform hover:translate-y-[-2px] shadow-sm ${skipped ? 'bg-blue-50/60 border-blue-300 shadow-blue-100' : 'bg-white/80 border-slate-200 hover:border-purple-300 hover:bg-white'}`}
+        className={`mb-8 p-5 rounded-2xl border-2 flex items-center gap-4 cursor-pointer transition-all duration-300 transform hover:translate-y-[-2px] shadow-sm ${
+          skipped ? 'bg-blue-50/60 border-blue-300 shadow-blue-100'
+          : hasError ? 'border-red-500 bg-white/80'
+          : 'bg-white/80 border-slate-200 hover:border-purple-300 hover:bg-white'
+        }`}
         onClick={() => setSkipped(!skipped)}
       >
         <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${skipped ? 'bg-blue-500 border-blue-500' : 'border-slate-300 bg-white'}`}>
-          {skipped && <span className="text-white text-xs font-bold">✅</span>}
+          {skipped && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>}
         </div>
         <span className={`text-base font-bold tracking-tight ${skipped ? 'text-blue-900' : 'text-slate-700'}`}>
           Skip this section
@@ -51,48 +98,50 @@ export default function EntranceExam() {
               <div className="grid grid-cols-1 md:grid-cols-[1.5fr_1fr_1fr] gap-6 items-end">
 
                 <div className="flex flex-col gap-2">
-                  <label className="text-gray-600 font-bold text-sm uppercase tracking-wider ml-1">Exam Name</label>
+                  <label className="text-gray-600 font-bold text-sm uppercase tracking-wider ml-1">Exam Name {index === 0 && <span className="text-red-500">*</span>}</label>
                   {exam.name === 'Other' ? (
-                    <div className="flex gap-2">
+                    <div className={`flex gap-2 rounded-xl border-2 bg-white transition-all ${hasError && index === 0 ? 'border-red-500' : 'border-purple-200'}`}>
                       <input
                         type="text"
                         placeholder="e.g. BITSAT"
-                        className="h-12 rounded-xl border-2 border-purple-200 bg-white px-4 w-full outline-none focus:border-purple-500 focus:ring-4 focus:ring-purple-100 transition-all text-slate-800 font-medium"
+                        className="h-12 rounded-xl bg-transparent px-4 w-full outline-none text-slate-800 font-medium"
                         value={exam.customName}
                         onChange={(e) => updateExam(exam.id, 'customName', e.target.value)}
                         autoFocus
                       />
                       <button
                         onClick={() => updateExam(exam.id, 'name', '')}
-                        className="h-12 w-12 flex items-center justify-center bg-slate-100 border-2 border-slate-200 rounded-xl hover:bg-slate-200 transition-colors text-slate-600 text-xl font-bold"
+                        className="h-12 w-12 flex items-center justify-center bg-slate-100 border-l border-slate-200 hover:bg-slate-200 transition-colors text-slate-600 text-xl font-bold rounded-r-xl"
                         title="Back to list"
                       >
                         ↺
                       </button>
                     </div>
                   ) : (
-                    <select
-                      className="h-12 rounded-xl border-2 border-slate-200 bg-white px-4 w-full outline-none focus:border-purple-400 focus:ring-4 focus:ring-purple-50/50 transition-all text-slate-800 font-medium cursor-pointer hover:border-purple-200"
-                      value={exam.name}
-                      onChange={(e) => updateExam(exam.id, 'name', e.target.value)}
-                    >
-                      <option value="" disabled>Select Exam</option>
-                      {EXAM_OPTIONS.map(opt => (
-                        <option key={opt} value={opt}>{opt}</option>
-                      ))}
-                    </select>
+                    <div className={`rounded-xl border-2 bg-white transition-all ${hasError && index === 0 && !exam.name ? 'border-red-500' : 'border-slate-200'}`}>
+                      <select
+                        className="h-12 rounded-xl bg-transparent px-4 w-full outline-none text-slate-800 font-medium cursor-pointer"
+                        value={exam.name}
+                        onChange={(e) => updateExam(exam.id, 'name', e.target.value)}
+                      >
+                        <option value="" disabled>Select Exam</option>
+                        {EXAM_OPTIONS.map(opt => (
+                          <option key={opt} value={opt}>{opt}</option>
+                        ))}
+                      </select>
+                    </div>
                   )}
                 </div>
 
                 {exam.name !== 'JEE Advanced' && (
                   <div className="flex flex-col gap-2">
-                    <label className="text-gray-600 font-bold text-sm uppercase tracking-wider ml-1">Percentile / Score</label>
+                  <label className="text-gray-600 font-bold text-sm uppercase tracking-wider ml-1">Percentile / Score {index === 0 && <span className="text-red-500">*</span>}</label>
                     <input
                       type="text"
                       placeholder="e.g. 98.5"
                       value={exam.percentile}
                       onChange={(e) => updateExam(exam.id, 'percentile', e.target.value)}
-                      className="h-12 rounded-xl border-2 border-slate-200 bg-white px-4 w-full outline-none focus:border-purple-400 focus:ring-4 focus:ring-purple-50/50 transition-all text-slate-800 font-medium"
+                      className={`h-12 rounded-xl border-2 bg-white px-4 w-full outline-none transition-all text-slate-800 font-medium ${showErrors && !skipped && index === 0 && exam.percentile.trim() === '' ? 'border-red-500' : 'border-slate-200 focus:border-purple-400 focus:ring-4 focus:ring-purple-50/50'}`}
                     />
                   </div>
                 )}
@@ -105,7 +154,7 @@ export default function EntranceExam() {
                       placeholder="e.g. 15000"
                       value={exam.rank}
                       onChange={(e) => updateExam(exam.id, 'rank', e.target.value)}
-                      className="h-12 rounded-xl border-2 border-slate-200 bg-white px-4 w-full outline-none focus:border-purple-400 focus:ring-4 focus:ring-purple-50/50 transition-all text-slate-800 font-medium"
+                      className="h-12 rounded-xl border-2 border-slate-200 bg-white px-4 w-full outline-none transition-all text-slate-800 font-medium focus:border-purple-400 focus:ring-4 focus:ring-purple-50/50"
                     />
                   </div>
                 </div>
@@ -147,6 +196,22 @@ export default function EntranceExam() {
           </p>
         </div>
       )}
+
+      {/* Navigation Buttons */}
+      <div className="flex flex-col md:flex-row justify-between items-center mt-10 gap-4 w-full">
+        <button
+          className="w-full md:w-auto bg-white border border-slate-200 text-slate-500 px-8 py-3 rounded-xl font-semibold hover:bg-slate-50 transition-colors"
+          onClick={onBack}
+        >
+          ← Back
+        </button>
+        <button
+          className="w-full md:w-auto bg-gradient-to-r from-blue-500 to-cyan-500 text-white border-none px-10 py-3 rounded-xl font-bold shadow-lg shadow-blue-500/30 hover:opacity-90 transition-opacity"
+          onClick={handleNext}
+        >
+          Save & continue →
+        </button>
+      </div>
     </div>
   );
 }

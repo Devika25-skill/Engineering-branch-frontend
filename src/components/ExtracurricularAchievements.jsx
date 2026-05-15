@@ -1,13 +1,35 @@
 import { useState } from 'react';
 
-export default function ExtracurricularAchievements() {
+export default function ExtracurricularAchievements({ onNext, onBack }) {
   const [skipped, setSkipped] = useState(false);
   const [achievements, setAchievements] = useState([
-    { id: 1, type: 'Sports', title: '', level: 'School', description: '', customType: '', customLevel: '' }
+    { id: 1, type: '', title: '', level: '', description: '', customType: '', customLevel: '' }
   ]);
+  const [showErrors, setShowErrors] = useState(false);
+
+  const validate = () => {
+    if (skipped) return true;
+    // Only the first achievement is mandatory
+    const first = achievements[0];
+    const hasType = first.type === 'Other' ? first.customType.trim() !== '' : first.type !== '';
+    const hasTitle = first.title.trim() !== '';
+    const hasLevel = first.level === 'Other' ? first.customLevel.trim() !== '' : first.level !== '';
+    const isValid = hasType && hasTitle && hasLevel;
+    if (!isValid) {
+      setShowErrors(true);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    return isValid;
+  };
+
+  const handleNext = () => {
+    if (validate()) {
+      if (onNext) onNext();
+    }
+  };
 
   const addAchievement = () => {
-    setAchievements([...achievements, { id: Date.now(), type: 'Sports', title: '', level: 'School', description: '', customType: '', customLevel: '' }]);
+    setAchievements([...achievements, { id: Date.now(), type: '', title: '', level: '', description: '', customType: '', customLevel: '' }]);
   };
 
   const updateAchievement = (id, field, value) => {
@@ -27,9 +49,26 @@ export default function ExtracurricularAchievements() {
         <h2 className="text-2xl font-extrabold text-slate-800 m-0 tracking-tight">Extracurricular Achievements</h2>
       </div>
 
+      {/* Error Box - above skip */}
+      {showErrors && !skipped && (
+        <div className="mb-6 p-4 bg-red-50 border-2 border-red-200 rounded-2xl flex items-center gap-4">
+          <div className="flex items-center justify-center w-10 h-10 bg-red-500 rounded-xl text-white shadow-md text-xl shrink-0">
+            ⚠️
+          </div>
+          <div className="flex flex-col">
+            <span className="text-red-800 font-bold">Incomplete Fields Detected</span>
+            <span className="text-red-600 text-sm">Please fill all mandatory fields marked with (*) before continuing.</span>
+          </div>
+        </div>
+      )}
+
       {/* Skip Option */}
       <div
-        className={`mb-8 p-5 rounded-2xl border-2 flex items-center gap-4 cursor-pointer transition-all duration-300 transform hover:translate-y-[-2px] shadow-sm ${skipped ? 'bg-blue-50/60 border-blue-300 shadow-blue-100' : 'bg-white/80 border-slate-200 hover:border-amber-300 hover:bg-white'}`}
+        className={`mb-8 p-5 rounded-2xl border-2 flex items-center gap-4 cursor-pointer transition-all duration-300 transform hover:translate-y-[-2px] shadow-sm ${
+          skipped ? 'bg-blue-50/60 border-blue-300 shadow-blue-100'
+          : showErrors ? 'border-red-500 bg-white/80'
+          : 'bg-white/80 border-slate-200 hover:border-amber-300 hover:bg-white'
+        }`}
         onClick={() => setSkipped(!skipped)}
       >
         <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${skipped ? 'bg-blue-500 border-blue-500' : 'border-slate-300 bg-white'}`}>
@@ -48,21 +87,21 @@ export default function ExtracurricularAchievements() {
 
                 {/* Category Selection */}
                 <div className="flex flex-col gap-2">
-                  <label className="text-gray-600 font-bold text-sm uppercase tracking-wider ml-1">Category</label>
-                  <div className="w-full">
+                  <label className="text-gray-600 font-bold text-sm uppercase tracking-wider ml-1">Category {index === 0 && <span className="text-red-500">*</span>}</label>
+                  <div className={`w-full rounded-xl border-2 bg-white transition-all ${showErrors && index === 0 && !item.type ? 'border-red-500' : 'border-slate-200'}`}>
                     {item.type === 'Other' ? (
                       <div className="flex gap-2">
                         <input
                           type="text"
                           placeholder="Type category..."
-                          className="h-12 rounded-xl border-2 border-amber-200 bg-white px-4 w-full outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-100 transition-all text-slate-800 font-medium"
+                          className="h-12 rounded-xl bg-transparent px-4 w-full outline-none text-slate-800 font-medium"
                           value={item.customType}
                           onChange={(e) => updateAchievement(item.id, 'customType', e.target.value)}
                           autoFocus
                         />
                         <button
                           onClick={() => updateAchievement(item.id, 'type', '')}
-                          className="h-12 w-12 flex items-center justify-center bg-slate-100 border-2 border-slate-200 rounded-xl hover:bg-slate-200 transition-colors text-slate-600 text-xl font-bold shrink-0"
+                          className="h-12 w-12 flex items-center justify-center bg-slate-100 border-l border-slate-200 hover:bg-slate-200 transition-colors text-slate-600 text-xl font-bold rounded-r-xl shrink-0"
                           title="Back to list"
                         >
                           ↺
@@ -72,7 +111,7 @@ export default function ExtracurricularAchievements() {
                       <select
                         value={item.type}
                         onChange={(e) => updateAchievement(item.id, 'type', e.target.value)}
-                        className="h-12 rounded-xl border-2 border-slate-200 bg-white px-4 w-full outline-none focus:border-amber-400 focus:ring-4 focus:ring-amber-50/50 transition-all text-slate-800 font-medium cursor-pointer hover:border-amber-200"
+                        className="h-12 rounded-xl bg-transparent px-4 w-full outline-none text-slate-800 font-medium cursor-pointer"
                       >
                         <option value="" disabled>Select Category</option>
                         <option>Leadership</option>
@@ -88,33 +127,33 @@ export default function ExtracurricularAchievements() {
 
                 {/* Title Input */}
                 <div className="flex flex-col gap-2">
-                  <label className="text-gray-600 font-bold text-sm uppercase tracking-wider ml-1">Achievement</label>
+                  <label className="text-gray-600 font-bold text-sm uppercase tracking-wider ml-1">Achievement {index === 0 && <span className="text-red-500">*</span>}</label>
                   <input
                     type="text"
                     placeholder="e.g. State Level Football Runner-up"
                     value={item.title}
                     onChange={(e) => updateAchievement(item.id, 'title', e.target.value)}
-                    className="h-12 rounded-xl border-2 border-slate-200 bg-white px-4 w-full outline-none focus:border-amber-400 focus:ring-4 focus:ring-amber-50/50 transition-all text-slate-800 font-medium"
+                    className={`h-12 rounded-xl border-2 bg-white px-4 w-full outline-none transition-all text-slate-800 font-medium ${showErrors && index === 0 && !item.title ? 'border-red-500' : 'border-slate-200 focus:border-amber-400 focus:ring-4 focus:ring-amber-50/50'}`}
                   />
                 </div>
 
                 {/* Level Selection */}
                 <div className="flex flex-col gap-2">
-                  <label className="text-gray-600 font-bold text-sm uppercase tracking-wider ml-1">Level</label>
-                  <div className="w-full">
+                  <label className="text-gray-600 font-bold text-sm uppercase tracking-wider ml-1">Level {index === 0 && <span className="text-red-500">*</span>}</label>
+                  <div className={`w-full rounded-xl border-2 bg-white transition-all ${showErrors && index === 0 && !item.level ? 'border-red-500' : 'border-slate-200'}`}>
                     {item.level === 'Other' ? (
                       <div className="flex gap-2">
                         <input
                           type="text"
                           placeholder="Type level..."
-                          className="h-12 rounded-xl border-2 border-amber-200 bg-white px-4 w-full outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-100 transition-all text-slate-800 font-medium"
+                          className="h-12 rounded-xl bg-transparent px-4 w-full outline-none text-slate-800 font-medium"
                           value={item.customLevel}
                           onChange={(e) => updateAchievement(item.id, 'customLevel', e.target.value)}
                           autoFocus
                         />
                         <button
                           onClick={() => updateAchievement(item.id, 'level', '')}
-                          className="h-12 w-12 flex items-center justify-center bg-slate-100 border-2 border-slate-200 rounded-xl hover:bg-slate-200 transition-colors text-slate-600 text-xl font-bold shrink-0"
+                          className="h-12 w-12 flex items-center justify-center bg-slate-100 border-l border-slate-200 hover:bg-slate-200 transition-colors text-slate-600 text-xl font-bold rounded-r-xl shrink-0"
                           title="Back to list"
                         >
                           ↺
@@ -124,7 +163,7 @@ export default function ExtracurricularAchievements() {
                       <select
                         value={item.level}
                         onChange={(e) => updateAchievement(item.id, 'level', e.target.value)}
-                        className="h-12 rounded-xl border-2 border-slate-200 bg-white px-4 w-full outline-none focus:border-amber-400 focus:ring-4 focus:ring-amber-50/50 transition-all text-slate-800 font-medium cursor-pointer hover:border-amber-200"
+                        className="h-12 rounded-xl bg-transparent px-4 w-full outline-none text-slate-800 font-medium cursor-pointer"
                       >
                         <option value="" disabled>Select Level</option>
                         <option>School Level</option>
@@ -187,6 +226,22 @@ export default function ExtracurricularAchievements() {
           </p>
         </div>
       )}
+
+      {/* Navigation Buttons */}
+      <div className="flex flex-col md:flex-row justify-between items-center mt-10 gap-4 w-full">
+        <button
+          className="w-full md:w-auto bg-white border border-slate-200 text-slate-500 px-8 py-3 rounded-xl font-semibold hover:bg-slate-50 transition-colors"
+          onClick={onBack}
+        >
+          ← Back
+        </button>
+        <button
+          className="w-full md:w-auto bg-gradient-to-r from-blue-500 to-cyan-500 text-white border-none px-10 py-3 rounded-xl font-bold shadow-lg shadow-blue-500/30 hover:opacity-90 transition-opacity"
+          onClick={handleNext}
+        >
+          Save & continue →
+        </button>
+      </div>
     </div>
   );
 }

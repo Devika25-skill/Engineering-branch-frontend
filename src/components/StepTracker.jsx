@@ -1,8 +1,8 @@
 // src/components/StepTracker.jsx
 
 export default function StepTracker({ step }) {
-  // Calculate progress based on 4 total steps
-  const progress = ((step + 1) / 4) * 100;
+  // Progress reflects completed steps — 0% while on step 0, 25% after completing it, etc.
+  const progress = (step / 4) * 100;
 
   return (
     <div className="max-w-4xl mx-auto px-4 mb-8">

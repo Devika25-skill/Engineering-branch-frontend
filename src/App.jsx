@@ -13,7 +13,7 @@ import WelcomeBack from './components/WelcomeBack'
 import CourseRecommendations from './components/CourseRecommendations'
 
 function App() {
-  const [currentStep, setCurrentStep] = useState(3);
+  const [currentStep, setCurrentStep] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showDashboard, setShowDashboard] = useState(false);
   const [showRecommendations, setShowRecommendations] = useState(false);
@@ -121,9 +121,9 @@ function App() {
             )}
 
             {/* Multi-step form content */}
-            {currentStep === 0 && <SubjectEntry />}
-            {currentStep === 1 && <EntranceExam />}
-            {currentStep === 2 && <ExtracurricularAchievements />}
+            {currentStep === 0 && <SubjectEntry onNext={nextStep} onBack={prevStep} />}
+            {currentStep === 1 && <EntranceExam onNext={nextStep} onBack={prevStep} />}
+            {currentStep === 2 && <ExtracurricularAchievements onNext={nextStep} onBack={prevStep} />}
             {currentStep === 3 && (
               <PersonalAssessment
                 onToggleFullscreen={setIsFullscreen}
@@ -136,7 +136,7 @@ function App() {
           </div>
         </div>
 
-        {!isFullscreen && (
+        {!isFullscreen && currentStep !== 0 && currentStep !== 1 && currentStep !== 2 && (
           <div className="flex flex-col md:flex-row justify-between items-center mt-10 px-4 md:px-5 pb-10 max-w-5xl mx-auto gap-4 md:gap-0 w-full">
             {currentStep > 0 ? (
               <button 
