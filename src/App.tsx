@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -28,6 +27,9 @@ import MyTickets from "./pages/MyTickets";
 import TicketDetails from "./pages/TicketDetails";
 import MockRecommendationPage from "./pages/MockRecommendationPage";
 
+// Import your custom Engineering Dashboard steps here!
+import EngineeringSteps from "./pages/EngineeringSteps";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -49,6 +51,10 @@ const App = () => (
                 <Route path="/medical-recommendations/results" element={<MedicalRecommendationResults />} />
                 <Route path="/diploma-recommendations/steps" element={<DiplomaRecommendationSteps />} />
                 <Route path="/diploma-recommendations/results" element={<DiplomaRecommendationResults />} />
+                
+                {/* Your new beautiful Engineering flow page! */}
+                <Route path="/engineering-steps" element={<EngineeringSteps />} />
+
                 <Route path="/integrated-steps" element={<IntegratedAdmissionSteps />} />
                 <Route path="/integrated-rounds" element={<IntegratedRounds />} />
                 <Route path="/college/:id" element={<CollegeDetails />} />
