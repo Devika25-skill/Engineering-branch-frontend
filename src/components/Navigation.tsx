@@ -71,10 +71,11 @@ const Navigation = () => {
       localStorage.removeItem("recommendation_type");
     }
 
+
     switch (program) {
-      case "first-year":
-      case "First_Year_Medical":
-        navigate("/recommendations");
+      case 'first-year':
+      case 'First_Year_Medical':
+        navigate('/recommendations');
         break;
       case "direct-second-year":
         navigate("/diploma-recommendations/steps");
@@ -130,7 +131,12 @@ const Navigation = () => {
             savedRecommendationType === "first-year" ||
             savedRecommendationType === "First_Year_Medical"
           ) {
-            navigate("/recommendations");
+            const hasExistingData = sessionStorage.getItem("recommendationFormData");
+            navigate(
+              hasExistingData
+                ? "/recommendations/results"
+                : "/recommendations/steps",
+            );
           } else if (savedIntegratedType) {
             // Check if form data exists for this integrated type
             const hasExistingData = sessionStorage.getItem(
