@@ -1163,12 +1163,7 @@ class ApiService {
       },
     });
   }
-  async sendOTP(email: string): Promise<SendOTPResponse> {
-    return this.request<SendOTPResponse>('/api/v1/auth/sendOTP', {
-      method: 'POST',
-      body: JSON.stringify({ email }),
-    });
-  }
+
 
   async preRegister(data: any): Promise<ApiResponse<any>> {
     return this.request<ApiResponse<any>>('/api/v1/auth/pre-register', {
