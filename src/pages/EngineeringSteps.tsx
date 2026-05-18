@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import '../App.css';
-import Navbar from '../components/Navbar';
+import Navigation from '../components/Navigation';
 import Header from '../components/Header';
 import StepTracker from '../components/StepTracker';
 import SectionTabs from '../components/SectionTabs';
@@ -63,7 +63,7 @@ export default function EngineeringSteps(): React.ReactElement {
   if (showRecommendations) {
     return (
       <div className="bg-[#f8fafc] min-h-screen">
-        <Navbar />
+        <Navigation />
         <CourseRecommendations />
       </div>
     );
@@ -72,7 +72,7 @@ export default function EngineeringSteps(): React.ReactElement {
   if (showWelcome) {
     return (
       <div style={{ backgroundColor: '#f8fafc', minHeight: '100vh' }}>
-        <Navbar />
+        <Navigation />
         <WelcomeBack
           completedSteps={currentStep}
           onResume={() => setShowWelcome(false)}
@@ -85,7 +85,7 @@ export default function EngineeringSteps(): React.ReactElement {
   if (showDashboard) {
     return (
       <div style={{ backgroundColor: '#f8fafc', minHeight: '100vh' }}>
-        <Navbar />
+        <Navigation />
         <Dashboard
           isLanding={currentStep === 0}
           onStartAssessment={() => setShowDashboard(false)}
@@ -96,7 +96,7 @@ export default function EngineeringSteps(): React.ReactElement {
 
   return (
     <div className="bg-[#fcf2f9] min-h-screen">
-      <Navbar />
+      <Navigation />
 
       {!isFullscreen && !showResultsView && (
         <>
