@@ -1,42 +1,58 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 
-const SUBJECTS_SCHOOL = [
+// Define the properties expected by the component
+interface SubjectEntryProps {
+  onNext?: () => void;
+  onBack?: () => void;
+}
+
+// Define the structure for a single subject entry row
+interface EntryRow {
+  id: string | number;
+  subject: string;
+  marks: string | number;
+  total: string | number;
+  compulsory: boolean;
+  customName?: string;
+}
+
+const SUBJECTS_SCHOOL: string[] = [
   'English', 'Mathematics', 'Science', 'Physics', 'Chemistry', 'Biology',
   'History', 'Geography', 'Civics / Political Science', 'Economics',
   'Hindi', 'Marathi', 'Sanskrit', 'Other Regional Language', 'Other / Custom'
 ];
 
-const SUBJECTS_HIGHER = [
+const SUBJECTS_HIGHER: string[] = [
   'Mathematics', 'Physics', 'Chemistry', 'Biology', 'Hindi', 'Marathi',
   'Geography', 'IT', 'Computer Science', 'Electronics', 'Automobile', 'Other / Custom'
 ];
 
-const SUBJECTS_FY = [
+const SUBJECTS_FY: string[] = [
   'Engineering Mathematics', 'Engineering Physics', 'Engineering Chemistry',
   'Basic Electrical Engineering', 'Engineering Graphics', 'Basic Mechanical Engineering',
   'Programming / Computer Programming', 'Communication Skills / English',
   'Workshop / Practical Labs', 'Other / Custom'
 ];
 
-export default function SubjectEntry({ onNext, onBack }) {
-  const [latestClass, setLatestClass] = useState('');
-  const [showErrors, setShowErrors] = useState(false);
-  const [entries, setEntries] = useState([
+export default function SubjectEntry({ onNext, onBack }: SubjectEntryProps): React.ReactElement {
+  const [latestClass, setLatestClass] = useState < string > ('');
+  const [showErrors, setShowErrors] = useState < boolean > (false);
+  const [entries, setEntries] = useState < EntryRow[] > ([
     { id: 'sub1', subject: '', marks: '', total: 100, compulsory: true },
     { id: 'sub2', subject: '', marks: '', total: 100, compulsory: true },
     { id: 'sub3', subject: '', marks: '', total: 100, compulsory: true },
   ]);
-  const [duplicateError, setDuplicateError] = useState(false);
+  const [duplicateError, setDuplicateError] = useState < boolean > (false);
 
-  const isRowValid = (row) => {
+  const isRowValid = (row: EntryRow): boolean => {
     if (!row.compulsory) return true; // optional rows are always valid
     const hasSubject = row.subject === 'Other / Custom' ? (row.customName && row.customName.trim() !== '') : (row.subject !== '');
     const hasMarks = row.marks !== '' && row.marks !== null;
     const hasTotal = row.total !== '' && row.total !== null;
-    return hasSubject && hasMarks && hasTotal;
+    return !!(hasSubject && hasMarks && hasTotal);
   };
 
-  const validate = () => {
+  const validate = (): boolean => {
     const hasClass = latestClass !== '';
     const allEntriesValid = entries.every(row => isRowValid(row));
 
@@ -47,7 +63,7 @@ export default function SubjectEntry({ onNext, onBack }) {
     const hasDuplicates = selectedSubjects.length !== new Set(selectedSubjects).size;
 
     const isValid = hasClass && allEntriesValid && !hasDuplicates;
-    
+
     if (!isValid) {
       setShowErrors(true);
       setDuplicateError(hasDuplicates);
@@ -56,19 +72,19 @@ export default function SubjectEntry({ onNext, onBack }) {
     return isValid;
   };
 
-  const handleNext = () => {
+  const handleNext = (): void => {
     if (validate()) {
       if (onNext) onNext();
     }
   };
 
-  const addRow = () => setEntries([...entries, { id: Date.now(), subject: '', marks: '', total: 100, compulsory: false, customName: '' }]);
+  const addRow = (): void => setEntries([...entries, { id: Date.now(), subject: '', marks: '', total: 100, compulsory: false, customName: '' }]);
 
-  const updateRow = (id, field, value) => {
+  const updateRow = (id: string | number, field: keyof EntryRow, value: string | number): void => {
     setEntries(entries.map(row => row.id === id ? { ...row, [field]: value } : row));
   };
 
-  const removeRow = (id) => {
+  const removeRow = (id: string | number): void => {
     setEntries(entries.filter(row => row.id !== id));
   };
 

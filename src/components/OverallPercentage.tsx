@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 
-export default function OverallPercentage() {
-  const [percentage, setPercentage] = useState('');
+export default function OverallPercentage(): React.ReactElement {
+  const [percentage, setPercentage] = useState < string > ('');
 
-  const handleInputChange = (event) => {
+  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
     const value = event.target.value;
     if (/^\d*\.?\d*$/.test(value)) {
       setPercentage(value);

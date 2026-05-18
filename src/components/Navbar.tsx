@@ -1,10 +1,11 @@
-// src/components/Navbar.jsx
+// src/components/Navbar.tsx
+import React from 'react';
 
-export default function Navbar() {
+export default function Navbar(): React.ReactElement {
   return (
     <nav className="main-nav">
       <div className="nav-container">
-        
+
         {/* Left: Logo */}
         <div className="logo-section">
           <span className="mortarboard">🎓</span>

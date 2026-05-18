@@ -1,11 +1,24 @@
 import React from 'react';
 
-export default function Dashboard({ isLanding, onStartAssessment }) {
-  // Mock data/logic for recommendation
-  const recommendedBranch = "Computer Science & AI";
-  const confidenceScore = 88;
+// Define the properties expected by the Dashboard component
+interface DashboardProps {
+  isLanding?: boolean;
+  onStartAssessment?: () => void;
+}
 
-  const traits = [
+// Define the structure for cognitive traits
+interface Trait {
+  label: string;
+  value: number;
+  color: string;
+}
+
+export default function Dashboard({ isLanding, onStartAssessment }: DashboardProps): React.ReactElement {
+  // Mock data/logic for recommendation
+  const recommendedBranch: string = "Computer Science & AI";
+  const confidenceScore: number = 88;
+
+  const traits: Trait[] = [
     { label: 'Problem Solving', value: isLanding ? 0 : 92, color: '#3b82f6' },
     { label: 'Analytical Thinking', value: isLanding ? 0 : 85, color: '#06b6d4' },
     { label: 'Creativity', value: isLanding ? 0 : 78, color: '#8b5cf6' },
@@ -15,10 +28,10 @@ export default function Dashboard({ isLanding, onStartAssessment }) {
   return (
     <div className="fade-in" style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto' }}>
       {/* Hero Header */}
-      <div style={{ 
-        background: 'linear-gradient(135deg, #1e293b 0%, #334155 100%)', 
-        borderRadius: '24px', 
-        padding: '40px', 
+      <div style={{
+        background: 'linear-gradient(135deg, #1e293b 0%, #334155 100%)',
+        borderRadius: '24px',
+        padding: '40px',
         color: 'white',
         marginBottom: '30px',
         position: 'relative',
@@ -26,11 +39,11 @@ export default function Dashboard({ isLanding, onStartAssessment }) {
         boxShadow: '0 20px 40px rgba(0,0,0,0.1)'
       }}>
         <div style={{ position: 'relative', zIndex: 2 }}>
-          <span style={{ 
-            background: 'rgba(255,255,255,0.1)', 
-            padding: '6px 16px', 
-            borderRadius: '100px', 
-            fontSize: '0.85rem', 
+          <span style={{
+            background: 'rgba(255,255,255,0.1)',
+            padding: '6px 16px',
+            borderRadius: '100px',
+            fontSize: '0.85rem',
             fontWeight: '600',
             border: '1px solid rgba(255,255,255,0.2)'
           }}>
@@ -40,17 +53,17 @@ export default function Dashboard({ isLanding, onStartAssessment }) {
             {isLanding ? "Discover Your Ideal Career" : "Your Engineering Future"}
           </h1>
           <p style={{ opacity: 0.8, fontSize: '1.1rem', maxWidth: '600px' }}>
-            {isLanding 
+            {isLanding
               ? "Complete your academic profile and personal assessment to unlock your personalized engineering roadmap."
               : "Based on your academic excellence and cognitive profile, we've mapped your ideal career path."}
           </p>
         </div>
-        <div style={{ 
-          position: 'absolute', 
-          right: '-50px', 
-          top: '-50px', 
-          width: '300px', 
-          height: '300px', 
+        <div style={{
+          position: 'absolute',
+          right: '-50px',
+          top: '-50px',
+          width: '300px',
+          height: '300px',
           background: 'radial-gradient(circle, rgba(59,130,246,0.3) 0%, transparent 70%)',
           borderRadius: '50%'
         }}></div>
@@ -58,9 +71,9 @@ export default function Dashboard({ isLanding, onStartAssessment }) {
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '25px' }}>
         {/* Main Recommendation */}
-        <div style={{ 
-          background: 'white', 
-          borderRadius: '24px', 
+        <div style={{
+          background: 'white',
+          borderRadius: '24px',
           padding: '35px',
           border: '1px solid #e2e8f0',
           boxShadow: '0 10px 30px rgba(0,0,0,0.02)',
@@ -69,7 +82,7 @@ export default function Dashboard({ isLanding, onStartAssessment }) {
           <h3 style={{ fontSize: '0.9rem', color: '#64748b', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '25px' }}>
             Top Recommendation
           </h3>
-          
+
           {isLanding ? (
             <div style={{ filter: 'blur(4px)', opacity: 0.5, pointerEvents: 'none' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
@@ -108,9 +121,9 @@ export default function Dashboard({ isLanding, onStartAssessment }) {
         </div>
 
         {/* Cognitive Traits */}
-        <div style={{ 
-          background: 'white', 
-          borderRadius: '24px', 
+        <div style={{
+          background: 'white',
+          borderRadius: '24px',
           padding: '35px',
           border: '1px solid #e2e8f0',
           boxShadow: '0 10px 30px rgba(0,0,0,0.02)'
@@ -135,11 +148,11 @@ export default function Dashboard({ isLanding, onStartAssessment }) {
       </div>
 
       {/* Action CTA */}
-      <div style={{ 
-        marginTop: '40px', 
-        textAlign: 'center', 
-        padding: '50px', 
-        background: '#f0f9ff', 
+      <div style={{
+        marginTop: '40px',
+        textAlign: 'center',
+        padding: '50px',
+        background: '#f0f9ff',
         borderRadius: '32px',
         border: '2px solid #bae6fd'
       }}>
@@ -147,26 +160,26 @@ export default function Dashboard({ isLanding, onStartAssessment }) {
           {isLanding ? "Ready to discover your potential?" : "Your Roadmap is Ready"}
         </h2>
         <p style={{ color: '#075985', marginBottom: '30px', maxWidth: '600px', margin: '0 auto 30px auto' }}>
-          {isLanding 
+          {isLanding
             ? "Take the first step towards a successful engineering career. Start your profile assessment now."
             : `Explore the best colleges for ${recommendedBranch} and get personalized application roadmaps.`}
         </p>
         <div style={{ display: 'flex', gap: '15px', justifyContent: 'center' }}>
-          <button 
-            className="continue-gradient-btn" 
+          <button
+            className="continue-gradient-btn"
             onClick={onStartAssessment}
             style={{ padding: '16px 40px', fontSize: '1.1rem' }}
           >
             {isLanding ? "Start Profile Assessment →" : "Refine Assessment"}
           </button>
           {!isLanding && (
-            <button 
-              style={{ 
-                padding: '16px 40px', 
-                fontSize: '1.1rem', 
-                background: 'white', 
-                border: '1px solid #bae6fd', 
-                color: '#0369a1', 
+            <button
+              style={{
+                padding: '16px 40px',
+                fontSize: '1.1rem',
+                background: 'white',
+                border: '1px solid #bae6fd',
+                color: '#0369a1',
                 borderRadius: '10px',
                 fontWeight: '600',
                 cursor: 'pointer'

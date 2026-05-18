@@ -1,14 +1,64 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { personalityQuestions } from '../data/personalityQuestions';
 
-export default function PersonalAssessment({ onToggleFullscreen, isFullscreen, onViewResults, onShowResults }) {
-  const [started, setStarted] = useState(false);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [answers, setAnswers] = useState({});
-  const [finished, setFinished] = useState(false);
-  const [showResults, setShowResults] = useState(false);
-  const [sessionId, setSessionId] = useState('');
-  const [furthestIndex, setFurthestIndex] = useState(0);
+// Define the properties expected by the component
+interface PersonalAssessmentProps {
+  onToggleFullscreen?: (isFullscreen: boolean) => void;
+  isFullscreen?: boolean;
+  onViewResults?: () => void;
+  onShowResults?: () => void;
+}
+
+// Define the structure of a single answer attempt
+interface Attempt {
+  session_id: string;
+  question_id: string | number;
+  question_text: string;
+  attempted_answer: string;
+  score: number;
+  timestamp: {
+    $date: string;
+  };
+}
+
+// Define the structure for storing all answers
+interface Answers {
+  [key: string]: Attempt;
+}
+
+// Define the structure for an option in the Likert scale
+interface Option {
+  label: string;
+  value: number;
+  color: string;
+}
+
+// Define structures for the recommendations
+interface Strength {
+  skill: string;
+  level: string;
+  reasoning: string;
+}
+
+interface Recommendation {
+  id: number;
+  branch: string;
+  match: number;
+  icon: string;
+  accentColor: string;
+  whyMatch: string[];
+  strengths: Strength[];
+  offers: string[];
+}
+
+export default function PersonalAssessment({ onToggleFullscreen, isFullscreen, onViewResults, onShowResults }: PersonalAssessmentProps): React.ReactElement {
+  const [started, setStarted] = useState < boolean > (false);
+  const [currentIndex, setCurrentIndex] = useState < number > (0);
+  const [answers, setAnswers] = useState < Answers > ({});
+  const [finished, setFinished] = useState < boolean > (false);
+  const [showResults, setShowResults] = useState < boolean > (false);
+  const [sessionId, setSessionId] = useState < string > ('');
+  const [furthestIndex, setFurthestIndex] = useState < number > (0);
 
   // Load progress and session from localStorage
   useEffect(() => {
@@ -16,7 +66,7 @@ export default function PersonalAssessment({ onToggleFullscreen, isFullscreen, o
     const savedSession = localStorage.getItem('personality_assessment_session');
 
     if (savedProgress) {
-      const parsedProgress = JSON.parse(savedProgress);
+      const parsedProgress: Answers = JSON.parse(savedProgress);
       setAnswers(parsedProgress);
       const answeredCount = Object.keys(parsedProgress).length;
       if (answeredCount > 0) {
@@ -46,14 +96,14 @@ export default function PersonalAssessment({ onToggleFullscreen, isFullscreen, o
     }
   }, [answers]);
 
-  const handleStart = () => {
+  const handleStart = (): void => {
     setStarted(true);
     if (onToggleFullscreen) onToggleFullscreen(true);
   };
 
-  const handleAnswer = (option) => {
+  const handleAnswer = (option: Option): void => {
     const currentQ = personalityQuestions[currentIndex];
-    const attempt = {
+    const attempt: Attempt = {
       session_id: sessionId,
       question_id: currentQ.id,
       question_text: currentQ.text,
@@ -80,7 +130,7 @@ export default function PersonalAssessment({ onToggleFullscreen, isFullscreen, o
   };
 
   useEffect(() => {
-    const handleKeyDown = (e) => {
+    const handleKeyDown = (e: KeyboardEvent): void => {
       const key = parseInt(e.key);
       if (key >= 1 && key <= 5) {
         const option = options.find(opt => opt.value === key);
@@ -105,13 +155,13 @@ export default function PersonalAssessment({ onToggleFullscreen, isFullscreen, o
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [currentIndex, answers]);
 
-  const prevQuestion = () => {
+  const prevQuestion = (): void => {
     if (currentIndex > 0) {
       setCurrentIndex(currentIndex - 1);
     }
   };
 
-  const options = [
+  const options: Option[] = [
     { label: 'Strongly Disagree', value: 1, color: '#ef4444' },
     { label: 'Disagree', value: 2, color: '#f87171' },
     { label: 'Neutral', value: 3, color: '#94a3b8' },
@@ -119,7 +169,7 @@ export default function PersonalAssessment({ onToggleFullscreen, isFullscreen, o
     { label: 'Strongly Agree', value: 5, color: '#3b82f6' }
   ];
 
-  const recommendations = [
+  const recommendations: Recommendation[] = [
     {
       id: 1,
       branch: "Computer Science Engineering",
@@ -271,7 +321,7 @@ export default function PersonalAssessment({ onToggleFullscreen, isFullscreen, o
                       <div className="flex flex-col gap-1 md:gap-0">
                         <span className="text-[10px] md:text-sm font-bold text-slate-400 uppercase tracking-widest block">Best Match #{item.id}</span>
                         <h3 className="text-base md:text-2xl font-black text-slate-800">{item.branch}</h3>
-                        
+
                         {/* Mobile Match Pill */}
                         <div className="md:hidden mt-1 self-start">
                           <div className="bg-slate-50 border border-slate-200 px-2.5 py-1.5 rounded-md">
@@ -492,7 +542,7 @@ export default function PersonalAssessment({ onToggleFullscreen, isFullscreen, o
             {options.map((option) => {
               const isSelected = answers[currentQ.id]?.score === option.value;
 
-              const sizes = {
+              const sizes: { [key: number]: string } = {
                 1: "w-10 h-10", // Strongly Disagree
                 2: "w-8 h-8",   // Disagree
                 3: "w-6 h-6",   // Neutral
@@ -500,7 +550,7 @@ export default function PersonalAssessment({ onToggleFullscreen, isFullscreen, o
                 5: "w-10 h-10", // Strongly Agree
               };
 
-              const circleColors = {
+              const circleColors: { [key: number]: string } = {
                 1: isSelected ? "bg-[#3b82f6] border-[#2563eb] shadow-[#3b82f6]/20" : "bg-white border-slate-200 hover:border-[#3b82f6]/50",
                 2: isSelected ? "bg-[#3b82f6] border-[#2563eb] shadow-[#3b82f6]/20" : "bg-white border-slate-200 hover:border-[#3b82f6]/50",
                 3: isSelected ? "bg-[#3b82f6] border-[#2563eb] shadow-[#3b82f6]/20" : "bg-white border-slate-200 hover:border-[#3b82f6]/50",

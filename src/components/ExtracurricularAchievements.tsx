@@ -1,13 +1,30 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 
-export default function ExtracurricularAchievements({ onNext, onBack }) {
-  const [skipped, setSkipped] = useState(false);
-  const [achievements, setAchievements] = useState([
+// Define the properties expected by the component
+interface ExtracurricularAchievementsProps {
+  onNext?: () => void;
+  onBack?: () => void;
+}
+
+// Define the structure for a single achievement entry
+interface Achievement {
+  id: number;
+  type: string;
+  title: string;
+  level: string;
+  description: string;
+  customType: string;
+  customLevel: string;
+}
+
+export default function ExtracurricularAchievements({ onNext, onBack }: ExtracurricularAchievementsProps): React.ReactElement {
+  const [skipped, setSkipped] = useState<boolean>(false);
+  const [achievements, setAchievements] = useState<Achievement[]>([
     { id: 1, type: '', title: '', level: '', description: '', customType: '', customLevel: '' }
   ]);
-  const [showErrors, setShowErrors] = useState(false);
+  const [showErrors, setShowErrors] = useState<boolean>(false);
 
-  const validate = () => {
+  const validate = (): boolean => {
     if (skipped) return true;
     // Only the first achievement is mandatory
     const first = achievements[0];
@@ -21,21 +38,21 @@ export default function ExtracurricularAchievements({ onNext, onBack }) {
     return isValid;
   };
 
-  const handleNext = () => {
+  const handleNext = (): void => {
     if (validate()) {
       if (onNext) onNext();
     }
   };
 
-  const addAchievement = () => {
+  const addAchievement = (): void => {
     setAchievements([...achievements, { id: Date.now(), type: '', title: '', level: '', description: '', customType: '', customLevel: '' }]);
   };
 
-  const updateAchievement = (id, field, value) => {
+  const updateAchievement = (id: number, field: keyof Achievement, value: string): void => {
     setAchievements(achievements.map(a => a.id === id ? { ...a, [field]: value } : a));
   };
 
-  const removeAchievement = (id) => {
+  const removeAchievement = (id: number): void => {
     setAchievements(achievements.filter(a => a.id !== id));
   };
 
@@ -63,11 +80,10 @@ export default function ExtracurricularAchievements({ onNext, onBack }) {
 
       {/* Skip Option */}
       <div
-        className={`mb-8 p-5 rounded-2xl border-2 flex items-center gap-4 cursor-pointer transition-all duration-300 transform hover:translate-y-[-2px] shadow-sm ${
-          skipped ? 'bg-blue-50/60 border-blue-300 shadow-blue-100'
-          : showErrors ? 'border-red-500 bg-white/80'
-          : 'bg-white/80 border-slate-200 hover:border-amber-300 hover:bg-white'
-        }`}
+        className={`mb-8 p-5 rounded-2xl border-2 flex items-center gap-4 cursor-pointer transition-all duration-300 transform hover:translate-y-[-2px] shadow-sm ${skipped ? 'bg-blue-50/60 border-blue-300 shadow-blue-100'
+            : showErrors ? 'border-red-500 bg-white/80'
+              : 'bg-white/80 border-slate-200 hover:border-amber-300 hover:bg-white'
+          }`}
         onClick={() => setSkipped(!skipped)}
       >
         <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${skipped ? 'bg-blue-500 border-blue-500' : 'border-slate-300 bg-white'}`}>

@@ -1,6 +1,24 @@
 import React from 'react';
 
-const recommendations = [
+// Define the TypeScript interfaces for our data structure
+interface Strength {
+  skill: string;
+  level: 'High' | 'Intermediate' | 'Low' | string;
+  reasoning: string;
+}
+
+interface Recommendation {
+  id: number;
+  branch: string;
+  match: number;
+  icon: string;
+  accentColor: 'emerald' | 'blue' | 'amber' | string;
+  whyMatch: string[];
+  strengths: Strength[];
+  offers: string[];
+}
+
+const recommendations: Recommendation[] = [
   {
     id: 1,
     branch: "Computer Science Engineering",
@@ -72,7 +90,7 @@ const recommendations = [
   }
 ];
 
-export default function CourseRecommendations() {
+export default function CourseRecommendations(): React.ReactElement {
   return (
     <div className="bg-[#f8fafc] min-h-screen pb-20">
       {/* Header Section */}
@@ -109,33 +127,31 @@ export default function CourseRecommendations() {
             </div>
           </div>
           <div className="mt-6 flex items-start gap-3 p-4 bg-indigo-50/50 rounded-xl border border-indigo-100/50">
-             <span className="text-indigo-600 text-lg">💡</span>
-             <p className="text-xs text-indigo-700 leading-relaxed">
-               These recommendations are generated using our proprietary algorithm that weighs your academic strengths against industry requirements for each engineering specialization.
-             </p>
+            <span className="text-indigo-600 text-lg">💡</span>
+            <p className="text-xs text-indigo-700 leading-relaxed">
+              These recommendations are generated using our proprietary algorithm that weighs your academic strengths against industry requirements for each engineering specialization.
+            </p>
           </div>
         </div>
 
         {/* Branch Cards */}
         {recommendations.map((item) => (
-          <div 
-            key={item.id} 
+          <div
+            key={item.id}
             className={`bg-white rounded-3xl overflow-hidden border-2 border-slate-100 shadow-xl transition-all hover:shadow-2xl relative`}
           >
             {/* Left Accent Bar */}
-            <div className={`absolute left-0 top-0 bottom-0 w-2 ${
-              item.accentColor === 'emerald' ? 'bg-emerald-500' : 
-              item.accentColor === 'blue' ? 'bg-blue-500' : 'bg-amber-500'
-            }`}></div>
-            
+            <div className={`absolute left-0 top-0 bottom-0 w-2 ${item.accentColor === 'emerald' ? 'bg-emerald-500' :
+                item.accentColor === 'blue' ? 'bg-blue-500' : 'bg-amber-500'
+              }`}></div>
+
             <div className="p-6 md:p-10">
               {/* Card Header */}
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10 border-b border-slate-100 pb-8">
                 <div className="flex items-center gap-5">
-                  <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-3xl shadow-inner ${
-                    item.accentColor === 'emerald' ? 'bg-emerald-50' : 
-                    item.accentColor === 'blue' ? 'bg-blue-50' : 'bg-amber-50'
-                  }`}>
+                  <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-3xl shadow-inner ${item.accentColor === 'emerald' ? 'bg-emerald-50' :
+                      item.accentColor === 'blue' ? 'bg-blue-50' : 'bg-amber-50'
+                    }`}>
                     {item.icon}
                   </div>
                   <div>
@@ -146,10 +162,9 @@ export default function CourseRecommendations() {
                 <div className="bg-white border-2 border-slate-100 px-6 py-3 rounded-2xl flex items-center gap-3 shadow-sm">
                   <div className="text-right">
                     <span className="text-[10px] font-bold text-slate-400 uppercase block leading-none">Compatibility</span>
-                    <span className={`text-xl font-black leading-none ${
-                      item.accentColor === 'emerald' ? 'text-emerald-600' : 
-                      item.accentColor === 'blue' ? 'text-blue-600' : 'text-amber-600'
-                    }`}>{item.match}% match</span>
+                    <span className={`text-xl font-black leading-none ${item.accentColor === 'emerald' ? 'text-emerald-600' :
+                        item.accentColor === 'blue' ? 'text-blue-600' : 'text-amber-600'
+                      }`}>{item.match}% match</span>
                   </div>
                 </div>
               </div>
@@ -164,10 +179,9 @@ export default function CourseRecommendations() {
                   <ul className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4">
                     {item.whyMatch.map((point, idx) => (
                       <li key={idx} className="flex gap-3 text-sm text-slate-600 leading-relaxed items-start">
-                        <span className={`mt-1.5 w-1.5 h-1.5 rounded-full shrink-0 ${
-                          item.accentColor === 'emerald' ? 'bg-emerald-500' : 
-                          item.accentColor === 'blue' ? 'bg-blue-500' : 'bg-amber-500'
-                        }`}></span>
+                        <span className={`mt-1.5 w-1.5 h-1.5 rounded-full shrink-0 ${item.accentColor === 'emerald' ? 'bg-emerald-500' :
+                            item.accentColor === 'blue' ? 'bg-blue-500' : 'bg-amber-500'
+                          }`}></span>
                         {point}
                       </li>
                     ))}
@@ -191,9 +205,8 @@ export default function CourseRecommendations() {
                           <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
                             <td className="px-6 py-4 text-sm font-bold text-slate-700">{strength.skill}</td>
                             <td className="px-6 py-4">
-                              <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
-                                strength.level === 'High' ? 'bg-emerald-100 text-emerald-700' : 'bg-indigo-100 text-indigo-700'
-                              }`}>
+                              <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${strength.level === 'High' ? 'bg-emerald-100 text-emerald-700' : 'bg-indigo-100 text-indigo-700'
+                                }`}>
                                 {strength.level}
                               </span>
                             </td>
@@ -215,14 +228,12 @@ export default function CourseRecommendations() {
                   <ul className="space-y-4">
                     {item.offers.map((offer, idx) => (
                       <li key={idx} className="flex gap-4 text-sm text-slate-600 leading-relaxed items-start">
-                        <div className={`mt-1 w-5 h-5 rounded-lg flex items-center justify-center shrink-0 ${
-                          item.accentColor === 'emerald' ? 'bg-emerald-100' : 
-                          item.accentColor === 'blue' ? 'bg-blue-100' : 'bg-amber-100'
-                        }`}>
-                          <span className={`text-[10px] font-bold ${
-                            item.accentColor === 'emerald' ? 'text-emerald-600' : 
-                            item.accentColor === 'blue' ? 'text-blue-600' : 'text-amber-600'
-                          }`}>{idx + 1}</span>
+                        <div className={`mt-1 w-5 h-5 rounded-lg flex items-center justify-center shrink-0 ${item.accentColor === 'emerald' ? 'bg-emerald-100' :
+                            item.accentColor === 'blue' ? 'bg-blue-100' : 'bg-amber-100'
+                          }`}>
+                          <span className={`text-[10px] font-bold ${item.accentColor === 'emerald' ? 'text-emerald-600' :
+                              item.accentColor === 'blue' ? 'text-blue-600' : 'text-amber-600'
+                            }`}>{idx + 1}</span>
                         </div>
                         {offer}
                       </li>

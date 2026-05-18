@@ -1,4 +1,18 @@
-export const personalityQuestions = [
+export type PersonalityFactor =
+  | 'openness'
+  | 'conscientiousness'
+  | 'extraversion'
+  | 'agreeableness'
+  | 'neuroticism';
+
+export interface PersonalityQuestion {
+  id: number;
+  text: string;
+  factor: PersonalityFactor;
+  reverse: boolean;
+}
+
+export const personalityQuestions: PersonalityQuestion[] = [
   { id: 1, text: "I have a rich vocabulary.", factor: "openness", reverse: false },
   { id: 2, text: "I have difficulty understanding abstract ideas.", factor: "openness", reverse: true },
   { id: 3, text: "I have a vivid imagination.", factor: "openness", reverse: false },
@@ -118,5 +132,5 @@ export const personalityQuestions = [
   { id: 117, text: "I lose my temper.", factor: "neuroticism", reverse: false },
   { id: 118, text: "I get angry easily.", factor: "neuroticism", reverse: false },
   { id: 119, text: "I get caught up in my problems.", factor: "neuroticism", reverse: false },
-  { id: 120, text: "I panic easily.", factor: "neuroticism", reverse: false }
+  { id: 120, text: "I panic easily.", factor: "neuroticism", reverse: false },
 ];

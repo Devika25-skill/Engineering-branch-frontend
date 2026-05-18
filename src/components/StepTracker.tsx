@@ -1,8 +1,14 @@
-// src/components/StepTracker.jsx
+// src/components/StepTracker.tsx
+import React from 'react';
 
-export default function StepTracker({ step }) {
+// Define the properties expected by the component
+interface StepTrackerProps {
+  step: number;
+}
+
+export default function StepTracker({ step }: StepTrackerProps): React.ReactElement {
   // Progress reflects completed steps — 0% while on step 0, 25% after completing it, etc.
-  const progress = (step / 4) * 100;
+  const progress: number = (step / 4) * 100;
 
   return (
     <div className="max-w-4xl mx-auto px-4 mb-8">
@@ -14,10 +20,10 @@ export default function StepTracker({ step }) {
           {Math.round(progress)}% Complete
         </span>
       </div>
-      
+
       <div className="w-full h-3 bg-white rounded-full overflow-hidden shadow-inner border border-slate-100 relative">
-        <div 
-          className="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 transition-all duration-1000 ease-out shadow-lg shadow-indigo-100" 
+        <div
+          className="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 transition-all duration-1000 ease-out shadow-lg shadow-indigo-100"
           style={{ width: `${progress}%` }}
         >
           {/* Shimmer effect */}

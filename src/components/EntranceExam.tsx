@@ -1,29 +1,44 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 
-const EXAM_OPTIONS = ['JEE Main', 'JEE Advanced', 'State CET', 'Other'];
+// Define the properties expected by the EntranceExam component
+interface EntranceExamProps {
+  onNext?: () => void;
+  onBack?: () => void;
+}
 
-export default function EntranceExam({ onNext, onBack }) {
-  const [skipped, setSkipped] = useState(false);
-  const [showErrors, setShowErrors] = useState(false);
-  const [exams, setExams] = useState([
+// Define the structure for an individual exam entry
+interface Exam {
+  id: string | number;
+  name: string;
+  percentile: string;
+  rank: string;
+  customName: string;
+}
+
+const EXAM_OPTIONS: string[] = ['JEE Main', 'JEE Advanced', 'State CET', 'Other'];
+
+export default function EntranceExam({ onNext, onBack }: EntranceExamProps): React.ReactElement {
+  const [skipped, setSkipped] = useState<boolean>(false);
+  const [showErrors, setShowErrors] = useState<boolean>(false);
+  const [exams, setExams] = useState<Exam[]>([
     { id: 'initial-exam', name: '', percentile: '', rank: '', customName: '' }
   ]);
 
-  const updateExam = (id, field, value) => {
+  const updateExam = (id: string | number, field: keyof Exam, value: string): void => {
     setExams(exams.map(e => e.id === id ? { ...e, [field]: value } : e));
   };
 
-  const addExam = () => {
+  const addExam = (): void => {
     setExams([...exams, { id: Date.now(), name: '', percentile: '', rank: '', customName: '' }]);
   };
 
-  const removeExam = (id) => {
+  const removeExam = (id: string | number): void => {
     if (exams.length > 1) {
       setExams(exams.filter(e => e.id !== id));
     }
   };
 
-  const validate = () => {
+  const validate = (): boolean => {
     if (skipped) return true;
     // Only the first exam is mandatory — name and percentile only
     const first = exams[0];
@@ -37,20 +52,21 @@ export default function EntranceExam({ onNext, onBack }) {
     return isValid;
   };
 
-  const handleNext = () => {
+  const handleNext = (): void => {
     if (validate()) {
       if (onNext) onNext();
     }
   };
 
   // Only the first exam is mandatory - check if it's invalid
-  const isFirstExamInvalid = () => {
+  const isFirstExamInvalid = (): boolean => {
     const first = exams[0];
     const hasName = first.name !== '' && (first.name !== 'Other' || first.customName.trim() !== '');
     const hasPercentile = first.name === 'JEE Advanced' || first.percentile.trim() !== '';
     return !hasName || !hasPercentile;
   };
-  const hasError = showErrors && !skipped && isFirstExamInvalid();
+
+  const hasError: boolean = showErrors && !skipped && isFirstExamInvalid();
 
   return (
     <div className="fade-in bg-gradient-to-br from-purple-50/90 to-fuchsia-50/90 shadow-lg rounded-2xl border-0 p-6 md:p-8 mb-8 transition-all duration-500">
@@ -76,11 +92,10 @@ export default function EntranceExam({ onNext, onBack }) {
 
       {/* Skip Option */}
       <div
-        className={`mb-8 p-5 rounded-2xl border-2 flex items-center gap-4 cursor-pointer transition-all duration-300 transform hover:translate-y-[-2px] shadow-sm ${
-          skipped ? 'bg-blue-50/60 border-blue-300 shadow-blue-100'
-          : hasError ? 'border-red-500 bg-white/80'
-          : 'bg-white/80 border-slate-200 hover:border-purple-300 hover:bg-white'
-        }`}
+        className={`mb-8 p-5 rounded-2xl border-2 flex items-center gap-4 cursor-pointer transition-all duration-300 transform hover:translate-y-[-2px] shadow-sm ${skipped ? 'bg-blue-50/60 border-blue-300 shadow-blue-100'
+            : hasError ? 'border-red-500 bg-white/80'
+              : 'bg-white/80 border-slate-200 hover:border-purple-300 hover:bg-white'
+          }`}
         onClick={() => setSkipped(!skipped)}
       >
         <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${skipped ? 'bg-blue-500 border-blue-500' : 'border-slate-300 bg-white'}`}>
@@ -135,7 +150,7 @@ export default function EntranceExam({ onNext, onBack }) {
 
                 {exam.name !== 'JEE Advanced' && (
                   <div className="flex flex-col gap-2">
-                  <label className="text-gray-600 font-bold text-sm uppercase tracking-wider ml-1">Percentile / Score {index === 0 && <span className="text-red-500">*</span>}</label>
+                    <label className="text-gray-600 font-bold text-sm uppercase tracking-wider ml-1">Percentile / Score {index === 0 && <span className="text-red-500">*</span>}</label>
                     <input
                       type="text"
                       placeholder="e.g. 98.5"
