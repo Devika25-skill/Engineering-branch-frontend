@@ -1,14 +1,346 @@
-@import "tailwindcss/base";
-@import "tailwindcss/components";
-@import "tailwindcss/utilities";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-@import "C:/Users/Admin/Documents/skilljourney/sj-future-bridge-ui-v2/sj-future-bridge-ui-v2/src/index.css";
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
 
-/* src/index.css */
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
 
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+
+    --radius: 0.5rem;
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Modern animations for youngsters */
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.6s ease-out forwards;
+  }
+
+  .animate-scale-in {
+    animation: scaleIn 0.5s ease-out forwards;
+  }
+
+  .animate-slide-in-left {
+    animation: slideInLeft 0.7s ease-out forwards;
+  }
+
+  .animate-slide-in-right {
+    animation: slideInRight 0.7s ease-out forwards;
+  }
+
+  .animation-delay-300 {
+    animation-delay: 300ms;
+  }
+
+  .animation-delay-500 {
+    animation-delay: 500ms;
+  }
+
+  .animation-delay-1000 {
+    animation-delay: 1000ms;
+  }
+
+  .animation-delay-1500 {
+    animation-delay: 1500ms;
+  }
+
+  .animation-delay-2000 {
+    animation-delay: 2000ms;
+  }
+
+  .animation-delay-3000 {
+    animation-delay: 3000ms;
+  }
+
+  .hover-lift {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .hover-lift:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  }
+
+  .touch-pan-y {
+    touch-action: pan-y;
+  }
+
+  .touch-pan-x {
+    touch-action: pan-x;
+  }
+
+  .touch-manipulation {
+    touch-action: manipulation;
+  }
+
+  .tap-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .gradient-text {
+    background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+    background-size: 400% 400%;
+    animation: gradientShift 4s ease infinite;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  .pulse-glow {
+    animation: pulseGlow 2s ease-in-out infinite alternate;
+  }
+
+  .animate-blink-star {
+    animation: blinkStar 2s ease-in-out infinite;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-50px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(50px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes gradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes pulseGlow {
+  from {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
+  }
+
+  to {
+    box-shadow: 0 0 30px rgba(59, 130, 246, 0.8);
+  }
+}
+
+@keyframes blinkStar {
+
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: scale(0.8);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+}
+
+/* Chrome/Safari Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 100px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #3b82f6, #8b5cf6);
+  border-radius: 100px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #2563eb, #7c3aed);
+}
+
+@media (max-width: 768px) {
+
+  button,
+  [role="button"],
+  input[type="submit"],
+  input[type="button"] {
+    min-height: 44px;
+    touch-action: manipulation;
+  }
+
+  [role="combobox"],
+  [role="listbox"] {
+    touch-action: manipulation;
+  }
+
+  input[type="text"],
+  input[type="email"],
+  input[type="number"],
+  input[type="password"],
+  input[type="search"],
+  input[type="tel"],
+  input[type="url"],
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
+
+/* Custom dashboard utility classes */
 html {
   font-size: 92%;
-  /* Scale down whole app font size */
 }
 
 * {
@@ -32,7 +364,6 @@ body {
   padding: 20px;
 }
 
-/* ===== MAIN NAV (TOP) ===== */
 .main-nav {
   background: white;
   height: 70px;
@@ -60,7 +391,6 @@ body {
 .mortarboard {
   font-size: 1.8rem;
   color: #6b21a8;
-  /* Purple */
 }
 
 .logo-text {
@@ -91,7 +421,6 @@ body {
 
 .login-btn {
   background: linear-gradient(135deg, #4f46e5, #7e22ce);
-  /* Purple/Blue gradient */
   color: white;
   padding: 8px 24px;
   border-radius: 8px;
@@ -113,7 +442,6 @@ body {
   cursor: pointer;
 }
 
-/* ===== SECONDARY HEADER (GREEN) ===== */
 .navbar {
   background-color: transparent;
   display: flex;
@@ -144,7 +472,6 @@ body {
   text-align: center;
 }
 
-/* ===== STEP TRACKER ===== */
 .step-container {
   max-width: 1000px;
   margin: 10px auto;
@@ -188,7 +515,6 @@ body {
   transition: transform 0.6s cubic-bezier(0.65, 0, 0.35, 1);
 }
 
-/* ===== SECTION TABS ===== */
 .tabs-container {
   display: flex !important;
   justify-content: center !important;
@@ -243,7 +569,6 @@ body {
   margin: 0 auto;
 }
 
-/* ===== MAIN FORM CARD ===== */
 .form-card {
   background: white;
   border-radius: 24px;
@@ -321,7 +646,6 @@ body {
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-/* Achievements Card */
 .achievements-card {
   background: #f1f5f9;
   border: 1px solid #e2e8f0;
@@ -365,7 +689,6 @@ body {
   color: #6b7280;
 }
 
-/* Bottom Nav Buttons */
 .bottom-nav {
   display: flex;
   justify-content: space-between;
@@ -396,20 +719,6 @@ body {
   font-size: 1rem;
   cursor: pointer;
   box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
-}
-
-.marks-input {
-  width: 100% !important;
-  /* You can change this value to whatever width you want */
-}
-
-.core-subject-input {
-  color: #3b3d44 !important;
-  /* Change text color */
-  background: #f9fafb !important;
-  /* Change background color */
-  border-color: #e1e6ef !important;
-  /* Change border color */
 }
 
 select,
@@ -456,10 +765,8 @@ select,
   box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1) !important;
 }
 
-/* Specific styling for Extracurricular dropdowns */
 .extra-select {
   background-color: #f7f7f7 !important;
-  /* Soft pink to match the Achievements theme */
   border-color: #e6e5e6 !important;
 }
 
@@ -467,7 +774,6 @@ select,
   background-color: #f1f1f1 !important;
 }
 
-/* ===== FULLSCREEN MODE ===== */
 .container-fullscreen {
   width: 100%;
   max-width: 1200px;
@@ -518,7 +824,6 @@ select,
   color: #1e293b;
 }
 
-/* ===== MOBILE RESPONSIVENESS ===== */
 @media (max-width: 768px) {
   .main-nav {
     padding: 0 15px;
@@ -545,7 +850,6 @@ select,
 
   .register-btn {
     display: none;
-    /* Hide register on small mobile to save space */
   }
 
   .logo-text {
@@ -560,12 +864,10 @@ select,
     margin: 20px 0;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
-    /* Hide scrollbar Firefox */
   }
 
   .tabs-container::-webkit-scrollbar {
     display: none;
-    /* Hide scrollbar Chrome/Safari */
   }
 
   .tab-item {
@@ -643,7 +945,6 @@ select,
   }
 }
 
-/* ===== RESPONSIVE SUBJECT ENTRY ===== */
 .subject-row {
   display: grid;
   grid-template-columns: 1.5fr 1.2fr 0.8fr auto;
