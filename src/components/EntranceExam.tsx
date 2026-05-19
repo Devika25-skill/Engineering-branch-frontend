@@ -176,7 +176,7 @@ export default function EntranceExam({ onNext, onBack }: EntranceExamProps): Rea
 
                 {exam.name !== 'JEE Advanced' && (
                   <div className="flex flex-col gap-2">
-                    <label className="text-gray-600 font-bold text-sm uppercase tracking-wider ml-1">Percentile {index === 0 && <span className="text-red-500">*</span>}</label>
+                    <label className="text-gray-600 font-bold text-sm uppercase tracking-wider ml-1">Percentile {(index === 0 || exam.name === 'JEE Main') && <span className="text-red-500">*</span>}</label>
                     <input
                       type="text"
                       placeholder="e.g. 98.5"
