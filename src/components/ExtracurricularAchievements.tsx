@@ -129,11 +129,13 @@ export default function ExtracurricularAchievements({ onNext, onBack }: Extracur
                         className="h-12 rounded-xl bg-transparent px-4 w-full outline-none text-slate-800 font-medium cursor-pointer"
                       >
                         <option value="" disabled>Select Category</option>
+                        <option>STEM</option>
                         <option>Leadership</option>
-                        <option>STEM Clubs</option>
-                        <option>Theatre / Arts</option>
+                        <option>Social</option>
                         <option>Sports</option>
-                        <option>Social Impact</option>
+                        <option>Fine Arts</option>
+                        <option>Performing Arts</option>
+                        <option>None</option>
                         <option>Other</option>
                       </select>
                     )}
