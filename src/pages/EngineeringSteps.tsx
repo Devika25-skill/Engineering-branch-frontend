@@ -98,11 +98,15 @@ export default function EngineeringSteps(): React.ReactElement {
     <div className="bg-[#fcf2f9] min-h-screen">
       <Navigation />
 
-      {!isFullscreen && !showResultsView && (
+      {!isFullscreen && (
         <>
           <Header />
-          <StepTracker step={currentStep} />
-          <SectionTabs activeStep={currentStep} />
+          {!showResultsView && (
+            <>
+              <StepTracker step={currentStep} />
+              <SectionTabs activeStep={currentStep} />
+            </>
+          )}
         </>
       )}
 

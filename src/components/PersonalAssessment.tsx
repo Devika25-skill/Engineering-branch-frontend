@@ -305,12 +305,7 @@ export default function PersonalAssessment({ onToggleFullscreen, isFullscreen, o
   if (finished && showResults) {
     return (
       <div className="fade-in pb-10">
-        {/* Page Header */}
-          <div className="text-center mb-4 md:mb-6 px-4">
-            <h1 className="text-lg md:text-3xl font-black text-slate-800 leading-tight">
-              Your personalized Engineering Branch<br />recommendation
-            </h1>
-          </div>
+
 
           {/* Top 3 Summary Box */}
           <div className="bg-white rounded-none border border-slate-200 shadow-sm p-3 md:p-4 mb-2 md:mb-5 mx-2">
