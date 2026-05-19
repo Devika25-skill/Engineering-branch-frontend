@@ -1,15 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  GraduationCap,
-  Search,
-  MapPin,
-  Users,
-  TrendingUp,
-  Building,
-  Sparkles,
-} from "lucide-react";
+import { GraduationCap, Search, MapPin, Users, TrendingUp, Building, Sparkles, BookOpen } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import StepLoadingMessages from "@/components/recommendations/StepLoadingMessages";
 import { Link, useNavigate } from "react-router-dom";
@@ -99,20 +91,18 @@ const Index = () => {
     // Store the selected type for future reference
     localStorage.setItem("recommendation_type", type);
 
-    if (type === "first-year") {
+    if (type === 'first-year') {
       const selectedState = localStorage.getItem("selected_state");
 
-      // For Karnataka First Year Engineering, always go to /recommendations first
+      // For Karnataka First Year Engineering, always go to /recommendations
       // to let the round checking logic run.
       if (selectedState === "Karnataka") {
         navigate("/recommendations");
         return;
       }
 
-      const hasExistingData = sessionStorage.getItem("recommendationFormData");
-      navigate(
-        hasExistingData ? "/recommendations/results" : "/recommendations/steps",
-      );
+      const hasExistingData = sessionStorage.getItem('recommendationFormData');
+      navigate(hasExistingData ? '/recommendations/results' : '/recommendations/steps');
     } else {
       // Direct Second Year Logic
       if (!isLoggedIn) {
@@ -336,7 +326,7 @@ const Index = () => {
     }
   };
 
-  const handleGetRecommendations = () => {
+  const handleGetCollegeRecommendations = () => {
     // Check saved preference and navigate accordingly
     const savedRecommendationType = localStorage.getItem("recommendation_type");
     const savedIntegratedType = localStorage.getItem(
@@ -350,9 +340,9 @@ const Index = () => {
         navigate(`/diploma-recommendations/results?round=${roundNum}`);
         return;
       }
-      const hasExistingData = sessionStorage.getItem(
-        "cachedDiplomaRecommendations",
-      );
+      const hasExistingData =
+        sessionStorage.getItem("cachedDiplomaRecommendations_v3") ||
+        sessionStorage.getItem("cachedDiplomaRound2Recommendations_v3");
       navigate(
         hasExistingData
           ? "/diploma-recommendations/results"
@@ -362,13 +352,20 @@ const Index = () => {
       savedRecommendationType === "first-year" ||
       savedRecommendationType === "First_Year_Medical"
     ) {
-      navigate("/recommendations");
+      const hasExistingData = sessionStorage.getItem('recommendationFormData');
+      navigate(hasExistingData ? '/recommendations/results' : '/recommendations/steps');
     } else if (savedIntegratedType) {
       navigate(`/integrated-rounds?type=${savedIntegratedType}`);
     } else {
       // No preference saved, show dialog
       setShowProgramDialog(true);
     }
+  };
+
+  const handleGetCourseRecommendations = () => {
+    // This is a placeholder for the future Course Recommendation feature
+    // For now, we can show a message or navigate to a new route
+    navigate('/course-recommendations');
   };
 
   const handleProgramSelect = (program: string) => {
@@ -381,8 +378,9 @@ const Index = () => {
       localStorage.removeItem("integrated_admission_type");
 
       if (program === "First_Year_Medical") {
-        // Navigate to medical recommendations (using same flow as first-year for now)
-        navigate("/recommendations");
+        // Navigate to medical recommendations
+        const hasExistingData = sessionStorage.getItem('recommendationFormData');
+        navigate(hasExistingData ? '/recommendations/results' : '/recommendations/steps');
       } else {
         handleRecommendationTypeSelect(
           program as "first-year" | "direct-second-year",
@@ -504,7 +502,7 @@ const Index = () => {
             </Button>
 
             <Button
-              onClick={handleGetRecommendations}
+              onClick={handleGetCollegeRecommendations}
               className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg font-bold bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-black rounded-xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
             >
               <Sparkles className="mr-2" size={18} />

@@ -26,6 +26,7 @@ import RaiseIssue from "./pages/RaiseIssue";
 import MyTickets from "./pages/MyTickets";
 import TicketDetails from "./pages/TicketDetails";
 import MockRecommendationPage from "./pages/MockRecommendationPage";
+import CourseRecommendations from "./pages/CourseRecommendations";
 
 // Import your custom Engineering Dashboard steps here!
 import EngineeringSteps from "./pages/EngineeringSteps";
@@ -61,6 +62,7 @@ const App = () => (
                 <Route path="/raise-issue" element={<RaiseIssue />} />
                 <Route path="/my-tickets" element={<MyTickets />} />
                 <Route path="/ticket/:ticketId" element={<TicketDetails />} />
+                <Route path="/course-recommendations" element={<CourseRecommendations />} />
                 <Route path="/register" element={<AppRegister />} />
                 <Route path="/mock-recommendations" element={<MockRecommendationPage />} />
                 <Route path="*" element={<NotFound />} />
