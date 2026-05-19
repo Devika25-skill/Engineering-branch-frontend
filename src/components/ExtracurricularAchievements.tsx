@@ -136,7 +136,6 @@ export default function ExtracurricularAchievements({ onNext, onBack }: Extracur
                         <option>Fine Arts</option>
                         <option>Performing Arts</option>
                         <option>None</option>
-                        <option>Other</option>
                       </select>
                     )}
                   </div>
