@@ -7,6 +7,7 @@ interface PersonalAssessmentProps {
   isFullscreen?: boolean;
   onViewResults?: () => void;
   onShowResults?: () => void;
+  onFinished?: (finished: boolean) => void;
 }
 
 // Define the structure of a single answer attempt
@@ -51,7 +52,7 @@ interface Recommendation {
   offers: string[];
 }
 
-export default function PersonalAssessment({ onToggleFullscreen, isFullscreen, onViewResults, onShowResults }: PersonalAssessmentProps): React.ReactElement {
+export default function PersonalAssessment({ onToggleFullscreen, isFullscreen, onViewResults, onShowResults, onFinished }: PersonalAssessmentProps): React.ReactElement {
   const [started, setStarted] = useState < boolean > (false);
   const [currentIndex, setCurrentIndex] = useState < number > (0);
   const [answers, setAnswers] = useState < Answers > ({});
@@ -76,6 +77,7 @@ export default function PersonalAssessment({ onToggleFullscreen, isFullscreen, o
           setCurrentIndex(answeredCount);
         } else {
           setFinished(true);
+          if (onFinished) onFinished(true);
         }
       }
     }
@@ -125,6 +127,7 @@ export default function PersonalAssessment({ onToggleFullscreen, isFullscreen, o
       } else {
         setFinished(true);
         setFurthestIndex(personalityQuestions.length);
+        if (onFinished) onFinished(true);
       }
     }, 400);
   };
