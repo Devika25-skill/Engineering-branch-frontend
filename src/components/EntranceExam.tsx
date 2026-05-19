@@ -38,13 +38,38 @@ export default function EntranceExam({ onNext, onBack }: EntranceExamProps): Rea
     }
   };
 
+  const isRowInvalid = (exam: Exam, idx: number): boolean => {
+    if (skipped) return false;
+    
+    // First row is always mandatory
+    if (idx === 0) {
+      const hasName = exam.name !== '' && (exam.name !== 'Other' || exam.customName.trim() !== '');
+      if (!hasName) return true;
+      if (exam.name === 'JEE Advanced') {
+        return exam.rank.trim() === '';
+      } else {
+        return exam.percentile.trim() === '';
+      }
+    }
+    
+    // Other rows: if name, percentile, customName, or rank are filled
+    const hasAnyVal = exam.name !== '' || exam.percentile.trim() !== '' || exam.rank.trim() !== '' || exam.customName.trim() !== '';
+    if (hasAnyVal) {
+      const nameOk = exam.name !== '' && (exam.name !== 'Other' || exam.customName.trim() !== '');
+      if (!nameOk) return true;
+      if (exam.name === 'JEE Advanced') {
+        return exam.rank.trim() === '';
+      } else {
+        return exam.percentile.trim() === '';
+      }
+    }
+    
+    return false;
+  };
+
   const validate = (): boolean => {
     if (skipped) return true;
-    // Only the first exam is mandatory — name and percentile only
-    const first = exams[0];
-    const hasName = first.name !== '' && (first.name !== 'Other' || first.customName.trim() !== '');
-    const hasPercentile = first.name === 'JEE Advanced' || first.percentile.trim() !== '';
-    const isValid = hasName && hasPercentile;
+    const isValid = !exams.some((exam, index) => isRowInvalid(exam, index));
     if (!isValid) {
       setShowErrors(true);
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -60,13 +85,10 @@ export default function EntranceExam({ onNext, onBack }: EntranceExamProps): Rea
 
   // Only the first exam is mandatory - check if it's invalid
   const isFirstExamInvalid = (): boolean => {
-    const first = exams[0];
-    const hasName = first.name !== '' && (first.name !== 'Other' || first.customName.trim() !== '');
-    const hasPercentile = first.name === 'JEE Advanced' || first.percentile.trim() !== '';
-    return !hasName || !hasPercentile;
+    return isRowInvalid(exams[0], 0);
   };
 
-  const hasError: boolean = showErrors && !skipped && isFirstExamInvalid();
+  const hasError: boolean = showErrors && !skipped && exams.some((exam, index) => isRowInvalid(exam, index));
 
   return (
     <div className="fade-in bg-gradient-to-br from-purple-50/90 to-fuchsia-50/90 shadow-lg rounded-2xl border-0 p-6 md:p-8 mb-8 transition-all duration-500">
@@ -85,7 +107,7 @@ export default function EntranceExam({ onNext, onBack }: EntranceExamProps): Rea
           </div>
           <div className="flex flex-col">
             <span className="text-red-800 font-bold">Action Required</span>
-            <span className="text-red-600 text-sm">Please either skip this section or fill in at least one exam name before continuing.</span>
+            <span className="text-red-600 text-sm">Please either skip this section or fill in all required fields (Percentile, or All India Rank for JEE Advanced).</span>
           </div>
         </div>
       )}
@@ -93,8 +115,8 @@ export default function EntranceExam({ onNext, onBack }: EntranceExamProps): Rea
       {/* Skip Option */}
       <div
         className={`mb-8 p-5 rounded-2xl border-2 flex items-center gap-4 cursor-pointer transition-all duration-300 transform hover:translate-y-[-2px] shadow-sm ${skipped ? 'bg-blue-50/60 border-blue-300 shadow-blue-100'
-            : hasError ? 'border-red-500 bg-white/80'
-              : 'bg-white/80 border-slate-200 hover:border-purple-300 hover:bg-white'
+          : hasError ? 'border-red-500 bg-white/80'
+            : 'bg-white/80 border-slate-200 hover:border-purple-300 hover:bg-white'
           }`}
         onClick={() => setSkipped(!skipped)}
       >
@@ -115,7 +137,7 @@ export default function EntranceExam({ onNext, onBack }: EntranceExamProps): Rea
                 <div className="flex flex-col gap-2">
                   <label className="text-gray-600 font-bold text-sm uppercase tracking-wider ml-1">Exam Name {index === 0 && <span className="text-red-500">*</span>}</label>
                   {exam.name === 'Other' ? (
-                    <div className={`flex gap-2 rounded-xl border-2 bg-white transition-all ${hasError && index === 0 ? 'border-red-500' : 'border-purple-200'}`}>
+                    <div className={`flex gap-2 rounded-xl border-2 bg-white transition-all ${showErrors && isRowInvalid(exam, index) && !exam.customName ? 'border-red-500' : 'border-purple-200'}`}>
                       <input
                         type="text"
                         placeholder="e.g. BITSAT"
@@ -133,7 +155,7 @@ export default function EntranceExam({ onNext, onBack }: EntranceExamProps): Rea
                       </button>
                     </div>
                   ) : (
-                    <div className={`rounded-xl border-2 bg-white transition-all ${hasError && index === 0 && !exam.name ? 'border-red-500' : 'border-slate-200'}`}>
+                    <div className={`rounded-xl border-2 bg-white transition-all ${showErrors && isRowInvalid(exam, index) && !exam.name ? 'border-red-500' : 'border-slate-200'}`}>
                       <select
                         className="h-12 rounded-xl bg-transparent px-4 w-full outline-none text-slate-800 font-medium cursor-pointer"
                         value={exam.name}
@@ -154,26 +176,28 @@ export default function EntranceExam({ onNext, onBack }: EntranceExamProps): Rea
 
                 {exam.name !== 'JEE Advanced' && (
                   <div className="flex flex-col gap-2">
-                    <label className="text-gray-600 font-bold text-sm uppercase tracking-wider ml-1">Percentile / Score {index === 0 && <span className="text-red-500">*</span>}</label>
+                    <label className="text-gray-600 font-bold text-sm uppercase tracking-wider ml-1">Percentile {index === 0 && <span className="text-red-500">*</span>}</label>
                     <input
                       type="text"
                       placeholder="e.g. 98.5"
                       value={exam.percentile}
                       onChange={(e) => updateExam(exam.id, 'percentile', e.target.value)}
-                      className={`h-12 rounded-xl border-2 bg-white px-4 w-full outline-none transition-all text-slate-800 font-medium ${showErrors && !skipped && index === 0 && exam.percentile.trim() === '' ? 'border-red-500' : 'border-slate-200 focus:border-purple-400 focus:ring-4 focus:ring-purple-50/50'}`}
+                      className={`h-12 rounded-xl border-2 bg-white px-4 w-full outline-none transition-all text-slate-800 font-medium ${showErrors && isRowInvalid(exam, index) && exam.percentile.trim() === '' ? 'border-red-500' : 'border-slate-200 focus:border-purple-400 focus:ring-4 focus:ring-purple-50/50'}`}
                     />
                   </div>
                 )}
 
                 <div className="flex flex-col gap-2">
-                  <label className="text-gray-600 font-bold text-sm uppercase tracking-wider ml-1">All India Rank (AIR)</label>
+                  <label className="text-gray-600 font-bold text-sm uppercase tracking-wider ml-1">
+                    All India Rank (AIR) {exam.name === 'JEE Advanced' && <span className="text-red-500">*</span>}
+                  </label>
                   <div className="relative group/rank">
                     <input
                       type="text"
                       placeholder="e.g. 15000"
                       value={exam.rank}
                       onChange={(e) => updateExam(exam.id, 'rank', e.target.value)}
-                      className="h-12 rounded-xl border-2 border-slate-200 bg-white px-4 w-full outline-none transition-all text-slate-800 font-medium focus:border-purple-400 focus:ring-4 focus:ring-purple-50/50"
+                      className={`h-12 rounded-xl border-2 bg-white px-4 w-full outline-none transition-all text-slate-800 font-medium ${showErrors && isRowInvalid(exam, index) && exam.name === 'JEE Advanced' && exam.rank.trim() === '' ? 'border-red-500' : 'border-slate-200 focus:border-purple-400 focus:ring-4 focus:ring-purple-50/50'}`}
                     />
                   </div>
                 </div>
