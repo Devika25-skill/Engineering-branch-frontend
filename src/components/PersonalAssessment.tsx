@@ -241,39 +241,7 @@ export default function PersonalAssessment({ onToggleFullscreen, isFullscreen, o
     }
   ];
 
-  if (finished && !showResults) {
-    return (
-      <div className="fade-in bg-gradient-to-br from-rose-50/70 to-pink-50/70 shadow-lg rounded-2xl border-0 p-6 md:p-8 mb-8 flex flex-col min-h-[480px]">
-        <div className="flex items-center gap-4 mb-8">
-          <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-rose-400 to-pink-500 rounded-xl text-white shadow-md text-2xl">
-            📋
-          </div>
-          <h2 className="text-2xl font-bold text-slate-800 m-0">Personal Assessment</h2>
-        </div>
-
-        <div className="flex flex-col items-center justify-center text-center py-10 px-6 max-w-lg mx-auto my-auto">
-          <div className="w-20 h-20 bg-green-50 border border-green-200 rounded-2xl flex items-center justify-center text-4xl mb-6 shadow-md shadow-green-100 animate-bounce">
-            ✅
-          </div>
-          <h2 className="text-3xl font-extrabold text-slate-800 mb-3 tracking-tight">Assessment Complete!</h2>
-          <p className="text-slate-500 text-base leading-relaxed mb-8">
-            Your responses have been successfully stored and analyzed. We're ready to show your customized career path.
-          </p>
-          <button
-            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold py-4 px-12 rounded-xl shadow-lg hover:shadow-indigo-200 hover:scale-105 transition-all duration-300"
-            onClick={() => {
-              setShowResults(true);
-              if (onShowResults) onShowResults();
-            }}
-          >
-            View Result ✨
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  if (finished && showResults) {
+  if (finished) {
     return (
       <div className="fade-in pb-10">
 
