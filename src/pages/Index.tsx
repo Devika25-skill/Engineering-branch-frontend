@@ -496,19 +496,19 @@ const Index = () => {
 
           <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4 animate-fade-in animation-delay-500 px-2">
             <Button
-              onClick={handleGetRecommendations}
-              className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg font-bold bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-black rounded-xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
-            >
-              <Sparkles className="mr-2" size={18} />
-              Get AI Recommended CET List ✨
-            </Button>
-
-            <Button
               onClick={() => navigate("/engineering-steps")}
               className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg font-bold bg-gradient-to-r from-blue-500 via-blue-600 to-indigo-600 hover:from-blue-600 hover:via-blue-700 hover:to-indigo-700 text-white rounded-xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
             >
               <Sparkles className="mr-2" size={18} />
               Get AI Recommended Course ✨
+            </Button>
+
+            <Button
+              onClick={handleGetRecommendations}
+              className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg font-bold bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-black rounded-xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
+            >
+              <Sparkles className="mr-2" size={18} />
+              Get AI Recommended CET List ✨
             </Button>
 
             {/* Reset button for logged-in users with saved selections */}
