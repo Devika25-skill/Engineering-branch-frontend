@@ -129,13 +129,13 @@ export default function ExtracurricularAchievements({ onNext, onBack }: Extracur
                         className="h-12 rounded-xl bg-transparent px-4 w-full outline-none text-slate-800 font-medium cursor-pointer"
                       >
                         <option value="" disabled>Select Category</option>
-                        <option>STEM</option>
-                        <option>Leadership</option>
-                        <option>Social</option>
-                        <option>Sports</option>
-                        <option>Fine Arts</option>
-                        <option>Performing Arts</option>
-                        <option>None</option>
+                        {['STEM', 'Leadership', 'Social', 'Sports', 'Fine Arts', 'Performing Arts', 'None'].map(opt => {
+                          const isAlreadySelected = achievements.some(a => a.id !== item.id && a.type === opt);
+                          if (isAlreadySelected) {
+                            return null;
+                          }
+                          return <option key={opt} value={opt}>{opt}</option>;
+                        })}
                       </select>
                     )}
                   </div>
