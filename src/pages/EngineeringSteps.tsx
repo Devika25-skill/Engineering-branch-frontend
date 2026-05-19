@@ -111,21 +111,19 @@ export default function EngineeringSteps(): React.ReactElement {
     <div className="bg-[#fcf2f9] min-h-screen">
       <Navigation />
 
-      {!isFullscreen && (
+      {!isFullscreen && !isFinished && (
         <>
           <Header />
-          {!isFinished && (
-            <div className="text-center pb-4 px-4">
-              <StepTracker step={currentStep} />
-              <SectionTabs activeStep={currentStep} />
-            </div>
-          )}
+          <div className="text-center pb-4 px-4">
+            <StepTracker step={currentStep} />
+            <SectionTabs activeStep={currentStep} />
+          </div>
         </>
       )}
 
       <div className={isFullscreen
         ? "w-full max-w-7xl mx-auto px-4 md:px-8 py-8 transition-all duration-300"
-        : "container mx-auto px-4 md:px-8 w-full max-w-5xl transition-all duration-300"}>
+        : `container mx-auto px-4 md:px-8 w-full max-w-5xl transition-all duration-300 ${isFinished ? 'pt-8' : ''}`}>
 
         {isFinished && (
           <div className="mb-6 flex justify-start">
