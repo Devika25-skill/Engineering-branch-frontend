@@ -127,41 +127,32 @@ export default function EngineeringSteps(): React.ReactElement {
         ? "w-full max-w-7xl mx-auto px-4 md:px-8 py-8 transition-all duration-300"
         : "container mx-auto px-4 md:px-8 w-full max-w-5xl transition-all duration-300"}>
 
-        {isFinished ? (
-          <PersonalAssessment
-            onToggleFullscreen={setIsFullscreen}
-            isFullscreen={isFullscreen}
-            onViewResults={() => setShowRecommendations(true)}
-            onFinished={setIsFinished}
-          />
-        ) : (
-          <div className={isFullscreen
-            ? "bg-white rounded-3xl shadow-xl overflow-hidden border-t-2 border-slate-200 mb-5 min-h-[80vh] relative transition-all duration-300"
-            : "bg-white rounded-3xl shadow-xl overflow-hidden border-t-8 border-blue-500 mb-10 relative"}>
+        <div className={isFullscreen
+          ? "bg-white rounded-3xl shadow-xl overflow-hidden border-t-2 border-slate-200 mb-5 min-h-[80vh] relative transition-all duration-300"
+          : "bg-white rounded-3xl shadow-xl overflow-hidden border-t-8 border-blue-500 mb-10 relative"}>
 
-            <div className="p-4 md:p-8 min-h-[400px]">
-              {!isFullscreen && (
-                <div className="mb-4 text-xs font-bold text-indigo-500 tracking-wider uppercase">
-                  Step {currentStep + 1} of 4
-                </div>
-              )}
+          <div className="p-4 md:p-8 min-h-[400px]">
+            {!isFullscreen && !isFinished && (
+              <div className="mb-4 text-xs font-bold text-indigo-500 tracking-wider uppercase">
+                Step {currentStep + 1} of 4
+              </div>
+            )}
 
-              {/* Multi-step form content */}
-              {currentStep === 0 && <SubjectEntry onNext={nextStep} onBack={prevStep} />}
-              {currentStep === 1 && <EntranceExam onNext={nextStep} onBack={prevStep} />}
-              {currentStep === 2 && <ExtracurricularAchievements onNext={nextStep} onBack={prevStep} />}
-              {currentStep === 3 && (
-                <PersonalAssessment
-                  onToggleFullscreen={setIsFullscreen}
-                  isFullscreen={isFullscreen}
-                  onViewResults={() => setShowRecommendations(true)}
-                  onFinished={setIsFinished}
-                />
-              )}
+            {/* Multi-step form content */}
+            {currentStep === 0 && <SubjectEntry onNext={nextStep} onBack={prevStep} />}
+            {currentStep === 1 && <EntranceExam onNext={nextStep} onBack={prevStep} />}
+            {currentStep === 2 && <ExtracurricularAchievements onNext={nextStep} onBack={prevStep} />}
+            {currentStep === 3 && (
+              <PersonalAssessment
+                onToggleFullscreen={setIsFullscreen}
+                isFullscreen={isFullscreen}
+                onViewResults={() => setShowRecommendations(true)}
+                onFinished={setIsFinished}
+              />
+            )}
 
-            </div>
           </div>
-        )}
+        </div>
 
         {!isFullscreen && !isFinished && currentStep !== 0 && currentStep !== 1 && currentStep !== 2 && (
           <div className="flex flex-col md:flex-row justify-between items-center mt-10 px-4 md:px-5 pb-10 max-w-5xl mx-auto gap-4 md:gap-0 w-full">
