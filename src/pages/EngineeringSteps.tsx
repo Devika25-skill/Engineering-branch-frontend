@@ -122,6 +122,21 @@ export default function EngineeringSteps(): React.ReactElement {
         ? "w-full max-w-7xl mx-auto px-4 md:px-8 py-8 transition-all duration-300"
         : `container mx-auto px-4 md:px-8 w-full max-w-5xl transition-all duration-300 ${isFinished ? 'pt-8' : ''}`}>
 
+        {isFinished && (
+          <div className="mb-6 flex justify-start">
+            <button
+              onClick={() => {
+                setIsFinished(false);
+                setCurrentStep(0);
+                localStorage.setItem('engineering_current_step', '0');
+              }}
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-white hover:bg-slate-50 text-slate-700 font-bold border border-slate-200 rounded-xl shadow-sm hover:shadow transition-all text-sm group"
+            >
+              <span className="transition-transform group-hover:-translate-x-1">←</span> Back to Form
+            </button>
+          </div>
+        )}
+
         <div className={isFullscreen
           ? "bg-white rounded-3xl shadow-xl overflow-hidden border-t-2 border-slate-200 mb-5 min-h-[80vh] relative transition-all duration-300"
           : "bg-white rounded-3xl shadow-xl overflow-hidden border-t-8 border-blue-500 mb-10 relative"}>
