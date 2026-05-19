@@ -275,13 +275,7 @@ export default function PersonalAssessment({ onToggleFullscreen, isFullscreen, o
 
   if (finished && showResults) {
     return (
-      <div className="fade-in bg-gradient-to-br from-rose-50/70 to-pink-50/70 shadow-lg rounded-2xl border-0 p-6 md:p-8 mb-8 flex flex-col">
-        <div className="flex items-center gap-4 mb-8">
-          <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-rose-400 to-pink-500 rounded-xl text-white shadow-md text-2xl">
-            📋
-          </div>
-          <h2 className="text-2xl font-bold text-slate-800 m-0">Personal Assessment</h2>
-        </div>
+      <div className="fade-in pb-10">
 
 
           {/* Top 3 Summary Box */}
