@@ -241,34 +241,71 @@ export default function PersonalAssessment({ onToggleFullscreen, isFullscreen, o
     }
   ];
 
-  if (finished) {
+  if (finished && !showResults) {
+    return (
+      <div className={`fade-in transition-all duration-500 bg-white shadow-xl rounded-2xl border border-blue-100 relative overflow-hidden ${isFullscreen ? 'min-h-[70vh] p-8 md:p-20' : 'min-h-[570px] p-6 md:p-10'} flex flex-col justify-center items-center`}>
+        {/* Background decoration */}
+        <div className="absolute top-0 right-0 w-64 h-64 bg-blue-50 rounded-full -mr-32 -mt-32 opacity-50 blur-3xl pointer-events-none"></div>
+        <div className="absolute bottom-0 left-0 w-64 h-64 bg-indigo-50 rounded-full -ml-32 -mb-32 opacity-50 blur-3xl pointer-events-none"></div>
+
+        {/* Floating Header Elements */}
+        <div className="absolute top-4 md:top-6 left-4 md:left-6 z-20">
+          <div className="text-[8px] md:text-xs font-bold text-[#3b82f6] uppercase tracking-widest bg-[#3b82f6]/10 px-1.5 md:px-2 py-0.5 rounded-full border border-[#3b82f6]/20 whitespace-nowrap">
+            Step 4: Personal Assessment
+          </div>
+        </div>
+
+        <div className="absolute top-2 md:top-6 right-4 md:right-6 z-20">
+          <button
+            onClick={() => onToggleFullscreen && onToggleFullscreen(!isFullscreen)}
+            className="flex items-center gap-1.5 md:gap-2 px-2 md:px-4 py-0.5 md:py-2 text-slate-500 hover:text-[#3b82f6] hover:bg-slate-50 rounded-lg transition-all font-medium text-[10px] md:text-sm border border-slate-100 bg-white/80 backdrop-blur-sm shadow-sm leading-none"
+          >
+            <svg className="w-3 h-3 md:w-3.5 md:h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              {isFullscreen ? (
+                <>
+                  <path d="M4 14h6v6M20 10h-6V4" />
+                  <path d="M14 10l7-7M10 14l-7 7" />
+                </>
+              ) : (
+                <>
+                  <path d="M15 3h6v6M9 21H3v-6" />
+                  <path d="M21 3l-7 7M3 21l7-7" />
+                </>
+              )}
+            </svg>
+            <span className="hidden sm:inline">{isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}</span>
+            <span className="sm:hidden">{isFullscreen ? 'Exit' : 'Full'}</span>
+          </button>
+        </div>
+
+        {/* Success Banner */}
+        <div className="flex flex-col items-center justify-center text-center py-10 px-6 max-w-lg relative z-10 my-auto">
+          <div className="w-20 h-20 bg-green-50 border border-green-200 rounded-2xl flex items-center justify-center text-4xl mb-6 shadow-md shadow-green-100 animate-bounce">
+            ✅
+          </div>
+          <h2 className="text-3xl font-extrabold text-slate-800 mb-3 tracking-tight">Assessment Complete!</h2>
+          <p className="text-slate-500 text-base leading-relaxed mb-8">
+            Your responses have been successfully stored and analyzed. We're ready to show your customized career path.
+          </p>
+          <button
+            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold py-4 px-12 rounded-xl shadow-lg hover:shadow-indigo-200 hover:scale-105 transition-all duration-300"
+            onClick={() => {
+              setShowResults(true);
+              if (onToggleFullscreen) onToggleFullscreen(true);
+              if (onShowResults) onShowResults();
+            }}
+          >
+            View Result ✨
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (finished && showResults) {
     return (
       <div className="fade-in pb-10">
-        {/* Success Banner — hidden once results are shown */}
-        {!showResults && (
-          <div className="flex flex-col items-center justify-center py-10 px-6 text-center border-b border-slate-100 mb-8">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center text-3xl mb-4 animate-bounce">
-              ✅
-            </div>
-            <h2 className="text-2xl font-extrabold text-slate-800 mb-2 tracking-tight">Assessment Complete!</h2>
-            <p className="text-slate-500 text-base max-w-md">Your responses have been stored and analyzed. We're ready to show your path.</p>
-            <button
-              className="mt-6 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold py-4 px-12 rounded-xl shadow-lg hover:shadow-indigo-200 hover:scale-105 transition-all duration-300"
-              onClick={() => {
-                setShowResults(true);
-                if (onToggleFullscreen) onToggleFullscreen(true);
-                if (onShowResults) onShowResults();
-              }}
-            >
-              View Result ✨
-            </button>
-          </div>
-        )}
-
-        {/* Recommendation Cards — only shown after clicking View Result */}
-        {showResults && (<>
-
-          {/* Page Header */}
+        {/* Page Header */}
           <div className="text-center mb-4 md:mb-6 px-4">
             <h1 className="text-lg md:text-3xl font-black text-slate-800 leading-tight">
               Your personalized Engineering Branch<br />recommendation
@@ -416,7 +453,6 @@ export default function PersonalAssessment({ onToggleFullscreen, isFullscreen, o
               Download PDF
             </button>
           </div>
-        </>)}
       </div>
     );
   }
