@@ -11,7 +11,7 @@ export default function StepTracker({ step }: StepTrackerProps): React.ReactElem
   const progress: number = (step / 4) * 100;
 
   return (
-    <div className="max-w-4xl mx-auto px-4 mb-8">
+    <div className="max-w-5xl mx-auto px-4 md:px-8 mb-8">
       <div className="flex justify-between items-center mb-3">
         <span className="text-xs font-bold text-indigo-500 uppercase tracking-widest bg-indigo-50 px-3 py-1 rounded-full">
           Step {step + 1} of 4

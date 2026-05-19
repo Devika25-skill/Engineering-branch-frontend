@@ -15,17 +15,19 @@ interface User {
 interface AuthContextType {
   user: User | null;
   isLoggedIn: boolean;
+  isLoading: boolean;
   needsUserDetails: boolean;
-  login: (email: string, otp: number) => Promise<void>;
+  login: (email: string, otp: number) => Promise<boolean>;
   logout: () => void;
   sendOTP: (email: string) => Promise<void>;
-  updateUserDetails: (name: string, mobile?: string) => Promise<void>;
+  updateUserDetails: (name: string, mobile?: string, origin?: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [needsUserDetails, setNeedsUserDetails] = useState(false);
   const navigate = useNavigate();
 
@@ -49,6 +51,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         localStorage.removeItem('accessToken');
       }
     }
+    setIsLoading(false);
   }, []);
 
   const sendOTP = async (email: string) => {
@@ -76,19 +79,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.setItem('accessToken', response.accessToken);
       
       // Check if user details are missing
-      if (!response.name || response.name === 'Guest User') {
+      const needsDetails = !response.name || response.name === 'Guest User';
+      if (needsDetails) {
         setNeedsUserDetails(true);
       }
+      return needsDetails;
     } else {
       throw new Error('Invalid OTP');
     }
   };
 
-  const updateUserDetails = async (name: string, mobile?: string) => {
+  const updateUserDetails = async (name: string, mobile?: string, origin?: string) => {
     if (!user) return;
     
-    // Call API to store user details
-    await apiService.storeUser(user.email, name, mobile);
+    // Call API to store user details with origin
+    await apiService.storeUser(user.email, name, mobile, origin);
     
     const updatedUser = {
       ...user,
@@ -133,6 +138,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     <AuthContext.Provider value={{
       user,
       isLoggedIn: !!user,
+      isLoading,
       needsUserDetails,
       login,
       logout,

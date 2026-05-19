@@ -1,11 +1,18 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BookOpen, X, Plus, GripVertical, AlertCircle } from "lucide-react";
-import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
+import { engineeringBranches } from "@/data/engineeringBranches";
 
 interface DiplomaBranchesFormProps {
   data: any;
@@ -13,58 +20,44 @@ interface DiplomaBranchesFormProps {
   validationErrors?: string[];
 }
 
-export const DiplomaBranchesForm = ({ data, onUpdate, validationErrors = [] }: DiplomaBranchesFormProps) => {
-  const [selectedBranches, setSelectedBranches] = useState<string[]>(data.selectedBranches || []);
+export const DiplomaBranchesForm = ({
+  data,
+  onUpdate,
+  validationErrors = [],
+}: DiplomaBranchesFormProps) => {
+  const [selectedBranches, setSelectedBranches] = useState<string[]>(
+    data.selectedBranches || [],
+  );
 
   const isFieldError = (fieldName: string) => {
-    return validationErrors.some(error => error.toLowerCase().includes(fieldName.toLowerCase()));
+    return validationErrors.some((error) =>
+      error.toLowerCase().includes(fieldName.toLowerCase()),
+    );
   };
 
-  const availableBranches = [
-    "ALL",
-    "Agricultural",
-    "Artificial Intelligence",
-    "Automobile",
-    "Bio Technology",
-    "Biomedical",
-    "Chemical",
-    "Civil",
-    "Computer",
-    "Cyber Security",
-    "Data Science",
-    "Electrical",
-    "Electronics",
-    "Food Technology",
-    "Information Technology",
-    "Instrumentation",
-    "Internet of Things",
-    "Manufacturing",
-    "Mechanical",
-    "Mechatronics",
-    "Metallurgy and Material Technology",
-    "Mining",
-    "Pharmaceutical Technology",
-    "Polymer",
-    "Production",
-    "Robotics and Automation",
-    "Surface Coating Technology",
-    "Textile Technology"
-  ];
+  const availableBranches = engineeringBranches;
 
   useEffect(() => {
     onUpdate({
-      selectedBranches: selectedBranches
+      selectedBranches: selectedBranches,
     });
   }, [selectedBranches, onUpdate]);
 
   const addBranch = (branch: string) => {
+    if (branch === "ALL") {
+      setSelectedBranches(["ALL"]);
+      return;
+    }
     if (!selectedBranches.includes(branch)) {
-      setSelectedBranches([...selectedBranches, branch]);
+      setSelectedBranches([
+        ...selectedBranches.filter((b) => b !== "ALL"),
+        branch,
+      ]);
     }
   };
 
   const removeBranch = (branch: string) => {
-    setSelectedBranches(selectedBranches.filter(b => b !== branch));
+    setSelectedBranches(selectedBranches.filter((b) => b !== branch));
   };
 
   const handleBranchDragEnd = (result: any) => {
@@ -79,7 +72,9 @@ export const DiplomaBranchesForm = ({ data, onUpdate, validationErrors = [] }: D
 
   return (
     <div className="space-y-6">
-      <Card className={`border-0 shadow-lg bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl ${isFieldError('Engineering Branches') ? 'ring-2 ring-red-300' : ''}`}>
+      <Card
+        className={`border-0 shadow-lg bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl ${isFieldError("Engineering Branches") ? "ring-2 ring-red-300" : ""}`}
+      >
         <CardHeader className="pb-6">
           <CardTitle className="text-xl font-bold text-slate-800 flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center">
@@ -87,35 +82,68 @@ export const DiplomaBranchesForm = ({ data, onUpdate, validationErrors = [] }: D
             </div>
             Engineering Branches
             <span className="text-red-500">*</span>
-            {isFieldError('Engineering Branches') && <AlertCircle size={16} className="text-red-500" />}
+            {isFieldError("Engineering Branches") && (
+              <AlertCircle size={16} className="text-red-500" />
+            )}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           {availableBranches.length > 10 ? (
             <SearchableSelect
               options={availableBranches
-                .filter(branch => !selectedBranches.includes(branch))
-                .map(branch => ({ value: branch, label: branch }))}
+                .filter(
+                  (branch) =>
+                    !selectedBranches.includes(branch) && branch !== "ALL",
+                )
+                .map((branch) => ({ value: branch, label: branch }))
+                .concat(
+                  selectedBranches.includes("ALL")
+                    ? []
+                    : [{ value: "ALL", label: "ALL" }],
+                )
+                .sort((a, b) =>
+                  a.value === "ALL"
+                    ? -1
+                    : b.value === "ALL"
+                      ? 1
+                      : a.value.localeCompare(b.value),
+                )}
               value=""
               onValueChange={addBranch}
-              placeholder="Add your favorite engineering branches"
+              placeholder={
+                selectedBranches.includes("ALL")
+                  ? "ALL branches selected"
+                  : "Add your favorite engineering branches"
+              }
               searchPlaceholder="Search branches..."
               className="w-full"
+              disabled={selectedBranches.includes("ALL")}
             />
           ) : (
-            <Select onValueChange={addBranch}>
+            <Select
+              onValueChange={addBranch}
+              disabled={selectedBranches.includes("ALL")}
+            >
               <SelectTrigger className="h-12 rounded-xl border-2 bg-white">
                 <div className="flex items-center gap-2">
                   <Plus size={16} className="text-purple-600" />
-                  <SelectValue placeholder="Add your favorite engineering branches" />
+                  <SelectValue
+                    placeholder={
+                      selectedBranches.includes("ALL")
+                        ? "ALL branches selected"
+                        : "Add your favorite engineering branches"
+                    }
+                  />
                 </div>
               </SelectTrigger>
               <SelectContent className="max-h-80">
-                {availableBranches.filter(branch => !selectedBranches.includes(branch)).map((branch) => (
-                  <SelectItem key={branch} value={branch}>
-                    {branch}
-                  </SelectItem>
-                ))}
+                {availableBranches
+                  .filter((branch) => !selectedBranches.includes(branch))
+                  .map((branch) => (
+                    <SelectItem key={branch} value={branch}>
+                      {branch}
+                    </SelectItem>
+                  ))}
               </SelectContent>
             </Select>
           )}
@@ -125,26 +153,48 @@ export const DiplomaBranchesForm = ({ data, onUpdate, validationErrors = [] }: D
               <p className="text-sm font-medium text-slate-600 flex items-center gap-2">
                 🎯 Your Preferences (drag to reorder by priority):
               </p>
-              <div className={`border-2 rounded-xl p-3 bg-white ${selectedBranches.length > 5 ? 'max-h-80 overflow-y-auto' : ''}`}>
+              <div
+                className={`border-2 rounded-xl p-3 bg-white ${selectedBranches.length > 5 ? "max-h-80 overflow-y-auto" : ""}`}
+              >
                 <DragDropContext onDragEnd={handleBranchDragEnd}>
                   <Droppable droppableId="branches">
                     {(provided) => (
-                      <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-2">
+                      <div
+                        {...provided.droppableProps}
+                        ref={provided.innerRef}
+                        className="space-y-2"
+                      >
                         {selectedBranches.map((branch, index) => (
-                          <Draggable key={branch} draggableId={branch} index={index}>
+                          <Draggable
+                            key={branch}
+                            draggableId={branch}
+                            index={index}
+                            isDragDisabled={branch === "ALL"}
+                          >
                             {(provided) => (
                               <div
                                 ref={provided.innerRef}
                                 {...provided.draggableProps}
                                 className="flex items-center gap-3 p-3 bg-gradient-to-r from-purple-100 to-pink-100 rounded-xl border shadow-sm hover:shadow-md transition-all"
                               >
-                                <div {...provided.dragHandleProps}>
-                                  <GripVertical size={16} className="text-slate-400 hover:text-slate-600" />
-                                </div>
-                                <span className="text-sm font-bold text-purple-700 bg-white px-2 py-1 rounded-full">
-                                  #{index + 1}
+                                {branch !== "ALL" && (
+                                  <div {...provided.dragHandleProps}>
+                                    <GripVertical
+                                      size={16}
+                                      className="text-slate-400 hover:text-slate-600"
+                                    />
+                                  </div>
+                                )}
+                                {branch !== "ALL" && (
+                                  <span className="text-sm font-bold text-purple-700 bg-white px-2 py-1 rounded-full">
+                                    #{index + 1}
+                                  </span>
+                                )}
+                                <span
+                                  className={`flex-1 text-sm ${branch === "ALL" ? "font-bold text-slate-700 pl-2" : "font-medium text-slate-700"}`}
+                                >
+                                  {branch}
                                 </span>
-                                <span className="flex-1 text-sm font-medium text-slate-700">{branch}</span>
                                 <Button
                                   type="button"
                                   size="sm"

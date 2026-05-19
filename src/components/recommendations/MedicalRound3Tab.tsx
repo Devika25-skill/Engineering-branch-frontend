@@ -1,27 +1,77 @@
-import { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { apiService } from '@/services/api';
-import { recommendationStorage } from '@/services/recommendationStorage';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { SearchableSelect } from '@/components/ui/searchable-select';
-import { Separator } from '@/components/ui/separator';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { useToast } from '@/hooks/use-toast';
-import { Search, Check, Plus, ChevronDown, ChevronUp, MapPin, Users, TrendingUp, Loader2, Sparkles, BookOpen, X, GripVertical, Building2, GraduationCap } from 'lucide-react';
-import { Round3Disclaimer } from './Round3Disclaimer';
+import { useState, useEffect } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { apiService } from "@/services/api";
+import { recommendationStorage } from "@/services/recommendationStorage";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { SearchableSelect } from "@/components/ui/searchable-select";
+import { Separator } from "@/components/ui/separator";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { useToast } from "@/hooks/use-toast";
+import {
+  Search,
+  Check,
+  Plus,
+  ChevronDown,
+  ChevronUp,
+  MapPin,
+  Users,
+  TrendingUp,
+  Loader2,
+  Sparkles,
+  BookOpen,
+  X,
+  GripVertical,
+  Building2,
+  Building,
+  GraduationCap,
+  Tag,
+} from "lucide-react";
+import { Round3Disclaimer } from "./Round3Disclaimer";
 import { usePdfDownloadMedical } from "@/hooks/usePdfDownloadMedical";
-import { NoResultsState } from './NoResultsState';
-import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
-import { PremiumGate } from './PremiumGate';
-import ScrollToTop from '../ScrollToTop';
-import type { MedicalProgram, StoreMedicalConfigRequest, Gender, CollegeTypePreference, PriorityFactor } from '@/types/medical';
-import { State } from '@/types/state';
+import { NoResultsState } from "./NoResultsState";
+import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
+import { PremiumGate } from "./PremiumGate";
+import ScrollToTop from "../ScrollToTop";
+import type {
+  MedicalProgram,
+  StoreMedicalConfigRequest,
+  Gender,
+  CollegeTypePreference,
+  PriorityFactor,
+} from "@/types/medical";
+import { State } from "@/types/state";
+import {
+  MAHARASHTRA_MEDICAL_PROGRAMS,
+  KARNATAKA_MEDICAL_PROGRAMS,
+} from "@/constants/medicalPrograms";
 
 interface SelectedCollege {
   college: any;
@@ -30,20 +80,27 @@ interface SelectedCollege {
 interface MedicalRound3TabProps {
   isRoundInvalidated?: boolean;
   onRegenerateRecommendations?: () => void | Promise<void>;
+  onPreferencesUpdated?: () => void;
+  onRoundResolved?: () => void;
 }
 
-export const MedicalRound3Tab = ({ 
+export const MedicalRound3Tab = ({
   isRoundInvalidated = false,
-  onRegenerateRecommendations 
+  onRegenerateRecommendations,
+  onPreferencesUpdated,
+  onRoundResolved,
 }: MedicalRound3TabProps) => {
   const { user, isLoggedIn } = useAuth();
   const { toast } = useToast();
-  
-  const [searchType, setSearchType] = useState<'college_name' | 'college_code'>('college_name');
-  const [searchValue, setSearchValue] = useState('');
+
+  const [searchType, setSearchType] = useState<"college_name" | "college_code">(
+    "college_name",
+  );
+  const [searchValue, setSearchValue] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const [searchResults, setSearchResults] = useState<any[]>([]);
-  const [selectedCollege, setSelectedCollege] = useState<SelectedCollege | null>(null);
+  const [selectedCollege, setSelectedCollege] =
+    useState<SelectedCollege | null>(null);
   const [showSelectionDialog, setShowSelectionDialog] = useState(false);
   const [showFinalConfirmation, setShowFinalConfirmation] = useState(false);
   const [showEditConfirmation, setShowEditConfirmation] = useState(false);
@@ -56,100 +113,142 @@ export const MedicalRound3Tab = ({
   const [selectedCities, setSelectedCities] = useState<string[]>([]);
   const [isUpdatingPreferences, setIsUpdatingPreferences] = useState(false);
   const [isCollegeCardCollapsed, setIsCollegeCardCollapsed] = useState(true);
-  const [isPreferencesCardCollapsed, setIsPreferencesCardCollapsed] = useState(true);
-  const [isGeneratingRecommendations, setIsGeneratingRecommendations] = useState(false);
+  const [isPreferencesCardCollapsed, setIsPreferencesCardCollapsed] =
+    useState(true);
+  const [isGeneratingRecommendations, setIsGeneratingRecommendations] =
+    useState(false);
   const [round3Recommendations, setRound3Recommendations] = useState<any[]>([]);
-  const [hasGeneratedRecommendations, setHasGeneratedRecommendations] = useState(false);
+  const [hasGeneratedRecommendations, setHasGeneratedRecommendations] =
+    useState(false);
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [skipRound2Selection, setSkipRound2Selection] = useState(false);
-  const [showEditConfirmationRecommendation, setShowEditConfirmationRecommendation] = useState(false);
+  const [
+    showEditConfirmationRecommendation,
+    setShowEditConfirmationRecommendation,
+  ] = useState(false);
 
   // Convert API response to recommendation format
   const convertApiResponseToRecommendations = (apiData: any) => {
     const recommendations: any[] = [];
-    
-    ['Dream', 'Reach', 'Match', 'Safety'].forEach(category => {
+
+    ["Dream", "Reach", "Match", "Safety"].forEach((category) => {
       if (apiData[category] && Array.isArray(apiData[category])) {
         apiData[category].forEach((item: any) => {
           if (item?.college) {
             recommendations.push({
               category: category,
+              quotaCategory: item.category,
               college: {
-                college_name: item.college.college_name || 'Unknown College',
-                college_code: item.college.college_code || '',
-                city: item.college.city || 'Unknown',
-                state: item.college.state || '',
-                college_type: item.college.college_type || '',
-                course_type: item.college.course_type || '',
+                college_name: item.college.college_name || "Unknown College",
+                college_code: item.college.college_code || "",
+                city: item.college.city || "Unknown",
+                state: item.college.state || "",
+                college_type: item.college.college_type || "",
+                course_type: item.college.course_type || "",
               },
-              program: item.program || 'N/A',
+              program: item.program || "N/A",
               closing_rank: item.closing_rank || 0,
               neet_rank: item.neet_rank || 0,
               admission_probability: item.admission_probability || 0,
-              probability_message: item.probability_message || '',
+              probability_message: item.probability_message || "",
             });
           }
         });
       }
     });
-    
+
     return recommendations;
   };
 
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, [hasGeneratedRecommendations]);
+  }, []);
+
+  // Effect to clear results when round is invalidated
+  useEffect(() => {
+    if (isRoundInvalidated) {
+      setRound3Recommendations([]);
+
+      // Check if we actually have recommendations stored for this round
+      // If not, we shouldn't show the "Form Updated" message
+      const hasStoredRecs =
+        sessionStorage.getItem("cachedMedicalRound3Recommendations") ||
+        localStorage.getItem("medicalRound3Recommendations");
+
+      if (!hasStoredRecs) {
+        setHasGeneratedRecommendations(false);
+      }
+    }
+  }, [isRoundInvalidated]);
 
   // Load from localStorage and API on mount
   useEffect(() => {
     const loadExistingData = async () => {
       // First check for cached Round 3 recommendations in session storage
-      const cachedRound3Recommendations = sessionStorage.getItem('cachedMedicalRound3Recommendations');
+      const cachedRound3Recommendations = sessionStorage.getItem(
+        "cachedMedicalRound3Recommendations",
+      );
       if (cachedRound3Recommendations) {
         try {
           const parsedRecs = JSON.parse(cachedRound3Recommendations);
           if (Array.isArray(parsedRecs)) {
             setRound3Recommendations(parsedRecs);
-            setHasGeneratedRecommendations(true);
-          } else if (parsedRecs && typeof parsedRecs === 'object') {
-            const convertedRecs = convertApiResponseToRecommendations(parsedRecs);
+            if (parsedRecs.length > 0) {
+              setHasGeneratedRecommendations(true);
+            }
+          } else if (parsedRecs && typeof parsedRecs === "object") {
+            const convertedRecs =
+              convertApiResponseToRecommendations(parsedRecs);
             setRound3Recommendations(convertedRecs);
-            setHasGeneratedRecommendations(true);
-            
+            if (convertedRecs.length > 0) {
+              setHasGeneratedRecommendations(true);
+            }
+
             if (parsedRecs.is_payment === true) {
-              localStorage.setItem('medicalRecommendationUnlocked', 'true');
+              localStorage.setItem("medicalRecommendationUnlocked", "true");
               setIsUnlocked(true);
             }
-            
-            sessionStorage.setItem('cachedMedicalRound3Recommendations', JSON.stringify(convertedRecs));
+
+            sessionStorage.setItem(
+              "cachedMedicalRound3Recommendations",
+              JSON.stringify(convertedRecs),
+            );
           }
         } catch (error) {
-          console.error('Error loading cached Round 3 recommendations:', error);
-          sessionStorage.removeItem('cachedMedicalRound3Recommendations');
+          console.error("Error loading cached Round 3 recommendations:", error);
+          sessionStorage.removeItem("cachedMedicalRound3Recommendations");
         }
       }
 
       // Check for existing Round 3 recommendations in localStorage if no session cache
       if (!cachedRound3Recommendations) {
-        const storedRecommendations = localStorage.getItem('medicalRound3Recommendations');
+        const storedRecommendations = localStorage.getItem(
+          "medicalRound3Recommendations",
+        );
         if (storedRecommendations) {
           try {
             const parsedRecs = JSON.parse(storedRecommendations);
             if (parsedRecs && Object.keys(parsedRecs).length > 0) {
-              const convertedRecs = convertApiResponseToRecommendations(parsedRecs);
+              const convertedRecs =
+                convertApiResponseToRecommendations(parsedRecs);
               setRound3Recommendations(convertedRecs);
-              setHasGeneratedRecommendations(true);
-              
+              if (convertedRecs.length > 0) {
+                setHasGeneratedRecommendations(true);
+              }
+
               if (parsedRecs.is_payment === true) {
-                localStorage.setItem('medicalRecommendationUnlocked', 'true');
+                localStorage.setItem("medicalRecommendationUnlocked", "true");
                 setIsUnlocked(true);
               }
-              
-              sessionStorage.setItem('cachedMedicalRound3Recommendations', JSON.stringify(convertedRecs));
+
+              sessionStorage.setItem(
+                "cachedMedicalRound3Recommendations",
+                JSON.stringify(convertedRecs),
+              );
             }
           } catch (error) {
-            console.error('Error loading stored recommendations:', error);
-            localStorage.removeItem('medicalRound3Recommendations');
+            console.error("Error loading stored recommendations:", error);
+            localStorage.removeItem("medicalRound3Recommendations");
           }
         }
       }
@@ -157,8 +256,12 @@ export const MedicalRound3Tab = ({
       // Try to fetch saved Round 2 college details from API
       if (user?.accessToken) {
         try {
-          const selectedState = localStorage.getItem('selected_state') || '';
-          const response = await apiService.getMedicalUserRoundDetails(2, user.accessToken, selectedState);
+          const selectedState = localStorage.getItem("selected_state") || "";
+          const response = await apiService.getMedicalUserRoundDetails(
+            2,
+            user.accessToken,
+            selectedState,
+          );
           if (response.success && response.data && response.data.collegeName) {
             const collegeData = {
               college_name: response.data.collegeName,
@@ -166,16 +269,19 @@ export const MedicalRound3Tab = ({
               course_type: response.data.courseName,
               city: response.data.city,
             };
-            
+
             setSelectedCollege({ college: collegeData });
             setIsConfirmed(true);
             setShowPreferences(true);
-            
-            localStorage.setItem('medicalRound3SelectedCollege', JSON.stringify(collegeData));
+
+            localStorage.setItem(
+              "medicalRound3SelectedCollege",
+              JSON.stringify(collegeData),
+            );
           }
         } catch (error) {
-          console.error('Error fetching saved round details from API:', error);
-          const stored = localStorage.getItem('medicalRound3SelectedCollege');
+          console.error("Error fetching saved round details from API:", error);
+          const stored = localStorage.getItem("medicalRound3SelectedCollege");
           if (stored) {
             try {
               const parsedData = JSON.parse(stored);
@@ -183,12 +289,12 @@ export const MedicalRound3Tab = ({
               setIsConfirmed(true);
               setShowPreferences(true);
             } catch (error) {
-              console.error('Error loading stored selection data:', error);
+              console.error("Error loading stored selection data:", error);
             }
           }
         }
       } else {
-        const stored = localStorage.getItem('medicalRound3SelectedCollege');
+        const stored = localStorage.getItem("medicalRound3SelectedCollege");
         if (stored) {
           try {
             const parsedData = JSON.parse(stored);
@@ -196,9 +302,25 @@ export const MedicalRound3Tab = ({
             setIsConfirmed(true);
             setShowPreferences(true);
           } catch (error) {
-            console.error('Error loading stored selection data:', error);
+            console.error("Error loading stored selection data:", error);
           }
         }
+      }
+
+      // Check if recommendations exist and if so show preferences
+      const hasRecs =
+        sessionStorage.getItem("cachedMedicalRound3Recommendations") ||
+        localStorage.getItem("medicalRound3Recommendations");
+      if (hasRecs) {
+        setShowPreferences(true);
+      }
+
+      // Check for persisted skip selection flag
+      const persistedSkip =
+        localStorage.getItem("medicalRound3SkipSelection") === "true";
+      if (persistedSkip) {
+        setSkipRound2Selection(true);
+        setShowPreferences(true);
       }
 
       await loadPreferencesFromFormData();
@@ -210,19 +332,20 @@ export const MedicalRound3Tab = ({
   // Check unlock status using same key as Round 1
   useEffect(() => {
     const checkUnlockStatus = () => {
-      const isUnlocked = localStorage.getItem('medicalRecommendationUnlocked') === 'true';
+      const isUnlocked =
+        localStorage.getItem("medicalRecommendationUnlocked") === "true";
       setIsUnlocked(isUnlocked);
     };
-    
+
     checkUnlockStatus();
-    
-    window.addEventListener('storage', checkUnlockStatus);
-    return () => window.removeEventListener('storage', checkUnlockStatus);
+
+    window.addEventListener("storage", checkUnlockStatus);
+    return () => window.removeEventListener("storage", checkUnlockStatus);
   }, []);
 
   const searchTypeOptions = [
-    { value: 'college_name', label: 'College Name' },
-    { value: 'college_code', label: 'College Code' }
+    { value: "college_name", label: "College Name" },
+    { value: "college_code", label: "College Code" },
   ];
 
   const handleSearch = async () => {
@@ -231,7 +354,7 @@ export const MedicalRound3Tab = ({
         title: "Search Required",
         description: "Please enter a search value",
         variant: "destructive",
-        duration: 3000
+        duration: 3000,
       });
       return;
     }
@@ -241,7 +364,7 @@ export const MedicalRound3Tab = ({
         title: "Login Required",
         description: "Please login to search colleges",
         variant: "destructive",
-        duration: 3000
+        duration: 3000,
       });
       return;
     }
@@ -252,15 +375,23 @@ export const MedicalRound3Tab = ({
 
     try {
       let response;
-      
-      const selectedState = localStorage.getItem('selected_state') || '';
-      
-      if (searchType === 'college_name') {
-        response = await apiService.searchMedicalCollegeByName(searchValue, user.accessToken, selectedState);
+
+      const selectedState = localStorage.getItem("selected_state") || "";
+
+      if (searchType === "college_name") {
+        response = await apiService.searchMedicalCollegeByName(
+          searchValue,
+          user.accessToken,
+          selectedState,
+        );
       } else {
         // For Karnataka, treat college code as string; for other states, convert to number
-        if (selectedState === 'Karnataka') {
-          response = await apiService.searchMedicalCollegeByCode(searchValue, user.accessToken, selectedState);
+        if (selectedState === "Karnataka") {
+          response = await apiService.searchMedicalCollegeByCode(
+            searchValue,
+            user.accessToken,
+            selectedState,
+          );
         } else {
           const collegeCode = parseInt(searchValue);
           if (isNaN(collegeCode)) {
@@ -268,11 +399,15 @@ export const MedicalRound3Tab = ({
               title: "Invalid College Code",
               description: "College code must be a 4-digit number",
               variant: "destructive",
-              duration: 3000
+              duration: 3000,
             });
             return;
           }
-          response = await apiService.searchMedicalCollegeByCode(collegeCode, user.accessToken, selectedState);
+          response = await apiService.searchMedicalCollegeByCode(
+            collegeCode,
+            user.accessToken,
+            selectedState,
+          );
         }
       }
 
@@ -282,9 +417,10 @@ export const MedicalRound3Tab = ({
             setSearchResults([]);
             toast({
               title: "No Results",
-              description: "No matching colleges found. Please try a different search term.",
+              description:
+                "No matching colleges found. Please try a different search term.",
               variant: "destructive",
-              duration: 3000
+              duration: 3000,
             });
             return;
           }
@@ -295,27 +431,29 @@ export const MedicalRound3Tab = ({
           setSearchResults([]);
           toast({
             title: "No Results",
-            description: "No matching colleges found. Please try a different search term.",
+            description:
+              "No matching colleges found. Please try a different search term.",
             variant: "destructive",
-            duration: 3000
+            duration: 3000,
           });
         }
       } else {
         setSearchResults([]);
         toast({
           title: "No Results",
-          description: "No matching colleges found. Please try a different search term.",
+          description:
+            "No matching colleges found. Please try a different search term.",
           variant: "destructive",
-          duration: 3000
+          duration: 3000,
         });
       }
     } catch (error) {
-      console.error('Search failed:', error);
+      console.error("Search failed:", error);
       toast({
         title: "Search Failed",
         description: "Failed to search colleges. Please try again.",
         variant: "destructive",
-        duration: 3000
+        duration: 3000,
       });
     } finally {
       setIsSearching(false);
@@ -335,10 +473,14 @@ export const MedicalRound3Tab = ({
       try {
         const formData = recommendationStorage.getFormData();
         let collegeData: any = null;
-        
+
         try {
-          const selectedState = localStorage.getItem('selected_state') || '';
-          const response = await apiService.getMedicalUserRoundDetails(2, user.accessToken, selectedState);
+          const selectedState = localStorage.getItem("selected_state") || "";
+          const response = await apiService.getMedicalUserRoundDetails(
+            2,
+            user.accessToken,
+            selectedState,
+          );
           if (response.success && response.data && response.data.collegeName) {
             collegeData = {
               college_name: response.data.collegeName,
@@ -348,62 +490,73 @@ export const MedicalRound3Tab = ({
             };
           }
         } catch (fetchError) {
-          console.error('Error fetching round details:', fetchError);
+          console.error("Error fetching round details:", fetchError);
         }
-        
+
         if (collegeData && collegeData.college_name) {
-          const selectedState = localStorage.getItem('selected_state') || '';
+          const selectedState = localStorage.getItem("selected_state") || "";
           const apiPayload = {
             collegeName: collegeData.college_name,
             collegeCode: collegeData.college_code || 0,
-            courseName: collegeData.course_type || 'MBBS',
+            courseName: collegeData.course_type || "MBBS",
             round: 2,
-            city: collegeData.city || '',
+            city: collegeData.city || "",
             state: selectedState,
-            category: formData?.reservationCategory || 'OPEN',
+            category: formData?.reservationCategory || "OPEN",
             NEETAllIndiaRank: formData?.neetAllIndiaRank || 0,
-            isDeleted: true
+            isDeleted: true,
           };
-          console.log('Creating new list - marking existing record as deleted:', apiPayload);
-          await apiService.storeMedicalCollegeDetails(apiPayload, user.accessToken);
+          console.log(
+            "Creating new list - marking existing record as deleted:",
+            apiPayload,
+          );
+          await apiService.storeMedicalCollegeDetails(
+            apiPayload,
+            user.accessToken,
+          );
         } else {
-          console.log('No existing college record found, skipping delete API call');
+          console.log(
+            "No existing college record found, skipping delete API call",
+          );
         }
       } catch (apiError) {
-        console.error('Error calling store API with isDeleted:', apiError);
+        console.error("Error calling store API with isDeleted:", apiError);
       }
     }
 
-    localStorage.removeItem('medicalRound3SelectedCollege');
+    localStorage.removeItem("medicalRound3SelectedCollege");
+    localStorage.setItem("medicalRound3SkipSelection", "true");
     setSelectedCollege(null);
     setSkipRound2Selection(true);
     setShowPreferences(true);
     loadPreferencesFromFormData();
     toast({
       title: "Creating New List",
-      description: "Set your preferences below to generate Round 3 recommendations without Round 2 selection.",
-      duration: 3000
+      description:
+        "Set your preferences below to generate Round 3 recommendations without Round 2 selection.",
+      duration: 3000,
     });
   };
 
   const handleRecommendationConfirmEdit = () => {
     setRound3Recommendations([]);
-    localStorage.removeItem('medicalRound3Recommendations');
-    sessionStorage.removeItem('cachedMedicalRound3Recommendations');
-    localStorage.removeItem('medicalRound3SelectedCollege');
+    localStorage.removeItem("medicalRound3Recommendations");
+    sessionStorage.removeItem("cachedMedicalRound3Recommendations");
+    localStorage.removeItem("medicalRound3SelectedCollege");
     setHasGeneratedRecommendations(false);
     toast({
       title: "Selection Reset",
-      description: "You can now make a new selection for Round 3 recommendations.",
-      duration: 3000
+      description:
+        "You can now make a new selection for Round 3 recommendations.",
+      duration: 3000,
     });
   };
 
   const handleConfirmEdit = () => {
     setRound3Recommendations([]);
-    localStorage.removeItem('medicalRound3Recommendations');
-    sessionStorage.removeItem('cachedMedicalRound3Recommendations');
-    localStorage.removeItem('medicalRound3SelectedCollege');
+    localStorage.removeItem("medicalRound3Recommendations");
+    sessionStorage.removeItem("cachedMedicalRound3Recommendations");
+    localStorage.removeItem("medicalRound3SelectedCollege");
     setHasGeneratedRecommendations(false);
     setSelectedCollege(null);
     setIsConfirmed(false);
@@ -415,8 +568,9 @@ export const MedicalRound3Tab = ({
     setShowEditConfirmation(false);
     toast({
       title: "Selection Reset",
-      description: "You can now make a new selection for Round 3 recommendations.",
-      duration: 3000
+      description:
+        "You can now make a new selection for Round 3 recommendations.",
+      duration: 3000,
     });
   };
 
@@ -436,7 +590,7 @@ export const MedicalRound3Tab = ({
         title: "Error",
         description: "Missing required information. Please try again.",
         variant: "destructive",
-        duration: 3000
+        duration: 3000,
       });
       return;
     }
@@ -445,50 +599,104 @@ export const MedicalRound3Tab = ({
     setShowFinalConfirmation(false);
 
     try {
+      // Store to localStorage first
       const storageData = selectedCollege.college;
-      localStorage.setItem('medicalRound3SelectedCollege', JSON.stringify(storageData));
+      localStorage.setItem(
+        "medicalRound3SelectedCollege",
+        JSON.stringify(storageData),
+      );
 
+      // Get form data for additional fields
       const formData = recommendationStorage.getFormData();
-      
+      const selectedState = localStorage.getItem("selected_state") || "";
+
+      // Call API to store medical college details
       try {
-        const selectedState = localStorage.getItem('selected_state') || '';
+        // First, check if there are existing details to "delete" (soft delete)
+        let existingCollegeData: any = null;
+        try {
+          const response = await apiService.getMedicalUserRoundDetails(
+            2,
+            user.accessToken,
+            selectedState,
+          );
+          if (response.success && response.data && response.data.collegeName) {
+            existingCollegeData = {
+              college_name: response.data.collegeName,
+              college_code: response.data.collegeCode,
+              course_type: response.data.courseName,
+              city: response.data.city,
+            };
+          }
+        } catch (fetchError) {
+          console.error("Error fetching existing round details:", fetchError);
+        }
+
+        // If existing data found, mark it as deleted
+        if (existingCollegeData && existingCollegeData.college_name) {
+          const deletePayload = {
+            collegeName: existingCollegeData.college_name,
+            collegeCode: existingCollegeData.college_code || 0,
+            courseName: existingCollegeData.course_type || "MBBS",
+            round: 2,
+            city: existingCollegeData.city || "",
+            state: selectedState,
+            category: formData?.reservationCategory || "OPEN",
+            NEETAllIndiaRank: formData?.neetAllIndiaRank || 0,
+            isDeleted: true,
+          };
+          console.log("Marking existing record as deleted:", deletePayload);
+          await apiService.storeMedicalCollegeDetails(
+            deletePayload,
+            user.accessToken,
+          );
+        }
+
+        // Now save the NEW selection
         const apiPayload = {
           collegeName: selectedCollege.college.college_name,
           collegeCode: selectedCollege.college.college_code,
-          courseName: selectedCollege.college.course_type || 'MBBS',
+          courseName: selectedCollege.college.course_type || "MBBS",
           round: 2,
           city: selectedCollege.college.city,
           state: selectedState,
-          category: formData?.reservationCategory || 'OPEN',
+          category: formData?.reservationCategory || "OPEN",
           NEETAllIndiaRank: formData?.neetAllIndiaRank || 0,
-          isDeleted: false
+          isDeleted: false,
         };
 
-        await apiService.storeMedicalCollegeDetails(apiPayload, user.accessToken);
+        await apiService.storeMedicalCollegeDetails(
+          apiPayload,
+          user.accessToken,
+        );
       } catch (apiError) {
-        console.error('Error calling store API:', apiError);
+        console.error("Error calling store API:", apiError);
+        // Continue even if API fails, as we have localStorage backup
       }
 
       setIsConfirmed(true);
       setShowPreferences(true);
       await loadPreferencesFromFormData();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      window.scrollTo({ top: 0, behavior: "smooth" });
       toast({
         title: "College Details Confirmed",
-        description: "Your Round 2 college details have been confirmed and saved. Now please review and update your preferences for Round 3.",
-        duration: 3000
+        description:
+          "Your Round 2 college details have been confirmed and saved. Now please review and update your preferences for Round 3.",
+        duration: 3000,
       });
     } catch (error) {
-      console.error('Error storing college details:', error);
+      console.error("Error storing college details:", error);
+      // Still set as confirmed if localStorage succeeded
       setIsConfirmed(true);
       setShowPreferences(true);
       await loadPreferencesFromFormData();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      window.scrollTo({ top: 0, behavior: "smooth" });
       toast({
         title: "Details Saved Locally",
-        description: "Your college details were saved locally. Please review your preferences below.",
+        description:
+          "Your college details were saved locally. Please review your preferences below.",
         variant: "destructive",
-        duration: 3000
+        duration: 3000,
       });
     } finally {
       setIsStoring(false);
@@ -499,58 +707,76 @@ export const MedicalRound3Tab = ({
     try {
       if (user?.accessToken) {
         try {
-          const selectedState = localStorage.getItem('selected_state') || '';
-          const profileResponse = await apiService.fetchMedicalStudentDetails(user.accessToken, selectedState);
+          const selectedState = localStorage.getItem("selected_state") || "";
+          const profileResponse = await apiService.fetchMedicalStudentDetails(
+            user.accessToken,
+            selectedState,
+          );
           if (profileResponse.success && profileResponse.data) {
-            const preferences = profileResponse.data.academic_credentials?.preferences;
+            const preferences =
+              profileResponse.data.academic_credentials?.preferences;
             if (preferences) {
               const programs = preferences.medicalPrograms || [];
               const cities = preferences.preferredCities || [];
-              
+
               setSelectedPrograms(programs);
               setSelectedCities(cities);
-              
-              localStorage.setItem('medicalRound3Preferences', JSON.stringify({
-                programs,
-                cities,
-                timestamp: Date.now()
-              }));
+
+              localStorage.setItem(
+                "medicalRound3Preferences",
+                JSON.stringify({
+                  programs,
+                  cities,
+                  timestamp: Date.now(),
+                }),
+              );
               return;
             }
           }
         } catch (apiError) {
-          console.log('API call failed, falling back to local storage:', apiError);
+          console.log(
+            "API call failed, falling back to local storage:",
+            apiError,
+          );
         }
       }
 
       const formData = recommendationStorage.getFormData();
-      if (formData && (formData.preferredMedicalPrograms || formData.preferredCities)) {
+      if (
+        formData &&
+        (formData.preferredMedicalPrograms || formData.preferredCities)
+      ) {
         const programs = formData.preferredMedicalPrograms || [];
         const cities = formData.preferredCities || [];
-        
+
         setSelectedPrograms(programs);
         setSelectedCities(cities);
-        
-        localStorage.setItem('medicalRound3Preferences', JSON.stringify({
-          programs,
-          cities,
-          timestamp: Date.now()
-        }));
+
+        localStorage.setItem(
+          "medicalRound3Preferences",
+          JSON.stringify({
+            programs,
+            cities,
+            timestamp: Date.now(),
+          }),
+        );
         return;
       }
 
-      const storedPreferences = localStorage.getItem('medicalRound3Preferences');
+      const storedPreferences = localStorage.getItem(
+        "medicalRound3Preferences",
+      );
       if (storedPreferences) {
         try {
           const parsed = JSON.parse(storedPreferences);
           setSelectedPrograms(parsed.programs || []);
           setSelectedCities(parsed.cities || []);
         } catch (error) {
-          console.error('Error parsing stored preferences:', error);
+          console.error("Error parsing stored preferences:", error);
         }
       }
     } catch (error) {
-      console.error('Error loading preferences:', error);
+      console.error("Error loading preferences:", error);
     }
   };
 
@@ -560,7 +786,7 @@ export const MedicalRound3Tab = ({
         title: "Authentication Required",
         description: "Please login to update preferences",
         variant: "destructive",
-        duration: 3000
+        duration: 3000,
       });
       return;
     }
@@ -568,46 +794,59 @@ export const MedicalRound3Tab = ({
     setIsUpdatingPreferences(true);
 
     try {
-      sessionStorage.removeItem('cachedMedicalRound1Recommendations');
-      sessionStorage.removeItem('cachedMedicalRound2Recommendations');
-      sessionStorage.removeItem('cachedMedicalRound3Recommendations');
-      sessionStorage.removeItem('cachedMedicalRecommendations');
-      sessionStorage.removeItem('medicalRecommendationPaymentData');
-      localStorage.removeItem('medicalRound3Recommendations');
-      
-      sessionStorage.setItem('round1Invalidated', 'true');
-      sessionStorage.setItem('round2Invalidated', 'true');
-      
+      sessionStorage.removeItem("cachedMedicalRound1Recommendations");
+      sessionStorage.removeItem("cachedMedicalRound2Recommendations");
+      sessionStorage.removeItem("cachedMedicalRound3Recommendations");
+      sessionStorage.removeItem("cachedMedicalRecommendations");
+      sessionStorage.removeItem("medicalRecommendationPaymentData");
+      localStorage.removeItem("medicalRound3Recommendations");
+
+      sessionStorage.setItem("round1Invalidated", "true");
+      sessionStorage.setItem("round2Invalidated", "true");
+
       const selectedStateFromStorage = localStorage.getItem("selected_state");
-      
+
       if (!selectedStateFromStorage) {
         toast({
           title: "State Required",
-          description: "Please select your state or union territory before generating recommendations.",
+          description:
+            "Please select your state or union territory before generating recommendations.",
           variant: "destructive",
-          duration: 3000
+          duration: 3000,
         });
         setIsUpdatingPreferences(false);
         return;
       }
 
       let formData = recommendationStorage.getFormData();
-      
-      if (!formData || 
-          !formData.tenthMarks || formData.tenthMarks === 0 ||
-          !formData.twelfthMarks || formData.twelfthMarks === 0 ||
-          !formData.neetPercentile || formData.neetPercentile === 0 ||
-          !formData.neetAllIndiaRank || formData.neetAllIndiaRank === 0) {
-        
-        console.log('Form data is missing or incomplete, fetching from backend...');
-        
+
+      if (
+        !formData ||
+        !formData.tenthMarks ||
+        formData.tenthMarks === 0 ||
+        !formData.twelfthMarks ||
+        formData.twelfthMarks === 0 ||
+        !formData.neetPercentile ||
+        formData.neetPercentile === 0 ||
+        !formData.neetAllIndiaRank ||
+        formData.neetAllIndiaRank === 0
+      ) {
+        console.log(
+          "Form data is missing or incomplete, fetching from backend...",
+        );
+
         try {
-          const selectedState = localStorage.getItem('selected_state') || '';
-          const studentDetailsResponse = await apiService.fetchMedicalStudentDetails(user.accessToken, selectedState);
-          
+          const selectedState = localStorage.getItem("selected_state") || "";
+          const studentDetailsResponse =
+            await apiService.fetchMedicalStudentDetails(
+              user.accessToken,
+              selectedState,
+            );
+
           if (studentDetailsResponse.success && studentDetailsResponse.data) {
-            const credentials = studentDetailsResponse.data.academic_credentials;
-            
+            const credentials =
+              studentDetailsResponse.data.academic_credentials;
+
             formData = {
               gender: studentDetailsResponse.data.gender,
               tenthMarks: credentials.academicMarks.tenthGradeMarksPercent,
@@ -618,32 +857,45 @@ export const MedicalRound3Tab = ({
               neetAllIndiaRank: credentials.examPercentiles.NEETAllIndiaRank,
               neetRollNumber: credentials.examPercentiles.NEETRollNumber,
               reservationCategory: credentials.reservationCategory,
-              sportsAchievements: credentials.achievementsExperience?.sportsAchievements,
-              certifications: credentials.achievementsExperience?.certifications,
-              internships: credentials.achievementsExperience?.internshipsWorkExperience,
-              otherAchievements: credentials.achievementsExperience?.otherAchievements,
-              hostelPreference: credentials.campusFacilitiesEnvironment?.hostelFacility,
-              campusSetting: credentials.campusFacilitiesEnvironment?.campusSetting,
-              transportFacility: credentials.campusFacilitiesEnvironment?.transportFacility,
+              sportsAchievements:
+                credentials.achievementsExperience?.sportsAchievements,
+              certifications:
+                credentials.achievementsExperience?.certifications,
+              internships:
+                credentials.achievementsExperience?.internshipsWorkExperience,
+              otherAchievements:
+                credentials.achievementsExperience?.otherAchievements,
+              hostelPreference:
+                credentials.campusFacilitiesEnvironment?.hostelFacility,
+              campusSetting:
+                credentials.campusFacilitiesEnvironment?.campusSetting,
+              transportFacility:
+                credentials.campusFacilitiesEnvironment?.transportFacility,
               maxBudget: credentials.annualBudget,
               collegeTypes: credentials.collegeTypePreferences,
               priorities: credentials.priorityFactors,
-              otherExamName: credentials.examPercentiles.otherEntranceExam?.[0]?.examName,
-              otherExamPercentile: credentials.examPercentiles.otherEntranceExam?.[0]?.percentileOrScore
+              otherExamName:
+                credentials.examPercentiles.otherEntranceExam?.[0]?.examName,
+              otherExamPercentile:
+                credentials.examPercentiles.otherEntranceExam?.[0]
+                  ?.percentileOrScore,
             };
-            
+
             recommendationStorage.saveFormData(formData);
-            console.log('Successfully fetched, transformed, and saved form data from backend');
+            console.log(
+              "Successfully fetched, transformed, and saved form data from backend",
+            );
           } else {
-            throw new Error('Failed to fetch student details from backend');
+            throw new Error("Failed to fetch student details from backend");
           }
         } catch (fetchError) {
-          console.error('Error fetching student details:', fetchError);
+          console.error("Error fetching student details:", fetchError);
           toast({
             title: "Error Loading Data",
-            description: "Unable to load your profile data. Please try again or go back to the form.",
+            description:
+              "Unable to load your profile data. Please try again or go back to the form.",
             variant: "destructive",
-            duration: 3000
+            duration: 3000,
           });
           setIsUpdatingPreferences(false);
           return;
@@ -652,81 +904,108 @@ export const MedicalRound3Tab = ({
 
       const updatedPreferences = {
         preferredMedicalPrograms: selectedPrograms as MedicalProgram[],
-        preferredCities: selectedCities.length > 0 ? selectedCities : ["ALL"]
+        preferredCities: selectedCities.length > 0 ? selectedCities : ["ALL"],
       };
 
-      formData.preferredMedicalPrograms = updatedPreferences.preferredMedicalPrograms;
+      formData.preferredMedicalPrograms =
+        updatedPreferences.preferredMedicalPrograms;
       formData.preferredCities = updatedPreferences.preferredCities;
       recommendationStorage.saveFormData(formData);
 
       const configPayload: StoreMedicalConfigRequest = {
         username: user.email,
-        gender: (formData.gender || 'M') as Gender,
+        gender: (formData.gender || "M") as Gender,
         academic_credentials: {
           educationBackground: {
-            educationType: '12th',
-            stream: formData.grouping
+            educationType: "12th",
+            stream: formData.grouping,
           },
           academicMarks: {
-            _10thGradeMarksPercent: formData.tenthMarks ? Number(formData.tenthMarks.toFixed(2)) : 0,
-            _12thGradeMarksPercent: formData.twelfthMarks ? Number(formData.twelfthMarks.toFixed(2)) : 0,
-            groupingMarksPercent: formData.groupingMarks ? Number(formData.groupingMarks.toFixed(2)) : 0
+            _10thGradeMarksPercent: formData.tenthMarks
+              ? Number(formData.tenthMarks.toFixed(2))
+              : 0,
+            _12thGradeMarksPercent: formData.twelfthMarks
+              ? Number(formData.twelfthMarks.toFixed(2))
+              : 0,
+            groupingMarksPercent: formData.groupingMarks
+              ? Number(formData.groupingMarks.toFixed(2))
+              : 0,
           },
           examPercentiles: {
             NEETPercentile: Number(formData.neetPercentile?.toFixed(2) || 0),
             NEETAllIndiaRank: formData.neetAllIndiaRank,
             NEETRollNumber: formData.neetRollNumber,
-            otherEntranceExam: formData.otherExamName && formData.otherExamPercentile ? [{
-              examName: formData.otherExamName,
-              percentileOrScore: Number(formData.otherExamPercentile)
-            }] : []
+            otherEntranceExam:
+              formData.otherExamName && formData.otherExamPercentile
+                ? [
+                    {
+                      examName: formData.otherExamName,
+                      percentileOrScore: Number(formData.otherExamPercentile),
+                    },
+                  ]
+                : [],
           },
           reservationCategory: formData.reservationCategory,
           achievementsExperience: {
             sportsAchievements: formData.sportsAchievements,
             certifications: formData.certifications,
             internshipsWorkExperience: formData.internships,
-            otherAchievements: formData.otherAchievements
+            otherAchievements: formData.otherAchievements,
           },
           preferences: {
             medicalPrograms: updatedPreferences.preferredMedicalPrograms,
             preferredCities: updatedPreferences.preferredCities,
-            state: selectedStateFromStorage as State
+            state: selectedStateFromStorage as State,
           },
           campusFacilitiesEnvironment: {
             hostelFacility: formData.hostelPreference,
             campusSetting: formData.campusSetting,
-            transportFacility: formData.transportFacility
+            transportFacility: formData.transportFacility,
           },
           annualBudget: formData.maxBudget || 0,
-          collegeTypePreferences: (formData.collegeTypes || ["ALL"]) as CollegeTypePreference[],
-          priorityFactors: (formData.priorities || ["ALL"]) as PriorityFactor[]
-        }
+          collegeTypePreferences: (formData.collegeTypes || [
+            "ALL",
+          ]) as CollegeTypePreference[],
+          priorityFactors: (formData.priorities || ["ALL"]) as PriorityFactor[],
+        },
       };
 
       await apiService.storeMedicalConfiguration(configPayload);
 
-      localStorage.setItem('medicalRound3Preferences', JSON.stringify({
-        programs: selectedPrograms,
-        cities: selectedCities,
-        timestamp: Date.now()
-      }));
+      localStorage.setItem(
+        "medicalRound3Preferences",
+        JSON.stringify({
+          programs: selectedPrograms,
+          cities: selectedCities,
+          timestamp: Date.now(),
+        }),
+      );
 
       setEditingPreferences(false);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      
+      window.scrollTo({ top: 0, behavior: "smooth" });
+
+      // Signal parent that preferences have been updated
+      if (onPreferencesUpdated) {
+        onPreferencesUpdated();
+      } else {
+        // Fallback: update flags manually if parent callback not provided
+        sessionStorage.setItem("round1Invalidated", "true");
+        sessionStorage.setItem("round2Invalidated", "true");
+        sessionStorage.setItem("round3Invalidated", "true");
+      }
+
       toast({
         title: "Preferences Updated",
         description: "Your Round 3 preferences have been successfully updated.",
-        duration: 3000
+        duration: 3000,
       });
     } catch (error) {
-      console.error('Error updating preferences:', error);
+      console.error("Error updating preferences:", error);
       toast({
         title: "Update Failed",
         description: "Failed to update preferences. Please try again.",
         variant: "destructive",
-        duration: 3000
+        duration: 3000,
       });
     } finally {
       setIsUpdatingPreferences(false);
@@ -739,14 +1018,14 @@ export const MedicalRound3Tab = ({
     } else {
       if (selectedPrograms.includes("ALL")) {
         setSelectedPrograms([program]);
-      } else if (selectedPrograms.length < 3 && !selectedPrograms.includes(program)) {
+      } else if (!selectedPrograms.includes(program)) {
         setSelectedPrograms([...selectedPrograms, program]);
       }
     }
   };
 
   const removeProgram = (program: string) => {
-    setSelectedPrograms(selectedPrograms.filter(p => p !== program));
+    setSelectedPrograms(selectedPrograms.filter((p) => p !== program));
   };
 
   const addCity = (city: string) => {
@@ -755,33 +1034,33 @@ export const MedicalRound3Tab = ({
     } else {
       if (selectedCities.includes("ALL")) {
         setSelectedCities([city]);
-      } else if (selectedCities.length < 3 && !selectedCities.includes(city)) {
+      } else if (!selectedCities.includes(city)) {
         setSelectedCities([...selectedCities, city]);
       }
     }
   };
 
   const removeCity = (city: string) => {
-    setSelectedCities(selectedCities.filter(c => c !== city));
+    setSelectedCities(selectedCities.filter((c) => c !== city));
   };
 
   const handleProgramDragEnd = (result: any) => {
     if (!result.destination) return;
-    
+
     const items = Array.from(selectedPrograms);
     const [reorderedItem] = items.splice(result.source.index, 1);
     items.splice(result.destination.index, 0, reorderedItem);
-    
+
     setSelectedPrograms(items);
   };
 
   const handleCityDragEnd = (result: any) => {
     if (!result.destination) return;
-    
+
     const items = Array.from(selectedCities);
     const [reorderedItem] = items.splice(result.source.index, 1);
     items.splice(result.destination.index, 0, reorderedItem);
-    
+
     setSelectedCities(items);
   };
 
@@ -791,18 +1070,19 @@ export const MedicalRound3Tab = ({
         title: "Authentication Required",
         description: "Please login to generate recommendations",
         variant: "destructive",
-        duration: 3000
+        duration: 3000,
       });
       return;
     }
 
-    const selectedState = localStorage.getItem('selected_state');
+    const selectedState = localStorage.getItem("selected_state");
     if (!selectedState) {
       toast({
         title: "State Required",
-        description: "Please select your state before generating recommendations",
+        description:
+          "Please select your state before generating recommendations",
         variant: "destructive",
-        duration: 3000
+        duration: 3000,
       });
       return;
     }
@@ -810,61 +1090,66 @@ export const MedicalRound3Tab = ({
     if (selectedPrograms.length === 0) {
       toast({
         title: "Missing Preferences",
-        description: "Please select at least one medical program to generate recommendations",
+        description:
+          "Please select at least one medical program to generate recommendations",
         variant: "destructive",
-        duration: 3000
-      });
-      return;
-    }
-
-    if (!skipRound2Selection && !selectedCollege?.college?.college_code) {
-      toast({
-        title: "Missing College Selection",
-        description: "Please select your Round 2 college before generating recommendations",
-        variant: "destructive",
-        duration: 3000
+        duration: 3000,
       });
       return;
     }
 
     setIsGeneratingRecommendations(true);
 
+    setIsGeneratingRecommendations(true);
+
     try {
-      sessionStorage.removeItem('cachedMedicalRound1Recommendations');
-      sessionStorage.removeItem('cachedMedicalRound2Recommendations');
-      sessionStorage.removeItem('cachedMedicalRound3Recommendations');
-      sessionStorage.removeItem('cachedMedicalRecommendations');
-      sessionStorage.removeItem('medicalRecommendationPaymentData');
-      localStorage.removeItem('medicalRound3Recommendations');
-      
-      localStorage.setItem('medicalRound3Preferences', JSON.stringify({
-        programs: selectedPrograms,
-        cities: selectedCities,
-        timestamp: Date.now()
-      }));
+      sessionStorage.removeItem("cachedMedicalRound1Recommendations");
+      sessionStorage.removeItem("cachedMedicalRound2Recommendations");
+      sessionStorage.removeItem("cachedMedicalRound3Recommendations");
+      sessionStorage.removeItem("cachedMedicalRecommendations");
+      sessionStorage.removeItem("medicalRecommendationPaymentData");
+      localStorage.removeItem("medicalRound3Recommendations");
+
+      localStorage.setItem(
+        "medicalRound3Preferences",
+        JSON.stringify({
+          programs: selectedPrograms,
+          cities: selectedCities,
+          timestamp: Date.now(),
+        }),
+      );
 
       let formData = recommendationStorage.getFormData();
-      
-      if (!formData || 
-          !formData.tenthMarks || formData.tenthMarks === 0 ||
-          !formData.twelfthMarks || formData.twelfthMarks === 0 ||
-          !formData.neetPercentile || formData.neetPercentile === 0 ||
-          !formData.neetAllIndiaRank || formData.neetAllIndiaRank === 0) {
-        
-        console.log('Form data is missing or incomplete, fetching from backend...');
-        
+
+      if (
+        !formData ||
+        !formData.tenthMarks ||
+        formData.tenthMarks === 0 ||
+        !formData.twelfthMarks ||
+        formData.twelfthMarks === 0 ||
+        !formData.neetPercentile ||
+        formData.neetPercentile === 0 ||
+        !formData.neetAllIndiaRank ||
+        formData.neetAllIndiaRank === 0
+      ) {
+        console.log(
+          "Form data is missing or incomplete, fetching from backend...",
+        );
+
         try {
-          const token = localStorage.getItem('accessToken');
+          const token = localStorage.getItem("accessToken");
           if (!token) {
-            throw new Error('Authentication token not found');
+            throw new Error("Authentication token not found");
           }
-          
-          const selectedState = localStorage.getItem('selected_state') || '';
-          const studentDetailsResponse = await apiService.fetchMedicalStudentDetails(token, selectedState);
-          
+
+          const selectedState = localStorage.getItem("selected_state") || "";
+          const studentDetailsResponse =
+            await apiService.fetchMedicalStudentDetails(token, selectedState);
+
           if (studentDetailsResponse.success && studentDetailsResponse.data) {
-            const credentials = studentDetailsResponse.data.academic_credentials;
-            
+            const credentials =
+              studentDetailsResponse.data.academic_credentials;
+
             formData = {
               gender: studentDetailsResponse.data.gender,
               tenthMarks: credentials.academicMarks.tenthGradeMarksPercent,
@@ -875,32 +1160,45 @@ export const MedicalRound3Tab = ({
               neetAllIndiaRank: credentials.examPercentiles.NEETAllIndiaRank,
               neetRollNumber: credentials.examPercentiles.NEETRollNumber,
               reservationCategory: credentials.reservationCategory,
-              sportsAchievements: credentials.achievementsExperience?.sportsAchievements,
-              certifications: credentials.achievementsExperience?.certifications,
-              internships: credentials.achievementsExperience?.internshipsWorkExperience,
-              otherAchievements: credentials.achievementsExperience?.otherAchievements,
-              hostelPreference: credentials.campusFacilitiesEnvironment?.hostelFacility,
-              campusSetting: credentials.campusFacilitiesEnvironment?.campusSetting,
-              transportFacility: credentials.campusFacilitiesEnvironment?.transportFacility,
+              sportsAchievements:
+                credentials.achievementsExperience?.sportsAchievements,
+              certifications:
+                credentials.achievementsExperience?.certifications,
+              internships:
+                credentials.achievementsExperience?.internshipsWorkExperience,
+              otherAchievements:
+                credentials.achievementsExperience?.otherAchievements,
+              hostelPreference:
+                credentials.campusFacilitiesEnvironment?.hostelFacility,
+              campusSetting:
+                credentials.campusFacilitiesEnvironment?.campusSetting,
+              transportFacility:
+                credentials.campusFacilitiesEnvironment?.transportFacility,
               maxBudget: credentials.annualBudget,
               collegeTypes: credentials.collegeTypePreferences,
               priorities: credentials.priorityFactors,
-              otherExamName: credentials.examPercentiles.otherEntranceExam?.[0]?.examName,
-              otherExamPercentile: credentials.examPercentiles.otherEntranceExam?.[0]?.percentileOrScore
+              otherExamName:
+                credentials.examPercentiles.otherEntranceExam?.[0]?.examName,
+              otherExamPercentile:
+                credentials.examPercentiles.otherEntranceExam?.[0]
+                  ?.percentileOrScore,
             };
-            
+
             recommendationStorage.saveFormData(formData);
-            console.log('Successfully fetched, transformed, and saved form data from backend');
+            console.log(
+              "Successfully fetched, transformed, and saved form data from backend",
+            );
           } else {
-            throw new Error('Failed to fetch student details from backend');
+            throw new Error("Failed to fetch student details from backend");
           }
         } catch (fetchError) {
-          console.error('Error fetching student details:', fetchError);
+          console.error("Error fetching student details:", fetchError);
           toast({
             title: "Error Loading Data",
-            description: "Unable to load your profile data. Please try again or go back to the form.",
+            description:
+              "Unable to load your profile data. Please try again or go back to the form.",
             variant: "destructive",
-            duration: 3000
+            duration: 3000,
           });
           setIsGeneratingRecommendations(false);
           return;
@@ -911,154 +1209,171 @@ export const MedicalRound3Tab = ({
         round: 3 as 3,
         medical_configuration_request: {
           username: user.email,
-          gender: formData.gender || 'M',
+          gender: formData.gender || "M",
           academic_credentials: {
             educationBackground: {
-              educationType: '12th',
-              stream: formData.grouping
+              educationType: "12th",
+              stream: formData.grouping,
             },
             academicMarks: {
-              _10thGradeMarksPercent: formData.tenthMarks ? Number(formData.tenthMarks.toFixed(2)) : 0,
-              _12thGradeMarksPercent: formData.twelfthMarks ? Number(formData.twelfthMarks.toFixed(2)) : 0,
-              groupingMarksPercent: formData.groupingMarks ? Number(formData.groupingMarks.toFixed(2)) : 0
+              _10thGradeMarksPercent: formData.tenthMarks
+                ? Number(formData.tenthMarks.toFixed(2))
+                : 0,
+              _12thGradeMarksPercent: formData.twelfthMarks
+                ? Number(formData.twelfthMarks.toFixed(2))
+                : 0,
+              groupingMarksPercent: formData.groupingMarks
+                ? Number(formData.groupingMarks.toFixed(2))
+                : 0,
             },
             examPercentiles: {
               NEETPercentile: Number(formData.neetPercentile?.toFixed(2) || 0),
               NEETAllIndiaRank: formData.neetAllIndiaRank,
               NEETRollNumber: formData.neetRollNumber,
-              otherEntranceExam: formData.otherExamName && formData.otherExamPercentile ? [{
-                examName: formData.otherExamName,
-                percentileOrScore: Number(formData.otherExamPercentile)
-              }] : []
+              otherEntranceExam:
+                formData.otherExamName && formData.otherExamPercentile
+                  ? [
+                      {
+                        examName: formData.otherExamName,
+                        percentileOrScore: Number(formData.otherExamPercentile),
+                      },
+                    ]
+                  : [],
             },
             reservationCategory: formData.reservationCategory,
             achievementsExperience: {
               sportsAchievements: formData.sportsAchievements,
               certifications: formData.certifications,
               internshipsWorkExperience: formData.internships,
-              otherAchievements: formData.otherAchievements
+              otherAchievements: formData.otherAchievements,
             },
             preferences: {
               medicalPrograms: selectedPrograms,
-              preferredCities: selectedCities.length > 0 ? selectedCities : ["ALL"],
-              state: localStorage.getItem('selected_state') as State
+              preferredCities:
+                selectedCities.length > 0 ? selectedCities : ["ALL"],
+              state: localStorage.getItem("selected_state") as State,
             },
             campusFacilitiesEnvironment: {
               hostelFacility: formData.hostelPreference,
               campusSetting: formData.campusSetting,
-              transportFacility: formData.transportFacility
+              transportFacility: formData.transportFacility,
             },
             annualBudget: formData.maxBudget || 0,
             collegeTypePreferences: formData.collegeTypes || ["ALL"],
-            priorityFactors: formData.priorities || ["ALL"]
-          }
-        }
+            priorityFactors: formData.priorities || ["ALL"],
+          },
+        },
       };
 
       if (!skipRound2Selection && selectedCollege?.college?.college_code) {
-        payload.last_round_college_choice_code = selectedCollege.college.college_code;
+        payload.last_round_college_choice_code =
+          selectedCollege.college.college_code;
       }
 
       const response = await apiService.generateMedicalRecommendations(payload);
-      
+
       if (response.success) {
-        sessionStorage.removeItem('cachedMedicalRound3Recommendations');
-        localStorage.removeItem('medicalRound3Recommendations');
-        
-        sessionStorage.removeItem('round3Invalidated');
-        
-        localStorage.setItem('medicalRound3Recommendations', JSON.stringify(response.data));
-        
-        const convertedRecs = convertApiResponseToRecommendations(response.data);
+        sessionStorage.removeItem("cachedMedicalRound3Recommendations");
+        localStorage.removeItem("medicalRound3Recommendations");
+
+        sessionStorage.removeItem("round3Invalidated");
+
+        localStorage.setItem(
+          "medicalRound3Recommendations",
+          JSON.stringify(response.data),
+        );
+
+        const convertedRecs = convertApiResponseToRecommendations(
+          response.data,
+        );
         setRound3Recommendations(convertedRecs);
         setHasGeneratedRecommendations(true);
-        
-        sessionStorage.setItem('cachedMedicalRound3Recommendations', JSON.stringify(response.data));
-        
+
+        sessionStorage.setItem(
+          "cachedMedicalRound3Recommendations",
+          JSON.stringify(response.data),
+        );
+
         if (response.data.is_payment === true) {
-          localStorage.setItem('medicalRecommendationUnlocked', 'true');
+          localStorage.setItem("medicalRecommendationUnlocked", "true");
           setIsUnlocked(true);
           toast({
             title: "Recommendations Unlocked!",
-            description: "Your Round 3 recommendations have been automatically unlocked.",
-            duration: 3000
+            description:
+              "Your Round 3 recommendations have been automatically unlocked.",
+            duration: 3000,
           });
         }
-        
+
         toast({
           title: "Round 3 Recommendations Generated",
-          description: "Your Round 3 recommendation list has been generated successfully based on your preferences.",
-          duration: 3000
+          description:
+            "Your Round 3 recommendation list has been generated successfully based on your preferences.",
+          duration: 3000,
         });
+
+        // Notify parent that round is resolved
+        if (onRoundResolved) {
+          onRoundResolved();
+        }
       } else {
-        throw new Error(response.message || 'Failed to generate recommendations');
+        throw new Error(
+          response.message || "Failed to generate recommendations",
+        );
       }
-      
     } catch (error) {
-      console.error('Error generating recommendations:', error);
+      console.error("Error generating recommendations:", error);
       toast({
         title: "Generation Failed",
         description: "Failed to generate recommendations. Please try again.",
         variant: "destructive",
-        duration: 3000
+        duration: 3000,
       });
     } finally {
       setIsGeneratingRecommendations(false);
     }
   };
 
-  const { generatePDF, isGenerating: isPdfGenerating } = usePdfDownloadMedical();
+  const { generatePDF, isGenerating: isPdfGenerating } =
+    usePdfDownloadMedical();
 
   const handleDownloadPDF = () => {
     if (!isUnlocked) {
       toast({
         title: "Download Locked",
-        description: "Please unlock recommendations to download the Round 3 PDF report. Your Round 1 unlock also works for Round 3.",
+        description:
+          "Please unlock recommendations to download the Round 3 PDF report. Your Round 1 unlock also works for Round 3.",
         variant: "destructive",
-        duration: 3000
+        duration: 3000,
       });
       return;
     }
-    
+
     const formData = recommendationStorage.getFormData();
     generatePDF(round3Recommendations, formData);
   };
 
   const sortRecommendationsByCategory = (recs: any[]) => {
-    return [...recs].sort((a, b) => {
-      const categoryOrder = { 'Dream': 0, 'Reach': 1, 'Match': 2, 'Safety': 3 };
-      const categoryA = categoryOrder[a.category as keyof typeof categoryOrder] ?? 4;
-      const categoryB = categoryOrder[b.category as keyof typeof categoryOrder] ?? 4;
-
-      if (categoryA !== categoryB) {
-        return categoryA - categoryB;
-      }
-
-      const probA = a.admission_probability || 0;
-      const probB = b.admission_probability || 0;
-      if (probA !== probB) {
-        return probA - probB;
-      }
-
-      const neetRankA = a.neet_rank || 0;
-      const neetRankB = b.neet_rank || 0;
-      const closingRankA = a.closing_rank || 0;
-      const closingRankB = b.closing_rank || 0;
-      const diffA = Math.abs(closingRankA - neetRankA);
-      const diffB = Math.abs(closingRankB - neetRankB);
-      return diffA - diffB;
-    });
+    // Use API response data directly without any sorting
+    return [...recs];
   };
 
-  const categorizedRecommendations = sortRecommendationsByCategory(round3Recommendations);
+  const categorizedRecommendations = sortRecommendationsByCategory(
+    round3Recommendations,
+  );
 
   const getCategoryColor = (category: string) => {
     switch (category) {
-      case "Dream": return "bg-purple-100 text-purple-800 border-purple-200";
-      case "Reach": return "bg-blue-100 text-blue-800 border-blue-200";
-      case "Match": return "bg-green-100 text-green-800 border-green-200";
-      case "Safety": return "bg-orange-100 text-orange-800 border-orange-200";
-      default: return "bg-gray-100 text-gray-800 border-gray-200";
+      case "Dream":
+        return "bg-purple-100 text-purple-800 border-purple-200";
+      case "Reach":
+        return "bg-blue-100 text-blue-800 border-blue-200";
+      case "Match":
+        return "bg-green-100 text-green-800 border-green-200";
+      case "Safety":
+        return "bg-orange-100 text-orange-800 border-orange-200";
+      default:
+        return "bg-gray-100 text-gray-800 border-gray-200";
     }
   };
 
@@ -1070,54 +1385,152 @@ export const MedicalRound3Tab = ({
 
   const truncateText = (text: string, maxLength: number) => {
     if (!text) return "";
-    return text.length > maxLength ? `${text.substring(0, maxLength)}...` : text;
+    return text.length > maxLength
+      ? `${text.substring(0, maxLength)}...`
+      : text;
   };
 
-  const availablePrograms = [
-    "ALL", "MBBS", "BDS", "BAMS", "BHMS", "BUMS", "BNYS", "BPTH", "BOTH", "BASLP", "BP&O"
-  ];
+  const selectedState = localStorage.getItem("selected_state") || "Maharashtra";
 
-  const selectedState = localStorage.getItem('selected_state') || 'Maharashtra';
+  const availablePrograms =
+    selectedState === "Karnataka"
+      ? KARNATAKA_MEDICAL_PROGRAMS
+      : MAHARASHTRA_MEDICAL_PROGRAMS;
 
   const maharashtraCities = [
-    "ALL", "Ahilyanagar (Ahmednagar)", "Akola", "Alibag (Alibaug)", "Ambajogai", "Ambernath",
-    "Amravati", "Baramati", "Beed", "Bhandara", "Bhiwandi", "Buldhana",
-    "Chalisgaon", "Chandrapur", "Chandwad", "Chhatrapati Sambhajinagar (Aurangabad)",
-    "Chinchwad", "Dharashiv", "Dhule", "Dombivali", "Gadchiroli", "Gadhinglaj",
-    "Gondia", "Hingoli", "Jalgaon", "Jalna", "Jaysingpur (Jaisingpur)",
-    "Kalyan", "Kannad", "Karjat", "Khamgaon", "Kolhapur", "Kopargaon",
-    "Latur", "Malegaon", "Miraj", "Mumbai", "Nagpur", "Nalasopara",
-    "Nanded", "Nandihills", "Nandurbar", "Nashik", "Palghar", "Pandharpur",
-    "Panvel", "Parbhani", "Pune", "Rahuri", "Raigad", "Ratnagiri",
-    "Sakegaon", "Sangamner", "Sangli", "Satana", "Satara", "Sawantwadi",
-    "Shevgaon", "Shrirampur", "Sindhudurg", "Sinnar", "Solapur", "Thane",
-    "Vengurla", "Virar", "Wardha", "Washim", "Yeotmal (Yavatmal)"
+    "ALL",
+    "Ahilyanagar (Ahmednagar)",
+    "Akola",
+    "Alibag (Alibaug)",
+    "Ambajogai",
+    "Ambernath",
+    "Amravati",
+    "Baramati",
+    "Beed",
+    "Bhandara",
+    "Buldhana",
+    "Chalisgaon",
+    "Chandrapur",
+    "Chandur Railway",
+    "Chandwad",
+    "Chhatrapati Sambhaji Nagar (Aurangabad)",
+    "Chinchwad",
+    "Deori",
+    "Dharashiv (Osmanabad)",
+    "Dhule",
+    "Dombivali",
+    "Gadchiroli",
+    "Gadhinglaj",
+    "Gardi",
+    "Gondia",
+    "Hingoli",
+    "Jalgaon",
+    "Jalna",
+    "Jaysingpur (Jaisingpur)",
+    "Kalyan",
+    "Kannad",
+    "Karjat",
+    "Khamgaon",
+    "Kolhapur",
+    "Kopargaon",
+    "Latur",
+    "Malegaon",
+    "Miraj",
+    "Mumbai",
+    "Nagpur",
+    "Nalasopara",
+    "Nanded",
+    "Nandihills",
+    "Nandurbar",
+    "Nashik",
+    "Newasa (Nevasa)",
+    "Palghar",
+    "Pandharpur",
+    "Panvel",
+    "Parbhani",
+    "Pune",
+    "Rahuri",
+    "Raigad",
+    "Ratnagiri",
+    "Ridhora",
+    "Sakegaon",
+    "Sangamner",
+    "Sangli",
+    "Satara",
+    "Sawantwadi",
+    "Shegaon",
+    "Shevgaon",
+    "Shrirampur",
+    "Sindhudurg",
+    "Solapur",
+    "Thane",
+    "Vasai",
+    "Vengurla",
+    "Virar",
+    "Wardha",
+    "Washim",
+    "Yeotmal (Yavatmal)",
   ];
 
   const karnatakaCities = [
     "ALL",
-    "Badami", "Bagalkot", "Ballari (Bellary)", "Basavakalyan",
-    "Belagavi (Belgaum)", "Belathangady", "Bengaluru (Bangalore)", "Bidar",
-    "Chamarajanagar", "Chikkaballapura", "Chikkamagaluru", "Chitradurga",
-    "Davanagere", "Dharwad", "Doddabathi", "Gadag",
-    "Hassan", "Haveri", "Hosapete (Hospet)", "Hubballi (Hubli)",
-    "Kalaburagi (Gulbarga)", "Kanakapura", "Kolar", "Koppa", "Koppal", "Kundapura",
-    "Madikeri", "Mandya", "Mangaluru (Mangalore)", "Moodbidri",
-    "Mysuru (Mysore)", "Raibag", "Raichur", "Ramanagara (Ramanagar)",
-    "Shivamogga (Shimoga)", "Siddapur", "Sullia", "Tumakuru (Tumkur)",
-    "Udupi", "Varur", "Vijayanagara", "Vijayapura (Bijapur)", "Virajpet", "Yadgir (Yadgiri)"
+    "Aland",
+    "Anekal",
+    "Badami",
+    "Bagalkot",
+    "Ballari",
+    "Basavakalyan",
+    "Belagavi",
+    "Belthangady",
+    "Bengaluru",
+    "Bidar",
+    "Bilagi",
+    "Chamarajanagar",
+    "Chikkaballapura",
+    "Chikkamagaluru",
+    "Chikkodi",
+    "Chitradurga",
+    "Davanagere",
+    "Dharwad",
+    "Doddaballapura",
+    "Gadag",
+    "Harugeri",
+    "Hassan",
+    "Haveri",
+    "Hubballi",
+    "Kalaburagi (Gulbarga)",
+    "Karwar",
+    "Koppal",
+    "Kundapura",
+    "Madikeri",
+    "Mandya",
+    "Mangaluru",
+    "Moodabidri",
+    "Mysuru",
+    "Nelamangala",
+    "Raichur",
+    "Ramanagara",
+    "Sankeshwar",
+    "Shivamogga",
+    "Sullia",
+    "Tumakuru",
+    "Udupi",
+    "Vijayapura",
+    "Virajpet",
+    "Yadgiri",
   ];
 
-  const availableCities = selectedState === 'Karnataka' ? karnatakaCities : maharashtraCities;
+  const availableCities =
+    selectedState === "Karnataka" ? karnatakaCities : maharashtraCities;
 
   return (
     <div className="space-y-6">
       {showPreferences && <Round3Disclaimer />}
-      
+
       {/* Confirmed Selection Display - Collapsible */}
       {isConfirmed && selectedCollege && (
         <Card className="border-green-200 bg-green-50">
-          <CardHeader 
+          <CardHeader
             className="cursor-pointer hover:bg-green-100/50 transition-colors"
             onClick={() => setIsCollegeCardCollapsed(!isCollegeCardCollapsed)}
           >
@@ -1127,14 +1540,17 @@ export const MedicalRound3Tab = ({
                 Round 2 College Selected
               </div>
               <div className="flex items-center gap-2">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={(e) => {
                     e.stopPropagation();
                     handleEditSelection();
                   }}
-                  disabled={hasGeneratedRecommendations && round3Recommendations.length > 0}
+                  disabled={
+                    hasGeneratedRecommendations &&
+                    round3Recommendations.length > 0
+                  }
                   className="text-orange-600 border-orange-300 hover:bg-orange-50"
                 >
                   Edit Selection
@@ -1152,15 +1568,21 @@ export const MedicalRound3Tab = ({
               <div className="space-y-2">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
                   <span className="font-medium text-sm">College:</span>
-                  <span className="text-sm text-green-700 sm:text-right">{selectedCollege.college.college_name}</span>
+                  <span className="text-sm text-green-700 sm:text-right">
+                    {selectedCollege.college.college_name}
+                  </span>
                 </div>
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
                   <span className="font-medium text-sm">City:</span>
-                  <span className="text-sm text-green-700">{selectedCollege.college.city}</span>
+                  <span className="text-sm text-green-700">
+                    {selectedCollege.college.city}
+                  </span>
                 </div>
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
                   <span className="font-medium text-sm">Course:</span>
-                  <Badge variant="secondary" className="w-fit">{selectedCollege.college.course_type}</Badge>
+                  <Badge variant="secondary" className="w-fit">
+                    {selectedCollege.college.course_type}
+                  </Badge>
                 </div>
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
                   <span className="font-medium text-sm">College Code:</span>
@@ -1177,23 +1599,28 @@ export const MedicalRound3Tab = ({
       {/* Preferences Section - Collapsible */}
       {showPreferences && (
         <Card className="border-blue-200 bg-blue-50">
-          <CardHeader 
+          <CardHeader
             className="cursor-pointer hover:bg-blue-100/50 transition-colors"
-            onClick={() => setIsPreferencesCardCollapsed(!isPreferencesCardCollapsed)}
+            onClick={() =>
+              setIsPreferencesCardCollapsed(!isPreferencesCardCollapsed)
+            }
           >
             <CardTitle className="text-lg text-blue-800 flex items-center justify-between">
               <span>Round 3 Preferences</span>
               <div className="flex items-center gap-2">
                 {!editingPreferences && (
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
+                  <Button
+                    variant="outline"
+                    size="sm"
                     onClick={(e) => {
                       e.stopPropagation();
                       setEditingPreferences(true);
                       setIsPreferencesCardCollapsed(false);
                     }}
-                    disabled={hasGeneratedRecommendations && round3Recommendations.length > 0}
+                    disabled={
+                      hasGeneratedRecommendations &&
+                      round3Recommendations.length > 0
+                    }
                     className="text-blue-600 border-blue-300 hover:bg-blue-100"
                   >
                     Edit Preferences
@@ -1225,54 +1652,92 @@ export const MedicalRound3Tab = ({
                       <CardContent className="space-y-6">
                         <SearchableSelect
                           options={availablePrograms
-                            .filter(program => !selectedPrograms.includes(program))
-                            .map(program => ({ value: program, label: program }))}
+                            .filter(
+                              (program) =>
+                                !selectedPrograms.includes(program.code),
+                            )
+                            .map((program) => ({
+                              value: program.code,
+                              label: program.label,
+                            }))}
                           value=""
                           onValueChange={addProgram}
-                          placeholder={selectedPrograms.includes("ALL") ? "ALL programs selected" : selectedPrograms.length >= 3 ? "Maximum 3 programs selected" : "Add your preferred medical programs"}
+                          placeholder={
+                            selectedPrograms.includes("ALL")
+                              ? "ALL programs selected"
+                              : "Add your preferred medical programs"
+                          }
                           searchPlaceholder="Search programs..."
                           className="w-full"
-                          disabled={selectedPrograms.length >= 3 || selectedPrograms.includes("ALL")}
+                          disabled={selectedPrograms.includes("ALL")}
                         />
 
                         {selectedPrograms.length > 0 ? (
                           <div className="space-y-3">
                             <p className="text-sm font-medium text-slate-600 flex items-center gap-2">
-                              🎯 Your Preferences (drag to reorder by priority):
+                              🎯 Your Preferences ({selectedPrograms.length} -
+                              drag to reorder by priority):
                             </p>
-                            <div className={`border-2 rounded-xl p-3 bg-white ${selectedPrograms.length > 5 ? 'max-h-80 overflow-y-auto' : ''}`}>
+                            <div
+                              className={`border-2 rounded-xl p-3 bg-white max-h-96 overflow-y-auto`}
+                            >
                               <DragDropContext onDragEnd={handleProgramDragEnd}>
                                 <Droppable droppableId="programs-round3">
                                   {(provided) => (
-                                    <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-2">
-                                      {selectedPrograms.map((program, index) => (
-                                        <Draggable key={program} draggableId={`r3-${program}`} index={index}>
-                                          {(provided) => (
-                                            <div
-                                              ref={provided.innerRef}
-                                              {...provided.draggableProps}
-                                              className="flex items-center gap-3 p-3 bg-gradient-to-r from-purple-100 to-pink-100 rounded-xl border shadow-sm hover:shadow-md transition-all"
+                                    <div
+                                      {...provided.droppableProps}
+                                      ref={provided.innerRef}
+                                      className="space-y-2"
+                                    >
+                                      {selectedPrograms.map(
+                                        (programCode, index) => {
+                                          const programLabel =
+                                            availablePrograms.find(
+                                              (p) => p.code === programCode,
+                                            )?.label || programCode;
+                                          return (
+                                            <Draggable
+                                              key={programCode}
+                                              draggableId={`r3-${programCode}`}
+                                              index={index}
                                             >
-                                              <div {...provided.dragHandleProps}>
-                                                <GripVertical size={16} className="text-slate-400 hover:text-slate-600" />
-                                              </div>
-                                              <span className="text-sm font-bold text-purple-700 bg-white px-2 py-1 rounded-full">
-                                                #{index + 1}
-                                              </span>
-                                              <span className="flex-1 text-sm font-medium text-slate-700">{program}</span>
-                                              <Button
-                                                type="button"
-                                                size="sm"
-                                                variant="ghost"
-                                                onClick={() => removeProgram(program)}
-                                                className="h-8 w-8 p-0 text-red-500 hover:bg-red-100 rounded-full"
-                                              >
-                                                <X size={14} />
-                                              </Button>
-                                            </div>
-                                          )}
-                                        </Draggable>
-                                      ))}
+                                              {(provided) => (
+                                                <div
+                                                  ref={provided.innerRef}
+                                                  {...provided.draggableProps}
+                                                  className="flex items-center gap-3 p-3 bg-gradient-to-r from-purple-100 to-pink-100 rounded-xl border shadow-sm hover:shadow-md transition-all"
+                                                >
+                                                  <div
+                                                    {...provided.dragHandleProps}
+                                                  >
+                                                    <GripVertical
+                                                      size={16}
+                                                      className="text-slate-400 hover:text-slate-600"
+                                                    />
+                                                  </div>
+                                                  <span className="text-sm font-bold text-purple-700 bg-white px-2 py-1 rounded-full">
+                                                    #{index + 1}
+                                                  </span>
+                                                  <span className="flex-1 text-sm font-medium text-slate-700">
+                                                    {programLabel}
+                                                  </span>
+                                                  <Button
+                                                    type="button"
+                                                    size="sm"
+                                                    variant="ghost"
+                                                    onClick={() =>
+                                                      removeProgram(programCode)
+                                                    }
+                                                    className="h-8 w-8 p-0 text-red-500 hover:bg-red-100 rounded-full"
+                                                  >
+                                                    <X size={14} />
+                                                  </Button>
+                                                </div>
+                                              )}
+                                            </Draggable>
+                                          );
+                                        },
+                                      )}
                                       {provided.placeholder}
                                     </div>
                                   )}
@@ -1282,7 +1747,10 @@ export const MedicalRound3Tab = ({
                           </div>
                         ) : (
                           <div className="text-center py-8 text-slate-500">
-                            <BookOpen size={32} className="mx-auto mb-2 opacity-50" />
+                            <BookOpen
+                              size={32}
+                              className="mx-auto mb-2 opacity-50"
+                            />
                             <p>Select your preferred medical programs!</p>
                           </div>
                         )}
@@ -1296,47 +1764,71 @@ export const MedicalRound3Tab = ({
                             <MapPin className="text-white" size={20} />
                           </div>
                           Preferred Cities
-                          <span className="text-xs text-slate-500 font-normal ml-2">(Optional)</span>
+                          <span className="text-xs text-slate-500 font-normal ml-2">
+                            (Optional)
+                          </span>
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="space-y-6">
                         <SearchableSelect
                           options={availableCities
-                            .filter(city => !selectedCities.includes(city))
-                            .map(city => ({ value: city, label: city }))}
+                            .filter((city) => !selectedCities.includes(city))
+                            .map((city) => ({ value: city, label: city }))}
                           value=""
                           onValueChange={addCity}
-                          placeholder={selectedCities.includes("ALL") ? "ALL cities selected" : selectedCities.length >= 3 ? "Maximum 3 cities selected" : "Add cities you'd love to study in"}
+                          placeholder={
+                            selectedCities.includes("ALL")
+                              ? "ALL cities selected"
+                              : "Add cities you'd love to study in"
+                          }
                           searchPlaceholder="Search cities..."
                           className="w-full"
-                          disabled={selectedCities.length >= 3 || selectedCities.includes("ALL")}
+                          disabled={selectedCities.includes("ALL")}
                         />
 
                         {selectedCities.length > 0 ? (
                           <div className="space-y-3">
                             <p className="text-sm font-medium text-slate-600 flex items-center gap-2">
-                              🗺️ Your Preferences (drag to reorder by priority):
+                              🗺️ Your Preferences ({selectedCities.length} -
+                              drag to reorder by priority):
                             </p>
-                            <div className={`border-2 rounded-xl p-3 bg-white ${selectedCities.length > 5 ? 'max-h-80 overflow-y-auto' : ''}`}>
+                            <div
+                              className={`border-2 rounded-xl p-3 bg-white max-h-96 overflow-y-auto`}
+                            >
                               <DragDropContext onDragEnd={handleCityDragEnd}>
                                 <Droppable droppableId="cities-round3">
                                   {(provided) => (
-                                    <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-2">
+                                    <div
+                                      {...provided.droppableProps}
+                                      ref={provided.innerRef}
+                                      className="space-y-2"
+                                    >
                                       {selectedCities.map((city, index) => (
-                                        <Draggable key={city} draggableId={`r3-${city}`} index={index}>
+                                        <Draggable
+                                          key={city}
+                                          draggableId={`r3-${city}`}
+                                          index={index}
+                                        >
                                           {(provided) => (
                                             <div
                                               ref={provided.innerRef}
                                               {...provided.draggableProps}
                                               className="flex items-center gap-3 p-3 bg-gradient-to-r from-green-100 to-emerald-100 rounded-xl border shadow-sm hover:shadow-md transition-all"
                                             >
-                                              <div {...provided.dragHandleProps}>
-                                                <GripVertical size={16} className="text-slate-400 hover:text-slate-600" />
+                                              <div
+                                                {...provided.dragHandleProps}
+                                              >
+                                                <GripVertical
+                                                  size={16}
+                                                  className="text-slate-400 hover:text-slate-600"
+                                                />
                                               </div>
                                               <span className="text-sm font-bold text-green-700 bg-white px-2 py-1 rounded-full">
                                                 #{index + 1}
                                               </span>
-                                              <span className="flex-1 text-sm font-medium text-slate-700">{city}</span>
+                                              <span className="flex-1 text-sm font-medium text-slate-700">
+                                                {city}
+                                              </span>
                                               <Button
                                                 type="button"
                                                 size="sm"
@@ -1359,24 +1851,29 @@ export const MedicalRound3Tab = ({
                           </div>
                         ) : (
                           <div className="text-center py-8 text-slate-500">
-                            <MapPin size={32} className="mx-auto mb-2 opacity-50" />
+                            <MapPin
+                              size={32}
+                              className="mx-auto mb-2 opacity-50"
+                            />
                             <p>Pick your favorite cities!</p>
                           </div>
                         )}
                       </CardContent>
                     </Card>
                   </div>
-                  
+
                   <div className="flex gap-2 pt-4 border-t border-blue-200">
-                    <Button 
+                    <Button
                       onClick={handleUpdatePreferences}
                       disabled={isUpdatingPreferences}
                       className="bg-blue-600 hover:bg-blue-700"
                     >
-                      {isUpdatingPreferences ? 'Updating...' : 'Update Preferences'}
+                      {isUpdatingPreferences
+                        ? "Updating..."
+                        : "Update Preferences"}
                     </Button>
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       onClick={() => {
                         setEditingPreferences(false);
                         loadPreferencesFromFormData();
@@ -1389,31 +1886,47 @@ export const MedicalRound3Tab = ({
               ) : (
                 <div className="space-y-3">
                   <div>
-                    <Label className="text-sm font-medium text-blue-800">Selected Medical Programs:</Label>
+                    <Label className="text-sm font-medium text-blue-800">
+                      Selected Medical Programs:
+                    </Label>
                     <div className="flex flex-wrap gap-1 mt-1">
                       {selectedPrograms.length > 0 ? (
                         selectedPrograms.map((program) => (
-                          <Badge key={program} variant="secondary" className="text-xs">
+                          <Badge
+                            key={program}
+                            variant="secondary"
+                            className="text-xs"
+                          >
                             {program}
                           </Badge>
                         ))
                       ) : (
-                        <span className="text-sm text-blue-600 italic">No programs selected</span>
+                        <span className="text-sm text-blue-600 italic">
+                          No programs selected
+                        </span>
                       )}
                     </div>
                   </div>
-                  
+
                   <div>
-                    <Label className="text-sm font-medium text-blue-800">Preferred Cities:</Label>
+                    <Label className="text-sm font-medium text-blue-800">
+                      Preferred Cities:
+                    </Label>
                     <div className="flex flex-wrap gap-1 mt-1">
                       {selectedCities.length > 0 ? (
                         selectedCities.map((city) => (
-                          <Badge key={city} variant="secondary" className="text-xs">
+                          <Badge
+                            key={city}
+                            variant="secondary"
+                            className="text-xs"
+                          >
                             {city}
                           </Badge>
                         ))
                       ) : (
-                        <span className="text-sm text-blue-600 italic">No cities selected</span>
+                        <span className="text-sm text-blue-600 italic">
+                          No cities selected
+                        </span>
                       )}
                     </div>
                   </div>
@@ -1425,440 +1938,646 @@ export const MedicalRound3Tab = ({
       )}
 
       {/* Generate Round 3 Recommendations Button */}
-      {showPreferences && !editingPreferences && selectedPrograms.length > 0 && (!hasGeneratedRecommendations || round3Recommendations.length === 0) && (
-        <div className="flex justify-center pt-6">
-          <Button
-            onClick={handleGenerateRecommendations}
-            disabled={isGeneratingRecommendations}
-            className="px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 hover:shadow-xl transition-all duration-200 text-white font-bold text-base rounded-xl min-w-[200px]"
-            size="default"
-          >
-            <Sparkles className="w-5 h-5 mr-2" />
-            {isGeneratingRecommendations ? 'Generating...' : 'Generate Round 3 Recommendations'}
-          </Button>
-        </div>
-      )}
-
-      {/* Round 3 Recommendations Display */}
-      {hasGeneratedRecommendations && round3Recommendations.length > 0 && (
-        <div className="space-y-6">
+      {showPreferences &&
+        !editingPreferences &&
+        selectedPrograms.length > 0 &&
+        (!hasGeneratedRecommendations ||
+          round3Recommendations.length === 0) && (
           <div className="flex justify-center pt-6">
             <Button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleRestRecommendation();
-              }}
-              variant="outline"
-              className="px-6 py-2"
+              onClick={handleGenerateRecommendations}
+              disabled={isGeneratingRecommendations}
+              className="px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 hover:shadow-xl transition-all duration-200 text-white font-bold text-base rounded-xl min-w-[200px]"
+              size="default"
             >
-              Generate New Recommendations
+              <Sparkles className="w-5 h-5 mr-2" />
+              {isGeneratingRecommendations
+                ? "Generating..."
+                : "Generate Round 3 Recommendations"}
             </Button>
           </div>
-          <div className="text-center">
-            <h3 className="text-2xl font-bold text-foreground mb-2">Round 3 College Recommendations</h3>
-            <p className="text-muted-foreground">
-              Based on your Round 2 selection and preferences, here are your Round 3 options
-            </p>
-          </div>
+        )}
 
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
-            <div className="text-center sm:text-left">
-              <p className="text-lg text-gray-600">
-                Found <span className="font-semibold text-blue-600">{categorizedRecommendations.length}</span> college recommendations
-              </p>
-            </div>
-
-            <Button
-              onClick={handleDownloadPDF}
-              disabled={!isUnlocked || isPdfGenerating}
-              className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg min-h-[44px] touch-manipulation"
-            >
-              <span className="text-sm font-medium">
-                {isPdfGenerating ? 'Generating...' : isUnlocked ? 'Download PDF' : 'Unlock to Download'}
-              </span>
-            </Button>
-          </div>
-
-          {/* Recommendations List */}
-          {isUnlocked ? (
-            <div className="space-y-4">
-              {categorizedRecommendations.map((recommendation, index) => {
-                if (!recommendation || !recommendation.college || !recommendation.college.college_name) {
-                  console.error('Invalid recommendation data:', recommendation);
-                  return null;
-                }
-                
-                return (
-                  <Card key={`${recommendation.college?.college_code}-${index}`} className="hover:shadow-lg transition-all duration-300 border border-gray-200 bg-white">
-                    <CardHeader className="pb-2">
-                      <div className="flex items-start gap-3 pr-16 sm:pr-20 min-w-0">
-                        <div className="flex-shrink-0 w-7 h-7 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-full flex items-center justify-center font-bold text-xs">
-                          {index + 1}
-                        </div>
-                        <div className="flex-shrink-0">
-                          <div className="w-10 h-10 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg flex items-center justify-center border border-gray-100">
-                            <span className="text-gray-600 text-xs font-bold">
-                              {recommendation.college?.college_name?.charAt(0) || 'C'}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between gap-2 mb-1">
-                            <div className="flex-1 min-w-0">
-                              <h3 className="text-sm font-semibold text-gray-900 leading-tight">
-                                {truncateText(recommendation.college.college_name, 40)}
-                              </h3>
-                              <div className="flex items-center gap-1 mt-1 text-xs text-gray-500">
-                                <MapPin size={12} className="flex-shrink-0" />
-                                <span className="truncate">{recommendation.college.city}{recommendation.college.state ? `, ${recommendation.college.state}` : ''}</span>
-                              </div>
-                            </div>
-                            <Badge className={`${getCategoryColor(recommendation.category)} px-2 py-0.5 text-xs font-medium flex-shrink-0`}>
-                              {recommendation.category}
-                            </Badge>
-                          </div>
-                          <div className="mt-2">
-                            <p className="text-xs font-medium text-gray-700 leading-snug">
-                              {truncateText(recommendation.program, 60)}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    </CardHeader>
-
-                    <CardContent className="pt-2 pb-3">
-                      <div className="grid grid-cols-2 gap-2 sm:gap-3 mb-3">
-                        <div className="bg-gray-50 rounded-lg p-2">
-                          <div className="flex items-start gap-1">
-                            <TrendingUp size={14} className="text-blue-600 mt-0.5 flex-shrink-0" />
-                            <div className="min-w-0">
-                              <p className="text-xs text-gray-600 leading-tight">Closing Rank</p>
-                              <p className="text-sm font-bold text-gray-900 truncate">
-                                {recommendation.closing_rank ? recommendation.closing_rank.toLocaleString() : 'N/A'}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="bg-gray-50 rounded-lg p-2">
-                          <div className="flex items-start gap-1">
-                            <Users size={14} className="text-green-600 mt-0.5 flex-shrink-0" />
-                            <div className="min-w-0">
-                              <p className="text-xs text-gray-600 leading-tight">Admission Chance</p>
-                              <p className={`text-sm font-bold truncate ${getProbabilityColor(recommendation.admission_probability)}`}>
-                                {recommendation.admission_probability}%
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="bg-gray-50 rounded-lg p-2">
-                          <div className="flex items-start gap-1">
-                            <Users size={14} className="text-purple-600 mt-0.5 flex-shrink-0" />
-                            <div className="min-w-0">
-                              <p className="text-xs text-gray-600 leading-tight">Your Rank</p>
-                              <p className="text-sm font-bold text-gray-900 truncate">
-                                {recommendation.neet_rank ? recommendation.neet_rank.toLocaleString() : 'N/A'}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="bg-gray-50 rounded-lg p-2">
-                          <div className="flex items-start gap-1">
-                            <Users size={14} className="text-orange-600 mt-0.5 flex-shrink-0" />
-                            <div className="min-w-0">
-                              <p className="text-xs text-gray-600 leading-tight">College Type</p>
-                              <p className="text-sm font-bold text-gray-900 truncate">
-                                {recommendation.college.college_type || 'N/A'}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="mt-2 p-2 bg-blue-50 rounded-lg border border-blue-100">
-                        <div className="flex items-center gap-1 text-xs text-blue-700">
-                          <Badge variant="outline" className="text-xs">
-                            {recommendation.college.course_type}
-                          </Badge>
-                          <span className="text-gray-400">•</span>
-                          <span className="font-medium">Code: {recommendation.college.college_code}</span>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="relative">
-              <div className="space-y-4 blur-sm pointer-events-none">
-                {categorizedRecommendations.slice(0, 5).map((recommendation, index) => {
-                  if (!recommendation || !recommendation.college || !recommendation.college.college_name) {
-                    return null;
-                  }
-                  
-                  return (
-                    <Card key={`${recommendation.college?.college_code}-${index}`} className="hover:shadow-lg transition-all duration-300 border border-gray-200 bg-white">
-                      <CardHeader className="pb-2">
-                        <div className="flex items-start gap-3 pr-16 sm:pr-20 min-w-0">
-                          <div className="flex-shrink-0 w-7 h-7 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-full flex items-center justify-center font-bold text-xs">
-                            {index + 1}
-                          </div>
-                          <div className="flex-shrink-0">
-                            <div className="w-10 h-10 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg flex items-center justify-center border border-gray-100">
-                              <span className="text-gray-600 text-xs font-bold">
-                                {recommendation.college?.college_name?.charAt(0) || 'C'}
-                              </span>
-                            </div>
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-start justify-between gap-2 mb-1">
-                              <div className="flex-1 min-w-0">
-                                <h3 className="text-sm font-semibold text-gray-900 leading-tight">
-                                  {truncateText(recommendation.college.college_name, 40)}
-                                </h3>
-                                <div className="flex items-center gap-1 mt-1 text-xs text-gray-500">
-                                  <MapPin size={12} className="flex-shrink-0" />
-                                  <span className="truncate">{recommendation.college.city}</span>
-                                </div>
-                              </div>
-                              <Badge className={`${getCategoryColor(recommendation.category)} px-2 py-0.5 text-xs font-medium flex-shrink-0`}>
-                                {recommendation.category}
-                              </Badge>
-                            </div>
-                          </div>
-                        </div>
-                      </CardHeader>
-                    </Card>
-                  );
-                })}
+      {/* Main Content Area - Prioritized Logic */}
+      {hasGeneratedRecommendations && isRoundInvalidated ? (
+        /* 1. If Invalidated, show ONLY the regeneration card */
+        <Card className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-950/30 dark:via-indigo-950/30 dark:to-purple-950/30 border-2 border-blue-200 dark:border-blue-800">
+          <CardContent className="pt-6">
+            <div className="text-center space-y-4">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 mb-4">
+                <TrendingUp className="w-8 h-8 text-white" />
               </div>
-              
-              <div className="absolute inset-0 flex items-center justify-center">
-                <PremiumGate
-                  onUnlock={() => setIsUnlocked(true)}
-                  storageKey="medicalRecommendationUnlocked"
-                  productType="medical-recommendations"
-                  title="Medical Recommendations Unlock"
-                  description="Unlock complete medical college recommendations"
-                />
+              <div>
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+                  Form Updated - Regenerate Recommendations
+                </h3>
+                <p className="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+                  Your form data has been updated. Click the button below to
+                  generate new recommendations based on your updated
+                  information.
+                </p>
               </div>
+              <Button
+                size="lg"
+                onClick={onRegenerateRecommendations}
+                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold px-8 py-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
+              >
+                <TrendingUp className="mr-2 h-5 w-5" />
+                Generate New Recommendations
+              </Button>
             </div>
-          )}
-        </div>
-      )}
-
-      {/* No Recommendations State */}
-      {hasGeneratedRecommendations && round3Recommendations.length <= 0 && (
+          </CardContent>
+        </Card>
+      ) : (
+        /* 2. Non-invalidated states */
         <>
-          {isRoundInvalidated ? (
-            <Card className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-950/30 dark:via-indigo-950/30 dark:to-purple-950/30 border-2 border-blue-200 dark:border-blue-800">
-              <CardContent className="pt-6">
-                <div className="text-center space-y-4">
-                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 mb-4">
-                    <TrendingUp className="w-8 h-8 text-white" />
-                  </div>
-                  
-                  <div>
-                    <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-                      Form Updated - Regenerate Recommendations
-                    </h3>
-                    <p className="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-                      Your form data has been updated. Click the button below to generate new recommendations based on your updated information.
-                    </p>
-                  </div>
-
-                  <Button 
-                    size="lg"
-                    onClick={onRegenerateRecommendations}
-                    className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold px-8 py-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
-                  >
-                    <TrendingUp className="mr-2 h-5 w-5" />
-                    Generate New Recommendations
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ) : (
-            <NoResultsState />
-          )}
-        </>
-      )}
-
-      {/* Header - Only show if not confirmed */}
-      {!isConfirmed && (
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-foreground mb-2">Round 3 College Selection</h2>
-          <p className="text-muted-foreground">
-            Search and select the college you received in Round 2 for Round 3 counselling
-          </p>
-        </div>
-      )}
-
-      {/* Search Section - Only show if not confirmed */}
-      {!isConfirmed && !skipRound2Selection && (
-        <>
-          <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
-            <CardContent className="p-6 text-center">
-              <div className="space-y-4">
-                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
-                  <Plus className="w-6 h-6 text-blue-600" />
-                </div>
-                <div className="space-y-2">
-                  <h3 className="text-lg font-semibold text-gray-800">Create New Round 3 List</h3>
-                  <p className="text-sm text-gray-600 max-w-md mx-auto">
-                    Don't have Round 2 details? Start fresh with a new Round 3 recommendation list based on your preferences.
-                  </p>
-                </div>
-                <Button onClick={handleCreateNewList} className="bg-blue-600 hover:bg-blue-700">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Create New List
+          {/* Results Display */}
+          {hasGeneratedRecommendations && round3Recommendations.length > 0 ? (
+            <div className="space-y-6">
+              <div className="flex justify-center pt-6">
+                <Button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleRestRecommendation();
+                  }}
+                  variant="outline"
+                  className="px-6 py-2"
+                >
+                  Generate New Recommendations
                 </Button>
               </div>
-            </CardContent>
-          </Card>
+              <div className="text-center">
+                <h3 className="text-2xl font-bold text-foreground mb-2">
+                  Round 3 College Recommendations
+                </h3>
+                <p className="text-muted-foreground">
+                  Based on your Round 2 selection and preferences, here are your
+                  Round 3 options
+                </p>
+              </div>
 
-          <div className="flex items-center gap-4">
-            <div className="flex-1 h-px bg-border"></div>
-            <span className="text-sm text-muted-foreground bg-background px-3">OR</span>
-            <div className="flex-1 h-px bg-border"></div>
-          </div>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Search Your Round 2 College</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="search-type">Search Type</Label>
-                  <Select value={searchType} onValueChange={(value: any) => setSearchType(value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select search type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {searchTypeOptions.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
+                <div className="text-center sm:text-left">
+                  <p className="text-lg text-gray-600">
+                    Found{" "}
+                    <span className="font-semibold text-blue-600">
+                      {categorizedRecommendations.length}
+                    </span>{" "}
+                    college recommendations
+                  </p>
                 </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="search-value">
-                    {searchType === 'college_name' ? 'College Name' : (localStorage.getItem('selected_state') === 'Karnataka' ? 'College Code' : 'College Code (4 digits)')}
-                  </Label>
-                  <div className="flex gap-2">
-                    <Input
-                      id="search-value"
-                      value={searchValue}
-                      onChange={(e) => {
-                        const selectedState = localStorage.getItem('selected_state') || '';
-                        if (searchType === 'college_code' && selectedState !== 'Karnataka') {
-                          const value = e.target.value.replace(/[^0-9]/g, '');
-                          if (value.length <= 4) {
-                            setSearchValue(value);
-                          }
-                        } else {
-                          setSearchValue(e.target.value);
+
+                <Button
+                  onClick={handleDownloadPDF}
+                  disabled={!isUnlocked || isPdfGenerating}
+                  className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg min-h-[44px] touch-manipulation"
+                >
+                  <span className="text-sm font-medium">
+                    {isPdfGenerating
+                      ? "Generating..."
+                      : isUnlocked
+                        ? "Download PDF"
+                        : "Unlock to Download"}
+                  </span>
+                </Button>
+              </div>
+
+              {/* Recommendations List */}
+              {isUnlocked ? (
+                <div className="space-y-4">
+                  {categorizedRecommendations.map((recommendation, index) => {
+                    if (
+                      !recommendation ||
+                      !recommendation.college ||
+                      !recommendation.college.college_name
+                    ) {
+                      return null;
+                    }
+
+                    return (
+                      <Card
+                        key={`${recommendation.college?.college_code}-${index}`}
+                        className="hover:shadow-lg transition-all duration-300 border border-gray-200 bg-white"
+                      >
+                        <CardHeader className="pb-2">
+                          <div className="flex items-start gap-3 pr-16 sm:pr-20 min-w-0">
+                            <div className="flex-shrink-0 w-7 h-7 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-full flex items-center justify-center font-bold text-xs">
+                              {index + 1}
+                            </div>
+                            <div className="flex-shrink-0">
+                              <div className="w-10 h-10 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg flex items-center justify-center border border-gray-100">
+                                <Building className="w-6 h-6 text-purple-600" />
+                              </div>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-start justify-between gap-2 mb-1">
+                                <div className="flex-1 min-w-0">
+                                  <h3
+                                    className="text-sm font-semibold text-gray-900 leading-tight"
+                                    title={recommendation.college.college_name}
+                                  >
+                                    {truncateText(
+                                      recommendation.college.college_name,
+                                      40,
+                                    )}
+                                  </h3>
+                                  <div className="flex items-center gap-1 mt-1 text-xs text-gray-500">
+                                    <MapPin
+                                      size={12}
+                                      className="flex-shrink-0"
+                                    />
+                                    <span className="truncate">
+                                      {recommendation.college.city}
+                                      {recommendation.college.state
+                                        ? `, ${recommendation.college.state}`
+                                        : ""}
+                                    </span>
+                                  </div>
+                                </div>
+                                <Badge
+                                  className={`${getCategoryColor(recommendation.category)} px-2 py-0.5 text-xs font-medium flex-shrink-0`}
+                                >
+                                  {recommendation.category}
+                                </Badge>
+                              </div>
+                              <div className="mt-2 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-1">
+                                <div className="flex items-center gap-1 text-xs text-blue-600">
+                                  <Badge
+                                    variant="outline"
+                                    className="bg-blue-50 text-xs text-blue-600"
+                                  >
+                                    {recommendation.college.course_type}
+                                  </Badge>
+                                  <span className="text-gray-400">•</span>
+                                  <span className="font-medium">
+                                    College Code:{" "}
+                                    {recommendation.college.college_code}
+                                  </span>
+                                </div>
+                                <Badge
+                                  variant="outline"
+                                  className="bg-blue-50 text-xs text-blue-600"
+                                >
+                                  Category: {recommendation.quotaCategory}
+                                </Badge>
+                              </div>
+                            </div>
+                          </div>
+                        </CardHeader>
+
+                        <CardContent className="pt-2 pb-3">
+                          <div className="grid grid-cols-2 gap-2 sm:gap-3 mb-3">
+                            <div className="bg-blue-50 rounded-lg p-2">
+                              <div className="flex items-start gap-1">
+                                <TrendingUp
+                                  size={14}
+                                  className="text-blue-600 mt-0.5 flex-shrink-0"
+                                />
+                                <div className="min-w-0">
+                                  <p className="text-xs text-blue-600 leading-tight">
+                                    Closing Rank
+                                  </p>
+                                  <p className="text-sm font-bold text-blue-900 truncate">
+                                    {recommendation.closing_rank
+                                      ? recommendation.closing_rank.toLocaleString()
+                                      : "N/A"}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="bg-green-50 rounded-lg p-2">
+                              <div className="flex items-start gap-1">
+                                <Users
+                                  size={14}
+                                  className="text-green-600 mt-0.5 flex-shrink-0"
+                                />
+                                <div className="min-w-0">
+                                  <p className="text-xs text-green-600 leading-tight">
+                                    Admission Chance
+                                  </p>
+                                  <p
+                                    className={`text-sm font-bold truncate ${getProbabilityColor(recommendation.admission_probability)}`}
+                                  >
+                                    {recommendation.admission_probability}%
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="bg-purple-50 rounded-lg p-2">
+                              <div className="flex items-start gap-1">
+                                <Users
+                                  size={14}
+                                  className="text-purple-600 mt-0.5 flex-shrink-0"
+                                />
+                                <div className="min-w-0">
+                                  <p className="text-xs text-purple-600 leading-tight">
+                                    Your Rank
+                                  </p>
+                                  <p className="text-sm font-bold text-purple-900 truncate">
+                                    {recommendation.neet_rank
+                                      ? recommendation.neet_rank.toLocaleString()
+                                      : "N/A"}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="bg-orange-50 rounded-lg p-2">
+                              <div className="flex items-start gap-1">
+                                <Users
+                                  size={14}
+                                  className="text-orange-600 mt-0.5 flex-shrink-0"
+                                />
+                                <div className="min-w-0">
+                                  <p className="text-xs text-orange-600 leading-tight">
+                                    College Type
+                                  </p>
+                                  <p className="text-sm font-bold text-orange-900 truncate">
+                                    {recommendation.college.college_type ||
+                                      "N/A"}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="relative">
+                  <div className="space-y-4 blur-sm pointer-events-none">
+                    {categorizedRecommendations
+                      .slice(0, 5)
+                      .map((recommendation, index) => {
+                        if (
+                          !recommendation ||
+                          !recommendation.college ||
+                          !recommendation.college.college_name
+                        ) {
+                          return null;
                         }
-                      }}
-                      onKeyDown={(e) => {
-                        const selectedState = localStorage.getItem('selected_state') || '';
-                        if (searchType === 'college_code' && selectedState !== 'Karnataka') {
-                          if (e.key === '-' || e.key === '+' || e.key === 'e' || e.key === 'E' || e.key === '.') {
-                            e.preventDefault();
-                          }
-                        }
-                        if (e.key === 'Enter') {
-                          handleSearch();
-                        }
-                      }}
-                      onPaste={(e) => {
-                        const selectedState = localStorage.getItem('selected_state') || '';
-                        if (searchType === 'college_code' && selectedState !== 'Karnataka') {
-                          e.preventDefault();
-                          const pastedText = e.clipboardData.getData('text');
-                          const numericValue = pastedText.replace(/[^0-9]/g, '');
-                          if (numericValue.length <= 4) {
-                            setSearchValue(numericValue);
-                          }
-                        }
-                      }}
-                      placeholder={
-                        searchType === 'college_name' ? 'Enter college name' : (localStorage.getItem('selected_state') === 'Karnataka' ? 'Enter college code' : 'Enter 4-digit college code')
-                      }
-                      type="text"
-                      maxLength={searchType === 'college_code' && localStorage.getItem('selected_state') !== 'Karnataka' ? 4 : undefined}
+
+                        return (
+                          <Card
+                            key={`${recommendation.college?.college_code}-${index}`}
+                            className="hover:shadow-lg transition-all duration-300 border border-gray-200 bg-white"
+                          >
+                            <CardHeader className="pb-2">
+                              <div className="flex items-start gap-3 pr-16 sm:pr-20 min-w-0">
+                                <div className="flex-shrink-0 w-7 h-7 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-full flex items-center justify-center font-bold text-xs">
+                                  {index + 1}
+                                </div>
+                                <div className="flex-shrink-0">
+                                  <div className="w-10 h-10 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg flex items-center justify-center border border-gray-100">
+                                    <Building className="w-6 h-6 text-purple-600" />
+                                  </div>
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-start justify-between gap-2 mb-1">
+                                    <div className="flex-1 min-w-0">
+                                      <h3
+                                        className="text-sm font-semibold text-gray-900 leading-tight"
+                                        title={
+                                          recommendation.college.college_name
+                                        }
+                                      >
+                                        {truncateText(
+                                          recommendation.college.college_name,
+                                          40,
+                                        )}
+                                      </h3>
+                                      <div className="flex items-center gap-1 mt-1 text-xs text-gray-500">
+                                        <MapPin
+                                          size={12}
+                                          className="flex-shrink-0"
+                                        />
+                                        <span className="truncate">
+                                          {recommendation.college.city}
+                                        </span>
+                                      </div>
+                                    </div>
+                                    <Badge
+                                      className={`${getCategoryColor(recommendation.category)} px-2 py-0.5 text-xs font-medium flex-shrink-0`}
+                                    >
+                                      {recommendation.category}
+                                    </Badge>
+                                  </div>
+                                </div>
+                              </div>
+                            </CardHeader>
+                          </Card>
+                        );
+                      })}
+                  </div>
+
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <PremiumGate
+                      onUnlock={() => setIsUnlocked(true)}
+                      storageKey="medicalRecommendationUnlocked"
+                      productType="medical-recommendations"
+                      title="Medical Recommendations Unlock"
+                      description="Unlock complete medical college recommendations"
                     />
-                    <Button onClick={handleSearch} disabled={isSearching}>
-                      <Search className="w-4 h-4 mr-2" />
-                      {isSearching ? 'Searching...' : 'Search'}
-                    </Button>
                   </div>
                 </div>
+              )}
+            </div>
+          ) : hasGeneratedRecommendations ? (
+            /* 3. If Generated but empty results, show NoResultsState */
+            <NoResultsState />
+          ) : null}
+
+          {/* College Selection Search Section */}
+          {!selectedCollege && !hasGeneratedRecommendations && (
+            <div className="space-y-6">
+              <div className="text-center">
+                <h2 className="text-2xl font-bold text-foreground mb-2">
+                  Round 3 College Selection
+                </h2>
+                <p className="text-muted-foreground">
+                  Search and select the college you received in Round 2 for
+                  Round 3 counselling
+                </p>
               </div>
-            </CardContent>
-          </Card>
 
-          {/* Search Results */}
-          {searchResults.length > 0 && (
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Search Results</h3>
-              {searchResults.map((college, index) => (
-                <Card key={`${college.college_code}-${index}`} className="hover:shadow-md transition-shadow">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between gap-4">
-                      <div className="flex-1">
-                        <h4 className="text-lg font-semibold text-foreground">{college.college_name}</h4>
-                        <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
-                          <div className="flex items-center gap-1">
-                            <MapPin className="w-4 h-4" />
-                            {college.city}
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Building2 className="w-4 h-4" />
-                            {college.college_code}
-                          </div>
-                          {college.course_type && (
-                            <div className="flex items-center gap-1">
-                              <GraduationCap className="w-4 h-4" />
-                              {college.course_type}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      <Button
-                        onClick={() => handleCollegeSelect(college)}
-                        variant="outline"
-                        className="shrink-0 bg-white hover:bg-accent"
-                      >
-                        <Check className="w-4 h-4 mr-2" />
-                        Select
-                      </Button>
+              <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
+                <CardContent className="p-6 text-center">
+                  <div className="space-y-4">
+                    <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
+                      <Plus className="w-6 h-6 text-blue-600" />
                     </div>
-                  </CardContent>
-                </Card>
-              ))}
+                    <div className="space-y-2">
+                      <h3 className="text-lg font-semibold text-gray-800">
+                        Create New Round 3 List
+                      </h3>
+                      <p className="text-sm text-gray-600 max-w-md mx-auto">
+                        Don't have Round 2 details? Start fresh with a new Round
+                        3 recommendation list based on your preferences.
+                      </p>
+                    </div>
+                    <Button
+                      onClick={handleCreateNewList}
+                      className="bg-blue-600 hover:bg-blue-700"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Create New List
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <div className="flex items-center gap-4">
+                <div className="flex-1 h-px bg-border"></div>
+                <span className="text-sm text-muted-foreground bg-background px-3">
+                  OR
+                </span>
+                <div className="flex-1 h-px bg-border"></div>
+              </div>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">
+                    Search Your Round 2 College
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label htmlFor="search-type">Search Type</Label>
+                      <Select
+                        value={searchType}
+                        onValueChange={(value: any) => {
+                          setSearchType(value);
+                          setSearchValue("");
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select search type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {searchTypeOptions.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="search-value">
+                        {searchType === "college_name"
+                          ? "College Name"
+                          : localStorage.getItem("selected_state") ===
+                              "Karnataka"
+                            ? "College Code"
+                            : "College Code (4 digits)"}
+                      </Label>
+                      <div className="flex gap-2">
+                        <Input
+                          id="search-value"
+                          value={searchValue}
+                          onChange={(e) => {
+                            const selectedState =
+                              localStorage.getItem("selected_state") || "";
+                            const value = e.target.value;
+
+                            if (searchType === "college_code") {
+                              if (selectedState === "Karnataka") {
+                                // Allow alphanumeric for Karnataka
+                                if (/^[a-zA-Z0-9]*$/.test(value)) {
+                                  setSearchValue(value.toUpperCase());
+                                }
+                              } else {
+                                // Only allow numeric input and limit to 4 digits for non-Karnataka states
+                                const numericValue = value.replace(
+                                  /[^0-9]/g,
+                                  "",
+                                );
+                                if (numericValue.length <= 4) {
+                                  setSearchValue(numericValue);
+                                }
+                              }
+                            } else {
+                              // For college_name, allow any input
+                              setSearchValue(value);
+                            }
+                          }}
+                          onKeyDown={(e) => {
+                            const selectedState =
+                              localStorage.getItem("selected_state") || "";
+
+                            if (searchType === "college_code") {
+                              if (selectedState !== "Karnataka") {
+                                // Prevent -, +, e, E and other non-numeric keys for non-Karnataka states
+                                if (
+                                  e.key === "-" ||
+                                  e.key === "+" ||
+                                  e.key === "e" ||
+                                  e.key === "E" ||
+                                  e.key === "."
+                                ) {
+                                  e.preventDefault();
+                                }
+                              } else {
+                                // For Karnataka, prevent special characters (allow alphanumeric)
+                                if (
+                                  !/^[a-zA-Z0-9]$/.test(e.key) &&
+                                  e.key.length === 1 &&
+                                  !e.ctrlKey &&
+                                  !e.metaKey &&
+                                  !e.altKey
+                                ) {
+                                  e.preventDefault();
+                                }
+                              }
+                            }
+                            if (e.key === "Enter") {
+                              handleSearch();
+                            }
+                          }}
+                          onPaste={(e) => {
+                            const selectedState =
+                              localStorage.getItem("selected_state") || "";
+
+                            if (searchType === "college_code") {
+                              e.preventDefault();
+                              const pastedText =
+                                e.clipboardData.getData("text");
+
+                              if (selectedState === "Karnataka") {
+                                // Allow alphanumeric
+                                const alphanumericValue = pastedText.replace(
+                                  /[^a-zA-Z0-9]/g,
+                                  "",
+                                );
+                                setSearchValue(alphanumericValue.toUpperCase());
+                              } else {
+                                // Numeric only
+                                const numericValue = pastedText.replace(
+                                  /[^0-9]/g,
+                                  "",
+                                );
+                                if (numericValue.length <= 4) {
+                                  setSearchValue(numericValue);
+                                }
+                              }
+                            }
+                          }}
+                          placeholder={
+                            searchType === "college_name"
+                              ? "Enter college name"
+                              : localStorage.getItem("selected_state") ===
+                                  "Karnataka"
+                                ? "Enter college code"
+                                : "Enter 4-digit college code"
+                          }
+                          type="text"
+                          maxLength={
+                            searchType === "college_code" &&
+                            localStorage.getItem("selected_state") !==
+                              "Karnataka"
+                              ? 4
+                              : undefined
+                          }
+                        />
+                        <Button onClick={handleSearch} disabled={isSearching}>
+                          <Search className="w-4 h-4 mr-2" />
+                          {isSearching ? "Searching..." : "Search"}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Search Results */}
+              {searchResults.length > 0 && (
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold">Search Results</h3>
+                  {searchResults.map((college, index) => (
+                    <Card
+                      key={`${college.college_code}-${index}`}
+                      className="hover:shadow-md transition-shadow"
+                    >
+                      <CardContent className="p-6">
+                        <div className="flex items-center justify-between gap-4">
+                          <div className="flex-1">
+                            <h4 className="text-lg font-semibold text-foreground">
+                              {college.college_name}
+                            </h4>
+                            <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
+                              <div className="flex items-center gap-1">
+                                <MapPin className="w-4 h-4" />
+                                {college.city}
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <Building2 className="w-4 h-4" />
+                                {college.college_code}
+                              </div>
+                              {college.course_type && (
+                                <div className="flex items-center gap-1">
+                                  <GraduationCap className="w-4 h-4" />
+                                  {college.course_type}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          <Button
+                            onClick={() => handleCollegeSelect(college)}
+                            variant={
+                              selectedCollege?.college?.college_code ===
+                                college.college_code &&
+                              selectedCollege?.college?.course_type ===
+                                college.course_type
+                                ? "default"
+                                : "outline"
+                            }
+                            className="shrink-0"
+                          >
+                            {selectedCollege?.college?.college_code ===
+                              college.college_code &&
+                            selectedCollege?.college?.course_type ===
+                              college.course_type ? (
+                              <>
+                                <Check className="w-4 h-4 mr-2" />
+                                Selected
+                              </>
+                            ) : (
+                              "Select"
+                            )}
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+
+              <Card className="bg-blue-50 border-blue-200">
+                <CardContent className="p-4">
+                  <div className="text-sm text-blue-800">
+                    <p className="font-medium mb-2">💡 Tips for searching:</p>
+                    <ul className="space-y-1 list-disc list-inside text-blue-700">
+                      <li>
+                        <strong>College Name:</strong> You can search with
+                        partial names
+                      </li>
+                      <li>
+                        <strong>College Code:</strong> Use the official college
+                        code from your documents
+                      </li>
+                    </ul>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           )}
-
-          <Card className="bg-blue-50 border-blue-200">
-            <CardContent className="p-4">
-              <div className="text-sm text-blue-800">
-                <p className="font-medium mb-2">💡 Tips for searching:</p>
-                <ul className="space-y-1 list-disc list-inside text-blue-700">
-                  <li><strong>College Name:</strong> You can search with partial names</li>
-                  <li><strong>College Code:</strong> Use the official college code from your documents</li>
-                </ul>
-              </div>
-            </CardContent>
-          </Card>
         </>
       )}
 
@@ -1871,21 +2590,27 @@ export const MedicalRound3Tab = ({
               Please review your Round 2 college selection details.
             </DialogDescription>
           </DialogHeader>
-          
+
           {selectedCollege && (
             <div className="space-y-4">
               <div className="space-y-2">
                 <div className="flex flex-col space-y-1">
                   <span className="font-medium text-sm">College:</span>
-                  <span className="text-sm text-muted-foreground">{selectedCollege.college.college_name}</span>
+                  <span className="text-sm text-muted-foreground">
+                    {selectedCollege.college.college_name}
+                  </span>
                 </div>
                 <div className="flex flex-col space-y-1">
                   <span className="font-medium text-sm">City:</span>
-                  <span className="text-sm text-muted-foreground">{selectedCollege.college.city}</span>
+                  <span className="text-sm text-muted-foreground">
+                    {selectedCollege.college.city}
+                  </span>
                 </div>
                 <div className="flex flex-col space-y-1">
                   <span className="font-medium text-sm">Course:</span>
-                  <Badge variant="secondary" className="w-fit">{selectedCollege.college.course_type}</Badge>
+                  <Badge variant="secondary" className="w-fit">
+                    {selectedCollege.college.course_type}
+                  </Badge>
                 </div>
                 <div className="flex flex-col space-y-1">
                   <span className="font-medium text-sm">College Code:</span>
@@ -1896,26 +2621,34 @@ export const MedicalRound3Tab = ({
               </div>
             </div>
           )}
-          
+
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowSelectionDialog(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setShowSelectionDialog(false)}
+            >
               Cancel
             </Button>
-            <Button onClick={handleConfirmSelection}>
-              Confirm Selection
-            </Button>
+            <Button onClick={handleConfirmSelection}>Confirm Selection</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* Final Confirmation Dialog */}
-      <AlertDialog open={showFinalConfirmation} onOpenChange={setShowFinalConfirmation}>
+      <AlertDialog
+        open={showFinalConfirmation}
+        onOpenChange={setShowFinalConfirmation}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Confirm Round 2 College Details?</AlertDialogTitle>
+            <AlertDialogTitle>
+              Confirm Round 2 College Details?
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              Based on this selection, your Round 3 recommendation list will be generated when you complete the preference settings.
-              This will help you find the best available options for your next round of counselling.
+              Based on this selection, your Round 3 recommendation list will be
+              generated when you complete the preference settings. This will
+              help you find the best available options for your next round of
+              counselling.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -1928,17 +2661,25 @@ export const MedicalRound3Tab = ({
       </AlertDialog>
 
       {/* Edit Confirmation Dialog */}
-      <AlertDialog open={showEditConfirmation} onOpenChange={setShowEditConfirmation}>
+      <AlertDialog
+        open={showEditConfirmation}
+        onOpenChange={setShowEditConfirmation}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Edit Selection?</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to edit your college selection? This will reset your current selection and any generated Round 3 recommendation list will be affected.
+              Are you sure you want to edit your college selection? This will
+              reset your current selection and any generated Round 3
+              recommendation list will be affected.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmEdit} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            <AlertDialogAction
+              onClick={handleConfirmEdit}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
               Yes, Edit Selection
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -1946,17 +2687,25 @@ export const MedicalRound3Tab = ({
       </AlertDialog>
 
       {/* Edit Recommendation Confirmation Dialog */}
-      <AlertDialog open={showEditConfirmationRecommendation} onOpenChange={setShowEditConfirmationRecommendation}>
+      <AlertDialog
+        open={showEditConfirmationRecommendation}
+        onOpenChange={setShowEditConfirmationRecommendation}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Edit Selection?</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to edit your Round 3 Recommendation? This will reset your current Round 3 Recommendation list and any generated Round 3 Recommendation list will be affected.
+              Are you sure you want to edit your Round 3 Recommendation? This
+              will reset your current Round 3 Recommendation list and any
+              generated Round 3 Recommendation list will be affected.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleRecommendationConfirmEdit} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            <AlertDialogAction
+              onClick={handleRecommendationConfirmEdit}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
               Yes, Edit Selection
             </AlertDialogAction>
           </AlertDialogFooter>

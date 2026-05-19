@@ -7,6 +7,7 @@ interface PersonalAssessmentProps {
   isFullscreen?: boolean;
   onViewResults?: () => void;
   onShowResults?: () => void;
+  onFinished?: (finished: boolean) => void;
 }
 
 // Define the structure of a single answer attempt
@@ -51,7 +52,7 @@ interface Recommendation {
   offers: string[];
 }
 
-export default function PersonalAssessment({ onToggleFullscreen, isFullscreen, onViewResults, onShowResults }: PersonalAssessmentProps): React.ReactElement {
+export default function PersonalAssessment({ onToggleFullscreen, isFullscreen, onViewResults, onShowResults, onFinished }: PersonalAssessmentProps): React.ReactElement {
   const [started, setStarted] = useState < boolean > (false);
   const [currentIndex, setCurrentIndex] = useState < number > (0);
   const [answers, setAnswers] = useState < Answers > ({});
@@ -76,6 +77,7 @@ export default function PersonalAssessment({ onToggleFullscreen, isFullscreen, o
           setCurrentIndex(answeredCount);
         } else {
           setFinished(true);
+          if (onFinished) onFinished(true);
         }
       }
     }
@@ -125,6 +127,7 @@ export default function PersonalAssessment({ onToggleFullscreen, isFullscreen, o
       } else {
         setFinished(true);
         setFurthestIndex(personalityQuestions.length);
+        if (onFinished) onFinished(true);
       }
     }, 400);
   };
@@ -244,36 +247,7 @@ export default function PersonalAssessment({ onToggleFullscreen, isFullscreen, o
   if (finished) {
     return (
       <div className="fade-in pb-10">
-        {/* Success Banner — hidden once results are shown */}
-        {!showResults && (
-          <div className="flex flex-col items-center justify-center py-10 px-6 text-center border-b border-slate-100 mb-8">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center text-3xl mb-4 animate-bounce">
-              ✅
-            </div>
-            <h2 className="text-2xl font-extrabold text-slate-800 mb-2 tracking-tight">Assessment Complete!</h2>
-            <p className="text-slate-500 text-base max-w-md">Your responses have been stored and analyzed. We're ready to show your path.</p>
-            <button
-              className="mt-6 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold py-4 px-12 rounded-xl shadow-lg hover:shadow-indigo-200 hover:scale-105 transition-all duration-300"
-              onClick={() => {
-                setShowResults(true);
-                if (onToggleFullscreen) onToggleFullscreen(true);
-                if (onShowResults) onShowResults();
-              }}
-            >
-              View Result ✨
-            </button>
-          </div>
-        )}
 
-        {/* Recommendation Cards — only shown after clicking View Result */}
-        {showResults && (<>
-
-          {/* Page Header */}
-          <div className="text-center mb-4 md:mb-6 px-4">
-            <h1 className="text-lg md:text-3xl font-black text-slate-800 leading-tight">
-              Your personalized Engineering Branch<br />recommendation
-            </h1>
-          </div>
 
           {/* Top 3 Summary Box */}
           <div className="bg-white rounded-none border border-slate-200 shadow-sm p-3 md:p-4 mb-2 md:mb-5 mx-2">
@@ -416,7 +390,6 @@ export default function PersonalAssessment({ onToggleFullscreen, isFullscreen, o
               Download PDF
             </button>
           </div>
-        </>)}
       </div>
     );
   }

@@ -140,9 +140,13 @@ export default function EntranceExam({ onNext, onBack }: EntranceExamProps): Rea
                         onChange={(e) => updateExam(exam.id, 'name', e.target.value)}
                       >
                         <option value="" disabled>Select Exam</option>
-                        {EXAM_OPTIONS.map(opt => (
-                          <option key={opt} value={opt}>{opt}</option>
-                        ))}
+                        {EXAM_OPTIONS.map(opt => {
+                          const isAlreadySelected = exams.some(e => e.id !== exam.id && e.name === opt);
+                          if (isAlreadySelected && opt !== 'Other') {
+                            return null;
+                          }
+                          return <option key={opt} value={opt}>{opt}</option>;
+                        })}
                       </select>
                     </div>
                   )}

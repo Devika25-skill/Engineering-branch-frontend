@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import '../App.css';
-import Navbar from '../components/Navbar';
+import Navigation from '../components/Navigation';
 import Header from '../components/Header';
 import StepTracker from '../components/StepTracker';
 import SectionTabs from '../components/SectionTabs';
@@ -20,6 +20,18 @@ export default function EngineeringSteps(): React.ReactElement {
   const [showRecommendations, setShowRecommendations] = useState<boolean>(false);
   const [showWelcome, setShowWelcome] = useState<boolean>(false);
   const [showResultsView, setShowResultsView] = useState<boolean>(false);
+  const [isFinished, setIsFinished] = useState<boolean>(() => {
+    const progress = localStorage.getItem('personality_assessment_progress');
+    if (progress) {
+      try {
+        const parsed = JSON.parse(progress);
+        return Object.keys(parsed).length >= 30;
+      } catch (e) {
+        return false;
+      }
+    }
+    return false;
+  });
 
   useEffect(() => {
     const savedStep = localStorage.getItem('engineering_current_step');
@@ -57,13 +69,14 @@ export default function EngineeringSteps(): React.ReactElement {
     localStorage.removeItem('personality_assessment_session');
     setCurrentStep(0);
     setShowWelcome(false);
+    setIsFinished(false);
     window.location.reload(); // Refresh to clear all internal states
   };
 
   if (showRecommendations) {
     return (
       <div className="bg-[#f8fafc] min-h-screen">
-        <Navbar />
+        <Navigation />
         <CourseRecommendations />
       </div>
     );
@@ -72,7 +85,7 @@ export default function EngineeringSteps(): React.ReactElement {
   if (showWelcome) {
     return (
       <div style={{ backgroundColor: '#f8fafc', minHeight: '100vh' }}>
-        <Navbar />
+        <Navigation />
         <WelcomeBack
           completedSteps={currentStep}
           onResume={() => setShowWelcome(false)}
@@ -85,7 +98,7 @@ export default function EngineeringSteps(): React.ReactElement {
   if (showDashboard) {
     return (
       <div style={{ backgroundColor: '#f8fafc', minHeight: '100vh' }}>
-        <Navbar />
+        <Navigation />
         <Dashboard
           isLanding={currentStep === 0}
           onStartAssessment={() => setShowDashboard(false)}
@@ -96,26 +109,43 @@ export default function EngineeringSteps(): React.ReactElement {
 
   return (
     <div className="bg-[#fcf2f9] min-h-screen">
-      <Navbar />
+      <Navigation />
 
-      {!isFullscreen && !showResultsView && (
+      {!isFullscreen && !isFinished && (
         <>
           <Header />
-          <StepTracker step={currentStep} />
-          <SectionTabs activeStep={currentStep} />
+          <div className="text-center pb-4 px-4">
+            <StepTracker step={currentStep} />
+            <SectionTabs activeStep={currentStep} />
+          </div>
         </>
       )}
 
       <div className={isFullscreen
         ? "w-full max-w-7xl mx-auto px-4 md:px-8 py-8 transition-all duration-300"
-        : "container mx-auto px-4 md:px-8 w-full max-w-5xl transition-all duration-300"}>
+        : `container mx-auto px-4 md:px-8 w-full max-w-5xl transition-all duration-300 ${isFinished ? 'pt-8' : ''}`}>
+
+        {isFinished && (
+          <div className="mb-6 flex justify-start">
+            <button
+              onClick={() => {
+                setIsFinished(false);
+                setCurrentStep(0);
+                localStorage.setItem('engineering_current_step', '0');
+              }}
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-white hover:bg-slate-50 text-slate-700 font-bold border border-slate-200 rounded-xl shadow-sm hover:shadow transition-all text-sm group"
+            >
+              <span className="transition-transform group-hover:-translate-x-1">←</span> Back to Form
+            </button>
+          </div>
+        )}
 
         <div className={isFullscreen
           ? "bg-white rounded-3xl shadow-xl overflow-hidden border-t-2 border-slate-200 mb-5 min-h-[80vh] relative transition-all duration-300"
           : "bg-white rounded-3xl shadow-xl overflow-hidden border-t-8 border-blue-500 mb-10 relative"}>
 
           <div className="p-4 md:p-8 min-h-[400px]">
-            {!isFullscreen && (
+            {!isFullscreen && !isFinished && (
               <div className="mb-4 text-xs font-bold text-indigo-500 tracking-wider uppercase">
                 Step {currentStep + 1} of 4
               </div>
@@ -130,14 +160,14 @@ export default function EngineeringSteps(): React.ReactElement {
                 onToggleFullscreen={setIsFullscreen}
                 isFullscreen={isFullscreen}
                 onViewResults={() => setShowRecommendations(true)}
-                onShowResults={() => setShowResultsView(true)}
+                onFinished={setIsFinished}
               />
             )}
 
           </div>
         </div>
 
-        {!isFullscreen && currentStep !== 0 && currentStep !== 1 && currentStep !== 2 && (
+        {!isFullscreen && !isFinished && currentStep !== 0 && currentStep !== 1 && currentStep !== 2 && (
           <div className="flex flex-col md:flex-row justify-between items-center mt-10 px-4 md:px-5 pb-10 max-w-5xl mx-auto gap-4 md:gap-0 w-full">
             {currentStep > 0 ? (
               <button

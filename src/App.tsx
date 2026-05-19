@@ -25,6 +25,8 @@ import NotFound from "./pages/NotFound";
 import RaiseIssue from "./pages/RaiseIssue";
 import MyTickets from "./pages/MyTickets";
 import TicketDetails from "./pages/TicketDetails";
+import MockRecommendationPage from "./pages/MockRecommendationPage";
+import CourseRecommendations from "./pages/CourseRecommendations";
 
 // Import your custom Engineering Dashboard steps here!
 import EngineeringSteps from "./pages/EngineeringSteps";
@@ -32,44 +34,46 @@ import EngineeringSteps from "./pages/EngineeringSteps";
 const queryClient = new QueryClient();
 
 const App = () => (
-    <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-                <AuthProvider>
-                    <ScrollToTop />
-                    <div className="min-h-screen flex flex-col">
-                        <div className="flex-1">
-                            <Routes>
-                                <Route path="/" element={<Index />} />
-                                <Route path="/colleges" element={<Colleges />} />
-                                <Route path="/recommendations" element={<Recommendations />} />
-                                <Route path="/recommendations/steps" element={<RecommendationSteps />} />
-                                <Route path="/recommendations/results" element={<RecommendationResults />} />
-                                <Route path="/medical-recommendations/results" element={<MedicalRecommendationResults />} />
-                                <Route path="/diploma-recommendations/steps" element={<DiplomaRecommendationSteps />} />
-                                <Route path="/diploma-recommendations/results" element={<DiplomaRecommendationResults />} />
+  <QueryClientProvider client={queryClient}>
+    <TooltipProvider>
+      <Toaster />
+      <Sonner />
+      <BrowserRouter>
+        <AuthProvider>
+          <ScrollToTop />
+          <div className="min-h-screen flex flex-col">
+            <div className="flex-1">
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/colleges" element={<Colleges />} />
+                <Route path="/recommendations" element={<Recommendations />} />
+                <Route path="/recommendations/steps" element={<RecommendationSteps />} />
+                <Route path="/recommendations/results" element={<RecommendationResults />} />
+                <Route path="/medical-recommendations/results" element={<MedicalRecommendationResults />} />
+                <Route path="/diploma-recommendations/steps" element={<DiplomaRecommendationSteps />} />
+                <Route path="/diploma-recommendations/results" element={<DiplomaRecommendationResults />} />
+                
+                {/* Your new beautiful Engineering flow page! */}
+                <Route path="/engineering-steps" element={<EngineeringSteps />} />
 
-                                {/* Your new beautiful Engineering flow page! */}
-                                <Route path="/engineering-steps" element={<EngineeringSteps />} />
-
-                                <Route path="/integrated-steps" element={<IntegratedAdmissionSteps />} />
-                                <Route path="/integrated-rounds" element={<IntegratedRounds />} />
-                                <Route path="/college/:id" element={<CollegeDetails />} />
-                                <Route path="/raise-issue" element={<RaiseIssue />} />
-                                <Route path="/my-tickets" element={<MyTickets />} />
-                                <Route path="/ticket/:ticketId" element={<TicketDetails />} />
-                                <Route path="/register" element={<AppRegister />} />
-                                <Route path="*" element={<NotFound />} />
-                            </Routes>
-                        </div>
-                        <Footer />
-                    </div>
-                </AuthProvider>
-            </BrowserRouter>
-        </TooltipProvider>
-    </QueryClientProvider>
+                <Route path="/integrated-steps" element={<IntegratedAdmissionSteps />} />
+                <Route path="/integrated-rounds" element={<IntegratedRounds />} />
+                <Route path="/college/:id" element={<CollegeDetails />} />
+                <Route path="/raise-issue" element={<RaiseIssue />} />
+                <Route path="/my-tickets" element={<MyTickets />} />
+                <Route path="/ticket/:ticketId" element={<TicketDetails />} />
+                <Route path="/course-recommendations" element={<CourseRecommendations />} />
+                <Route path="/register" element={<AppRegister />} />
+                <Route path="/mock-recommendations" element={<MockRecommendationPage />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </div>
+            <Footer />
+          </div>
+        </AuthProvider>
+      </BrowserRouter>
+    </TooltipProvider>
+  </QueryClientProvider>
 );
 
 export default App;
