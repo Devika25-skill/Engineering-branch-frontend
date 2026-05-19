@@ -101,12 +101,8 @@ export default function EngineeringSteps(): React.ReactElement {
       {!isFullscreen && (
         <>
           <Header />
-          {!showResultsView && (
-            <>
-              <StepTracker step={currentStep} />
-              <SectionTabs activeStep={currentStep} />
-            </>
-          )}
+          <StepTracker step={currentStep} />
+          <SectionTabs activeStep={currentStep} />
         </>
       )}
 
